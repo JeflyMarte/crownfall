@@ -35,5 +35,5 @@ codex_danger = 4
 codex_habitat = "最果て氷裂・吹雪帯"
 codex_research_note = "狼を祖先とし、極寒の風を厚毛に纏って狩る大型狼。吐息が獲物の体温を奪い、動きが鈍ったところを群れが仕留める。遠吠えは吹雪の夜にだけ聞こえる。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["enemy_blizzard_howl", "enemy_frost_bite"])
-skill_use_chance = 0.3
+skill_ids = Array[String](["enemy_blizzard_howl", "enemy_frost_bite", "enemy_buff_break_howl"])
+skill_use_chance = 0.32

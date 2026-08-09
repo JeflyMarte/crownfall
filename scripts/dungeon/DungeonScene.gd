@@ -7177,6 +7177,9 @@ func _execute_enemy_skill(skill: Resource, slot: int = -1) -> bool:
 		"silence":
 			_execute_enemy_silence(skill, slot)
 			return true
+		"dispel":
+			_execute_enemy_dispel(skill, slot)
+			return true
 		"summon":
 			## CD は execute_support_skill で消費済み。失敗しても通常攻撃へ落とさない。
 			_execute_enemy_summon(skill, slot)
@@ -7229,6 +7232,9 @@ func _enemy_tricky_skill_allowed(skill: Resource, slot: int) -> bool:
 			if str(skill.target_type) == "self" and str(skill.apply_status_id) == "regen":
 				return $CombatController.get_enemy_hp_ratio(slot) < 0.95
 			return true
+		"dispel":
+			## 剥がすバフが無いときは不発（CD浪費しない）。
+			return $CombatController.party_has_any_beneficial_buff()
 		_:
 			return true
 
@@ -7414,6 +7420,73 @@ func _execute_enemy_silence(skill: Resource, slot: int) -> void:
 	_try_announce_enemy_trait_once("silence:%d" % slot, -1, "スキルが封じられた！", target_idx)
 	_append_log("敵スキル【%s】: %s のスキルを封じる" % [skill.display_name, mname])
 	_update_status_icons()
+
+
+## 味方の防御／鼓舞／再生など有益バフを剥がす（P3-BAL-ENEMY-DISPEL-001）。
+func _execute_enemy_dispel(skill: Resource, slot: int) -> void:
+	_play_enemy_caster_animation(slot, "attack")
+	_spawn_enemy_skill_name(skill.display_name, slot)
+	var targets: Array[int] = _resolve_enemy_dispel_targets(skill)
+	if targets.is_empty():
+		_append_log("敵スキル【%s】: 対象なし" % skill.display_name)
+		return
+	var stripped_names: PackedStringArray = PackedStringArray()
+	for ti: int in targets:
+		var removed: PackedStringArray = $CombatController.dispel_member_buffs(ti)
+		var shell_cleared: bool = _AbyssWeaponEffects.clear_ice_shell(ti)
+		if removed.is_empty() and not shell_cleared:
+			continue
+		var member: Resource = GameState.get_combatant(ti)
+		var mname: String = member.display_name if member != null else "?"
+		var labels: PackedStringArray = PackedStringArray()
+		for sid: String in removed:
+			var eff: Resource = DataRegistry.get_status_effect(sid)
+			labels.append(str(eff.display_name) if eff != null else sid)
+		if shell_cleared:
+			labels.append("氷殻")
+		stripped_names.append("%s(%s)" % [mname, "／".join(labels)])
+	if stripped_names.is_empty():
+		_append_log("敵スキル【%s】: 剥がす強化がなかった" % skill.display_name)
+	else:
+		_try_announce_enemy_trait_once("dispel:%d" % slot, -1, "強化が剥がされた！", targets[0])
+		_append_log("敵スキル【%s】: %s の強化を剥がした" % [
+			skill.display_name, "、".join(stripped_names)
+		])
+	_update_status_icons()
+
+
+func _resolve_enemy_dispel_targets(skill: Resource) -> Array[int]:
+	var out: Array[int] = []
+	if skill == null:
+		return out
+	var tt: String = str(skill.target_type)
+	var party_size: int = $CombatController.party_combat_hp.size()
+	var is_alive := func(i: int) -> bool:
+		return $CombatController.is_member_alive(i)
+	match tt:
+		CombatFormation.TARGET_ALL_PARTY, "all_party":
+			for i: int in party_size:
+				if is_alive.call(i):
+					out.append(i)
+		CombatFormation.TARGET_PARTY_FRONT, CombatFormation.TARGET_PARTY_BACK:
+			var resolved: Dictionary = CombatFormation.resolve_column_members_with_fallback(
+				tt, party_size, is_alive
+			)
+			out = resolved["indices"]
+		_:
+			## 単体: バフ持ちを優先、いなければ生存ランダム。
+			var buffed: Array[int] = []
+			var living: Array[int] = []
+			for i: int in party_size:
+				if not is_alive.call(i):
+					continue
+				living.append(i)
+				if $CombatController.member_has_beneficial_buff(i):
+					buffed.append(i)
+			var pool: Array[int] = buffed if not buffed.is_empty() else living
+			if not pool.is_empty():
+				out.append(pool[randi() % pool.size()])
+	return out
 
 
 ## T8: 末尾に敵を追加。招集スキルは戦闘中1回（成功／失敗を問わず発動時点で消費）。

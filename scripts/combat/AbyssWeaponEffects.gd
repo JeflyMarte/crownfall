@@ -110,6 +110,14 @@ static func activate_ice_shell(member_index: int) -> bool:
 	return true
 
 
+## 敵ディスペル等で非 Status の氷殻も落とす。
+static func clear_ice_shell(member_index: int) -> bool:
+	if not _ice_shell_until.has(member_index):
+		return false
+	_ice_shell_until.erase(member_index)
+	return true
+
+
 ## HP閾値で氷殻（被弾なしでも）。発動したら true。
 static func try_low_hp_ice_shell(member_index: int, hp_ratio: float) -> bool:
 	var def: Dictionary = _weapon_def(member_index)

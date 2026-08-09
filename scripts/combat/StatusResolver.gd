@@ -129,6 +129,50 @@ func get_status_stacks(unit_id: String, effect_id: String) -> int:
 			return inst.stacks
 	return 0
 
+## 味方バフ（防御／鼓舞／再生など）。敵ディスペル対象（P3-BAL-ENEMY-DISPEL-001）。
+const BENEFICIAL_STATUS_IDS: PackedStringArray = [
+	"guard",
+	"guard_minor",
+	"empower",
+	"empower_minor",
+	"empower_pet",
+	"regen",
+]
+
+
+static func is_beneficial_status(effect_id: String) -> bool:
+	return effect_id in BENEFICIAL_STATUS_IDS
+
+
+func has_beneficial_status(unit_id: String) -> bool:
+	if not _active.has(unit_id):
+		return false
+	for inst: StatusInstance in _active[unit_id]:
+		if is_beneficial_status(str(inst.effect_id)):
+			return true
+	return false
+
+
+## 有益バフをすべて除去。除去した effect_id 一覧を返す。
+func remove_beneficial_statuses(unit_id: String) -> PackedStringArray:
+	var removed: PackedStringArray = PackedStringArray()
+	if not _active.has(unit_id):
+		return removed
+	var survivors: Array = []
+	for inst: StatusInstance in _active[unit_id]:
+		var sid: String = str(inst.effect_id)
+		if is_beneficial_status(sid):
+			if sid not in removed:
+				removed.append(sid)
+		else:
+			survivors.append(inst)
+	if survivors.is_empty():
+		_active.erase(unit_id)
+	else:
+		_active[unit_id] = survivors
+	return removed
+
+
 # 指定状態を丸ごと除去し、消費したスタック数を返す（0=不在）。コンボ起爆用。
 func consume_status(unit_id: String, effect_id: String) -> int:
 	if not _active.has(unit_id):

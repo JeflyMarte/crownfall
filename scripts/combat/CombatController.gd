@@ -1579,6 +1579,24 @@ func get_enemy_status_list_at(slot: int) -> Array[Dictionary]:
 func get_member_status_stacks(member_index: int, effect_id: String) -> int:
 	return _status_resolver.get_status_stacks("party_%d" % member_index, effect_id)
 
+
+func member_has_beneficial_buff(member_index: int) -> bool:
+	return _status_resolver.has_beneficial_status("party_%d" % member_index)
+
+
+func party_has_any_beneficial_buff() -> bool:
+	for i: int in party_combat_hp.size():
+		if not is_member_alive(i):
+			continue
+		if member_has_beneficial_buff(i):
+			return true
+	return false
+
+
+## 味方の有益バフを除去。除去した effect_id 一覧。
+func dispel_member_buffs(member_index: int) -> PackedStringArray:
+	return _status_resolver.remove_beneficial_statuses("party_%d" % member_index)
+
 # 味方コンボ起爆: メンバー自身の指定状態を消費（P3-D109）。
 func consume_member_status(member_index: int, effect_id: String) -> int:
 	return _status_resolver.consume_status("party_%d" % member_index, effect_id)

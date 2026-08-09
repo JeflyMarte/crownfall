@@ -18,6 +18,7 @@ const _DEFS: Dictionary = {
 				"boss_serdion_hex": 1.6,
 				"enemy_serdion_roar": 2.2,
 				"boss_decree_wave": 1.4,
+				"boss_buff_break_all": 1.6,
 			},
 		},
 		{
@@ -31,6 +32,7 @@ const _DEFS: Dictionary = {
 				"boss_serdion_hex": 1.7,
 				"enemy_serdion_roar": 2.0,
 				"boss_decree_wave": 1.8,
+				"boss_buff_break_all": 1.6,
 			},
 		},
 		{
@@ -44,6 +46,7 @@ const _DEFS: Dictionary = {
 				"boss_serdion_hex": 1.8,
 				"enemy_serdion_roar": 2.0,
 				"boss_decree_wave": 2.5,
+				"boss_buff_break_all": 1.6,
 			},
 		},
 	],
@@ -99,6 +102,7 @@ const _DEFS: Dictionary = {
 				"enemy_moldgar_abyss_surge": 1.6,
 				"enemy_moldgar_mire_maw": 1.4,
 				"enemy_moldgar_call_marsh": 1.5,
+				"boss_buff_break_all": 1.6,
 			},
 		},
 		{
@@ -113,6 +117,7 @@ const _DEFS: Dictionary = {
 				"enemy_moldgar_abyss_surge": 2.0,
 				"enemy_moldgar_mire_maw": 1.8,
 				"enemy_moldgar_call_marsh": 2.2,
+				"boss_buff_break_all": 1.6,
 			},
 		},
 		{
@@ -127,6 +132,7 @@ const _DEFS: Dictionary = {
 				"enemy_moldgar_abyss_surge": 2.0,
 				"enemy_moldgar_mire_maw": 2.5,
 				"enemy_moldgar_call_marsh": 0.8,
+				"boss_buff_break_all": 1.6,
 			},
 		},
 	],
@@ -142,6 +148,7 @@ const _DEFS: Dictionary = {
 				"enemy_nereion_tidal_wail": 1.6,
 				"enemy_nereion_breach": 1.4,
 				"enemy_nereion_call_dread": 1.5,
+				"boss_buff_break_all": 1.6,
 			},
 		},
 		{
@@ -156,6 +163,7 @@ const _DEFS: Dictionary = {
 				"enemy_nereion_tidal_wail": 2.0,
 				"enemy_nereion_breach": 1.8,
 				"enemy_nereion_call_dread": 2.2,
+				"boss_buff_break_all": 1.6,
 			},
 		},
 		{
@@ -170,6 +178,7 @@ const _DEFS: Dictionary = {
 				"enemy_nereion_tidal_wail": 2.0,
 				"enemy_nereion_breach": 2.5,
 				"enemy_nereion_call_dread": 0.8,
+				"boss_buff_break_all": 1.6,
 			},
 		},
 	],

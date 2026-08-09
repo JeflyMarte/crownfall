@@ -34,9 +34,10 @@ codex_danger = 3
 codex_habitat = "最果て氷裂・裂け目上空"
 codex_research_note = "翼竜を祖先とし、吹雪に紛れて滑空する。翼の鱗粉が視界を奪い、次の瞬間には後衛が空へ攫われている。氷裂の探索者が最も恐れる影である。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["enemy_greios_scale_storm", "enemy_greios_wing_lance"])
+skill_ids = Array[String](["enemy_greios_scale_storm", "enemy_greios_wing_lance", "enemy_buff_break_row"])
 skill_use_chance = 0.55
 skill_weights = {
 "enemy_greios_scale_storm": 3.5,
-"enemy_greios_wing_lance": 1.0
+"enemy_greios_wing_lance": 1.0,
+"enemy_buff_break_row": 2.0
 }

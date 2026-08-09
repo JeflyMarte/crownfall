@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_buff_break_chrono"
+display_name = "時羽の解縛"
+description = "羽音で強化の刻限を乱し、後列の加護をほどく。"
+skill_type = "enemy"
+target_type = "party_back"
+power_multiplier = 1.0
+cooldown = 11.0
+trigger_type = "cooldown"
+effect_type = "dispel"
+tags = Array[String](["dispel", "control", "aoe"])
+element = "thunder"
+apply_status_id = ""
+apply_status_chance = 0.0

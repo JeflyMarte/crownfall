@@ -16,6 +16,10 @@ static func for_combat_ultimate(skill_data: Resource) -> String:
 			return "%sを大きく回復" % target
 		"buff":
 			return _buff_one_line(skill_data, target)
+		"dispel":
+			return "%sの強化を解除" % target
+		"silence":
+			return "%sのスキルを封じる" % target
 		_:
 			var main: String = "%sに大ダメージ" % target
 			var statuses: String = _status_names(skill_data)
