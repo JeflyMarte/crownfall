@@ -3436,6 +3436,16 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 | P3-BAL-ENEMY-PRESSURE-001-4 | **後列技倍率上げ＋ヒルを回復封じ役へ** | 役割圧力 |
 | P3-BAL-ENEMY-PRESSURE-001-5 | **雑魚ダメージ技 0.85〜1.20 を×1.25〜1.30**（ボスcleave除外） | スキルが薄い |
 
+## 被弾ガード半永久化の抑制（2026-08-09 — P3-BAL-GUARD-ONHIT-UPTIME-001）
+
+詳細: `docs/specs/decisions/110_GuardOnHitUptime.md`
+
+| ID | 決定 | 理由 |
+|---|---|---|
+| P3-BAL-GUARD-ONHIT-UPTIME-001-1 | **盾役の構え** CD12＋guard中不発 | 被弾再付与で半減が常時化 |
+| P3-BAL-GUARD-ONHIT-UPTIME-001-2 | **霊廟の守護／霧ガード**も同型で締める | 同機構 |
+| P3-BAL-GUARD-ONHIT-UPTIME-001-3 | **guard×0.5は据置**・敵ディスペルは別GO | 案A |
+
 ## レジェンド武器アイコン個別作画（2026-07-09 — P3-ART-LEG-WPN-001）
 
 > **オーナー GO（2026-07-09）** — ★武器10本を手描き差し替え。Phase A=運用整備。
