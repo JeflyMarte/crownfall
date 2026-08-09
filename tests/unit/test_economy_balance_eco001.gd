@@ -31,10 +31,11 @@ func test_abyss_33_first_grants_raised_tokens() -> void:
 func test_daily_kill_enemies_has_gold_and_token() -> void:
 	var mission: Resource = load("res://resources/daily_missions/daily_kill_enemies.tres")
 	assert_not_null(mission)
-	## Gold は P3-BAL-DAILY-TREASURE-GOLD-001 で 150。石・素材は ECO-001 据置。
-	assert_eq(int(mission.reward_gold), 150)
-	assert_eq(int(mission.reward_gacha_token), 15)
-	assert_eq(int(mission.reward_material_qty), 2)
+	## P3-BAL-DAILY-REWARD-VARIETY-001: 魔晶石＋基礎鉱（Goldなし）。
+	assert_eq(int(mission.reward_gold), 0)
+	assert_eq(int(mission.reward_gacha_token), 20)
+	assert_eq(str(mission.reward_material_id), "base_ore")
+	assert_eq(int(mission.reward_material_qty), 8)
 
 
 func test_forge_gold_sink_raised() -> void:

@@ -975,11 +975,7 @@ func _make_daily_row(index: int, entry: Dictionary) -> VBoxContainer:
 	progress_label.text = "%d/%d" % [progress, target]
 	UiTypography.apply_caption(progress_label)
 	row.add_child(progress_label)
-	var reward := Label.new()
-	reward.text = _format_daily_reward(entry)
-	reward.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	UiTypography.apply_caption(reward)
-	row.add_child(reward)
+	row.add_child(_make_daily_reward_icons(entry))
 	var btn := Button.new()
 	btn.custom_minimum_size = Vector2(60, 32)
 	UiTypography.apply_menu_button(btn, false)
@@ -1009,21 +1005,51 @@ func _make_daily_row(index: int, entry: Dictionary) -> VBoxContainer:
 	wrap.add_child(bar)
 	return wrap
 
-func _format_daily_reward(entry: Dictionary) -> String:
-	var parts: PackedStringArray = []
+func _make_daily_reward_icons(entry: Dictionary) -> HBoxContainer:
+	var box := HBoxContainer.new()
+	box.add_theme_constant_override("separation", 4)
+	box.size_flags_horizontal = Control.SIZE_SHRINK_END
+	box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var gold: int = int(entry.get("reward_gold", 0))
+	if gold > 0:
+		_add_daily_reward_chip(box, load(_GOLD_ICON_PATH) as Texture2D, gold)
 	var token: int = int(entry.get("reward_gacha_token", 0))
+	if token > 0:
+		_add_daily_reward_chip(box, CurrencyHelper.get_icon_texture(), token)
 	var mat_id: String = str(entry.get("reward_material_id", ""))
 	var mat_qty: int = int(entry.get("reward_material_qty", 0))
-	if gold > 0:
-		parts.append("%dG" % gold)
-	if token > 0:
-		parts.append("%s×%d" % [CurrencyHelper.DISPLAY_NAME, token])
 	if not mat_id.is_empty() and mat_qty > 0:
-		parts.append("%s×%d" % [DataRegistry.get_material_name(mat_id), mat_qty])
-	if parts.is_empty():
-		return "—"
-	return " / ".join(parts)
+		_add_daily_reward_chip(box, IconPaths.get_icon_texture(mat_id, "material"), mat_qty)
+	if bool(entry.get("reward_equip", false)):
+		## 抽選前は未鑑定枠アイコンで「装備1」を示す。
+		_add_daily_reward_chip(
+			box, IconPaths.get_icon_texture("unidentified", "weapon"), 1
+		)
+	if box.get_child_count() == 0:
+		var empty := Label.new()
+		empty.text = "—"
+		UiTypography.apply_caption(empty)
+		box.add_child(empty)
+	return box
+
+
+func _add_daily_reward_chip(box: HBoxContainer, tex: Texture2D, amount: int) -> void:
+	var chip := HBoxContainer.new()
+	chip.add_theme_constant_override("separation", 2)
+	chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var icon := TextureRect.new()
+	icon.custom_minimum_size = Vector2(22, 22)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if tex != null:
+		icon.texture = tex
+	chip.add_child(icon)
+	var qty := Label.new()
+	qty.text = str(amount)
+	UiTypography.apply_caption(qty)
+	chip.add_child(qty)
+	box.add_child(chip)
 
 func _on_daily_claim_pressed(index: int) -> void:
 	var from_global: Vector2 = _daily_claim_origin_global(index)
@@ -1065,6 +1091,19 @@ func _play_daily_claim_fx(from_global: Vector2, result: Dictionary) -> void:
 		var mat_target: Control = gold_chip
 		if mat_tex != null and mat_target != null:
 			rewards.append({"texture": mat_tex, "target": mat_target, "amount": mat_qty})
+	if bool(result.get("equip_granted", false)):
+		var eq_cat: String = str(result.get("equip_category", "weapon"))
+		var eq_id: String = str(result.get("equip_id", ""))
+		var eq_tex: Texture2D = null
+		if not eq_id.is_empty():
+			eq_tex = IconPaths.get_icon_texture(eq_id, eq_cat)
+		if eq_tex == null:
+			eq_tex = IconPaths.get_icon_texture("unidentified", "weapon")
+		var eq_target: Control = get_node_or_null("BottomNav/NavRow/NavEquipmentCatalog") as Control
+		if eq_target == null:
+			eq_target = gold_chip
+		if eq_tex != null and eq_target != null:
+			rewards.append({"texture": eq_tex, "target": eq_target, "amount": 1})
 	if rewards.is_empty():
 		_update_display()
 		return

@@ -5,9 +5,23 @@ extends Node
 
 signal missions_updated
 
+const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
+const _ArmorStatResolver = preload("res://scripts/equipment/ArmorStatResolver.gd")
+const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatResolver.gd")
+const _MythicLoot = preload("res://scripts/equipment/MythicLoot.gd")
+const _BuildLegendaryLoot = preload("res://scripts/equipment/BuildLegendaryLoot.gd")
+const _AbyssLegendaryWeapons = preload("res://scripts/dungeon/AbyssLegendaryWeapons.gd")
+const _EventExclusiveRewards = preload("res://scripts/dungeon/EventExclusiveRewards.gd")
+
 const JST_OFFSET_SEC: int = 9 * 3600
 const DAY_START_HOUR_JST: int = 5
 const DAILY_PICK_COUNT: int = 3
+
+## 日課装備レア重み N/R/E（P3-BAL-DAILY-REWARD-VARIETY-001）
+const EQUIP_RARITY_WEIGHTS_NORMAL: Array[int] = [45, 35, 20]
+const EQUIP_RARITY_WEIGHTS_EPIC_BIAS: Array[int] = [35, 35, 30]
+const EQUIP_FALLBACK_GOLD: Array[int] = [80, 120, 180]
+const EQUIP_CATEGORIES: Array[String] = ["weapon", "armor", "accessory"]
 
 ## 抽選プール（P3-DAILY-002-4 / P3-BAL-GACHA-001: 招待日課は除外）
 const DAILY_POOL: Array[String] = [
@@ -82,6 +96,7 @@ func get_entries() -> Array[Dictionary]:
 		entry["reward_gacha_token"] = int(mission.reward_gacha_token)
 		entry["reward_material_id"] = str(mission.reward_material_id)
 		entry["reward_material_qty"] = int(mission.reward_material_qty)
+		entry["reward_equip"] = bool(mission.get("reward_equip"))
 		entry["objective_type"] = str(mission.objective_type)
 		entry["genre_id"] = genre_id_for_mission(str(mission.id), str(mission.objective_type))
 		out.append(entry)
@@ -130,16 +145,11 @@ func claim(index: int) -> Dictionary:
 	var target: int = maxi(1, int(mission.target_count))
 	if int(entry.get("progress", 0)) < target:
 		return {"ok": false, "reason": "not_complete"}
-	_apply_rewards(mission)
+	var granted: Dictionary = _apply_rewards(mission)
 	entry["claimed"] = true
 	missions_updated.emit()
-	return {
-		"ok": true,
-		"gold": int(mission.reward_gold),
-		"gacha_token": int(mission.reward_gacha_token),
-		"material_id": str(mission.reward_material_id),
-		"material_qty": int(mission.reward_material_qty),
-	}
+	granted["ok"] = true
+	return granted
 
 func has_claimable() -> bool:
 	for entry in get_entries():
@@ -246,14 +256,224 @@ func _param_matches(mission: Resource, param: String) -> bool:
 		return true
 	return required == param
 
-func _apply_rewards(mission: Resource) -> void:
+func _apply_rewards(mission: Resource) -> Dictionary:
+	var result: Dictionary = {
+		"gold": 0,
+		"gacha_token": 0,
+		"material_id": "",
+		"material_qty": 0,
+		"equip_granted": false,
+		"equip_category": "",
+		"equip_id": "",
+		"equip_fallback_gold": 0,
+	}
 	var gold: int = int(mission.reward_gold)
 	if gold > 0:
 		GameState.gold += gold
+		result["gold"] = gold
 	var tokens: int = int(mission.reward_gacha_token)
 	if tokens > 0:
 		GameState.gacha_token += tokens
+		result["gacha_token"] = tokens
 	var mat_id: String = str(mission.reward_material_id)
 	var mat_qty: int = int(mission.reward_material_qty)
 	if not mat_id.is_empty() and mat_qty > 0:
 		GameState.add_material(mat_id, mat_qty)
+		result["material_id"] = mat_id
+		result["material_qty"] = mat_qty
+	if bool(mission.get("reward_equip")):
+		var epic_bias: bool = bool(mission.get("reward_equip_epic_bias"))
+		var equip_result: Dictionary = _grant_random_equip(epic_bias)
+		result["equip_granted"] = bool(equip_result.get("granted", false))
+		result["equip_category"] = str(equip_result.get("category", ""))
+		result["equip_id"] = str(equip_result.get("id", ""))
+		var fallback: int = int(equip_result.get("fallback_gold", 0))
+		if fallback > 0:
+			GameState.gold += fallback
+			result["gold"] = int(result["gold"]) + fallback
+			result["equip_fallback_gold"] = fallback
+	return result
+
+
+func _grant_random_equip(epic_bias: bool) -> Dictionary:
+	var rarity: int = _roll_equip_rarity(epic_bias)
+	var category: String = EQUIP_CATEGORIES[randi() % EQUIP_CATEGORIES.size()]
+	var item_id: String = _pick_equip_id(category, rarity)
+	if item_id.is_empty():
+		## 当該レアが空なら他レアを試し、それでも無ければ Gold。
+		for try_rarity in [Enums.Rarity.COMMON, Enums.Rarity.RARE, Enums.Rarity.EPIC]:
+			item_id = _pick_equip_id(category, try_rarity)
+			if not item_id.is_empty():
+				rarity = try_rarity
+				break
+	if item_id.is_empty():
+		for alt_cat in EQUIP_CATEGORIES:
+			if alt_cat == category:
+				continue
+			item_id = _pick_equip_id(alt_cat, rarity)
+			if not item_id.is_empty():
+				category = alt_cat
+				break
+	if item_id.is_empty() or not GameState.can_add_equipment(1):
+		return {
+			"granted": false,
+			"category": category,
+			"id": "",
+			"fallback_gold": _fallback_gold_for_rarity(rarity),
+		}
+	if not _spawn_equip_instance(category, item_id):
+		return {
+			"granted": false,
+			"category": category,
+			"id": "",
+			"fallback_gold": _fallback_gold_for_rarity(rarity),
+		}
+	return {"granted": true, "category": category, "id": item_id, "fallback_gold": 0}
+
+
+func _roll_equip_rarity(epic_bias: bool) -> int:
+	var weights: Array[int] = (
+		EQUIP_RARITY_WEIGHTS_EPIC_BIAS if epic_bias else EQUIP_RARITY_WEIGHTS_NORMAL
+	)
+	var total: int = 0
+	for w in weights:
+		total += maxi(0, w)
+	if total <= 0:
+		return Enums.Rarity.COMMON
+	var roll: int = randi() % total
+	var acc: int = 0
+	for i in weights.size():
+		acc += maxi(0, weights[i])
+		if roll < acc:
+			return clampi(i, Enums.Rarity.COMMON, Enums.Rarity.EPIC)
+	return Enums.Rarity.COMMON
+
+
+func _fallback_gold_for_rarity(rarity: int) -> int:
+	var idx: int = clampi(rarity, 0, EQUIP_FALLBACK_GOLD.size() - 1)
+	return EQUIP_FALLBACK_GOLD[idx]
+
+
+func _pick_equip_id(category: String, rarity: int) -> String:
+	var pool: Array[String] = _equip_ids_for_rarity(category, rarity)
+	if pool.is_empty():
+		return ""
+	return pool[randi() % pool.size()]
+
+
+func _equip_ids_for_rarity(category: String, rarity: int) -> Array[String]:
+	var out: Array[String] = []
+	var all: Array = []
+	match category:
+		"weapon":
+			all = DataRegistry.get_all_weapon_data()
+		"armor":
+			all = DataRegistry.get_all_armor_data()
+		"accessory":
+			all = DataRegistry.get_all_accessory_data()
+		_:
+			return out
+	for data: Resource in all:
+		if data == null:
+			continue
+		if int(data.rarity) != rarity:
+			continue
+		if rarity > Enums.Rarity.EPIC:
+			continue
+		var item_id: String = _equip_data_id(category, data)
+		if item_id.is_empty():
+			continue
+		if not _is_daily_equip_eligible(category, item_id):
+			continue
+		out.append(item_id)
+	return out
+
+
+func _equip_data_id(category: String, data: Resource) -> String:
+	match category:
+		"weapon":
+			return str(data.id)
+		"armor":
+			return str(data.armor_id)
+		"accessory":
+			return str(data.id)
+	return ""
+
+
+func _is_daily_equip_eligible(category: String, item_id: String) -> bool:
+	if item_id.is_empty():
+		return false
+	if _MythicLoot.is_mythic_id(item_id):
+		return false
+	if item_id.begins_with("kaiwan_"):
+		return false
+	if item_id in _BuildLegendaryLoot.all_ids():
+		return false
+	if category == "weapon" and _AbyssLegendaryWeapons.is_abyss_legendary_id(item_id):
+		return false
+	if _EventExclusiveRewards.is_event_exclusive_equip(item_id):
+		return false
+	return true
+
+
+func _spawn_equip_instance(category: String, item_id: String) -> bool:
+	match category:
+		"weapon":
+			return _spawn_daily_weapon(item_id)
+		"armor":
+			return _spawn_daily_armor(item_id)
+		"accessory":
+			return _spawn_daily_accessory(item_id)
+	return false
+
+
+func _spawn_daily_weapon(weapon_id: String) -> bool:
+	var weapon_data: Resource = DataRegistry.get_weapon_data(weapon_id)
+	if weapon_data == null:
+		return false
+	var instance: Resource = WeaponInstance.new()
+	instance.instance_id = "daily_%d_%d" % [Time.get_ticks_msec(), randi() % 100000]
+	instance.weapon_id = weapon_id
+	_WeaponStatResolver.apply_drop_stats(instance, weapon_data)
+	EquipmentEnhancer.assign_drop_equip_level(instance, null, null, -1)
+	instance.is_appraised = true
+	if not GameState.try_add_weapon_instance(instance):
+		return false
+	GameState.note_equipment_obtained(instance)
+	GameState.mark_equipment_new(instance)
+	return true
+
+
+func _spawn_daily_armor(armor_id: String) -> bool:
+	var armor_data: Resource = DataRegistry.get_armor_data(armor_id)
+	if armor_data == null:
+		return false
+	var instance: Resource = ArmorInstance.new()
+	instance.instance_id = "daily_%d_%d" % [Time.get_ticks_msec() + 1, randi() % 100000]
+	instance.armor_id = armor_id
+	_ArmorStatResolver.apply_drop_stats(instance, armor_data)
+	instance.rarity = armor_data.rarity
+	EquipmentEnhancer.assign_drop_equip_level(instance, null, null, -1)
+	instance.is_appraised = true
+	if not GameState.try_add_armor_instance(instance):
+		return false
+	GameState.note_equipment_obtained(instance)
+	GameState.mark_equipment_new(instance)
+	return true
+
+
+func _spawn_daily_accessory(accessory_id: String) -> bool:
+	var accessory_data: Resource = DataRegistry.get_accessory_data(accessory_id)
+	if accessory_data == null:
+		return false
+	var instance: Resource = AccessoryInstance.new()
+	instance.instance_id = "daily_%d_%d" % [Time.get_ticks_msec() + 2, randi() % 100000]
+	instance.accessory_id = accessory_id
+	_AccessoryStatResolver.apply_drop_stats(instance, accessory_data)
+	EquipmentEnhancer.assign_drop_equip_level(instance, null, null, -1)
+	instance.is_appraised = true
+	if not GameState.try_add_accessory_instance(instance):
+		return false
+	GameState.note_equipment_obtained(instance)
+	GameState.mark_equipment_new(instance)
+	return true

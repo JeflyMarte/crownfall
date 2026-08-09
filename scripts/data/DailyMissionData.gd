@@ -1,7 +1,7 @@
 class_name DailyMissionData
 extends Resource
 
-## ギルド日課ミッション定義（P3-DAILY）。
+## ギルド日課ミッション定義（P3-DAILY / P3-BAL-DAILY-REWARD-VARIETY-001）。
 
 @export var id: String = ""
 @export var title: String = ""
@@ -15,3 +15,7 @@ extends Resource
 @export var reward_gacha_token: int = 0
 @export var reward_material_id: String = ""
 @export var reward_material_qty: int = 0
+## ランダム装備1点（武／防／飾・N〜E）。P3-BAL-DAILY-REWARD-VARIETY-001。
+@export var reward_equip: bool = false
+## true のとき E 寄りレア重み（ボス日課）。
+@export var reward_equip_epic_bias: bool = false
