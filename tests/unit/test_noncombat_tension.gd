@@ -51,8 +51,11 @@ func test_fail_penalty_fractions() -> void:
 
 
 func test_lore_bonus_gold() -> void:
-	assert_eq(BalanceConfig.LORE_FIRST_GOLD, 20)
-	assert_eq(BalanceConfig.LORE_REPEAT_GOLD, 10)
+	assert_eq(BalanceConfig.lore_gold(0), 500)
+	assert_eq(BalanceConfig.lore_gold(1), 1000)
+	assert_eq(BalanceConfig.lore_gold(2), 3000)
+	assert_eq(BalanceConfig.LORE_FIRST_GOLD, 500)
+	assert_eq(BalanceConfig.LORE_REPEAT_GOLD, 500)
 
 
 func test_lore_floor_blessing_mult() -> void:

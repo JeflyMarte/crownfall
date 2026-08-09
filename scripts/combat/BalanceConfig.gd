@@ -189,9 +189,11 @@ const LORE_SUCCESS_CHANCE_BY_TIER: Array[float] = [0.90, 0.80, 0.80]
 const TREASURE_WEAPON_CHANCE: float = 0.0
 ## 宝箱成功 Gold（N/H/NM — P3-BAL-TREASURE-GOLD-TIER-001）。失敗は半額。
 const TREASURE_GOLD_BY_TIER: Array[int] = [1000, 3000, 5000]
-## 碑文成功（初回）の素材／装飾。
-const LORE_FIRST_GOLD: int = 20
-const LORE_REPEAT_GOLD: int = 10
+## 碑文成功 Gold（N/H/NM — P3-BAL-LORE-GOLD-TIER-001）。初回／既知とも同額。
+const LORE_GOLD_BY_TIER: Array[int] = [500, 1000, 3000]
+## 旧互換（ノーマル帯）。正は lore_gold(tier)。
+const LORE_FIRST_GOLD: int = 500
+const LORE_REPEAT_GOLD: int = 500
 const LORE_FIRST_MATERIAL_CHANCE: float = 0.10
 const LORE_FIRST_ACCESSORY_CHANCE: float = 0.08
 ## 碑文成功時: 次部屋〜次の戦闘フロアまでの EXP／Gold／装備ドロップ率のいずれか ×1.1。
@@ -227,6 +229,13 @@ static func treasure_gold(tier: int = -1) -> int:
 	if t < 0:
 		t = int(GameState.current_dungeon_tier)
 	return TREASURE_GOLD_BY_TIER[_trap_tier_index(t)]
+
+
+static func lore_gold(tier: int = -1) -> int:
+	var t: int = tier
+	if t < 0:
+		t = int(GameState.current_dungeon_tier)
+	return LORE_GOLD_BY_TIER[_trap_tier_index(t)]
 
 # ── 敵レベルスケール（P3-D081） ──────────────────────────────────────────
 const ENEMY_LEVEL_HP_K: float = 0.10
