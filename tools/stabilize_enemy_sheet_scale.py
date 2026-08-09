@@ -40,6 +40,7 @@ def stabilize_sheet(
 	idle_count: int,
 	max_dh: int,
 	dry_run: bool,
+	freeze: bool = False,
 ) -> int:
 	im = Image.open(path).convert("RGBA")
 	w, h = im.size
@@ -58,18 +59,23 @@ def stabilize_sheet(
 		return 1
 
 	heights = [used_h(cells[i]) for i in range(idle_count)]
-	stable = [i for i in range(idle_count) if abs(heights[i] - ref_h) <= max_dh]
-	if not stable:
+	if freeze:
 		stable = [0]
+	else:
+		stable = [i for i in range(idle_count) if abs(heights[i] - ref_h) <= max_dh]
+		if not stable:
+			stable = [0]
 
 	print(
-		f"{path.name}: ref_h={ref_h} max_dh={max_dh} "
+		f"{path.name}: ref_h={ref_h} max_dh={max_dh} freeze={freeze} "
 		f"idle_h={heights} stable={stable}"
 	)
 	changed = 0
 	for i in range(idle_count):
 		src = stable[i % len(stable)]
-		if i == src:
+		if i == src and not freeze:
+			continue
+		if freeze and i == 0:
 			continue
 		print(f"  idle[{i}] <- idle[{src}] (was h={heights[i]})")
 		cells[i] = cells[src].copy()
@@ -138,6 +144,11 @@ def main() -> int:
 		default=DEFAULT_MAX_DH,
 		help="Keep idle frames whose body height is within this many px of idle[0]",
 	)
+	ap.add_argument(
+		"--freeze",
+		action="store_true",
+		help="Replace all idle cells with an exact copy of idle[0] (no residual breath)",
+	)
 	ap.add_argument("--dry-run", action="store_true")
 	args = ap.parse_args()
 	paths = resolve_paths(args.sheet, args.all_tiers)
@@ -150,8 +161,9 @@ def main() -> int:
 			path,
 			cell=args.cell,
 			idle_count=args.idle_count,
-			max_dh=args.max_dh,
+			max_dh=0 if args.freeze else args.max_dh,
 			dry_run=args.dry_run,
+			freeze=args.freeze,
 		)
 	return rc
 
