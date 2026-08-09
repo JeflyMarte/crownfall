@@ -16,8 +16,10 @@
 | P3-BAL-GUARD-ONHIT-UPTIME-001-3 | **澱みの霧ガード** CD 8→**14**＋同 skip | 武器だが同機構 |
 | P3-BAL-GUARD-ONHIT-UPTIME-001-4 | **`guard` の ×0.5 / 2tick は据置** | 瞬間の半減感は残す |
 | P3-BAL-GUARD-ONHIT-UPTIME-001-5 | **敵バフ剥がしは非スコープ**（必要なら別GO） | 案Bは後回し |
+| P3-BAL-GUARD-ONHIT-UPTIME-001-6 | **調剤師の薬** — 回復→guard は対象別 CD12＋付与中不発 | 全体回復で半永久化 |
 
 ## 非スコープ
 
 - 戦闘開始／味方死亡のパーティ `guard`（単発）
 - 防御スロット行動の `guard`（既に重ね掛けガードあり）
+- 撃破鼓舞（empower）の連殺延長（半減級ではない）

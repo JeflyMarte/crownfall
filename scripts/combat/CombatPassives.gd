@@ -564,9 +564,10 @@ const _DEFS: Dictionary = {
 	"eq_apothecary_vial": {
 		"display_name": "調剤師の薬",
 		"category": "accessory",
-		"description": "回復スキル効果 +20%。回復した味方に防御を付与する。",
+		"description": "回復スキル効果 +20%。回復した味方に防御を付与する（再使用12秒・防御中は再付与しない）。",
 		"heal_power_mult": 1.20,
 		"heal_applies_guard": true,
+		"heal_guard_cooldown": 12.0,
 	},
 	## ペット／ヒーラービルド（P3-EQ-PET-HEAL-BUILD-001 / 54）
 	"eq_beastcall_mantle": {
@@ -1791,6 +1792,21 @@ static func heal_applies_guard_for_member(member_index: int) -> bool:
 		if bool(raw_def.get("heal_applies_guard", false)):
 			return true
 	return false
+
+
+## 回復→guard 付与の CD（CT秒）。未設定は 0（都度判定は呼び出し側）。
+static func heal_guard_cooldown_for_member(member_index: int) -> float:
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return 0.0
+	var best: float = 0.0
+	for raw_def: Variant in for_member(GameState.party_members[member_index]):
+		if raw_def is not Dictionary:
+			continue
+		var def: Dictionary = raw_def
+		if not bool(def.get("heal_applies_guard", false)):
+			continue
+		best = maxf(best, float(def.get("heal_guard_cooldown", 0.0)))
+	return best
 
 
 ## 攻撃側敵の状態に応じた被ダメ倍率（血契など）。
