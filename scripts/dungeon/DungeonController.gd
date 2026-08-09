@@ -2093,6 +2093,12 @@ func is_run_boss_kill(enemy_data: Resource) -> bool:
 	return int(enemy_data.enemy_type) == Enums.EnemyType.BOSS
 
 
+## エリートボーナス／kill_elite／エリート武器率・レリックは敵 entity が ELITE のときのみ。
+## 護衛（NORMAL）撃破では付けない。
+func is_run_elite_kill(enemy_data: Resource) -> bool:
+	return enemy_data != null and int(enemy_data.enemy_type) == int(Enums.EnemyType.ELITE)
+
+
 func _resolve_run_boss_id() -> String:
 	if current_stage_data != null and not str(current_stage_data.boss_id).is_empty():
 		return str(current_stage_data.boss_id)
@@ -2437,10 +2443,13 @@ func _resolve_weapon_drop_chance(room_type: int, enemy_data: Resource) -> float:
 			* bless
 		)
 	var chance: float = COMBAT_WEAPON_DROP_CHANCE
-	if room_type == Enums.RoomType.BOSS:
+	# 部屋プレミアムは本体（BOSS／ELITE entity）のみ。護衛・召喚は通常戦闘率。
+	if room_type == Enums.RoomType.BOSS and is_run_boss_kill(enemy_data):
 		chance = BOSS_WEAPON_DROP_CHANCE
-	elif room_type == Enums.RoomType.ELITE:
+	elif room_type == Enums.RoomType.ELITE and is_run_elite_kill(enemy_data):
 		chance = ELITE_WEAPON_DROP_CHANCE
+	elif enemy_data != null and int(enemy_data.enemy_type) == Enums.EnemyType.BOSS:
+		chance = maxf(chance, BOSS_WEAPON_DROP_CHANCE)
 	return minf(
 		1.0,
 		chance
@@ -2454,7 +2463,8 @@ const RELIC_DROP_CHANCE_BOSS: float = 0.10
 const RELIC_DROP_CHANCE_ELITE: float = 0.05
 const RELIC_DROP_POLICY_BONUS: float = 0.05
 
-func roll_kill_relic_drop(room_type: int) -> String:
+## enemy_data 指定時: ボス／エリート本体のみ抽選。護衛・召喚は空。
+func roll_kill_relic_drop(room_type: int, enemy_data: Resource = null) -> String:
 	var pool: Array = GameState.unowned_relic_ids()
 	## 降臨専用レリックは汎用抽選から除外（専用ボス付与のみ）。
 	var filtered: Array = []
@@ -2467,8 +2477,12 @@ func roll_kill_relic_drop(room_type: int) -> String:
 	var chance: float = 0.0
 	var policy_bonus: float = RELIC_DROP_POLICY_BONUS if GameState.get_exploration_policy() == "relic" else 0.0
 	if room_type == Enums.RoomType.BOSS:
+		if enemy_data != null and not is_run_boss_kill(enemy_data):
+			return ""
 		chance = RELIC_DROP_CHANCE_BOSS + policy_bonus
 	elif room_type == Enums.RoomType.ELITE:
+		if enemy_data != null and not is_run_elite_kill(enemy_data):
+			return ""
 		chance = RELIC_DROP_CHANCE_ELITE + policy_bonus
 	if chance <= 0.0 or randf() > chance:
 		return ""

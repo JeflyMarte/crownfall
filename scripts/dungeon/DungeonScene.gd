@@ -783,6 +783,8 @@ var _combat_cinematic_lock: bool = false
 var _combat_impact_sfx_enabled: bool = false
 ## 遅延ヒット／スキルが別戦闘へ食い込むのを防ぐ。開始・終了で必ず加算。
 var _combat_session_id: int = 0
+## 同一スロットへの撃破報酬の二重付与防止（追撃キル＋外側判定／DoT 多重など）。
+var _kill_award_slots: Dictionary = {}
 var _ultimate_presentation_active: bool = false
 var _ultimate_center_telop: Control = null
 var _combat_clear_tween: Tween
@@ -3996,11 +3998,13 @@ func _advance_to_next_room() -> void:
 func _begin_combat_session() -> void:
 	_combat_session_id += 1
 	_combat_impact_sfx_enabled = false
+	_kill_award_slots.clear()
 
 
 func _end_combat_session() -> void:
 	_combat_session_id += 1
 	_combat_impact_sfx_enabled = false
+	_kill_award_slots.clear()
 
 
 func _enter_current_room() -> void:
@@ -5510,6 +5514,9 @@ func _process_status_ticks() -> void:
 			continue
 		if unit_id.begins_with("enemy_"):
 			var slot: int = int(unit_id.substr(6))
+			## 同一 tick で先に撃破済みのスロットは DoT をスキップ（二重報酬防止）。
+			if not $CombatController.is_enemy_slot_alive(slot):
+				continue
 			$CombatController.apply_damage_to_enemy_slot(slot, dmg)
 			_check_boss_phase_transition(slot)
 			var enemy_spr: AnimatedSprite2D = _enemy_sprite_for_slot(slot)
@@ -6883,14 +6890,17 @@ func _deal_member_damage_to_enemy(
 			_append_log("[武器] 虚潮の印 爆発")
 			_check_boss_phase_transition(target_slot)
 	if $CombatController.get_enemy_hp_at(target_slot) <= 0:
-		var frac: float = CombatPassives.on_kill_refund_fraction(member_idx)
-		if frac > 0.0:
-			$CombatController.refund_member_ct(member_idx, frac)
-		_fire_member_passives(
-			member_idx, "on_kill", {"damage": damage, "target_slot": target_slot}
-		)
-		GameState.record_run_kill(member_idx)
-		_AbyssWeaponEffects.clear_focus_on_enemy_death(target_slot)
+		## 追撃（on_attack）で先に撃破済みなら hooks／報酬は二重にしない。
+		var first_kill: bool = not bool(_kill_award_slots.get(target_slot, false))
+		if first_kill:
+			var frac: float = CombatPassives.on_kill_refund_fraction(member_idx)
+			if frac > 0.0:
+				$CombatController.refund_member_ct(member_idx, frac)
+			_fire_member_passives(
+				member_idx, "on_kill", {"damage": damage, "target_slot": target_slot}
+			)
+			GameState.record_run_kill(member_idx)
+			_AbyssWeaponEffects.clear_focus_on_enemy_death(target_slot)
 		return _on_enemy_slot_killed(target_slot)
 	return false
 
@@ -8517,7 +8527,7 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 	var defeated_enemy: Resource = $CombatController.get_enemy_data_at(killed_slot)
 	## 日課撃破（ボス本体／エリート含む）。召喚・護衛は kill_enemy のみ。
 	DailyMissionSystem.report_progress("kill_enemy")
-	if room_type == Enums.RoomType.ELITE:
+	if room_type == Enums.RoomType.ELITE and $DungeonController.is_run_elite_kill(defeated_enemy):
 		DailyMissionSystem.report_progress("kill_elite")
 	elif (
 		(room_type == Enums.RoomType.BOSS or room_type == Enums.RoomType.MID_BOSS)
@@ -8567,7 +8577,7 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 	var awarded_exp: int = $DungeonController.accumulate_rewards(final_exp, final_gold)
 	## 撃破時点の生存者のみ個別積立（死者は以降の撃破EXPを受け取らない）。
 	$DungeonController.accumulate_exp_for_members(awarded_exp, _alive_exp_recipient_ids())
-	if room_type == Enums.RoomType.BOSS:
+	if room_type == Enums.RoomType.BOSS and $DungeonController.is_run_boss_kill(defeated_enemy):
 		$DungeonController.update_discovery($DungeonController.DISCOVERY_BOSS_BONUS)
 		_play_boss_animation("death")
 	else:
@@ -8689,7 +8699,7 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 				"ボス報酬: %s" % _format_material_reward_log(boss_bonus_mat_id, boss_bonus_mat_amt, "")
 			)
 			_append_material_drop_icons(drop_icons, boss_bonus_mat_id, boss_bonus_mat_amt)
-	if room_type == Enums.RoomType.ELITE:
+	if room_type == Enums.RoomType.ELITE and $DungeonController.is_run_elite_kill(defeated_enemy):
 		var elite_bonus: Dictionary = $DungeonController.apply_elite_bonus_loot()
 		if not (elite_bonus["armor_id"] as String).is_empty():
 			var elite_arm: String = str(elite_bonus["armor_id"])
@@ -8714,16 +8724,23 @@ func _award_enemy_kill_at(killed_slot: int) -> void:
 			)
 			_append_material_drop_icons(drop_icons, str(elite_bonus["material_id"]), elite_mat_amt)
 	_spawn_pickup_drop_burst(kill_pos, drop_icons)
-	# P3-D093: 撃破時の遺物ドロップ（解放型）
-	var dropped_relic: String = $DungeonController.roll_kill_relic_drop(room_type)
+	# P3-D093: 撃破時の遺物ドロップ（解放型）。本体のみ（護衛・召喚はなし）。
+	var dropped_relic: String = $DungeonController.roll_kill_relic_drop(room_type, defeated_enemy)
 	if not dropped_relic.is_empty():
 		GameState.record_last_run_relic_drop(dropped_relic)
 		log_lines.append("レリック入手: %s" % CombatRelics.display_name(dropped_relic))
 		_play_relic_get_celebration(dropped_relic)
 	_append_log("\n".join(log_lines))
 
-# 敵スロット撃破時。全滅なら true（戦闘終了済み）。
+# 敵スロット撃破時。全滅なら true（戦闘終了済み）。冪等（二重報酬防止）。
 func _on_enemy_slot_killed(killed_slot: int) -> bool:
+	if bool(_kill_award_slots.get(killed_slot, false)):
+		if $CombatController.living_enemy_count() == 0:
+			if $CombatController.is_in_combat:
+				_finalize_combat_cleared()
+			return true
+		return false
+	_kill_award_slots[killed_slot] = true
 	$CombatController.clear_pending_cast("enemy", killed_slot)
 	_debuff_marks.erase(killed_slot)
 	_award_enemy_kill_at(killed_slot)
