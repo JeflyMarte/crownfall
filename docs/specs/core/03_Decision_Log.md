@@ -7913,7 +7913,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ELDION-OPENING-001-1 | **開幕 `storm_joe`×1**（旧×2）— `opening_companion_ids`＋入場着地後表示 | 2体過強→案A |
 | P3-BAL-ELDION-OPENING-001-2 | **`incoming_status_chance_mult=0.55`** | ミスト帯と同帯の付与減衰 |
 | P3-BAL-ELDION-OPENING-001-3 | **`boss_buff_break_all`** | 他本編ボスと同解呪 |
-| P3-BAL-ELDION-OPENING-001-4 | **本体補強** — HP2550／ATK195／skill0.60／吐息×0.70 | 同席1体分の穴埋め |
+| P3-BAL-ELDION-OPENING-001-4 | **本体補強** — HP2550／ATK220／skill0.65／技倍率・位相火力増 | 同席1体＋火力追強化 |
 | P3-BAL-ELDION-OPENING-001-5 | **SSOT** — `119_EldionOpeningCompanions.md` | Decision 本体 |
 
 ## 宝箱 Gold 難易度別（2026-08-09 — P3-BAL-TREASURE-GOLD-TIER-001）

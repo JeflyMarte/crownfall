@@ -15,7 +15,7 @@
 | P3-BAL-ELDION-OPENING-001-1 | **開幕 `storm_joe`×1**（旧×2）— `EnemyData.opening_companion_ids` | オーナー案A。2体は過強 |
 | P3-BAL-ELDION-OPENING-001-2 | **状態異常耐性** — `incoming_status_chance_mult=0.55`（ミスト帯と同帯） | 付与成功率減衰。SKIP耐性（Decision 97）とは別枠 |
 | P3-BAL-ELDION-OPENING-001-3 | **バフ剥がし** — `boss_buff_break_all` を skill_ids＋位相重みへ | 他本編ボスと同スキル |
-| P3-BAL-ELDION-OPENING-001-4 | **本体補強** — HP 2400→**2550**／ATK 175→**195**／skill_use 0.55→**0.60**／氷河吐息 ×0.6→**×0.70** | 同席1体分の穴埋め |
+| P3-BAL-ELDION-OPENING-001-4 | **本体補強** — HP 2400→**2550**／ATK 175→**220**／skill_use **0.65**／単体通常×1.85／薙ぎ×1.15／吐息×0.85／氷裂×2.2／位相 ATK×1.0/1.15/1.30 | 同席1体＋火力不足の穴埋め（オーナー追指示） |
 
 ## 非スコープ
 
