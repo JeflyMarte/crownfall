@@ -48,3 +48,5 @@ extends Resource
 @export var summon_enemy_id: String = ""
 ## effect_type=summon: 呼ぶ体数（キャップまで）。
 @export var summon_count: int = 1
+## 敵→味方ダメージ時に味方 DEF 逓減をスキップ（構え／属性耐性／ブロックは残す）。
+@export var ignore_defense: bool = false

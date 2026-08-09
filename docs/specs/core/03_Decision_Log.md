@@ -3465,6 +3465,15 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 | P3-BAL-HARD-SHELL-PRESSURE-001-1 | **スカル／船喰らい／オルド＝詠唱特大全体**、**モス＝毒前列** | 持久戦解消 |
 | P3-BAL-HARD-SHELL-PRESSURE-001-2 | スキル使用率上げ＋核スキル重み優先 | 出番確保 |
 
+## 氷晶マンモス防御無視全体（2026-08-09 — P3-BAL-MAMMOTH-IGNORE-DEF-001）
+
+詳細: `docs/specs/decisions/113_MammothIgnoreDefAoE.md`
+
+| ID | 決定 | 理由 |
+|---|---|---|
+| P3-BAL-MAMMOTH-IGNORE-DEF-001-1 | **`ignore_defense`** で味方 DEF 逓減のみスキップ | 装甲無視 |
+| P3-BAL-MAMMOTH-IGNORE-DEF-001-2 | **氷晶の蹂躙**（詠唱全体×1.65）をマンモスに搭載 | タンク膠着崩し |
+
 ## レジェンド武器アイコン個別作画（2026-07-09 — P3-ART-LEG-WPN-001）
 
 > **オーナー GO（2026-07-09）** — ★武器10本を手描き差し替え。Phase A=運用整備。

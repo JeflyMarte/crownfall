@@ -7733,7 +7733,12 @@ func _apply_enemy_damage_to_targets(
 		if share <= 0.0:
 			continue
 		var power: float = float(skill.power_multiplier) * share
-		var dmg_result: Dictionary = _calc_enemy_damage_to_member(ti, power, source_atk, atk_slot, skill_elem)
+		var ignore_def: bool = false
+		if skill != null and "ignore_defense" in skill:
+			ignore_def = bool(skill.ignore_defense)
+		var dmg_result: Dictionary = _calc_enemy_damage_to_member(
+			ti, power, source_atk, atk_slot, skill_elem, ignore_def
+		)
 		var member: Resource = GameState.get_combatant(ti)
 		var mname: String = member.display_name if member != null else "?"
 		if dmg_result.get("missed", false):
@@ -8498,10 +8503,18 @@ func _calc_enemy_damage_to_member(
 	power_multiplier: float = 1.0,
 	attacker_atk: int = -1,
 	attacker_slot: int = -1,
-	attack_element: String = ""
+	attack_element: String = "",
+	ignore_defense: bool = false
 ) -> Dictionary:
 	return DamageCalculator.enemy_damage_to_member(
-		$CombatController, target_index, power_multiplier, attacker_atk, attacker_slot, null, attack_element
+		$CombatController,
+		target_index,
+		power_multiplier,
+		attacker_atk,
+		attacker_slot,
+		null,
+		attack_element,
+		ignore_defense
 	)
 
 func _active_enemy_attack_element() -> String:
