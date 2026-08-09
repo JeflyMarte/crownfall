@@ -186,7 +186,7 @@ const _DEFS: Dictionary = {
 		{
 			"threshold": 1.0,
 			"label": "第1形態",
-			"skill_use_chance": 0.60,
+			"skill_use_chance": 0.68,
 			"attack_mult": 1.0,
 			"skill_weight": {
 				"boss_enrage": 0.45,
@@ -194,14 +194,14 @@ const _DEFS: Dictionary = {
 				"enemy_eldion_glacial_breath": 1.8,
 				"enemy_eldion_crevasse": 1.5,
 				"enemy_eldion_glacial_regen": 1.2,
-				"boss_buff_break_all": 1.4,
+				"boss_buff_break_all": 2.0,
 			},
 		},
 		{
 			"threshold": 0.50,
 			"label": "第2形態・白闇",
-			"skill_use_chance": 0.70,
-			"attack_mult": 1.15,
+			"skill_use_chance": 0.75,
+			"attack_mult": 1.20,
 			## HP≤50% 到達時に一度だけ全回復（スキップ到達でも適用）。
 			"full_heal_on_enter": true,
 			"full_heal_cutin_name": "氷河の再誕",
@@ -213,14 +213,14 @@ const _DEFS: Dictionary = {
 				"enemy_eldion_glacial_breath": 2.2,
 				"enemy_eldion_crevasse": 2.0,
 				"enemy_eldion_glacial_regen": 1.8,
-				"boss_buff_break_all": 1.6,
+				"boss_buff_break_all": 2.2,
 			},
 		},
 		{
 			"threshold": 0.25,
 			"label": "第3形態・始祖の竜",
-			"skill_use_chance": 0.80,
-			"attack_mult": 1.30,
+			"skill_use_chance": 0.85,
+			"attack_mult": 1.35,
 			"log": "【フェーズ移行】体内の氷河晶が輝き、始祖の竜が真の力を解き放つ！",
 			"skill_weight": {
 				"boss_enrage": 0.4,
@@ -228,7 +228,7 @@ const _DEFS: Dictionary = {
 				"enemy_eldion_glacial_breath": 2.3,
 				"enemy_eldion_crevasse": 2.7,
 				"enemy_eldion_glacial_regen": 2.2,
-				"boss_buff_break_all": 1.8,
+				"boss_buff_break_all": 2.4,
 			},
 		},
 	],
