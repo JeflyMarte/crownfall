@@ -7861,3 +7861,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-BIOME-BUILD-THEME-001-6 | ~~ウィスパーウッド＝火で殻~~ → **001-7 で差し替え** | 霜と火被り |
 | P3-BAL-BIOME-BUILD-THEME-001-7 | **ウィスパーウッド確定（案A）** — DoT（毒／出血）＋DEF厚。火弱点を外し霜（火）と差別化 | オーナー GO |
 | P3-BAL-BIOME-BUILD-THEME-001-8 | **象徴雑魚** — 章1体をステ＋スキル尖り（B帯）。BS群れ激昂／ミスト瘴気（毒×1.4）ほか | オーナー GO |
+
+## 名付き雑魚3体ステ帯上げ（2026-08-09 — P3-BAL-NAMED-TRASH-STAT-001）
+
+> **オーナー指示** — ストームジョー／ドレッドジョー／沼地の王を同学章雑魚より高く。ストームは攻撃をかなり高く。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-NAMED-TRASH-STAT-001-1 | **ストームジョー** — HP980／ATK240／DEF88 | 霜帯高火力核 |
+| P3-BAL-NAMED-TRASH-STAT-001-2 | **ドレッドジョー** — HP680／ATK248／DEF48 | 低HP是正＋上位火力 |
+| P3-BAL-NAMED-TRASH-STAT-001-3 | **沼地の王** — HP1050／ATK176／DEF112 | 低ATK是正＋核耐久 |
+| P3-BAL-NAMED-TRASH-STAT-001-4 | **SSOT** — `117_NamedTrashStatBump.md` | Decision 本体 |
