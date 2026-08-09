@@ -3760,13 +3760,25 @@ func _is_boss_lead_slot(slot: int) -> bool:
 	return _BossSummonLayout.is_boss_lead_enemy($CombatController.get_enemy_data_at(slot))
 
 
+## ボス戦の呼び出し連れ枠数（死亡後も枠が残る前提・slot0=リードは含まない）。
+func _boss_add_slot_count() -> int:
+	if not _boss_sprite.visible:
+		return 0
+	return maxi(0, $CombatController.swarm_data.size() - 1)
+
+
+## 連れ数に応じたボス錨（2体召喚時は左寄せ。途中撃破でも錨を戻さない）。
+func _boss_layout_ratio() -> Vector2:
+	return _BossSummonLayout.layout_boss_ratio(BOSS_POSITION_RATIO, _boss_add_slot_count())
+
+
 ## ボス呼び出し連れの HP／名前／技名を胴体から離す（x=外側、y=上ギャップ）。
 func _boss_add_overlay_nudge(slot: int) -> Vector2:
 	if not _boss_sprite.visible or slot < 1:
 		return Vector2.ZERO
 	if _is_boss_lead_slot(slot):
 		return Vector2.ZERO
-	return _BossSummonLayout.overlay_nudge_px(slot - 1)
+	return _BossSummonLayout.overlay_nudge_px(slot - 1, _boss_add_slot_count())
 
 
 func _on_enemy_status_applied(slot: int, status_id: String) -> void:
@@ -7848,7 +7860,7 @@ func _reveal_boss_add_slot(new_slot: int) -> void:
 		_swarm_sprites[0].visible = false
 		_swarm_hp_bars[0].visible = false
 		_swarm_nameplates[0].visible = false
-	_boss_sprite.z_index = BOSS_SPRITE_Z
+	_sync_boss_sprite_layout_position()
 	var name_fs: int = SWARM_NAME_FONT_SIZE
 	for i: int in range(1, n):
 		if i >= _swarm_sprites.size():
@@ -7888,14 +7900,22 @@ func _reveal_boss_add_slot(new_slot: int) -> void:
 
 func _boss_add_combat_position(add_index: int) -> Vector2:
 	return _battlefield_combat_position(
-		_BossSummonLayout.position_ratio(BOSS_POSITION_RATIO, add_index)
+		_BossSummonLayout.position_ratio(_boss_layout_ratio(), add_index)
 	)
+
+
+func _sync_boss_sprite_layout_position() -> void:
+	## 2体召喚時はボスを左寄せし、左右連れの余白を対称に近づける。
+	if _boss_sprite == null or not _boss_sprite.visible:
+		return
+	_boss_sprite.position = _battlefield_combat_position(_boss_layout_ratio())
+	_boss_sprite.z_index = BOSS_SPRITE_Z
 
 
 func _reposition_boss_add_sprites() -> void:
 	if not _boss_sprite.visible:
 		return
-	_boss_sprite.z_index = BOSS_SPRITE_Z
+	_sync_boss_sprite_layout_position()
 	if _swarm_sprites.size() > 0:
 		_swarm_sprites[0].visible = false
 	for i: int in range(1, _swarm_sprites.size()):
@@ -14412,7 +14432,7 @@ func _apply_boss_sprite_transform() -> void:
 	## 足元オフセットは使わずフレーム中心基準（従来）。上下ずれを防ぐ。
 	_boss_sprite.offset = Vector2.ZERO
 	_boss_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	_boss_sprite.position = _battlefield_combat_position(BOSS_POSITION_RATIO)
+	_boss_sprite.position = _battlefield_combat_position(_boss_layout_ratio())
 	_boss_sprite.z_index = BOSS_SPRITE_Z
 
 func _normalize_boss_scale(sprite: AnimatedSprite2D, frames: SpriteFrames, boss_id: String = "") -> void:

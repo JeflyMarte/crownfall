@@ -95,6 +95,7 @@
 | ボス／エリートを雑魚と同寸、またはボス過大で Header 貫通 | `BOSS_BODY_*`／`ENEMY_BODY_SCALE_MULT`／`FROSTRIDGE_SOLO_DISPLAY_SCALE`。群れは体数スケール |
 | ボス呼び出し敵が BossSprite に隠れる／slot0 二重表示 | BossSprite 据置＋連れは `BossSummonLayout` で左右手前。slot0 群れ非表示。HP/状態も連れ分表示 |
 | 連れネーム／技名がボス胴体に貼る | 立ち位置オフセット拡大＋`overlay_nudge_px` で外側・上へクリアランス |
+| 2体召喚の右連れだけ胴に戻る | 右オフセットが `X_MAX` クランプ。2体時はボス錨左寄せ（`layout_boss_ratio`） |
 | 複数敵が右にはみ出す（ratio>0.9） | `_swarm_x_ratio_for_slot` で MIN/MAX 内 |
 | 行動順敵アイコンに紫板を PNG 焼込 | 焼込禁止。枠は常に `CombatUiFrames`（焼込枠前提で UI 枠を外すと縁なし／薄く見える）。差替後 `.godot/imported` の `ICO_ENM_Turn_*` を消して再インポート |
 | 状態異常レジェンドに半透明 Panel | `StyleBoxEmpty`（アイコン＋文言のみ） |
