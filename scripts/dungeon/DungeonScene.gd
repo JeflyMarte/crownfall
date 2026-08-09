@@ -9545,6 +9545,15 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 	elif str(p.get("condition", "always")) == "is_critical":
 		if not bool(ctx.get("is_critical", false)):
 			return false
+	## 付与中の再付与で持続リセット→半永久化しない（盾役の構え等）。
+	if bool(p.get("skip_if_status_active", false)):
+		var skip_sid: String = str(p.get("skip_status_id", ""))
+		if skip_sid.is_empty():
+			skip_sid = str(p.get("status_id", ""))
+		if skip_sid.is_empty() and str(p.get("effect", "")) == "taunt_and_guard":
+			skip_sid = "guard"
+		if not skip_sid.is_empty() and _member_has_status(member_idx, skip_sid):
+			return false
 	# 効果
 	var applied: bool = false
 	var combat_ended: bool = false
@@ -9731,12 +9740,12 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 				if ct_pen > 0.0:
 					$CombatController.penalize_member_ct(member_idx, ct_pen)
 		"taunt_and_guard":
+			## guard 付与に成功したときだけ CD 消費（既に防御中は上位の skip で弾く）。
 			if $CombatController.apply_status("party_%d" % member_idx, "guard", 1, 0):
 				_on_party_status_applied(member_idx, "guard")
+				$CombatController.apply_taunt(member_idx)
 				applied = true
-			$CombatController.apply_taunt(member_idx)
-			applied = true
-			_update_status_icons()
+				_update_status_icons()
 		"party_rally":
 			var sid: String = str(p.get("status_id", "empower"))
 			var charge_flat: float = float(p.get("ultimate_charge_flat", 0.0))
