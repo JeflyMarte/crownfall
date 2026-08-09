@@ -29,7 +29,6 @@ const _FR_D4_IDS: Array[String] = [
 	"vergaron",
 	"storm_joe",
 	"oldrex",
-	"glacier_warden",
 	"wind_ripper",
 ]
 

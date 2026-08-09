@@ -4,7 +4,7 @@
 **日付:** 2026-08-09  
 **状態:** 承認（オーナー GO）  
 **関連:** P3-BAL-ENEMY-SKILL-CA-001／35_EnemyTrickySkills／38_EliteBossPressure  
-**上書き:** `P3-ENEMY-FR-OMIT-001`（`polar_tricera` をフロスト系 elite_pool へ復帰）
+**上書き:** `P3-ENEMY-FR-OMIT-001` を一旦復帰させたが、**`116_FrostEliteMammoth` で `polar_tricera` 再オミット・`glacier_warden` が FR エリート**
 
 ## 要旨
 
@@ -20,7 +20,8 @@
 | 深霧ワイバーン | 吐息専 | 凍霧を主（重み↑） |
 | ミラーボア | 反術・後衛崩し | T7維持。後列毒を主 |
 | グレイオス | 吹雪制圧 | 白嵐を主。槍突は後列 |
-| 極冠トリケラ | 突進戦車 | 角撃を主＋通常軽減。FRプールへ追加 |
+| 氷晶マンモス | 硬殻戦車 | 通常軽減＋氷晶の蹂躙（防御無視全体）。`116` |
+| ~~極冠トリケラ~~ | ~~突進戦車~~ | **オミット**（`116`） |
 | 深海司祭 | 墨の妨害 | T7維持。silence 主＋後列鞭 |
 | アンカーロード | 錨タンク | 通常軽減＋錨打ち主 |
 
@@ -35,4 +36,4 @@
 - `resources/enemies/{elite}.tres`／関連 `resources/skills/enemy_*.tres`
 - `EnemyData.skill_weights`
 - `DungeonScene._pick_enemy_skill`／haste 単独時自己加速
-- フロスト系 `elite_pool` に `polar_tricera`
+- フロスト系 `elite_pool` に `greios`＋`glacier_warden`（`polar_tricera` はオミット）

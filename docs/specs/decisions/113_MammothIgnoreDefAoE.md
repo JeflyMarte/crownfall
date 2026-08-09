@@ -15,6 +15,8 @@
 | P3-BAL-MAMMOTH-IGNORE-DEF-001-2 | **氷晶の蹂躙** — 詠唱1・全体×1.65・氷・冷却35%・CD12・`ignore_defense` | 通常全体より倍率を抑え、DEF無視でタンクにも刺す |
 | P3-BAL-MAMMOTH-IGNORE-DEF-001-3 | 使用率0.36・核スキル重み優先。既存単体は残置 | 出番確保 |
 
+> **上書き（2026-08-09）:** `116_FrostEliteMammoth` — マンモスはエリート化。蹂躙は ×1.40／CD14／冷却25%。
+
 ## 非スコープ
 
 - 他敵への `ignore_defense` 横展開

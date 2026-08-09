@@ -7,19 +7,19 @@ script = ExtResource("1")
 id = "glacier_warden"
 display_name = "氷晶マンモス"
 basic_attack_name = "氷踏"
-max_hp = 718
-attack = 120
-defense = 152
+max_hp = 1650
+attack = 228
+defense = 168
 attack_speed = 0.85
-critical_rate = 0.05
+critical_rate = 0.08
 move_speed = 0.85
 threat_target_bias = "max_threat"
 detection_range = 6.5
 attack_range = 1.5
-enemy_type = 0
+enemy_type = 1
 ai_type = "default"
-exp_reward = 20
-gold_reward = 74
+exp_reward = 52
+gold_reward = 90
 drop_table_id = "glacier_warden_drops"
 element_weakness = Array[String](["fire"])
 element_resist = Array[String](["ice"])
@@ -30,15 +30,15 @@ can_swarm = false
 swarm_min = 2
 swarm_max = 2
 codex_class = "獣類"
-codex_danger = 4
+codex_danger = 5
 codex_habitat = "最果て氷裂・氷河縁"
 codex_research_note = "マンモスを祖先とし、氷河の割れ目に縄張りを張る大型種。肩から背へ氷晶の板を背負い、動かぬときは氷壁に擬態する。開拓者の境界標を守るように見えるが、王の使いではない。氷晶の甲は通常の斬撃を通しにくく、スキルや属性で抉るのが定石。長引くと氷晶の蹂躙で装甲を無視した全体衝撃を浴びせる。"
 codex_materials = Array[String]([])
 skill_ids = Array[String](["enemy_shrapnel_slam", "enemy_ice_tusk", "enemy_crystal_trampling"])
-skill_use_chance = 0.36
+skill_use_chance = 0.5
 skill_weights = {
-"enemy_shrapnel_slam": 0.9,
-"enemy_ice_tusk": 1.4,
-"enemy_crystal_trampling": 2.6
+"enemy_shrapnel_slam": 1.0,
+"enemy_ice_tusk": 1.2,
+"enemy_crystal_trampling": 3.5
 }
 incoming_basic_mult = 0.2

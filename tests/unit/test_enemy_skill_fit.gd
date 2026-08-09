@@ -20,7 +20,7 @@ func test_playable_elites_have_two_skills() -> void:
 	var elites: Array[String] = [
 		"mist_wyvern", "mirror_boa", "greios", "great_claw",
 		"nightfen", "ninja_octopus", "anchor_lord", "clock_moth",
-		"polar_tricera",
+		"glacier_warden",
 	]
 	for eid: String in elites:
 		var data: Resource = DataRegistry.get_enemy_data(eid)
@@ -49,7 +49,7 @@ func test_main_biome_trash_have_two_skills() -> void:
 		"whisperwood": ["moss_boar", "moss_shell", "spore_widow", "iron_horn", "blood_bloom", "rune_carcinos"],
 		"mistfen": ["blood_leech", "dead_poison_frog", "mist_mantis", "marsh_king", "bone_picker", "mire_strider_spider", "spore_needle_wasp"],
 		"blackshore": ["ship_eater_crab", "skull_turtle", "undertaker_shark", "samurai_fish", "black_tide_shark", "abyssal_squid", "tide_lamp"],
-		"frostridge": ["frost_claw_raptor", "vergaron", "storm_joe", "oldrex", "glacier_warden", "wind_ripper"],
+		"frostridge": ["frost_claw_raptor", "vergaron", "storm_joe", "oldrex", "wind_ripper"],
 	}
 	for biome_id: String in pools.keys():
 		for enemy_id: String in pools[biome_id]:

@@ -19,9 +19,10 @@ func test_crystal_trampling_skill() -> void:
 	assert_eq(str(sk.target_type), "all_party")
 	assert_true(bool(sk.ignore_defense))
 	assert_almost_eq(float(sk.cast_time), 1.0, 0.001)
-	assert_gt(float(sk.power_multiplier), 1.4)
+	assert_gt(float(sk.power_multiplier), 1.2)
 	var enm: Resource = DataRegistry.get_enemy_data("glacier_warden")
 	assert_true(enm.skill_ids.has("enemy_crystal_trampling"))
+	assert_eq(int(enm.enemy_type), 1)
 	assert_gt(float(enm.skill_use_chance), 0.3)
 	assert_gt(float(enm.skill_weights.get("enemy_crystal_trampling", 0.0)), 2.0)
 

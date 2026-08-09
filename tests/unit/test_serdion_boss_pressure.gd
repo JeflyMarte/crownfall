@@ -110,7 +110,7 @@ func test_all_boss_phase1_weights_favor_pressure_over_enrage() -> void:
 func test_elites_skill_use_raised() -> void:
 	var elite_ids: Array[String] = [
 		"clock_moth", "mist_wyvern", "great_claw", "greios", "anchor_lord",
-		"ninja_octopus", "nightfen", "mirror_boa", "polar_tricera",
+		"ninja_octopus", "nightfen", "mirror_boa", "glacier_warden",
 	]
 	for eid: String in elite_ids:
 		var enemy: Resource = DataRegistry.get_enemy_data(eid)

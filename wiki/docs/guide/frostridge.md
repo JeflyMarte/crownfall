@@ -34,7 +34,7 @@
 | [ストームジョー](../data/monsters.md#storm_joe) | 通常 | 炎 | 爬虫類 |
 | [オルドレクス](../data/monsters.md#oldrex) | 通常 | 炎 | 爬虫類 |
 | [グレイオス](../data/monsters.md#greios) | 通常／エリート | 炎 | 爬虫類 |
-| [氷晶マンモス](../data/monsters.md#glacier_warden) | 通常 | 炎 | 獣類 |
+| [氷晶マンモス](../data/monsters.md#glacier_warden) | エリート | 炎 | 獣類 |
 | [スノーストーム](../data/monsters.md#wind_ripper) | 通常 | 炎 | 鳥類 |
 | [ロックバイソン](../data/monsters.md#rock_bison) | 通常 | 炎 | 獣類 |
 

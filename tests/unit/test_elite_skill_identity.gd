@@ -11,7 +11,7 @@ func test_elite_roles_and_signature_skills() -> void:
 		["mist_wyvern", "enemy_mist_breath", 4.0, 1.0, 0.55],
 		["mirror_boa", "enemy_mirror_fang", 3.0, 0.2, 0.5],
 		["greios", "enemy_greios_scale_storm", 3.5, 1.0, 0.55],
-		["polar_tricera", "enemy_tricera_charge", 3.5, 0.2, 0.5],
+		["glacier_warden", "enemy_crystal_trampling", 3.5, 0.2, 0.5],
 		["ninja_octopus", "enemy_ink_seal", 3.5, 0.2, 0.5],
 		["anchor_lord", "enemy_anchor_crush", 3.5, 0.2, 0.5],
 	]
@@ -29,7 +29,7 @@ func test_elite_roles_and_signature_skills() -> void:
 				assert_almost_eq(float(data.lifesteal_ratio), float(row[3]), 0.001)
 			"mirror_boa", "ninja_octopus":
 				assert_almost_eq(float(data.incoming_skill_mult), float(row[3]), 0.001)
-			"polar_tricera", "anchor_lord":
+			"glacier_warden", "anchor_lord":
 				assert_almost_eq(float(data.incoming_basic_mult), float(row[3]), 0.001)
 		for sid: String in data.skill_ids:
 			assert_not_null(DataRegistry.get_skill_data(str(sid)), "skill " + str(sid))
@@ -56,7 +56,7 @@ func test_ninja_octopus_silence_not_aoe_veil() -> void:
 
 
 func test_tank_elites_basic_resist() -> void:
-	for eid in ["anchor_lord", "polar_tricera"]:
+	for eid in ["anchor_lord", "glacier_warden"]:
 		var data: Resource = DataRegistry.get_enemy_data(eid)
 		assert_almost_eq(float(data.incoming_basic_mult), 0.2, 0.001, eid)
 
@@ -66,9 +66,10 @@ func test_greios_wing_lance_targets_back() -> void:
 	assert_eq(str(skill.target_type), "party_back")
 
 
-func test_frost_pools_include_polar_tricera() -> void:
+func test_frost_pools_include_mammoth_elite() -> void:
 	for did in ["frostridge", "abyss_frostridge", "north_reach"]:
 		var dg: Resource = DataRegistry.get_dungeon_data(did)
 		assert_not_null(dg, did)
-		assert_true(dg.elite_pool.has("polar_tricera"), did)
+		assert_true(dg.elite_pool.has("glacier_warden"), did)
 		assert_true(dg.elite_pool.has("greios"), did)
+		assert_false(dg.elite_pool.has("polar_tricera"), did)

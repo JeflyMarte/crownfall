@@ -3482,6 +3482,16 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 | P3-FIX-RELIC-LOAD-ORDER-001-1 | **`owned_relics` を roster normalize より先に復元** | 未所持扱いで装備全落ち |
 | P3-FIX-RELIC-LOAD-ORDER-001-2 | `set_member_relic` は set 意味（再適用で外れない） | トグル副作用 |
 
+## フロストリッジ：トリケラオミット／マンモス・エリート（2026-08-09 — P3-BAL-FR-ELITE-MAMMOTH-001）
+
+詳細: `docs/specs/decisions/116_FrostEliteMammoth.md`
+
+| ID | 決定 | 理由 |
+|---|---|---|
+| P3-BAL-FR-ELITE-MAMMOTH-001-1 | **極冠トリケラをプール除外** | オーナー・オミット |
+| P3-BAL-FR-ELITE-MAMMOTH-001-2 | **氷晶マンモスをエリート化** | 硬殻タンク役 |
+| P3-BAL-FR-ELITE-MAMMOTH-001-3 | 氷晶の蹂躙を弱体（×1.40／CD14） | 過強緩和 |
+
 ## 氷晶マンモス防御無視全体（2026-08-09 — P3-BAL-MAMMOTH-IGNORE-DEF-001）
 
 詳細: `docs/specs/decisions/113_MammothIgnoreDefAoE.md`

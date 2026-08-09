@@ -290,6 +290,7 @@ const ENEMY_BODY_SCALE_MULT: Dictionary = {
 	"ninja_octopus": 1.28,
 	"anchor_lord": 1.32,
 	"greios": 1.30,
+	"glacier_warden": 1.32,
 	"polar_tricera": 1.28,
 	"big_cosmic_duck": 0.86,
 }
@@ -651,6 +652,7 @@ const LOG_ENEMY_TIER_BY_ID: Dictionary = {
 	"ninja_octopus": "elite",
 	"anchor_lord": "elite",
 	"greios": "elite",
+	"glacier_warden": "elite",
 	"polar_tricera": "elite",
 	"serdion": "boss",
 	"granvel": "boss",
