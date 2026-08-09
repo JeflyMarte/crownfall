@@ -7,8 +7,8 @@
 > 文体: `YOUTUBE_VOICE.md`  
 > Wiki: https://crownfall-game.github.io/  
 > 作例SSOT: ショーケース「アルド(出血主砲ビルド)」  
-> **撮影:** `tools/yt_chr_ald_shot_runner.gd`（予定）／`docs/devlog/yt_chr_ald/`  
-> **完成動画:** （未）`docs/devlog/yt_chr_ald/export/crownfall_chr_ald_yukkuri.mp4`
+> **撮影:** `tools/yt_chr_ald_shot_runner.gd`／`docs/devlog/yt_chr_ald/`  
+> **完成動画:** `docs/devlog/yt_chr_ald/export/crownfall_chr_ald_yukkuri.mp4`
 
 ---
 
@@ -150,9 +150,14 @@
 攻略Wiki: https://crownfall-game.github.io/
 Note: https://note.com/abbey_load_1969
 
-■目次（音声確定後に秒数を合わせる）
+■目次
 0:00 はじめに
-0:40 アルドは何者か
+0:23 アルドは何者か
+0:55 同職との違い
+1:45 出血主砲ビルド
+2:31 相性とパーティ
+3:08 戦闘で見えるところ
+3:35 まとめ
 1:30 同職との違い
 2:40 出血主砲ビルド
 3:40 相性とパーティ
