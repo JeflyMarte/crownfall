@@ -215,6 +215,8 @@ func _on_continue() -> void:
 	SaveManager.use_normal_slot()
 	if not SaveManager.has_normal_save():
 		return
+	## メモリ上の前セッション（デバッグ等）を落としてから適用。欠損キー汚染防止。
+	GameState.reset_for_new_game()
 	if not SaveManager.load_game():
 		_show_load_error(
 			"セーブデータが読めません。\nデータが壊れている可能性があります。\n（空の状態で拠点へは入りません）"
@@ -270,6 +272,7 @@ func _on_debug_pressed() -> void:
 func _on_debug_confirmed() -> void:
 	SaveManager.use_debug_slot()
 	if SaveManager.has_debug_save():
+		GameState.reset_for_new_game()
 		if not SaveManager.load_game():
 			_show_load_error(
 				"デバッグセーブが読めません。\n『リセットして開始』で新規作成できます。"

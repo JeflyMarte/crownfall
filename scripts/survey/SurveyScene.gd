@@ -223,11 +223,15 @@ func _build_ui() -> void:
 	_btn_start_short = Button.new()
 	_btn_start_short.text = _SurveyConfig.display_name_with_duration(_SurveyConfig.PRESET_SHORT)
 	_btn_start_short.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_btn_start_short.set_meta(&"_cf_keep_mouse_stop", true)
+	_btn_start_short.mouse_filter = Control.MOUSE_FILTER_STOP
 	_btn_start_short.pressed.connect(func(): _on_start(_SurveyConfig.PRESET_SHORT))
 	start_row.add_child(_btn_start_short)
 	_btn_start_std = Button.new()
 	_btn_start_std.text = _SurveyConfig.display_name_with_duration(_SurveyConfig.PRESET_STANDARD)
 	_btn_start_std.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_btn_start_std.set_meta(&"_cf_keep_mouse_stop", true)
+	_btn_start_std.mouse_filter = Control.MOUSE_FILTER_STOP
 	_btn_start_std.pressed.connect(func(): _on_start(_SurveyConfig.PRESET_STANDARD))
 	start_row.add_child(_btn_start_std)
 	body.add_child(start_row)
@@ -236,12 +240,16 @@ func _build_ui() -> void:
 	_btn_claim.text = "調査中..."
 	_btn_claim.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_btn_claim.custom_minimum_size = Vector2(0, 48)
+	_btn_claim.set_meta(&"_cf_keep_mouse_stop", true)
+	_btn_claim.mouse_filter = Control.MOUSE_FILTER_STOP
 	_btn_claim.pressed.connect(_on_claim)
 	body.add_child(_btn_claim)
 	_btn_cancel = Button.new()
 	_btn_cancel.text = "調査を中止"
 	_btn_cancel.visible = false
 	_btn_cancel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_btn_cancel.set_meta(&"_cf_keep_mouse_stop", true)
+	_btn_cancel.mouse_filter = Control.MOUSE_FILTER_STOP
 	_btn_cancel.pressed.connect(_on_cancel_pressed)
 	body.add_child(_btn_cancel)
 
@@ -328,6 +336,8 @@ func _build_assignee_section() -> Control:
 	_btn_auto.text = "おまかせ"
 	_btn_auto.tooltip_text = "おまかせ配置"
 	_btn_auto.size_flags_horizontal = Control.SIZE_SHRINK_END
+	_btn_auto.set_meta(&"_cf_keep_mouse_stop", true)
+	_btn_auto.mouse_filter = Control.MOUSE_FILTER_STOP
 	_btn_auto.pressed.connect(_on_auto_assign)
 	header.add_child(_btn_auto)
 	return header

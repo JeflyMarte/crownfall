@@ -91,6 +91,13 @@ func _ready() -> void:
 	HeaderCurrencyHelper.apply_to_row($Header/HeaderRow)
 	_decorate_static()
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
+	_mark_codex_tab_stop($MainScroll/MainVBox/TabRow/ButtonTabEnemy)
+	_mark_codex_tab_stop($MainScroll/MainVBox/TabRow/ButtonTabDungeon)
+	_mark_codex_tab_stop($MainScroll/MainVBox/TabRow/ButtonTabWeapon)
+	_mark_codex_tab_stop($MainScroll/MainVBox/TabRow/ButtonTabHistory)
+	_mark_codex_tab_stop($MainScroll/MainVBox/TabRow/ButtonTabWorldview)
+	_mark_codex_tab_stop($MainScroll/MainVBox/TabRow/ButtonTabCharacter)
+	_mark_codex_tab_stop($MainScroll/MainVBox/TabRow/ButtonTabGuide)
 	$MainScroll/MainVBox/TabRow/ButtonTabEnemy.pressed.connect(func(): _select_category("enemy"))
 	$MainScroll/MainVBox/TabRow/ButtonTabDungeon.pressed.connect(func(): _select_category("dungeon"))
 	$MainScroll/MainVBox/TabRow/ButtonTabWeapon.pressed.connect(func(): _select_category("equipment"))
@@ -198,8 +205,16 @@ func _ensure_achieve_tab_button() -> void:
 	btn.name = "ButtonTabAchieve"
 	btn.text = str(CATEGORY_DISPLAY["achieve"])
 	btn.custom_minimum_size = Vector2(0, 36)
+	_mark_codex_tab_stop(btn)
 	btn.pressed.connect(func(): _select_category("achieve"))
 	tab_row.add_child(btn)
+
+
+func _mark_codex_tab_stop(btn: Button) -> void:
+	if btn == null:
+		return
+	btn.set_meta(&"_cf_keep_mouse_stop", true)
+	btn.mouse_filter = Control.MOUSE_FILTER_STOP
 
 
 func _hide_achieve_tab_button() -> void:
@@ -297,6 +312,8 @@ func _rebuild_entry_list() -> void:
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		btn.clip_text = true
 		btn.add_theme_font_size_override("font_size", 20)
+		btn.set_meta(&"_cf_keep_mouse_stop", true)
+		btn.mouse_filter = Control.MOUSE_FILTER_STOP
 		btn.text = "  " + _entry_list_name(entry)
 		var tex: Texture2D = _entry_list_icon(entry)
 		if tex != null:

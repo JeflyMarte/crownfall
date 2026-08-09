@@ -36,6 +36,8 @@ alwaysApply: false
 | 会心追撃等でトドメしても撃破パッシブ／キル数なし | `_on_enemy_slot_killed` のみ呼び `on_kill` 未発火 | killer 付きで集約発火（DoT／自爆は -1） |
 | 護衛撃破後にボス追加召喚できない | キャップが死体込み `swarm_data.size` | 死体スロット再利用＋上限は生存数 |
 | 死体再利用後に同種クローン召喚が不発 | `_mark_enemy_summon_used` の `slot:` が残り、再利用時未クリア | `_execute_enemy_summon` で `_kill_award_slots` と共に `slot:` を erase（`skill:` は残す） |
+| 死体再利用後もクローン召喚が CD で不発 | 招集は CD9999。再利用時に `enemy:slot:` CD 未クリア | `SkillExecutor.clear_cooldown_keys_with_prefix("enemy:N:")` を再利用と同タイミング |
+| はじめから後に編成プリセットが残る | `reset_for_new_game` が `saved_parties`／`showcase_member_id` 未クリア | reset で空配列／空文字。Continue／Debug つづける前も reset→load |
 | 4人編成以降で敵の殴り／DoTが痛くない | グローバルATK薄＋回復ループ | `ENEMY_GLOBAL_ATK`×1.25・味方DoT×1.40・`heal_block`／後列技 |
 | 被弾で防御が半永久半減 | on_hit `guard` 再付与が持続リセット＋短いCD | CD延長＋`skip_if_status_active`（付与中不発）。`110_GuardOnHitUptime` |
 | 調剤師の薬で常時半減 | 回復のたび `guard` 再付与・CDなし | 対象別 CD12＋付与中不発（`_maybe_apply_heal_guard`） |

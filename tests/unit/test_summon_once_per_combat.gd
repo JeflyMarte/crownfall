@@ -32,3 +32,14 @@ func test_corpse_reuse_clears_slot_summon_flag() -> void:
 	assert_false(bool(scene._enemy_summon_used.get("slot:1", false)))
 	assert_true(bool(scene._enemy_summon_used.get("skill:enemy_boar_call", false)), "指定召喚の skill: 鍵は残す")
 	scene.free()
+
+
+func test_corpse_reuse_clears_enemy_slot_cooldowns() -> void:
+	## 招集スキルは CD9999。死体再利用後に enemy:slot: 接頭辞の CD が残ると再発火不能。
+	const _SkillExecutor := preload("res://scripts/combat/SkillExecutor.gd")
+	var ex = _SkillExecutor.new()
+	ex.add_cooldown_seconds("enemy:1:enemy_boar_call", 9999.0)
+	ex.add_cooldown_seconds("enemy:2:enemy_boar_call", 9999.0)
+	ex.clear_cooldown_keys_with_prefix("enemy:1:")
+	assert_eq(ex.get_cooldown_remaining("enemy:1:enemy_boar_call"), 0.0)
+	assert_gt(ex.get_cooldown_remaining("enemy:2:enemy_boar_call"), 0.0)
