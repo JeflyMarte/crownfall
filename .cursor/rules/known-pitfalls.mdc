@@ -27,6 +27,7 @@ alwaysApply: false
 | 一時停止の戦闘ログが常に空 | populate が `SheetVBox/SheetContent` 直指定→Scroll 配下で null。RTL.text 読み戻し依存も脆い | `find_child("SheetContent")`＋`_battle_log_lines` バッファ。表示後に populate |
 | 非戦闘ナラティブ戻る／VFX位置／名ポップサイズ・帯VFX・付与テロップ／野戦調合に+N無し | reset誤用・味方非表示・一律28/48・ColorRect・VFXのみ | → **`14_Presentation_Pitfalls.md`**（回復は `_present_member_heal`） |
 | 味方撃破後もドットが歩き続ける | DoT 等が `visible=false` 未経由 | → **`14_Presentation_Pitfalls.md`**（`_hide_defeated_member_sprite`／sync） |
+| 敵待機が拡大縮小を繰り返す（オルド／スノーストーム等） | PixelLab idle が足元基準で体高さが大きく Shrink | アップスケール禁止（横太化）。`tools/stabilize_enemy_sheet_scale.py` で安定フレーム循環置換。→ **`14_Presentation_Pitfalls.md`** |
 | ネレイオン未撃破で潮鳴王の鎧 | BOSS部屋の召喚撃破でも `apply_boss_legendary_loot` | ボス本体 id 一致時のみ付与（`is_run_boss_kill`） |
 | エリート護衛撃破でエリート報酬／`kill_elite` | ELITE 部屋種別だけでゲート | `is_run_elite_kill`（entity が ELITE）のみ。武器率・レリックも同様 |
 | ボス召喚で Discovery／death アニメ／高武器率 | BOSS 部屋種別だけでプレミアム | `is_run_boss_kill` で分岐（章★と同型） |
