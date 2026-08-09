@@ -202,7 +202,9 @@ const _DEFS: Dictionary = {
 			"label": "第2形態・白闇",
 			"skill_use_chance": 0.70,
 			"attack_mult": 1.15,
-			"log": "【フェーズ移行】エルディオンの翼が吹雪を呼び、視界が白闇に沈む！",
+			## HP≤50% 到達時に一度だけ全回復（スキップ到達でも適用）。
+			"full_heal_on_enter": true,
+			"log": "【フェーズ移行】エルディオンの翼が吹雪を呼び、氷河晶が体躯を再生する！",
 			"skill_weight": {
 				"boss_enrage": 0.55,
 				"boss_eldion_hex": 1.7,
