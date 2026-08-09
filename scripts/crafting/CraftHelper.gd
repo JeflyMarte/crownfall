@@ -301,7 +301,8 @@ static func craft_lock_reason(craft: Resource) -> String:
 				str(stage.display_name) if stage != null and "display_name" in stage else stage_id
 			)
 			return "%s クリアで解放" % stage_name
-	if not GameState.can_add_equipment():
+	## デバッグ全所持は袋上限を超える前提。生産可否は ignore_cap 相当で判定。
+	if not GameState.can_add_equipment(1, GameState.debug_full_unlock):
 		return "装備袋がいっぱいです（%s）" % GameState.equipment_inventory_count_label()
 	return ""
 
@@ -315,7 +316,7 @@ static func can_craft(craft: Resource, gold: int = -1) -> bool:
 		return false
 	if craft.output_id.is_empty() or not craft_output_exists(craft):
 		return false
-	if not GameState.can_add_equipment():
+	if not GameState.can_add_equipment(1, GameState.debug_full_unlock):
 		return false
 	var available_gold: int = GameState.gold if gold < 0 else gold
 	if available_gold < int(craft.gold_cost):

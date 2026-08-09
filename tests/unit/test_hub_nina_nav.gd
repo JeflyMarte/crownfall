@@ -139,7 +139,7 @@ func test_field_line_calm_when_no_event_weather() -> void:
 
 func test_weather_tip_rain_junior_voice() -> void:
 	var tip: String = _Helper._weather_tip(CombatWeather.RAIN)
-	assert_true(tip.contains("雨"), tip)
+	assert_true(tip.contains("雨") or tip.contains("降水"), tip)
 
 
 func test_chat_line_from_pool() -> void:

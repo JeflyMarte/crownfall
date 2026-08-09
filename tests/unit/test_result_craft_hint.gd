@@ -56,8 +56,8 @@ func test_drop_unlock_then_common_mats_make_craftable() -> void:
 	inst.weapon_id = "hunting_bow"
 	GameState.note_equipment_obtained(inst)
 	assert_true(CraftHelper.is_unlocked("weapon", "hunting_bow"))
-	## COMMON コスト（P3-BAL-FORGE-GOLD-HEAVY）: relic_shard1 + base_ore1 + gold80
-	GameState.gold = 80
+	## COMMON コスト（P3-BAL-FORGE-GOLD-C）: relic_shard1 + base_ore1 + gold120
+	GameState.gold = 120
 	GameState.add_material("relic_shard", 1)
 	GameState.add_material("base_ore", 1)
 	GameState.last_run_material_gains = {"base_ore": 1}
@@ -81,10 +81,10 @@ func test_gains_but_cannot_afford_hides_hint() -> void:
 
 
 func test_banked_gold_enables_craftable_like_result() -> void:
-	## Result は _bank_rewards 後に判定するため、報酬 Gold 込みで足りる（COMMON=80）
+	## Result は _bank_rewards 後に判定するため、報酬 Gold 込みで足りる（COMMON=120）
 	CraftHelper.try_unlock("weapon", "iron_sword")
 	GameState.gold = 10
-	GameState.last_run_gold_reward = 70
+	GameState.last_run_gold_reward = 110
 	GameState.add_material("relic_shard", 1)
 	GameState.add_material("base_ore", 1)
 	GameState.last_run_material_gains = {"base_ore": 1}
