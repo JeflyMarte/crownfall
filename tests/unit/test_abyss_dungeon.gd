@@ -123,7 +123,10 @@ func test_select_scene_shows_abyss_best_left_of_depart() -> void:
 	assert_true(best_lbl.visible)
 	assert_eq(best_lbl.text, "最高到達 F66")
 	assert_eq(best_lbl.get_index(), btn.get_index() - 1, "出発ボタンの左")
-	assert_false(str(scene.get("_label_featured_meta").text).contains("最高到達"), "メタ行には載せない")
+	assert_true(
+		str(scene.get("_label_featured_meta").text).contains("最高到達 66F"),
+		"バナー／メタにも最高到達を出す"
+	)
 
 
 func test_abyss_biomes_have_one_stage_distinct_from_parent() -> void:
@@ -296,15 +299,21 @@ func test_abyss_boss_combat_group_has_pack() -> void:
 
 
 func test_abyss_select_meta_hides_fixed_floor_and_rec_level() -> void:
-	## 選択UIは固定10F／推奨Lvを出さず？？表記（無限の性質）。
+	## 選択UIは固定10F／推奨Lvを出さず？？＋最高到達（無限の性質）。
 	var packed: PackedScene = load("res://scenes/dungeon/DungeonSelectScene.tscn")
 	assert_not_null(packed)
 	var scene: Node = packed.instantiate()
 	add_child_autofree(scene)
 	var stage: Resource = DataRegistry.get_stage_data("abyss_mourngate_1_1")
 	assert_not_null(stage)
+	GameState.dungeon_progress.erase("abyss_mourngate")
 	var meta: String = scene.call("_format_stage_meta_text", stage)
-	assert_eq(meta, "？？F  推奨レベル？？")
+	assert_eq(meta, "？？F  推奨レベル？？  最高到達 —")
+	GameState.note_abyss_floor_reached("abyss_mourngate", 33)
+	assert_eq(
+		scene.call("_format_stage_meta_text", stage),
+		"？？F  推奨レベル？？  最高到達 33F"
+	)
 	var main_stage: Resource = DataRegistry.get_stage_data("mourngate_1_1")
 	if main_stage != null:
 		var main_meta: String = scene.call("_format_stage_meta_text", main_stage)

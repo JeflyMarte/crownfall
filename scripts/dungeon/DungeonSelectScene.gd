@@ -808,8 +808,11 @@ func _format_stage_label(stage: Resource) -> String:
 
 func _format_stage_meta_text(stage: Resource) -> String:
 	## 無限（深層）は固定チャンク長／推奨Lvを出さない（無限階の性質）。
+	## 例: 虚脈の深廊　？？F  推奨レベル？？  最高到達 66F
 	if stage != null and _AbyssDungeonConfig.is_abyss_dungeon_id(str(stage.biome_id)):
-		return "？？F  推奨レベル？？"
+		return "？？F  推奨レベル？？  最高到達 %s" % _abyss_best_floor_value(
+			str(stage.biome_id)
+		)
 	var parts: Array[String] = ["%dF" % int(stage.floor_count)]
 	var rec_lv: int = _DungeonTierConfig.apply_tier_level(
 		int(stage.recommended_level), GameState.current_dungeon_tier
@@ -830,8 +833,19 @@ func _apply_stage_list_rich_text(line: RichTextLabel, unlocked: bool) -> void:
 
 func _stage_list_line_bbcode(stage: Resource, unlocked: bool) -> String:
 	var name: String = str(stage.display_name) if unlocked else "？"
-	var meta: String = _format_stage_meta_text(stage) if unlocked else "未開"
 	var name_color: String = "f5e07a" if unlocked else "c9c4b8"
+	if not unlocked:
+		return "[color=#%s][b]%s[/b][/color]  [color=#e0dcd0]未開[/color]" % [name_color, name]
+	if _AbyssDungeonConfig.is_abyss_dungeon_id(str(stage.biome_id)):
+		var best_bb: String = (
+			"[color=#%s][b]最高到達 %s[/b][/color]"
+			% [COLOR_ABYSS_BEST_HEX, _abyss_best_floor_value(str(stage.biome_id))]
+		)
+		return (
+			"[color=#%s][b]%s[/b][/color]  [color=#e0dcd0]？？F  推奨レベル？？[/color]  %s"
+			% [name_color, name, best_bb]
+		)
+	var meta: String = _format_stage_meta_text(stage)
 	return "[color=#%s][b]%s[/b][/color]  [color=#e0dcd0]%s[/color]" % [name_color, name, meta]
 
 func _dungeon_list_line_bbcode(data: Resource, unlocked: bool) -> String:
@@ -839,32 +853,34 @@ func _dungeon_list_line_bbcode(data: Resource, unlocked: bool) -> String:
 	if not unlocked:
 		return "[color=#c9c4b8][b]%s[/b][/color]  [color=#e0dcd0]未開[/color]" % name
 	var clear_bb: String = ""
-	if str(data.route_type) == "abyss":
-		var best_f: int = GameState.get_abyss_highest_floor(str(data.id))
-		var floor_text: String = ("%dF" % best_f) if best_f > 0 else "—"
-		clear_bb = " [color=#%s][b]最高到達フロア：%s[/b][/color]" % [COLOR_ABYSS_BEST_HEX, floor_text]
-	else:
+	if str(data.route_type) != "abyss":
 		var badge: String = _dungeon_name_badge_text(str(data.id))
 		if not badge.is_empty():
 			clear_bb = " [color=#%s][b]%s[/b][/color]" % [COLOR_CLEAR_BADGE_HEX, badge]
-	var parts: Array[String] = []
-	if str(data.route_type) == "abyss":
-		parts.append("？？F")
-		parts.append("推奨レベル？？")
-	else:
-		if int(data.floor_count) > 0:
-			parts.append("%dF" % int(data.floor_count))
-		var rec_lv: int = _DungeonTierConfig.apply_tier_level(
-			int(data.recommended_level), GameState.current_dungeon_tier
-		)
-		if rec_lv > 0:
-			parts.append("推奨Lv%d〜" % rec_lv)
-	var meta: String = "  ".join(parts)
 	var name_bb: String = name
 	if _is_event_dungeon(data):
 		name_bb = _EventDungeonTitleHelper.title_bbcode(str(data.id), name, true)
 	else:
 		name_bb = "[color=#f5e07a][b]%s[/b][/color]" % name
+	if str(data.route_type) == "abyss":
+		## 例: ？？F  推奨レベル？？  最高到達 66F（最高到達は赤字）
+		var best_bb: String = (
+			"[color=#%s][b]最高到達 %s[/b][/color]"
+			% [COLOR_ABYSS_BEST_HEX, _abyss_best_floor_value(str(data.id))]
+		)
+		return (
+			"%s%s  [color=#e0dcd0]？？F  推奨レベル？？[/color]  %s"
+			% [name_bb, clear_bb, best_bb]
+		)
+	var parts: Array[String] = []
+	if int(data.floor_count) > 0:
+		parts.append("%dF" % int(data.floor_count))
+	var rec_lv: int = _DungeonTierConfig.apply_tier_level(
+		int(data.recommended_level), GameState.current_dungeon_tier
+	)
+	if rec_lv > 0:
+		parts.append("推奨Lv%d〜" % rec_lv)
+	var meta: String = "  ".join(parts)
 	if meta.is_empty():
 		return "%s%s" % [name_bb, clear_bb]
 	return "%s%s  [color=#e0dcd0]%s[/color]" % [name_bb, clear_bb, meta]
@@ -1125,10 +1141,13 @@ func _refresh_featured() -> void:
 		if stage != null and _uses_stage_cards(_featured_dungeon_id):
 			if not title_baked:
 				meta_parts.append(str(stage.display_name))
-			## 深層は固定チャンクの 10F／推奨Lv を出さず、無限である旨を？？で示す。
+			## 深層は固定チャンクの 10F／推奨Lv を出さず、？？＋最高到達を示す。
 			if str(data.route_type) == "abyss":
 				meta_parts.append("？？F")
 				meta_parts.append("推奨レベル？？")
+				meta_parts.append(
+					"最高到達 %s" % _abyss_best_floor_value(_featured_dungeon_id)
+				)
 			else:
 				meta_parts.append("%dF" % int(stage.floor_count))
 				var stage_rec: int = _DungeonTierConfig.apply_tier_level(
@@ -2048,11 +2067,15 @@ func _dungeon_display_name(data: Resource, unlocked: bool = true) -> String:
 	return str(data.display_name)
 
 
-## 無限ダンジョン名の横に出す「最高到達フロア：XXF」テキスト。
-func _abyss_best_floor_text(dungeon_id: String) -> String:
+## 最高到達の階表記（未到達は —）。
+func _abyss_best_floor_value(dungeon_id: String) -> String:
 	var best_f: int = GameState.get_abyss_highest_floor(dungeon_id)
-	var floor_text: String = ("%dF" % best_f) if best_f > 0 else "—"
-	return "最高到達フロア：%s" % floor_text
+	return ("%dF" % best_f) if best_f > 0 else "—"
+
+
+## 無限ダンジョン名／章メタ横の「最高到達 XF」テキスト。
+func _abyss_best_floor_text(dungeon_id: String) -> String:
+	return "最高到達 %s" % _abyss_best_floor_value(dungeon_id)
 
 
 func _dungeon_card_title(data: Resource, unlocked: bool = true) -> String:
