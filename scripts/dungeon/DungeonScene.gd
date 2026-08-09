@@ -2730,7 +2730,12 @@ func _update_hp_bars() -> void:
 	for i: int in _chr_hp_bars.size():
 		var bar: ProgressBar = _chr_hp_bars[i]
 		var sprite: AnimatedSprite2D = _chr_sprites[i]
-		bar.visible = sprite.visible and on_combat_floor
+		var member_alive: bool = (
+			i < GameState.combatant_count() and $CombatController.is_member_alive(i)
+		)
+		if not member_alive:
+			_hide_defeated_member_sprite(i)
+		bar.visible = member_alive and sprite.visible and on_combat_floor
 		if bar.visible and i < $CombatController.party_combat_hp.size():
 			bar.max_value = $CombatController.party_max_hp[i]
 			bar.value = $CombatController.party_combat_hp[i]
@@ -2740,6 +2745,7 @@ func _update_hp_bars() -> void:
 		_update_combat_threat_banner()
 
 func _update_chr_hp_bar_positions() -> void:
+	_sync_defeated_chr_sprites()
 	for i: int in _chr_hp_bars.size():
 		var bar: ProgressBar = _chr_hp_bars[i]
 		var sprite: AnimatedSprite2D = _chr_sprites[i]
@@ -2753,6 +2759,33 @@ func _update_chr_hp_bar_positions() -> void:
 			continue
 		bar.set_meta("hp_follow_track", track)
 		_set_hp_bar_above_sprite(bar, sprite, _formation_slot_for_combat_index(i))
+
+
+## 戦闘不能メンバーのドットを必ず消す（DoT撃破漏れ／再表示事故の再発防止）。
+func _sync_defeated_chr_sprites() -> void:
+	if not $CombatController.is_in_combat:
+		return
+	var n: int = GameState.combatant_count()
+	for i: int in _chr_sprites.size():
+		if i >= n or not $CombatController.is_member_alive(i):
+			_hide_defeated_member_sprite(i)
+
+
+func _hide_defeated_member_sprite(member_idx: int) -> void:
+	if member_idx < 0 or member_idx >= _chr_sprites.size():
+		return
+	var sprite: AnimatedSprite2D = _chr_sprites[member_idx]
+	if sprite == null or not is_instance_valid(sprite):
+		return
+	if member_idx < _chr_idle_tweens.size():
+		var tw = _chr_idle_tweens[member_idx]
+		if tw != null and is_instance_valid(tw) and tw.is_valid():
+			tw.kill()
+		_chr_idle_tweens[member_idx] = null
+	if sprite.is_playing():
+		sprite.stop()
+	sprite.visible = false
+	_clear_member_skill_labels(member_idx)
 
 func _chr_hp_bar_row_y_offset(formation_slot: int) -> float:
 	if formation_slot <= 1:
@@ -3073,6 +3106,9 @@ func _update_status_icons() -> void:
 			)
 	for i: int in _status_icon_chr_rows.size():
 		var sprite: AnimatedSprite2D = _chr_sprites[i]
+		if i >= GameState.combatant_count() or not $CombatController.is_member_alive(i) or not sprite.visible:
+			_status_icon_chr_rows[i].visible = false
+			continue
 		var statuses: Array = $CombatController.get_member_status_list(i)
 		if _is_member_skill_silenced(i):
 			## 複製して先頭に沈黙を足す（元配列を汚さない）。
@@ -5513,6 +5549,19 @@ func _process_status_ticks() -> void:
 				)
 				if not effect_id.is_empty():
 					_combat_vfx.spawn_dot_tick(self, party_pos, effect_id)
+			if not $CombatController.is_member_alive(idx):
+				var dead_member: Resource = GameState.get_combatant(idx)
+				var dead_name: String = dead_member.display_name if dead_member != null else "?"
+				_append_log("[%s] %dダメージ\n%s が倒れた！" % [display_name, dmg, dead_name])
+				_on_member_damaged(idx, {"skip_hit_taken": true})
+				if $CombatController.is_party_wiped():
+					_update_hp_bars()
+					_update_status_icons()
+					_handle_party_wipe()
+					return
+			else:
+				_append_log("[%s] %dダメージ" % [display_name, dmg])
+			continue
 		_append_log("[%s] %dダメージ" % [display_name, dmg])
 	_update_hp_bars()
 	_update_status_icons()
@@ -9398,6 +9447,8 @@ func _on_member_damaged(target_idx: int, ctx: Dictionary = {}) -> void:
 				_spawn_skill_name("⚔裂氷の氷殻", target_idx, 0.0, "", false, "", PASSIVE_NAME_FONT_SIZE)
 				_append_log("[武器] 裂氷の氷殻 発動")
 		return
+	## 撃破: ドット消滅を必ず通す（通常攻撃／スキル／DoT／罠の共通入口）。
+	_hide_defeated_member_sprite(target_idx)
 	AudioManager.play_sfx("combat_death", 1.0, 0.06)
 	$CombatController.clear_pending_cast("party", target_idx)
 	_clear_member_skill_labels(target_idx)

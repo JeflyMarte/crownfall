@@ -19,6 +19,7 @@
 | 碑文加護を自動フェードで消す／泉に緑数字無し／宝箱を単色 Label | 碑文テロップは次フロア入場まで。加護効果は次の戦闘フロアまで。泉は緑VFX＋緑数字。宝箱は BBCode で金／武／飾色分け |
 | 野戦調合／野営の調合で緑VFXだけ・+N無し／即 hide | `_present_member_heal`（VFX+緑数字）。非戦闘入場は短い hold 後に `_end_noncombat_party_feedback` |
 | 分かれ道・応急手当がログだけ／暗転中に演出／中央テロップだけ違う | HPは入場時適用、VFX・+N・**スキル名ポップ**・SEは暗転明け（戦闘は `_on_room_transition_finished`、非戦闘は overlay 待ち）。中央 display テロップ禁止。SEは泉と同型で直鳴らし |
+| 味方撃破後もドットが歩き続ける | DoT／罠など `_on_member_damaged` 未経由で `visible=false` 漏れ。撃破は `_hide_defeated_member_sprite`＋`_sync_defeated_chr_sprites` |
 
 **症状:** 宝箱／泉／碑文／罠の直後に「〜の探索を開始した」や空帯が出る。
 
