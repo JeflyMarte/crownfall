@@ -24,6 +24,8 @@ const EXTRA_ALIASES: Dictionary = {
 static func effect_summary(status_id: String) -> String:
 	if status_id == "skill_silence":
 		return "スキルと必殺が一時的に使えない。"
+	if status_id == "mire_toxin":
+		return "受けている毒の継続ダメージが大きくなる。"
 	var data: Resource = DataRegistry.get_status_effect(status_id)
 	if data == null:
 		return ""
@@ -82,6 +84,8 @@ static func effect_one_line(status_id: String) -> String:
 static func _effect_one_line_body(status_id: String) -> String:
 	if status_id == "skill_silence":
 		return "スキル・必殺封印"
+	if status_id == "mire_toxin":
+		return "毒ダメージ増"
 	var data: Resource = DataRegistry.get_status_effect(status_id)
 	if data == null:
 		return ""

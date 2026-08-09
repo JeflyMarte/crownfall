@@ -579,6 +579,7 @@ const STATUS_ICON_DEF: Dictionary = {
 	"bleed": {"abbrev": "出血", "color": Color(0.9, 0.28, 0.28)},
 	"slow": {"abbrev": "鈍", "color": Color(0.47, 0.67, 0.82)},
 	"enrage": {"abbrev": "激", "color": Color(0.9, 0.35, 0.16)},
+	"mire_toxin": {"abbrev": "瘴", "color": Color(0.35, 0.7, 0.28)},
 	## 敵スキル沈黙（StatusEffect ではなく戦闘ローカル）。頭上❌と併用。
 	"skill_silence": {"abbrev": "❌", "color": Color(0.75, 0.12, 0.18)},
 }
@@ -5067,7 +5068,7 @@ func _play_heal_room_vfx(heal_amounts: Dictionary) -> void:
 
 const _NONCOMBAT_CLEANSE_DEBUFFS: Array[String] = [
 	"poison", "bleed", "curse", "major_curse", "vulnerable", "chill", "slow", "fear", "stun",
-	"armor_break", "mark", "ignite", "shock",
+	"armor_break", "mark", "ignite", "shock", "mire_toxin",
 ]
 
 
@@ -7202,10 +7203,19 @@ func _resolve_enemy_support_slot(skill: Resource, caster_slot: int) -> int:
 			return caster_slot if $CombatController.is_enemy_slot_alive(caster_slot) else -1
 
 
-# 敵の強化スキル（自己／味方敵）。詠唱開始スロット基準で対象解決。
+func _enemy_skill_targets_all_allies(skill: Resource) -> bool:
+	if skill == null:
+		return false
+	return str(skill.target_type) in ["all_allies", "allies"]
+
+
+# 敵の強化スキル（自己／味方敵／群れ全体）。詠唱開始スロット基準で対象解決。
 func _execute_enemy_buff(skill: Resource, slot: int) -> void:
 	_play_enemy_caster_animation(slot, "attack")
 	_spawn_enemy_skill_name(skill.display_name, slot)
+	if _enemy_skill_targets_all_allies(skill):
+		_execute_enemy_buff_all_allies(skill, slot)
+		return
 	var target_slot: int = _resolve_enemy_support_slot(skill, slot)
 	if target_slot < 0:
 		_append_log("敵スキル【%s】: 対象なし" % skill.display_name)
@@ -7219,6 +7229,26 @@ func _execute_enemy_buff(skill: Resource, slot: int) -> void:
 			label = eff.display_name
 	var scope: String = "自身" if target_slot == slot else "味方"
 	_append_log("敵スキル【%s】: %sに[%s]" % [skill.display_name, scope, label])
+
+
+func _execute_enemy_buff_all_allies(skill: Resource, slot: int) -> void:
+	var sid: String = str(skill.apply_status_id)
+	if sid.is_empty():
+		_append_log("敵スキル【%s】: 効果なし" % skill.display_name)
+		return
+	var applied: int = 0
+	for target_slot: int in $CombatController.get_living_enemy_indices():
+		if $CombatController.apply_status_to_enemy_slot(target_slot, sid, 1, 0):
+			_on_enemy_status_applied(target_slot, sid)
+			applied += 1
+	var label: String = skill.display_name
+	var eff: Resource = DataRegistry.get_status_effect(sid)
+	if eff != null:
+		label = eff.display_name
+	if applied <= 0:
+		_append_log("敵スキル【%s】: 対象なし" % skill.display_name)
+	else:
+		_append_log("敵スキル【%s】: 群れに[%s]（%d体）" % [skill.display_name, label, applied])
 
 
 # 敵の回復スキル（自己／最も負傷した味方敵）。power＝対象 maxHP 比。
@@ -7258,24 +7288,36 @@ func _execute_enemy_explode(skill: Resource, slot: int) -> void:
 	_queue_enemy_offensive_skill(skill, slot, true)
 
 
-## T14: 他の生存敵の CT を早める。
+## T14: 他の生存敵の CT を早める（all_allies なら群れ全体）。
 func _execute_enemy_haste(skill: Resource, slot: int) -> void:
 	_play_enemy_caster_animation(slot, "attack")
 	_spawn_enemy_skill_name(skill.display_name, slot)
+	var refund: float = float(skill.power_multiplier)
+	if refund <= 0.0:
+		refund = ENEMY_HASTE_CT_REFUND
+	refund = clampf(refund, 0.15, 0.85)
+	if _enemy_skill_targets_all_allies(skill):
+		var living: Array[int] = $CombatController.get_living_enemy_indices()
+		if living.is_empty():
+			_append_log("敵スキル【%s】: 対象なし" % skill.display_name)
+			return
+		for target_slot: int in living:
+			$CombatController.refund_enemy_ct(target_slot, refund)
+		_try_announce_enemy_trait_once("haste:%d" % slot, slot, "群れの行動が早まった！")
+		_append_log("敵スキル【%s】: 群れの行動を早めた（%d体）" % [skill.display_name, living.size()])
+		_update_turn_order_ui($CombatController.get_ct_order())
+		return
 	var target_slot: int = $CombatController.get_most_injured_enemy_slot(slot)
 	if target_slot < 0:
-		var living: Array[int] = $CombatController.get_living_enemy_indices()
-		for i: int in living:
+		var living_one: Array[int] = $CombatController.get_living_enemy_indices()
+		for i: int in living_one:
 			if i != slot:
 				target_slot = i
 				break
 	## 単独時は自己加速（護衛0のモーンゲート等）。
 	if target_slot < 0:
 		target_slot = slot
-	var refund: float = float(skill.power_multiplier)
-	if refund <= 0.0:
-		refund = ENEMY_HASTE_CT_REFUND
-	$CombatController.refund_enemy_ct(target_slot, clampf(refund, 0.15, 0.85))
+	$CombatController.refund_enemy_ct(target_slot, refund)
 	var self_haste: bool = target_slot == slot
 	_try_announce_enemy_trait_once("haste:%d" % slot, target_slot, "行動が早まった！")
 	if self_haste:

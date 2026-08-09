@@ -4,16 +4,16 @@
 
 [resource]
 script = ExtResource("1")
-id = "enemy_hull_ward"
-display_name = "船骨の鼓舞"
-description = "鋏を打ち、群れを激昂させて攻撃を高めさせる。"
+id = "enemy_moss_carapace"
+display_name = "苔甲展開"
+description = "殻の苔を固め、自身の防御を大きく高める。"
 skill_type = "enemy"
-target_type = "all_allies"
+target_type = "self"
 power_multiplier = 1.0
-cooldown = 8.0
+cooldown = 7.5
 trigger_type = "cooldown"
 effect_type = "buff"
 tags = Array[String](["buff", "support"])
 element = ""
-apply_status_id = "enrage"
+apply_status_id = "guard"
 apply_status_chance = 1.0

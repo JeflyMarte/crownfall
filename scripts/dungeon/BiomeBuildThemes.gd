@@ -12,6 +12,15 @@ const _HINTS: Dictionary = {
 	"frostridge": "傾向: 火属性・属性特化向き ／ 無属性鈍火力は苦戦",
 }
 
+## 章の象徴雑魚 id（P3-BAL-BIOME-BUILD-THEME-001-8）。UI非表示・テスト／照会用。
+const SIGNATURE_ENEMY_IDS: Dictionary = {
+	"mourngate": "skullface_mantis",
+	"whisperwood": "moss_shell",
+	"mistfen": "dead_poison_frog",
+	"blackshore": "black_tide_shark",
+	"frostridge": "frost_claw_raptor",
+}
+
 const _PARENT_ABYSS: Dictionary = {
 	"abyss_mourngate": "mourngate",
 	"abyss_whisperwood": "whisperwood",

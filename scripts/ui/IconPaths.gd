@@ -674,6 +674,7 @@ const ICON_MAP: Dictionary = {
 	"status:bleed":                 "res://assets/ui/status/ICO_STA_Bleed.png",
 	"status:slow":                  "res://assets/ui/status/ICO_STA_Slow.png",
 	"status:enrage":                "res://assets/ui/status/ICO_STA_Enrage.png",
+	"status:mire_toxin":            "res://assets/ui/status/ICO_STA_Poison.png",
 	## 天候レジェンド（P3-UX-STATUS-LEGEND-002）
 	"weather:rain":                 "res://assets/ui/weather/ICO_WTH_Rain.png",
 	"weather:night":                "res://assets/ui/weather/ICO_WTH_Night.png",

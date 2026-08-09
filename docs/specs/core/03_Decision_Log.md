@@ -7734,3 +7734,4 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-BIOME-BUILD-THEME-001-5 | **SSOT** — `104_BiomeBuildThemes.md` | Decision 本体 |
 | P3-BAL-BIOME-BUILD-THEME-001-6 | ~~ウィスパーウッド＝火で殻~~ → **001-7 で差し替え** | 霜と火被り |
 | P3-BAL-BIOME-BUILD-THEME-001-7 | **ウィスパーウッド確定（案A）** — DoT（毒／出血）＋DEF厚。火弱点を外し霜（火）と差別化 | オーナー GO |
+| P3-BAL-BIOME-BUILD-THEME-001-8 | **象徴雑魚** — 章1体をステ＋スキル尖り（B帯）。BS群れ激昂／ミスト瘴気（毒×1.4）ほか | オーナー GO |

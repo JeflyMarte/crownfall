@@ -2,6 +2,8 @@ class_name StatusResolver
 extends RefCounted
 
 const MAX_DISTINCT_STATUSES: int = 3
+## ミストフェン象徴・瘴気。毒 DoT のみ増幅（天候乗算のあと）。
+const MIRE_TOXIN_POISON_MULT: float = 1.4
 ## 同系統の弱い／強い状態は共存させない（与ダメ乗算の二重掛け防止）。
 const MUTUALLY_EXCLUSIVE: Dictionary = {
 	"curse": ["major_curse"],
@@ -87,6 +89,8 @@ func tick_unit(unit_id: String) -> Array[Dictionary]:
 				dmg += effect.dot_flat * inst.stacks
 			if dmg > 0 and str(inst.effect_id) == "poison":
 				var p_mult: float = CombatWeather.poison_damage_multiplier(GameState.get_weather())
+				if get_status_stacks(unit_id, "mire_toxin") > 0:
+					p_mult *= MIRE_TOXIN_POISON_MULT
 				if not is_equal_approx(p_mult, 1.0):
 					dmg = maxi(1, int(round(float(dmg) * p_mult)))
 			if dmg > 0:

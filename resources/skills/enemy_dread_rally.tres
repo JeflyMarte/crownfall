@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1")
-id = "enemy_hull_ward"
-display_name = "船骨の鼓舞"
-description = "鋏を打ち、群れを激昂させて攻撃を高めさせる。"
+id = "enemy_dread_rally"
+display_name = "黒潮の号令"
+description = "群れを煽り、味方敵すべてを激昂させる。"
 skill_type = "enemy"
 target_type = "all_allies"
 power_multiplier = 1.0
