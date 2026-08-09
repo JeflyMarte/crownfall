@@ -7034,11 +7034,20 @@ func _should_show_boss_skill_cutin(skill: Resource) -> bool:
 func _play_boss_skill_cutin(skill: Resource) -> void:
 	if skill == null:
 		return
+	var effect_line: String = _SkillEffectOneLineHelper.for_combat_ultimate(skill)
+	_play_boss_banner_cutin(str(skill.display_name), effect_line, "必殺技")
+
+
+## ボス顔＋横帯カットイン（詠唱大技／位相全回復など）。
+func _play_boss_banner_cutin(
+	skill_name: String, effect_line: String = "", tag_text: String = "必殺技"
+) -> void:
+	if skill_name.is_empty():
+		return
 	_dismiss_boss_skill_cutin(0.0)
 	var enemy_id: String = ""
 	if $CombatController.current_enemy_data != null:
 		enemy_id = str($CombatController.current_enemy_data.id)
-	var effect_line: String = _SkillEffectOneLineHelper.for_combat_ultimate(skill)
 	var root := Control.new()
 	root.name = "BossSkillCutin"
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -7088,14 +7097,14 @@ func _play_boss_skill_cutin(skill: Resource) -> void:
 	row.add_child(col)
 
 	var tag := Label.new()
-	tag.text = "必殺技"
+	tag.text = tag_text if not tag_text.is_empty() else "必殺技"
 	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_display(tag, 22, Color(1.0, 0.55, 0.35), UiTypography.OUTLINE_STRONG)
 	col.add_child(tag)
 
 	var name_lbl := Label.new()
-	name_lbl.text = str(skill.display_name)
+	name_lbl.text = skill_name
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	name_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
 	name_lbl.clip_text = false
@@ -10229,12 +10238,23 @@ func _apply_boss_phase_full_heal(slot: int, phase: Dictionary) -> void:
 	var need: int = maxhp - before
 	if need <= 0:
 		return
+	var cutin_name: String = str(phase.get("full_heal_cutin_name", "")).strip_edges()
+	if not cutin_name.is_empty():
+		_play_boss_banner_cutin(
+			cutin_name,
+			str(phase.get("full_heal_cutin_effect", "")).strip_edges(),
+			"必殺技"
+		)
 	var healed: int = $CombatController.heal_enemy_slot(slot, need)
 	_update_hp_bars()
 	if healed > 0:
 		_present_enemy_heal(slot, healed)
 		var label: String = str(phase.get("label", "フェーズ移行"))
-		_append_log("【%s】HP全回復（+%d）" % [label, healed])
+		_append_log("【%s】%s（+%d）" % [
+			label,
+			cutin_name if not cutin_name.is_empty() else "HP全回復",
+			healed,
+		])
 
 func _report_link_bonus(link_id: String, bonus: int, member_idx: int, target_slot: int) -> void:
 	var label: String = CombatLinks.label_for(link_id)

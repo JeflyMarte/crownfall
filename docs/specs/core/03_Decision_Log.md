@@ -7915,6 +7915,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ELDION-OPENING-001-3 | **`boss_buff_break_all`** | 他本編ボスと同解呪 |
 | P3-BAL-ELDION-OPENING-001-4 | **本体火力** — HP2550／ATK220／skill0.65／技・位相 | 同席なしでも圧力 |
 | P3-BAL-ELDION-OPENING-001-5 | **HP≤50% で一度全回復**（`full_heal_on_enter`） | オーナー指示 |
+| P3-BAL-ELDION-OPENING-001-5b | **全回復カットイン** — 「氷河の再誕」／自身のHPを全回復する | オーナー指示 |
 | P3-BAL-ELDION-OPENING-001-6 | **SSOT** — `119_EldionOpeningCompanions.md` | Decision 本体 |
 
 ## 宝箱 Gold 難易度別（2026-08-09 — P3-BAL-TREASURE-GOLD-TIER-001）

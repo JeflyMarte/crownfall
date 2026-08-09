@@ -17,6 +17,7 @@ HP≤50%（第2形態）到達時に **一度だけ全回復**する。
 | P3-BAL-ELDION-OPENING-001-3 | **バフ剥がし** — `boss_buff_break_all` | 他本編ボスと同解呪 |
 | P3-BAL-ELDION-OPENING-001-4 | **本体火力** — HP2550／ATK220／skill0.65／技・位相倍率 | 同席なしでも圧力 |
 | P3-BAL-ELDION-OPENING-001-5 | **HP≤50% で一度全回復** — 第2形態 `full_heal_on_enter`。位相スキップ時も適用 | オーナー指示 |
+| P3-BAL-ELDION-OPENING-001-5b | **全回復カットイン** — 技名「氷河の再誕」／効果「自身のHPを全回復する」。ボス必殺帯と同演出 | オーナー指示 |
 | P3-BAL-ELDION-OPENING-001-6 | **SSOT** — 本 Decision | — |
 
 ## 非スコープ
