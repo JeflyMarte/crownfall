@@ -775,6 +775,8 @@ func _on_change_dungeon() -> void:
 		if picked_id.is_empty() or picked_id == _target_dungeon_id:
 			return
 		_target_dungeon_id = picked_id
+		## 対象変更自体は編成を触らないが、orphan backup 欠員が残っていればここで癒す。
+		_SurveySystem.ensure_party_restored_if_awaiting_claim()
 		_refresh()
 	)
 

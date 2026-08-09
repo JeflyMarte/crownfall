@@ -7693,3 +7693,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-FIX-SURVEY-PARTY-RESULT-001-1 | Result 入室（bank 前）・退出（拠点／再挑戦／次ダン）で `ensure_party_restored_if_awaiting_claim` | 欠員のままセーブ固定を防ぐ |
 | P3-FIX-SURVEY-PARTY-RESULT-001-2 | Dungeon 入場・Hub `_ready`／tick でも ensure | 拠点スキップ経路の二重防衛 |
 | P3-FIX-SURVEY-PARTY-RESULT-001-3 | **延長** — P3-FIX-SURVEY-PARTY-BACKUP-001／AUDIT-A の復元経路 | 復元ロジック自体は据置 |
+
+## 調査室・編成破壊経路の硬化（2026-08-09 — P3-FIX-SURVEY-PARTY-HARDEN-001）
+
+> **オーナー報告** — 調査対象ダンジョン変更でパーティ解散。調査室まわりで欠員バグ多発。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-FIX-SURVEY-PARTY-HARDEN-001-1 | **ensure は欠け補完のみ**（`_heal_party_from_backup`）。丸ごと置換しない | 小さい／食い違い backup で編成を潰さない |
+| P3-FIX-SURVEY-PARTY-HARDEN-001-2 | **不完全 restore は set しない**（claim／cancel の exact 復元） | 途中配列で人数減の副作用禁止 |
+| P3-FIX-SURVEY-PARTY-HARDEN-001-3 | **start_cycle** は先に ensure。現行が既存 backup の真部分集合なら大きい backup を維持 | 欠員のまま backup 上書き事故を防ぐ |
+| P3-FIX-SURVEY-PARTY-HARDEN-001-4 | 調査対象変更時も ensure（orphan 癒し）。変更自体は編成非破壊を維持 | 操作フロー上の欠員残存を拾う |
+| P3-FIX-SURVEY-PARTY-HARDEN-001-5 | **延長** — P3-FIX-SURVEY-PARTY-BACKUP-001／RESULT-001 | 復元経路の再発防止 |
+| P3-FIX-SURVEY-PARTY-HARDEN-001-6 | **cancel** は cycle クリア（派遣ロック解除）後に復元 | ロック中は `set_active_party` が拒否され中止後欠員になる |

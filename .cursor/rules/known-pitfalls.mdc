@@ -54,6 +54,7 @@ alwaysApply: false
 | 調査受取後に派遣員が編成に戻らない／EXPパッシブ不発 | 開始時に外すだけ。受取・中止で復元なし。編成外だと `grant_exp` が本人パッシブ未適用 | `party_ids_before` 保存→cycleクリア後に復元してから EXP |
 | 調査完了（❗️）中にパーティが欠けたまま | 完了〜受取まで派遣ロック継続。拠点で完了に気づいても編成は減ったまま | 完了時は `is_member_dispatched` 解除＋`ensure_party_restored_if_awaiting_claim`（拠点ポーリング／調査室進捗／入室／ロード） |
 | 章クリア後にパーティが解散／欠員のまま次ダンへ | ラン中に調査完了しても Result／Dungeon が ensure せず、欠員のまま bank セーブ→「次へ」で拠点スキップ | Result 入室・退出／Dungeon 入場／Hub `_ready`・tick で `ensure_party_restored_if_awaiting_claim` |
+| 調査対象変更・再開始でパーティ欠員が固定／解散に見える | ensure が不完全配列で丸ごと置換／欠員のまま `start_cycle` が backup を上書き | ensure は欠け補完のみ。不完全 restore は set しない。start は先に heal＋大きい backup 維持 |
 | 調査受取後に4→2人など欠員確定 | `party_restored`＋空 ids でスキップ／cycle クリア後に ensure 不能／不完全復元を成功扱い | **`hub_survey_party_backup_ids` 独立永続**。空 ids は完全扱いしない。全員復帰のみ成功。orphan backup は編成／ロード ensure で再修復（P3-FIX-SURVEY-PARTY-BACKUP-001） |
 | 調査員0人でサイクル開始 | `start_cycle` が空 assignees を許可 | 1人以上必須 |
 | 調査武器が派遣先外の全武器に落ちる | rarity 一致がプールに無いと全カタログへフォールバック | 空なら武器なし |
