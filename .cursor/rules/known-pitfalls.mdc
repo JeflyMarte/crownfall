@@ -264,6 +264,7 @@ alwaysApply: false
 | 敵スキル属性が防具耐性に未反映 | 耐性は `attack_element` のみ／VFXは skill.element | `attack_element_override` |
 | 必殺詠唱中断でチャージ消失 | 詠唱開始時に consume | 即時のみ開始時消費／詠唱は解決時 |
 | 群れのトリッキーが撃たない | `_do_enemy_turn` がアクティブ敵のみ `_try_enemy_skill` | 全スロット `_try_enemy_skill(slot)`（監査 I） |
+| 護衛0で加速旗エリートが加速しない | haste が `living_enemy_count>=2` 限定だった | 単独は自己加速可（P3-BAL-ELITE-IDENTITY-001） |
 | ポーズ中に沈黙が切れる | `Time.get_ticks_msec` 壁時計 | `CombatController` 残り秒＋戦闘クロック tick（監査 I） |
 | 召喚失敗後に通常攻撃まで出る | CD 消費後 `summon` が false → fallthrough | `_execute_enemy_skill` は CD 済みなら true（監査 I） |
 | ボス呼び出し敵が BossSprite に隠れる | 群れ配置がボスと同位置・z 下／slot0 二重 | → **`14_Presentation_Pitfalls.md`**（`BossSummonLayout`） |

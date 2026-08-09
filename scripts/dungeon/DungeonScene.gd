@@ -6858,7 +6858,14 @@ func _try_enemy_skill(slot: int = -1) -> bool:
 	return _try_cast_enemy_skill(slot, skill)
 
 func _pick_enemy_skill(enemy_data: Resource, phase_def: Dictionary, slot: int = -1) -> Resource:
-	var weights: Dictionary = phase_def.get("skill_weight", {})
+	## 敵データ重みを土台に、ボス位相 weight で上書き（P3-BAL-ELITE-IDENTITY-001）。
+	var weights: Dictionary = {}
+	if enemy_data != null and "skill_weights" in enemy_data and enemy_data.skill_weights is Dictionary:
+		weights = (enemy_data.skill_weights as Dictionary).duplicate()
+	var phase_weights: Variant = phase_def.get("skill_weight", {})
+	if phase_weights is Dictionary:
+		for key: Variant in (phase_weights as Dictionary).keys():
+			weights[str(key)] = (phase_weights as Dictionary)[key]
 	var pool: Array = []
 	var total: float = 0.0
 	var cd_slot: int = slot if slot >= 0 else $CombatController.active_enemy_index
@@ -7110,7 +7117,8 @@ func _enemy_tricky_skill_allowed(skill: Resource, slot: int) -> bool:
 		return false
 	match str(skill.effect_type):
 		"haste":
-			return $CombatController.living_enemy_count() >= 2
+			## 護衛無しでも自己加速可（P3-BAL-ELITE-IDENTITY-001・クロックモス等）。
+			return true
 		"summon":
 			if _enemy_summon_already_used(skill, slot):
 				return false
@@ -7238,15 +7246,19 @@ func _execute_enemy_haste(skill: Resource, slot: int) -> void:
 			if i != slot:
 				target_slot = i
 				break
+	## 単独時は自己加速（護衛0のモーンゲート等）。
 	if target_slot < 0:
-		_append_log("敵スキル【%s】: 対象なし" % skill.display_name)
-		return
+		target_slot = slot
 	var refund: float = float(skill.power_multiplier)
 	if refund <= 0.0:
 		refund = ENEMY_HASTE_CT_REFUND
 	$CombatController.refund_enemy_ct(target_slot, clampf(refund, 0.15, 0.85))
+	var self_haste: bool = target_slot == slot
 	_try_announce_enemy_trait_once("haste:%d" % slot, target_slot, "行動が早まった！")
-	_append_log("敵スキル【%s】: 味方の行動を早めた" % skill.display_name)
+	if self_haste:
+		_append_log("敵スキル【%s】: 自身の行動を早めた" % skill.display_name)
+	else:
+		_append_log("敵スキル【%s】: 味方の行動を早めた" % skill.display_name)
 	_update_turn_order_ui($CombatController.get_ct_order())
 
 

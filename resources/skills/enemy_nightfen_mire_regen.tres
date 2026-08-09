@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_nightfen_mire_regen"
+display_name = "泥沼の再生"
+description = "濃霧の泥が傷口を塞ぎ、体力を徐々に取り戻す。"
+skill_type = "enemy"
+target_type = "self"
+power_multiplier = 1.0
+cooldown = 9.0
+trigger_type = "cooldown"
+effect_type = "buff"
+tags = Array[String](["heal", "elite", "support"])
+element = "dark"
+apply_status_id = "regen"
+apply_status_chance = 1.0
+cast_time = 0.0

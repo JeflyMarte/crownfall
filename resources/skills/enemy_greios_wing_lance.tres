@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "enemy_greios_wing_lance"
 display_name = "氷翼の槍突"
-description = "凍てついた翼端を槍のように突き、一人を硬直させる。"
+description = "凍てついた翼端を槍のように突き、後衛を硬直させる。"
 skill_type = "enemy"
-target_type = "party"
+target_type = "party_back"
 power_multiplier = 1.1
 cooldown = 5.5
 trigger_type = "cooldown"

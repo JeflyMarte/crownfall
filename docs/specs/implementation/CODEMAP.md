@@ -26,6 +26,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | EventBus | `scripts/autoload/EventBus.gd` |
 | AudioManager | `scripts/audio/AudioManager.gd`（**P3-AUDIO-SE-001/002**・**BGM-001**・`SfxCatalog`/`BgmCatalog`） |
 | DailyMissionSystem | `scripts/autoload/DailyMissionSystem.gd`（**P3-DAILY-002** プールから毎日3件抽選） |
+| エリート役割 | `EnemyData.skill_weights`＋キット差し替え（**P3-BAL-ELITE-IDENTITY-001**） |
 | EventSystem | `scripts/autoload/EventSystem.gd`（**P3-EVT-FIELD-001** 30分スロット・重み付き野外速報・`EventWeekRotation` SSOT） |
 | GachaSystem | `scripts/autoload/GachaSystem.gd` |
 

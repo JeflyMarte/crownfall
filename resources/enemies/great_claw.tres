@@ -34,4 +34,8 @@ codex_habitat = "霧沼・沈没街道"
 codex_research_note = "蟹を祖先とし、沈没封緘区の封印蝋と泥を甲羅に纏った巨蟹。刃状に研がれた大爪は石畳ごと獲物を両断する。蝋の紋様が何かの封印文と一致するのかは確認されていない。"
 codex_materials = Array[String]([])
 skill_ids = Array[String](["enemy_claw_guillotine", "enemy_claw_rake"])
-skill_use_chance = 0.45
+skill_use_chance = 0.5
+skill_weights = {
+"enemy_claw_guillotine": 3.5,
+"enemy_claw_rake": 1.0
+}

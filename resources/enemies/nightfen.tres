@@ -32,7 +32,12 @@ swarm_max = 2
 codex_class = "古代種"
 codex_danger = 4
 codex_habitat = "霧沼・黒霧の深み"
-codex_research_note = "正体未詳の大型生物。濃霧の夜にだけ輪郭が立ち上がり、昼は泥塘の隆起と区別がつかない。記録部はワニでも両生類でもなく、複数の腐生種が群体化した可能性を残している。不死者ではない。"
+codex_research_note = "正体未詳の大型生物。濃霧の夜にだけ輪郭が立ち上がり、昼は泥塘の隆起と区別がつかない。傷を負うと泥が傷口を塞ぎ再生する。吸い取り触手で毒を流し込みつつ活力を奪う。全体の呑込より粘着と再生が本領。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["enemy_nightfen_engulf", "enemy_nightfen_siphon"])
-skill_use_chance = 0.45
+skill_ids = Array[String](["enemy_nightfen_mire_regen", "enemy_nightfen_siphon"])
+skill_use_chance = 0.5
+skill_weights = {
+"enemy_nightfen_mire_regen": 3.0,
+"enemy_nightfen_siphon": 2.0
+}
+lifesteal_ratio = 0.18

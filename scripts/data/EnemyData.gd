@@ -31,6 +31,9 @@ extends Resource
 ## ボス/エリート用スキル。skill_ids の中から skill_use_chance で発動を試行する。
 @export var skill_ids: Array[String] = []
 @export var skill_use_chance: float = 0.0
+## スキル抽選重み（skill_id → float）。空＝均等。ボス位相 `skill_weight` があれば上書きマージ。
+## P3-BAL-ELITE-IDENTITY-001: エリート主技バイアス用。
+@export var skill_weights: Dictionary = {}
 ## 群れ出現（P3-D082 / P3-BAL-SWARM-001）。true の敵は COMBAT 部屋で一定確率により複数体で出現する。
 ## ELITE/BOSS 部屋は対象外。swarm_min..swarm_max からサイズを抽選。
 @export var can_swarm: bool = false

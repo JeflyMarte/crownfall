@@ -16,11 +16,11 @@ func test_mirror_boa_has_dedicated_fang() -> void:
 
 
 func test_playable_elites_have_two_skills() -> void:
-	## P3-BAL-ENEMY-SKILL-CA-001 Phase C: プレイ可能エリートは2本以上（clock_moth 既存含む）。
-	## polar_tricera は FR 除外のため対象外。
+	## P3-BAL-ENEMY-SKILL-CA-001 Phase C: プレイ可能エリートは2本以上。
 	var elites: Array[String] = [
 		"mist_wyvern", "mirror_boa", "greios", "great_claw",
 		"nightfen", "ninja_octopus", "anchor_lord", "clock_moth",
+		"polar_tricera",
 	]
 	for eid: String in elites:
 		var data: Resource = DataRegistry.get_enemy_data(eid)

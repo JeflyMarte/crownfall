@@ -32,7 +32,12 @@ swarm_max = 2
 codex_class = "甲殻類"
 codex_danger = 4
 codex_habitat = "沈没航路・古防波堤"
-codex_research_note = "ヤドカリを祖先とし、沈没船の錨そのものを殻にした巨種。錨の爪で岩礁を掴み、振り下ろせば防波堤の石が割れる。船乗りは錨の主と呼んで航路を避けた。"
+codex_research_note = "ヤドカリを祖先とし、沈没船の錨そのものを殻にした巨種。錨の爪で岩礁を掴み、振り下ろせば防波堤の石が割れる。硬い殻は通常攻撃を弾き、錨打ちのスタンで前線を潰す。"
 codex_materials = Array[String]([])
 skill_ids = Array[String](["enemy_anchor_crush", "enemy_anchor_sweep"])
-skill_use_chance = 0.45
+skill_use_chance = 0.5
+skill_weights = {
+"enemy_anchor_crush": 3.5,
+"enemy_anchor_sweep": 1.0
+}
+incoming_basic_mult = 0.2

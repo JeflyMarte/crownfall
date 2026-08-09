@@ -6,7 +6,7 @@ extends GutTest
 func test_playable_enemy_set_excludes_pool_omitted() -> void:
 	var playable: Dictionary = CatalogHelper.playable_enemy_id_set()
 	assert_false(playable.has("bloom_serpent"), "WW プールオミット敵は図鑑対象外")
-	assert_false(playable.has("polar_tricera"), "FR プールオミット敵は図鑑対象外")
+	assert_true(playable.has("polar_tricera"), "P3-BAL-ELITE-IDENTITY-001 で FR elite 復帰")
 	assert_false(playable.has("ice_tail_fox"), "置換済み・プール外は図鑑対象外")
 
 
