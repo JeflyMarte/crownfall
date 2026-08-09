@@ -6,13 +6,18 @@ extends RefCounted
 
 const ROUTE_TYPE: String = "abyss"
 const CHUNK_FLOORS: int = 10
-const FLOOR_HARD_START: int = 33
-const FLOOR_NIGHTMARE_START: int = 66
+## 合成ティア境界（P3-BAL-ABYSS-BOSS-TIER-ALIGN-001）。
+## ボス階が帯の「最後」になるよう 1F ずらす: 33=N／66=H／99=NM。
+const FLOOR_HARD_START: int = 34
+const FLOOR_NIGHTMARE_START: int = 67
 const FLOOR_ENDLESS_START: int = 100
 ## 100F以降: この階数ごとに敵Lvを +1。
 const ENDLESS_LEVEL_STEP: int = 5
 ## 表示階がこの倍数のときボス戦（33/66/99/132…）。マイルストーンと同位。
 const BOSS_FLOOR_INTERVAL: int = 33
+## ボス編成パック境界（合成ティアとは別。33=薄／66=エリート／99+=厚）。
+const BOSS_PACK_HARD_FLOOR: int = 66
+const BOSS_PACK_NIGHTMARE_FLOOR: int = 99
 
 const _DungeonTierConfig := preload("res://scripts/dungeon/DungeonTierConfig.gd")
 
@@ -99,11 +104,11 @@ static func boss_pack_kind(floor_1based: int, roll_01: float = 0.0) -> String:
 		return "solo"
 	var f: int = floor_1based
 	var r: float = clampf(roll_01, 0.0, 1.0)
-	if f < FLOOR_NIGHTMARE_START:
-		## 33F（Hard帯）: ボス＋雑魚1〜2
+	if f < BOSS_PACK_HARD_FLOOR:
+		## 33F（Normalボス）: ボス＋雑魚1〜2
 		return "boss_swarm_12"
-	if f < 99:
-		## 66F（NM帯）: ボス＋エリート1（護衛なし）
+	if f < BOSS_PACK_NIGHTMARE_FLOOR:
+		## 66F（Hardボス）: ボス＋エリート1（護衛なし）
 		return "boss_elite"
 	if f >= 132:
 		## 132F+: 厚め3択
@@ -112,7 +117,7 @@ static func boss_pack_kind(floor_1based: int, roll_01: float = 0.0) -> String:
 		if r < 0.67:
 			return "boss_swarm_3"
 		return "boss_elite_swarm_2"
-	## 99F: ボス＋エリート＋雑魚1 か ボス＋群れ3
+	## 99F（Nightmareボス）: ボス＋エリート＋雑魚1 か ボス＋群れ3
 	if r < 0.5:
 		return "boss_elite_minion"
 	return "boss_swarm_3"

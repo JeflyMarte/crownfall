@@ -12,7 +12,7 @@
 |---|---|---|
 | 1 | 進行 | **99Fまでノンストップ**（1本のランで連続。途中退出可。33/66で強制帰還なし） |
 | 2 | 敵Lv | **1Fから徐々に上昇**。1F=1／2F=2。**階数＝Lvの単純式は禁止** |
-| 3 | 敵見た目 | **33F〜Hard色替え**／**66F〜Nightmare色替え**（本編と同系統） |
+| 3 | 敵見た目 | **上書き P3-BAL-ABYSS-BOSS-TIER-ALIGN-001:** **34F〜Hard色替え**／**67F〜Nightmare色替え**（33/66/99ボス＝N/H/NM） |
 | 3b | ボス | **33Fごと**に親 Biome ボス登場（見た目ティアは合成ティアに追随） | 2026-08-02 オーナー |
 | 4 | 報酬 | **据置**（`12_AbyssMilestones.md`／レジェンドは `10_AbyssLegendaries.md`） |
 | 5 | Biome差 | 敵Lvカーブは **全無限で共通**（Biome基準Lvは使わない） |
@@ -28,10 +28,10 @@
 | 10 | 5 | 序盤ゆるめ |
 | 20 | 12 | |
 | 32 | 28 | Normal帯終端 |
-| 33 | 32 | Hard敵出現。旧「+cap」の急騰は廃止 |
-| 50 | 52 | |
-| 65 | 72 | Hard帯終端 |
-| 66 | 80 | Nightmare敵出現 |
+| 33 | 32 | Normal帯締め（ボス）。旧「+cap」の急騰は廃止 |
+| 50 | 52 | Hard帯 |
+| 65 | 72 | |
+| 66 | 80 | Hard帯締め（ボス）。Nightmare色替えは67F〜 |
 | 80 | 95 | |
 | 99 | 110 | マイルストーン帯 |
 | 100+ | 110＋(F−99)/5 | 5階ごとに+1（緩い逓増） |
@@ -44,7 +44,7 @@
 
 - SSOT: `AbyssDungeonConfig.enemy_level_for_floor`
 - `DungeonController.get_enemy_level` は深層時に上記を返す（`enemy_level` リソース値＋ティアボーナスは無視）
-- `synthetic_tier_for_floor`（33/66）は据置
+- `synthetic_tier_for_floor` は 34/67 境界（P3-BAL-ABYSS-BOSS-TIER-ALIGN-001）
 - ノンストップ延長（10Fチャンク）は据置
 
 ---

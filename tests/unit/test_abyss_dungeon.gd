@@ -45,11 +45,13 @@ func test_abyss_playable_flag_independent_of_sub() -> void:
 
 
 func test_synthetic_tier_bands() -> void:
+	## P3-BAL-ABYSS-BOSS-TIER-ALIGN-001: 33=N／66=H／99=NM（ボスが帯の最終階）。
 	assert_eq(_AbyssDungeonConfig.synthetic_tier_for_floor(1), _DungeonTierConfig.TIER_NORMAL)
-	assert_eq(_AbyssDungeonConfig.synthetic_tier_for_floor(32), _DungeonTierConfig.TIER_NORMAL)
-	assert_eq(_AbyssDungeonConfig.synthetic_tier_for_floor(33), _DungeonTierConfig.TIER_HARD)
-	assert_eq(_AbyssDungeonConfig.synthetic_tier_for_floor(65), _DungeonTierConfig.TIER_HARD)
-	assert_eq(_AbyssDungeonConfig.synthetic_tier_for_floor(66), _DungeonTierConfig.TIER_NIGHTMARE)
+	assert_eq(_AbyssDungeonConfig.synthetic_tier_for_floor(33), _DungeonTierConfig.TIER_NORMAL)
+	assert_eq(_AbyssDungeonConfig.synthetic_tier_for_floor(34), _DungeonTierConfig.TIER_HARD)
+	assert_eq(_AbyssDungeonConfig.synthetic_tier_for_floor(66), _DungeonTierConfig.TIER_HARD)
+	assert_eq(_AbyssDungeonConfig.synthetic_tier_for_floor(67), _DungeonTierConfig.TIER_NIGHTMARE)
+	assert_eq(_AbyssDungeonConfig.synthetic_tier_for_floor(99), _DungeonTierConfig.TIER_NIGHTMARE)
 	assert_eq(_AbyssDungeonConfig.synthetic_tier_for_floor(120), _DungeonTierConfig.TIER_NIGHTMARE)
 
 
