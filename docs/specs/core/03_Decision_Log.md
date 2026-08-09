@@ -7406,6 +7406,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-BOSS-SUMMON-LAYOUT-001-2 | **描画順** — 連れ z ＞ ボス z。slot0 群れスプライトは非表示（二重描画禁止） | 隠れ／二重表示の解消 |
 | P3-UX-BOSS-SUMMON-LAYOUT-001-3 | **UI** — 連れの HP／名前／状態も表示。スロット別スプライト解決 | ターゲットと演出の一致 |
 | P3-UX-BOSS-SUMMON-LAYOUT-001-4 | **据置** — 召喚回数・キャップ・バランス | 見た目のみ |
+| P3-UX-BOSS-SUMMON-LAYOUT-001-5 | **余白拡大** — 立ち位置 x/y オフセット拡大＋連れ HP／名前／技名を外側・上へクリアランス | 沼地の王等がボス胴に貼るのを解消 |
 
 ## グランヴェル仲間呼び削除（2026-08-07 — P3-BAL-GRANVEL-NO-SUMMON-001）
 

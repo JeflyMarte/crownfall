@@ -2999,7 +2999,8 @@ func _enemy_overlay_stack_top_y_in_root(sprite: AnimatedSprite2D, enemy_slot: in
 	const GAP_BAR_NAME: float = 6.0
 	const BADGE_H: float = 22.0
 	const GAP_NAME_BADGE: float = 2.0
-	var bar_ty: float = _enemy_hp_bar_top_y_in_root(sprite)
+	var nudge: Vector2 = _boss_add_overlay_nudge(enemy_slot) if enemy_slot >= 0 else Vector2.ZERO
+	var bar_ty: float = _enemy_hp_bar_top_y_in_root(sprite) - nudge.y
 	var swarming: bool = $CombatController.swarm_data.size() > 1
 	var name_height: float = SWARM_NAME_HEIGHT if swarming else SINGLE_NAME_HEIGHT
 	var name_ty: float = bar_ty - GAP_BAR_NAME - name_height
@@ -3757,6 +3758,16 @@ func _is_boss_lead_slot(slot: int) -> bool:
 	if not _boss_sprite.visible or slot < 0:
 		return false
 	return _BossSummonLayout.is_boss_lead_enemy($CombatController.get_enemy_data_at(slot))
+
+
+## ボス呼び出し連れの HP／名前／技名を胴体から離す（x=外側、y=上ギャップ）。
+func _boss_add_overlay_nudge(slot: int) -> Vector2:
+	if not _boss_sprite.visible or slot < 1:
+		return Vector2.ZERO
+	if _is_boss_lead_slot(slot):
+		return Vector2.ZERO
+	return _BossSummonLayout.overlay_nudge_px(slot - 1)
+
 
 func _on_enemy_status_applied(slot: int, status_id: String) -> void:
 	if status_id.is_empty():
@@ -7964,6 +7975,10 @@ func _spawn_enemy_skill_name(skill_name: String, slot: int = -1) -> void:
 	if head_center == Vector2.ZERO:
 		head_center = spr.global_position
 		head_top = spr.global_position.y - 120.0
+	var use_slot: int = slot if slot >= 0 else $CombatController.active_enemy_index
+	var nudge: Vector2 = _boss_add_overlay_nudge(use_slot)
+	head_center.x += nudge.x
+	head_top -= nudge.y
 	var base_x: float = head_center.x - text_w * 0.5
 	lbl.custom_minimum_size = Vector2(text_w, lbl.size.y)
 	lbl.pivot_offset = Vector2(text_w * 0.5, lbl.size.y * 0.5)
@@ -8011,6 +8026,9 @@ func _spawn_enemy_cast_name(skill_name: String, slot: int) -> void:
 	if head_center == Vector2.ZERO:
 		head_center = spr.global_position
 		head_top = spr.global_position.y - 110.0
+	var nudge: Vector2 = _boss_add_overlay_nudge(slot)
+	head_center.x += nudge.x
+	head_top -= nudge.y
 	var base_x: float = head_center.x - text_w * 0.5
 	lbl.custom_minimum_size = Vector2(text_w, lbl.size.y)
 	lbl.pivot_offset = Vector2(text_w * 0.5, lbl.size.y * 0.5)
@@ -11273,10 +11291,12 @@ func _position_swarm_overlay(slot: int) -> void:
 	var name_height: float = SWARM_NAME_HEIGHT if swarming else SINGLE_NAME_HEIGHT
 	const GAP_BAR_NAME: float = 6.0
 	var center: Vector2 = _sprite_center_in_root(sprite)
-	var bar_ty: float = _enemy_hp_bar_top_y_in_root(sprite)
-	bar.offset_left = center.x - bar_half_w
+	var nudge: Vector2 = _boss_add_overlay_nudge(slot)
+	var bar_cx: float = center.x + nudge.x
+	var bar_ty: float = _enemy_hp_bar_top_y_in_root(sprite) - nudge.y
+	bar.offset_left = bar_cx - bar_half_w
 	bar.offset_top = bar_ty
-	bar.offset_right = center.x + bar_half_w
+	bar.offset_right = bar_cx + bar_half_w
 	bar.offset_bottom = bar_ty + bar_height
 	var data: Resource = $CombatController.get_enemy_data_at(slot)
 	if data == null:
@@ -11289,9 +11309,9 @@ func _position_swarm_overlay(slot: int) -> void:
 	var name_fs: int = SWARM_NAME_FONT_SIZE if swarming else SINGLE_NAME_FONT_SIZE
 	np.add_theme_font_size_override("font_size", name_fs)
 	var name_half_w: float = _nameplate_half_width(name_text, name_fs)
-	## 名前は各スプライト（階段配置済み）の HP 直上。別オフセットは付けない。
+	## 名前は各スプライトの HP 直上。ボス連れは胴体クリアランス分だけ外側・上へ。
 	var name_cx: float = clampf(
-		center.x,
+		bar_cx,
 		name_half_w + 12.0,
 		720.0 - name_half_w - 12.0
 	)
