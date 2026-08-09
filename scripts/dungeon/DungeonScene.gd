@@ -10407,6 +10407,7 @@ func _maybe_kaiwan_heal_spill(caster_idx: int, heal_basis: int) -> void:
 
 
 ## 調剤師の薬など: 回復成功時に対象へ guard を付与。
+## 付与中は再付与しない＋対象別 CD（半永久半減防止・P3-BAL-GUARD-ONHIT-UPTIME-001-6）。
 func _maybe_apply_heal_guard(caster_idx: int, target_idx: int) -> void:
 	if caster_idx < 0 or target_idx < 0:
 		return
@@ -10414,9 +10415,18 @@ func _maybe_apply_heal_guard(caster_idx: int, target_idx: int) -> void:
 		return
 	if not $CombatController.is_member_alive(target_idx):
 		return
-	if $CombatController.apply_status("party_%d" % target_idx, "guard", 1, 0):
-		_on_party_status_applied(target_idx, "guard")
-		_update_status_icons()
+	if _member_has_status(target_idx, "guard"):
+		return
+	var cd_key: String = "heal_guard:%d:%d" % [caster_idx, target_idx]
+	if float(_passive_cd.get(cd_key, 0.0)) > 0.0:
+		return
+	if not $CombatController.apply_status("party_%d" % target_idx, "guard", 1, 0):
+		return
+	_on_party_status_applied(target_idx, "guard")
+	var guard_cd: float = CombatPassives.heal_guard_cooldown_for_member(caster_idx)
+	if guard_cd > 0.0:
+		_passive_cd[cd_key] = guard_cd
+	_update_status_icons()
 
 func _apply_material_bonus(base_amount: int) -> int:
 	return AffixStatCalculatorScript.apply_material_bonus(base_amount)

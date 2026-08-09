@@ -26,3 +26,9 @@ func test_guard_status_is_half_damage_short() -> void:
 	assert_not_null(guard)
 	assert_almost_eq(float(guard.incoming_damage_multiplier), 0.5, 0.001)
 	assert_eq(int(guard.duration_ticks), 2)
+
+
+func test_apothecary_heal_guard_has_cooldown() -> void:
+	var d: Dictionary = CombatPassives.get_def("eq_apothecary_vial")
+	assert_true(bool(d.get("heal_applies_guard", false)))
+	assert_almost_eq(float(d.get("heal_guard_cooldown", 0.0)), 12.0, 0.001)

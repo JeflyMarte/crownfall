@@ -35,6 +35,7 @@ alwaysApply: false
 | 護衛撃破後にボス追加召喚できない | キャップが死体込み `swarm_data.size` | 死体スロット再利用＋上限は生存数 |
 | 4人編成以降で敵の殴り／DoTが痛くない | グローバルATK薄＋回復ループ | `ENEMY_GLOBAL_ATK`×1.25・味方DoT×1.40・`heal_block`／後列技 |
 | 被弾で防御が半永久半減 | on_hit `guard` 再付与が持続リセット＋短いCD | CD延長＋`skip_if_status_active`（付与中不発）。`110_GuardOnHitUptime` |
+| 調剤師の薬で常時半減 | 回復のたび `guard` 再付与・CDなし | 対象別 CD12＋付与中不発（`_maybe_apply_heal_guard`） |
 | ボス警告中に本体が写る | 入場準備後の status tint が modulate を不透明へ戻す／opaque フォールバック | 警告中 `visible=false`＋intro中 tint/HP更新停止。落下開始で初表示（`14_Presentation_Pitfalls`） |
 | ボスの激昂アイコンが付かない | ボス戦で状態異常行を全非表示 | → **`14_Presentation_Pitfalls.md`**（ボス頭上にも表示） |
 | レリックが地味で装備意味が薄い | 常時±5〜20%のみ | 尖鋭案B: 発火＋制約。`P3-UX-RELIC-TACTICS-B001` |
