@@ -167,7 +167,6 @@ static func _fit_member_stats(member: Resource, spec: Dictionary) -> void:
 	var target_cdmg: float = float(spec.get("crit_damage", BalanceConfig.CRITICAL_MULTIPLIER))
 
 	var wpn_id: String = _preferred_weapon_id(str(member.job_id))
-	var wdata: Resource = DataRegistry.get_weapon_data(wpn_id)
 	var winst: Resource = WeaponInstance.new()
 	winst.instance_id = "probe_wpn_%s" % str(member.id)
 	winst.weapon_id = wpn_id
@@ -197,8 +196,6 @@ static func _fit_member_stats(member: Resource, spec: Dictionary) -> void:
 	ainst.random_mods = []
 	member.equipped_armor = ainst
 	member.equipped_accessory = null
-	if wdata == null:
-		pass
 
 	_force_display_stats(member, target_hp, target_atk, target_def)
 
