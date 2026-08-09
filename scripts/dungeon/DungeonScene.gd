@@ -10204,6 +10204,11 @@ func _check_boss_phase_transition(slot: int) -> void:
 	var cur_idx: int = $CombatController.get_enemy_phase_index(slot)
 	if new_idx <= cur_idx:
 		return
+	## スキップ到達でも間のフェーズ効果（例: 全回復）を適用する。
+	for step_i: int in range(cur_idx + 1, new_idx + 1):
+		var step_phase: Dictionary = CombatBossPhases.phase_def(enemy_id, step_i)
+		if bool(step_phase.get("full_heal_on_enter", false)):
+			_apply_boss_phase_full_heal(slot, step_phase)
 	$CombatController.set_enemy_phase_index(slot, new_idx)
 	var phase: Dictionary = CombatBossPhases.phase_def(enemy_id, new_idx)
 	var log_line: String = str(phase.get("log", ""))
@@ -10214,6 +10219,22 @@ func _check_boss_phase_transition(slot: int) -> void:
 	if slot == $CombatController.active_enemy_index:
 		_play_boss_animation("attack")
 		_spawn_enemy_skill_name(str(phase.get("label", "")))
+
+
+func _apply_boss_phase_full_heal(slot: int, phase: Dictionary) -> void:
+	var maxhp: int = $CombatController.get_enemy_max_hp_at(slot)
+	if maxhp <= 0:
+		return
+	var before: int = $CombatController.get_enemy_hp_at(slot)
+	var need: int = maxhp - before
+	if need <= 0:
+		return
+	var healed: int = $CombatController.heal_enemy_slot(slot, need)
+	_update_hp_bars()
+	if healed > 0:
+		_present_enemy_heal(slot, healed)
+		var label: String = str(phase.get("label", "フェーズ移行"))
+		_append_log("【%s】HP全回復（+%d）" % [label, healed])
 
 func _report_link_bonus(link_id: String, bonus: int, member_idx: int, target_slot: int) -> void:
 	var label: String = CombatLinks.label_for(link_id)
