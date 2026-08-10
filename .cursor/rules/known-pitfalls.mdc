@@ -239,6 +239,7 @@ alwaysApply: false
 | ガチャ Featured 消失／DG Featured 非表示 | foot_pad・inset・意図的非表示 | → `ui-layout` Idle／Biomeバナー |
 | 図鑑オミット戻る／歴史空／俗称／未実装敵／金枠二重 | フラグ true・docs直読・無フィルタ | → **`content-flags.mdc`** |
 | 図鑑手引きが旧システム（必殺ダメ連動・旧レリック名など） | `GuideCatalog.gd` 直書きが BAL／UX 変更に追随しない | 戦闘・装備・SYS 変更後は手引きを突合。`test_codex_guide_sync` に回帰アサート追加 |
+| 手引き／Wikiが5-5加入・旧天候倍率・必殺ダメ連動のまま | オミット／BAL後にプレイヤー文書だけ残る | ①〜④加入／`CombatWeather`／時間チャージを正に。Wiki `guide/*` も同ターン更新 |
 | 設定／失敗トーストに「デバッグ」「リポジトリ」「spawn_failed」等 | 開発語・英語 reason をプレイヤー UI に直出し | 出荷文言は日本語プレイヤ向けのみ。内部 reason はログのみ。セーブ状態のデバッグ枠は `DebugAccess` 時だけ。手引きは `test_codex_guide_copy` |
 | 編成で助っ人だけ金枠付き／個体差 | 肖像に枠焼込 | → `asset-import.mdc`（strip_helper） |
 | 解放ポップ名ずれ／常にウィスパーウッド | VBox下段・whisperwoodフォールバック | → `ui-layout.mdc` Biomeバナー |

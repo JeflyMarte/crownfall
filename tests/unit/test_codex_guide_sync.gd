@@ -34,6 +34,15 @@ func test_guide_no_outdated_combat_or_gacha_copy() -> void:
 
 	var g013: String = str(by_id.get("COMBAT-G013", ""))
 	assert_true(g013.contains("天候シンクロ"), "天候レジェンド連動に言及")
+	assert_true(g013.contains("炎天"), "炎天を列挙")
+	assert_true(g013.contains("吹雪"), "吹雪を列挙")
+	assert_true(g013.contains("+10%") or g013.contains("＋10%"), "雨等の現行倍率")
+	assert_false(g013.contains("×1.15"), "旧倍率を撤去")
+	assert_false(g013.contains("55％") or g013.contains("55%"), "旧晴れ出現率を撤去")
+
+	var g002: String = str(by_id.get("COMBAT-G002", ""))
+	assert_false(g002.contains("固定ダメージ"), "DoTは攻撃力追従")
+	assert_true(g002.contains("長め") and g002.contains("短め"), "毒／炎上の役割")
 
 	var g016: String = str(by_id.get("COMBAT-G016", ""))
 	assert_false(g016.contains("職共通パッシブを使う"), "助っ人も固有あり")
@@ -67,6 +76,8 @@ func test_guide_no_outdated_combat_or_gacha_copy() -> void:
 	assert_false(eq002.contains("休止中"), "招待状は常時ON")
 	assert_true(eq002.contains("魔晶石"), "魔晶石に言及")
 	assert_true(eq002.contains("限界突破"), "限界突破を案内")
+	assert_true(eq002.contains("①") or eq002.contains("フロストリッジ") or eq002.contains("5-5"), "初期仲間の章範囲")
+	assert_true(eq002.contains("増えず") or eq002.contains("加入"), "5-5加入なしに言及")
 
 
 func test_equip_level_guide_is_player_facing() -> void:
@@ -117,6 +128,7 @@ func test_hub_and_field_guide_entries_exist() -> void:
 	var survey: String = str(by_id.get("SYS-G001", ""))
 	assert_false(survey.is_empty(), "調査室の条がある")
 	assert_false(survey.contains("70"), "②解放に調査ゲージ条件を書かない")
+	assert_false(survey.contains("SURVEY"), "内部英語SURVEYを出さない")
 	assert_true(survey.contains("ボス"), "①ボス討伐で②解放")
 	assert_true(survey.contains("簡易調査"), "簡易調査の呼称")
 	assert_true(survey.contains("本格調査"), "本格調査の呼称")
@@ -156,6 +168,8 @@ func test_hub_and_field_guide_entries_exist() -> void:
 	var rooms: String = str(by_id.get("SYS-G007", ""))
 	assert_false(rooms.is_empty(), "部屋と罠の条がある")
 	assert_true(rooms.contains("罠"), "罠に言及")
+	assert_true(rooms.contains("罠解除"), "罠解除に言及")
+	assert_true(rooms.contains("採取") or rooms.contains("報酬"), "報酬系オミットに言及")
 	assert_true(rooms.contains("抽選") or rooms.contains("部屋"), "部屋抽選に言及")
 	assert_true(rooms.contains("分かれ道"), "戦闘後分かれ道に言及")
 

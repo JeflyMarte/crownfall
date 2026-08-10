@@ -48,3 +48,8 @@ func test_frostridge_first_clear_queues_merit_without_recruit() -> void:
 	assert_eq(GameState.pending_clear_stage_id, "frostridge_5_5")
 	assert_false(GameState.pending_clear_nina_teaser)
 	assert_eq(GameState.pending_starter_recruit_id, "")
+
+
+func test_frostridge_recruit_teaser_is_empty() -> void:
+	var lines: Array[String] = _ChapterClearNinaLines.recruit_teaser_lines_for_stage("frostridge_5_5")
+	assert_eq(lines.size(), 0, "5-5は加入予告文案を持たない")
