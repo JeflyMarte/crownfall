@@ -6505,7 +6505,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 
 | # | 決定 | 根拠 |
 |---|---|---|
-| P3-BAL-SWARM-DENSITY-001-1 | **人数連動** — 開始1=HP1.35/ATK1.25/SPD**1.50**。2=基準。3=HP0.9/ATK0.85。4+=HP0.8/ATK0.75。開始時固定 | ソロ紙／大群理不尽の均し |
+| P3-BAL-SWARM-DENSITY-001-1 | **人数連動** — 開始1=HP/ATK/SPD **すべて1.50**。2=基準。3=HP0.9/ATK0.85。4+=HP0.8/ATK0.75。開始時固定 | ソロ紙／大群理不尽の均し |
 | P3-BAL-SWARM-DENSITY-001-2 | **適用** — 通常 COMBAT ＋ **エリート単体**。護衛付きELITE／BOSS除外。召集は開始倍率維持 | オーナー指示 2026-08-10 |
 | P3-BAL-SWARM-DENSITY-001-3 | **ソロAoE** — 全体／列／aoe／自爆ウェイト×2.25。蛙・ワスプキット全体寄り | タコ殴り対策 |
 | P3-BAL-SWARM-DENSITY-001-3b | **ソロ命中** — 味方回避×0.5（`SOLO_EVASION_MULT`） | オーナー案A |
@@ -7915,8 +7915,8 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ELDION-OPENING-001-2 | **`incoming_status_chance_mult=0.55`** | ミスト帯と同帯の付与減衰 |
 | P3-BAL-ELDION-OPENING-001-3 | **`boss_buff_break_all`** | 他本編ボスと同解呪 |
 | P3-BAL-ELDION-OPENING-001-4 | **本体火力** — HP2550／ATK220／skill0.65／技・位相 | 同席なしでも圧力 |
-| P3-BAL-ELDION-OPENING-001-5 | **HP≤50% で一度全回復**（`full_heal_on_enter`） | オーナー指示 |
-| P3-BAL-ELDION-OPENING-001-5b | **全回復カットイン** — 「氷河の再誕」／自身のHPを全回復する | オーナー指示 |
+| P3-BAL-ELDION-OPENING-001-5 | **半減時全回復は撤廃**（旧 `full_heal_on_enter`／氷河の再誕） | オーナー指示 2026-08-10 |
+| P3-BAL-ELDION-OPENING-001-5b | ~~全回復カットイン~~（撤廃） | 001-5 に従う |
 | P3-BAL-ELDION-OPENING-001-6 | **SSOT** — `119_EldionOpeningCompanions.md` | Decision 本体 |
 
 ## 宝箱 Gold 難易度別（2026-08-09 — P3-BAL-TREASURE-GOLD-TIER-001）

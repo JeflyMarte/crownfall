@@ -3,8 +3,8 @@ extends GutTest
 
 
 func test_density_table() -> void:
-	assert_almost_eq(BalanceConfig.swarm_density_hp_mult(1), 1.35, 0.001)
-	assert_almost_eq(BalanceConfig.swarm_density_atk_mult(1), 1.25, 0.001)
+	assert_almost_eq(BalanceConfig.swarm_density_hp_mult(1), 1.50, 0.001)
+	assert_almost_eq(BalanceConfig.swarm_density_atk_mult(1), 1.50, 0.001)
 	assert_almost_eq(BalanceConfig.swarm_density_spd_mult(1), 1.50, 0.001)
 	assert_almost_eq(BalanceConfig.SOLO_EVASION_MULT, 0.5, 0.001)
 	assert_almost_eq(BalanceConfig.swarm_density_hp_mult(2), 1.0, 0.001)

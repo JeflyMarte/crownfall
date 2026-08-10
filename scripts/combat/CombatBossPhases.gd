@@ -202,11 +202,7 @@ const _DEFS: Dictionary = {
 			"label": "第2形態・白闇",
 			"skill_use_chance": 0.75,
 			"attack_mult": 1.20,
-			## HP≤50% 到達時に一度だけ全回復（スキップ到達でも適用）。
-			"full_heal_on_enter": true,
-			"full_heal_cutin_name": "氷河の再誕",
-			"full_heal_cutin_effect": "自身のHPを全回復する",
-			"log": "【フェーズ移行】エルディオンの翼が吹雪を呼び、氷河晶が体躯を再生する！",
+			"log": "【フェーズ移行】エルディオンの翼が吹雪を呼び、氷河晶が体躯を研ぎ澄ます！",
 			"skill_weight": {
 				"boss_enrage": 0.55,
 				"boss_eldion_hex": 1.7,

@@ -1,6 +1,6 @@
 extends GutTest
 
-## P3-BAL-ELDION-OPENING-001 — 開幕同席なし＋半減時全回復＋ソロ速度／火力。
+## P3-BAL-ELDION-OPENING-001 — 開幕同席なし＋ソロ速度／火力（半減全回復は撤廃）。
 
 
 func test_eldion_no_opening_companions_and_resist() -> void:
@@ -28,11 +28,10 @@ func test_eldion_boss_group_is_solo() -> void:
 	assert_eq(str(group[0].id), "eldion")
 
 
-func test_eldion_phase2_full_heal_flag() -> void:
+func test_eldion_phase2_no_full_heal() -> void:
 	var p1: Dictionary = CombatBossPhases.phase_def("eldion", 1)
-	assert_true(bool(p1.get("full_heal_on_enter", false)))
-	assert_eq(str(p1.get("full_heal_cutin_name", "")), "氷河の再誕")
-	assert_eq(str(p1.get("full_heal_cutin_effect", "")), "自身のHPを全回復する")
+	assert_false(bool(p1.get("full_heal_on_enter", false)))
+	assert_eq(str(p1.get("full_heal_cutin_name", "")), "")
 	var p2: Dictionary = CombatBossPhases.phase_def("eldion", 2)
 	assert_false(bool(p2.get("full_heal_on_enter", false)))
 
