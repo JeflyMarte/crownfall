@@ -4066,9 +4066,13 @@ func _enter_current_room() -> void:
 		if not group.is_empty():
 			var lead: Resource = group[0]
 			_begin_combat_session()
-			## 人数連動ステ／ソロ速度は通常 COMBAT のみ（ELITE/BOSS は除外）。
+			## 人数連動ステ／ソロ速度・回避は通常 COMBAT、およびエリート単体。
 			var apply_density: bool = (
 				$DungeonController.current_room_type == Enums.RoomType.COMBAT
+				or (
+					$DungeonController.current_room_type == Enums.RoomType.ELITE
+					and group.size() == 1
+				)
 			)
 			$CombatController.start_combat_group(
 				group, $DungeonController.get_enemy_level(), apply_density

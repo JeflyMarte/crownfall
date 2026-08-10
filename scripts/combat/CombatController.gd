@@ -120,7 +120,7 @@ func start_combat(enemy_data: Resource, level: int = 1, apply_swarm_density: boo
 	start_combat_group([enemy_data], level, apply_swarm_density)
 
 # 群れ対応の戦闘開始（P3-D082）。単体は要素1の配列として扱う。
-# apply_swarm_density: 通常 COMBAT のみ true（ELITE/BOSS は false）。
+# apply_swarm_density: 通常 COMBAT、および呼び出し側が true にしたエリート単体。
 func start_combat_group(enemies: Array, level: int = 1, apply_swarm_density: bool = true) -> void:
 	is_in_combat = true
 	ultimate_charge_gain_mult = 1.0

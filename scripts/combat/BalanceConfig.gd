@@ -308,7 +308,9 @@ const DESCENT_EVENT_SWARM_MAX: int = 4
 ## 通常 COMBAT のみ（ELITE/BOSS は適用外）。
 const SWARM_DENSITY_SOLO_HP: float = 1.35
 const SWARM_DENSITY_SOLO_ATK: float = 1.25
-const SWARM_DENSITY_SOLO_SPD: float = 1.30
+const SWARM_DENSITY_SOLO_SPD: float = 1.50
+## ソロ開始時、味方回避率に乗算（実質命中↑）。
+const SOLO_EVASION_MULT: float = 0.5
 const SWARM_DENSITY_PAIR_HP: float = 1.00
 const SWARM_DENSITY_PAIR_ATK: float = 1.00
 const SWARM_DENSITY_TRIPLE_HP: float = 0.90

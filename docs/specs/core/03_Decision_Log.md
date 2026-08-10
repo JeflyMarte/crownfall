@@ -6505,9 +6505,10 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 
 | # | 決定 | 根拠 |
 |---|---|---|
-| P3-BAL-SWARM-DENSITY-001-1 | **人数連動** — 開始1=HP1.35/ATK1.25/SPD1.30。2=基準。3=HP0.9/ATK0.85。4+=HP0.8/ATK0.75。開始時固定 | ソロ紙／大群理不尽の均し |
-| P3-BAL-SWARM-DENSITY-001-2 | **適用** — 通常 COMBAT のみ。ELITE/BOSS 除外。召集は開始倍率維持 | ボス過強化防止 |
+| P3-BAL-SWARM-DENSITY-001-1 | **人数連動** — 開始1=HP1.35/ATK1.25/SPD**1.50**。2=基準。3=HP0.9/ATK0.85。4+=HP0.8/ATK0.75。開始時固定 | ソロ紙／大群理不尽の均し |
+| P3-BAL-SWARM-DENSITY-001-2 | **適用** — 通常 COMBAT ＋ **エリート単体**。護衛付きELITE／BOSS除外。召集は開始倍率維持 | オーナー指示 2026-08-10 |
 | P3-BAL-SWARM-DENSITY-001-3 | **ソロAoE** — 全体／列／aoe／自爆ウェイト×2.25。蛙・ワスプキット全体寄り | タコ殴り対策 |
+| P3-BAL-SWARM-DENSITY-001-3b | **ソロ命中** — 味方回避×0.5（`SOLO_EVASION_MULT`） | オーナー案A |
 
 ## 調査室・短1時間＋派遣EXP100%（2026-08-02 — P3-BAL-SURVEY-TIME-EXP-001）
 

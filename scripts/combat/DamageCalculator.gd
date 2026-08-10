@@ -271,8 +271,14 @@ static func member_evasion_rate(member_index: int) -> float:
 	return minf(BalanceConfig.EVASION_RATE_CAP, total)
 
 ## true = 回避成功（被弾なし）。
-static func roll_member_evasion(member_index: int, rng: RandomNumberGenerator = null) -> bool:
-	var rate: float = member_evasion_rate(member_index)
+## evasion_mult: ソロ密度時は BalanceConfig.SOLO_EVASION_MULT など。
+## rng: RandomNumberGenerator または randf() を持つ互換オブジェクト。
+static func roll_member_evasion(
+	member_index: int,
+	rng: Variant = null,
+	evasion_mult: float = 1.0
+) -> bool:
+	var rate: float = member_evasion_rate(member_index) * maxf(0.0, evasion_mult)
 	if rate <= 0.0:
 		return false
 	var roll: float = rng.randf() if rng != null else randf()
@@ -286,11 +292,14 @@ static func enemy_damage_to_member(
 	power_multiplier: float = 1.0,
 	attacker_atk: int = -1,
 	attacker_slot: int = -1,
-	rng: RandomNumberGenerator = null,
+	rng: Variant = null,
 	attack_element_override: String = "",
 	ignore_defense: bool = false
 ) -> Dictionary:
-	if roll_member_evasion(target_index, rng):
+	var evade_mult: float = (
+		BalanceConfig.SOLO_EVASION_MULT if combat != null and combat.is_swarm_density_solo() else 1.0
+	)
+	if roll_member_evasion(target_index, rng, evade_mult):
 		return {
 			"final": 0,
 			"base": 0,
