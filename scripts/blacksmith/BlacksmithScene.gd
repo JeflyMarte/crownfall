@@ -3022,10 +3022,10 @@ func _craft_button_label(craft: Resource, can_craft: bool) -> String:
 
 func _on_craft_pressed(craft: Resource) -> void:
 	if craft.output_type != "armor" and craft.output_type != "accessory" and craft.output_type != "weapon":
-		_log_craft_error("作成できません（出力不正）")
+		_log_craft_error("このレシピでは作れません")
 		return
 	if craft.output_id.is_empty() or not CraftHelper.craft_output_exists(craft):
-		_log_craft_error("作成できません（出力不正）")
+		_log_craft_error("このレシピでは作れません")
 		return
 	var lock_reason: String = CraftHelper.craft_lock_reason(craft)
 	if not lock_reason.is_empty():
@@ -3050,10 +3050,10 @@ func _on_craft_confirmed() -> void:
 	if craft == null:
 		return
 	if craft.output_type != "armor" and craft.output_type != "accessory" and craft.output_type != "weapon":
-		_log_craft_error("作成できません（出力不正）")
+		_log_craft_error("このレシピでは作れません")
 		return
 	if craft.output_id.is_empty() or not CraftHelper.craft_output_exists(craft):
-		_log_craft_error("作成できません（出力不正）")
+		_log_craft_error("このレシピでは作れません")
 		return
 	if not GameState.can_add_equipment(1, GameState.debug_full_unlock):
 		_log_craft_error("装備袋がいっぱいです（%s）" % GameState.equipment_inventory_count_label())

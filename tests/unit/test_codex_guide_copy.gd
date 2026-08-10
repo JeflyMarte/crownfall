@@ -8,7 +8,7 @@ const FORBIDDEN_ASCII_TERMS: Array[String] = [
 	"Element", "Affix", "Threat", "Biome", "Relic", "DoT", "tick",
 	"on_hit", "equip_level", "power_multiplier", "cast_time",
 	"prefix", "suffix", "melee", "ultimate_ready", "apply_status_chance",
-	"Discovered", "Undiscovered",
+	"Discovered", "Undiscovered", "Hard／Nightmare", "Nightmare",
 ]
 
 const FORBIDDEN_JP_OMIT: Array[String] = [

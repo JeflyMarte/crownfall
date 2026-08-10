@@ -11,7 +11,7 @@ const DEFINITIONS: Array[Dictionary] = [
 	{"id": "title_codex_10", "label": "記録係見習い", "description": "図鑑を10件登録した"},
 	{"id": "title_codex_50", "label": "調査部補", "description": "図鑑を50件登録した"},
 	{"id": "title_biome1", "label": "モーンゲート踏破", "description": "モーンゲートを完走した"},
-	{"id": "title_biome5", "label": "五域調査官", "description": "メイン5Biomeを完走した"},
+	{"id": "title_biome5", "label": "五域調査官", "description": "メイン5区域を完走した"},
 	{"id": "title_max_hit_1k", "label": "一撃の目撃者", "description": "最大一撃が1000を超えた"},
 	{"id": "title_max_hit_5k", "label": "規格外の戦果", "description": "最大一撃が5000を超えた"},
 	{"id": "title_hard_clear", "label": "危険区域指定", "description": "ハード難易度を初クリアした"},

@@ -1119,7 +1119,7 @@ func _start_pull(use_ticket: bool, page: int = -1) -> void:
 					GameState.equipment_inventory_count_label()
 				)
 			else:
-				_label_result.text = "開封に失敗しました（%s）。" % eq_reason
+				_label_result.text = "開封できませんでした。時間をおいて再度お試しください。"
 			_set_pull_controls_enabled(true)
 			_set_featured_timer_running(true)
 			_refresh()
@@ -1136,7 +1136,7 @@ func _start_pull(use_ticket: bool, page: int = -1) -> void:
 		elif reason == "no_token":
 			_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
 		else:
-			_label_result.text = "招きに失敗しました（%s）。" % reason
+			_label_result.text = "招きを完了できませんでした。時間をおいて再度お試しください。"
 		_set_pull_controls_enabled(true)
 		_set_featured_timer_running(true)
 		_refresh()

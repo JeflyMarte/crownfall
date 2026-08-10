@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "wisdom_staff_noesis"
 display_name = "叡智の杖ノエシス"
-description = "学識王セラディスの伝承に連なる杖、と記録部は仮登録する。真の王遺産かは未確定。理解と封じの両輪を象徴すると語られる。"
+description = "学識王セラディスの伝承に連なる杖。記録部も真偽を断定しきれず、真の王遺産かはなお議論が分かれる。理解と封じの両輪を象徴すると語られる。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_mythic_noesis"
 base_attack = 176

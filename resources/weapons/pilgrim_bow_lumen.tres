@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "pilgrim_bow_lumen"
 display_name = "巡礼弓ルーメン"
-description = "巡礼王ルミナスの伝承に連なる長弓、と記録部は仮登録する。真の王遺産かは未確定。矢の先に道の灯が宿ると語られる。"
+description = "巡礼王ルミナスの伝承に連なる長弓。記録部も真偽を断定しきれず、真の王遺産かはなお議論が分かれる。矢の先に道の灯が宿ると語られる。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_mythic_lumen"
 base_attack = 176

@@ -53,10 +53,10 @@ static func can_reforge(item: Resource, mod_index: int) -> Dictionary:
 		return fail.call("再抽選する効果を選んでください")
 	var mods: Array = _ERM.get_mods(item)
 	if mod_index >= mods.size():
-		return fail.call("効果の選択が不正です")
+		return fail.call("その効果は選べません")
 	var mod: Variant = mods[mod_index]
 	if not mod is Dictionary:
-		return fail.call("効果の選択が不正です")
+		return fail.call("その効果は選べません")
 	if not is_mod_reforgeable(mod as Dictionary):
 		return fail.call("この効果は焼直しできません")
 	var gold_cost: int = get_gold_cost(item)

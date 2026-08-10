@@ -125,9 +125,9 @@ static func _apply_reward(reward: Dictionary, dungeon_id: String = "") -> void:
 		if granted != null and not wname.is_empty():
 			_append_run_notice("深層限定レジェンド獲得：%s" % wname)
 		elif not wname.is_empty():
-			_append_run_notice("深層限定レジェンド：%s（付与失敗）" % wname)
-		else:
-			_append_run_notice("深層限定レジェンド（未対応 Biome）")
+			## 内部失敗はプレイヤー向けに断定しない（ログは grant 側）。
+			_append_run_notice("深層限定の伝説装備を入手できませんでした")
+		## 未対応 dungeon は通知しない（実装漏れ扱い）。
 
 
 static func _label_for(floor: int, kind: String) -> String:

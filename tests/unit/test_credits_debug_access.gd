@@ -12,6 +12,19 @@ func test_credits_text_mentions_kenney_and_bgm() -> void:
 	assert_true(body.contains("Kenney"), "SE Kenney")
 	assert_true(body.contains("BGM") or body.contains("オリジナル"), "BGM line")
 	assert_true(body.contains("TomMusic") or body.contains("Fantasy"), "TomMusic pack")
+	assert_false(body.contains("リポジトリ"), "プレイヤー向けにリポジトリ言及しない")
+	assert_false(body.contains("ATTRIBUTION.md"), "プレイヤー向けに ATTRIBUTION パスを出さない")
+
+
+func test_save_status_mentions_debug_only_when_debug_access() -> void:
+	var _SettingsPrefs := preload("res://scripts/settings/SettingsPrefs.gd")
+	var text: String = _SettingsPrefs.save_status_text()
+	assert_true(text.begins_with("セーブ:"), "セーブ行")
+	if _DebugAccess.is_allowed():
+		assert_true(text.contains("本編"), "debug ビルドでは本編枠を表示")
+	else:
+		assert_false(text.contains("デバッグ"), "release ではデバッグ枠を出さない")
+		assert_false(text.contains("本編"), "release では本編／デバッグ区別を出さない")
 
 
 func test_debug_access_true_in_gut_debug_build() -> void:

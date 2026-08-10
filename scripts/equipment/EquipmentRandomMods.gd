@@ -464,10 +464,10 @@ static func _reroll_accessory_mod_at(instance: Resource, mod_index: int) -> Dict
 
 static func _reforge_slot_gate(mods: Array, mod_index: int) -> Dictionary:
 	if mod_index < 0 or mod_index >= mods.size():
-		return {"ok": false, "reason": "効果の選択が不正です"}
+		return {"ok": false, "reason": "その効果は選べません"}
 	var old_mod: Variant = mods[mod_index]
 	if not old_mod is Dictionary:
-		return {"ok": false, "reason": "効果の選択が不正です"}
+		return {"ok": false, "reason": "その効果は選べません"}
 	var old_dict: Dictionary = (old_mod as Dictionary).duplicate(true)
 	if not is_mod_reforgeable(old_dict):
 		return {"ok": false, "reason": "この効果は焼直しできません"}

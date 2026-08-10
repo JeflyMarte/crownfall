@@ -15,6 +15,4 @@ static func settings_body() -> String:
 		"",
 		"【フォント】",
 		"Noto Sans JP / Shippori Mincho B1 / Dela Gothic One（OFL）",
-		"",
-		"詳細な SE 対応表はリポジトリ内 assets/audio/sfx/ATTRIBUTION.md を参照。",
 	])

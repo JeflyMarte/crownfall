@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "burial_crown_greatsword"
 display_name = "継承剣レガート"
-description = "継承王カエルムの伝承に連なる剣、と記録部は仮登録する。真の王遺産かは未確定。王都アステリア地下で発掘され、「次の者へ」の理念を宿すと語られる。"
+description = "継承王カエルムの伝承に連なる剣。記録部も真偽を断定しきれず、真の王遺産かはなお議論が分かれる。王都アステリア地下で発掘され、「次の者へ」の理念を宿すと語られる。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_mythic_burial_crown"
 base_attack = 176

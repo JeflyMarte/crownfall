@@ -3,6 +3,8 @@ extends RefCounted
 
 ## プレイヤー設定（セーブと分離・`user://settings.cfg`）。
 
+const _DebugAccess := preload("res://scripts/debug/DebugAccess.gd")
+
 const PATH: String = "user://settings.cfg"
 const SECTION: String = "settings"
 
@@ -268,6 +270,11 @@ static func app_version_text() -> String:
 
 
 static func save_status_text() -> String:
+	## 出荷向けは本編スロットのみ。デバッグ枠の有無は debug ビルド時だけ出す。
+	if not _DebugAccess.is_allowed():
+		if SaveManager.has_normal_save():
+			return "セーブ: あり"
+		return "セーブ: なし"
 	var parts: PackedStringArray = []
 	if SaveManager.has_normal_save():
 		parts.append("本編あり")

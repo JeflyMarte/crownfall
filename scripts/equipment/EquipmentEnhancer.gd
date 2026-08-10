@@ -576,7 +576,7 @@ static func can_alchemy(base: Resource, fodder: Resource) -> Dictionary:
 	var cat_base: String = item_category(base)
 	var cat_fodder: String = item_category(fodder)
 	if cat_base.is_empty() or cat_fodder.is_empty():
-		return fail.call("装備が不正です")
+		return fail.call("この装備では実行できません")
 	if cat_base != cat_fodder:
 		return fail.call("同じ種類の装備同士のみ錬成できます")
 	if item_rarity(fodder) >= Enums.Rarity.MYTHIC:
@@ -785,7 +785,7 @@ static func dismantle_item(item: Resource) -> Dictionary:
 	if not bool(preview.get("ok", false)):
 		return preview
 	if not _remove_item_from_inventory(item):
-		return {"ok": false, "reason": "インベントリから削除できませんでした"}
+		return {"ok": false, "reason": "装備袋から取り除けませんでした"}
 	var materials: Dictionary = preview.get("materials", {})
 	for mat_id in materials:
 		GameState.add_material(str(mat_id), int(materials[mat_id]))

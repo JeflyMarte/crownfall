@@ -288,7 +288,7 @@ static func is_craft_unlocked(craft: Resource) -> bool:
 
 static func craft_lock_reason(craft: Resource) -> String:
 	if craft == null:
-		return "レシピが不正です"
+		return "レシピを確認できません"
 	var otype: String = str(craft.output_type)
 	var oid: String = str(craft.output_id)
 	if not is_craftable_master(otype, oid):
