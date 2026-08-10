@@ -3,6 +3,7 @@ extends Control
 ## 設定画面（MVP）— 音声 / ゲームプレイ / システム。
 
 const _SettingsPrefs := preload("res://scripts/settings/SettingsPrefs.gd")
+const _CreditsText := preload("res://scripts/settings/CreditsText.gd")
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const TITLE_SCENE: String = "res://scenes/title/TitleScene.tscn"
 ## 司令官BGの罫線が「ーーー」に見えるため、設定は単色下地のみ（テクスチャBG禁止）。
@@ -103,6 +104,7 @@ func _rebuild_page() -> void:
 	_content_host.add_child(_build_audio_section())
 	_content_host.add_child(_build_gameplay_section())
 	_content_host.add_child(_build_redeem_section())
+	_content_host.add_child(_build_credits_section())
 	_content_host.add_child(_build_system_section())
 
 
@@ -187,6 +189,18 @@ func _build_redeem_section() -> Control:
 	_redeem_status.text = ""
 	UiTypography.apply_caption(_redeem_status, COLOR_SUB)
 	body.add_child(_redeem_status)
+	return sec["panel"]
+
+
+func _build_credits_section() -> Control:
+	var sec: Dictionary = _begin_section("クレジット")
+	var body: VBoxContainer = sec["body"]
+	_add_caption(body, "本ゲームで使用している音源・フォントの権利表記です。")
+	var body_lbl := Label.new()
+	body_lbl.text = _CreditsText.settings_body()
+	body_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_body(body_lbl, UiTypography.SIZE_BODY_SMALL)
+	body.add_child(body_lbl)
 	return sec["panel"]
 
 

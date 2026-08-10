@@ -4178,7 +4178,7 @@ ELITE/BOSS/遍在希少種（P3-D166）は別枠。重みは **当該 Biome 雑�
 | P3-AUDIO-BGM-001-1 | **音源** — オーナー制作 MP3（Suno 等）を `assets/audio/bgm/` に配置 | P3-AUDIO-SE-001-5 の後続 |
 | P3-AUDIO-BGM-001-2 | **カタログ** — `BgmCatalog`（title / hub / dungeon_explore / battle / boss / result）＋ループ既定 | SE と同型の ID→path |
 | P3-AUDIO-BGM-001-3 | **再生** — `AudioManager.play_bgm`。タイトル・拠点・探索／戦闘／ボス／リザルトへ配線 | シーン直書き禁止 |
-| P3-AUDIO-BGM-001-4 | **権利** — BGM クレジット文面は後続（設定／クレジット画面とセット） | 出荷前に明文化 |
+| P3-AUDIO-BGM-001-4 | **権利** — 設定「クレジット」に BGM／SE／フォント表記（`CreditsText`／P3-SHIP-CREDITS-DEBUG-001） | 出荷前明文化 → **完了** |
 
 ---
 
@@ -7964,4 +7964,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-BOSS-STATUS-SPEED-001-1 | **`incoming_status_chance_mult=0.55`** を全 BOSS に | 付与減衰の共通化 |
 | P3-BAL-BOSS-STATUS-SPEED-001-2 | **`attack_speed`** — 基準1.35。**eldion／chronos_wave／valgard=1.5** | オーナー指示 |
 | P3-BAL-BOSS-STATUS-SPEED-001-3 | **SSOT** — `124_BossStatusResistSpeedFloor.md` | 実装正 |
+
+## クレジット表記＋デバッグ出荷ガード（2026-08-10 — P3-SHIP-CREDITS-DEBUG-001）
+
+> **オーナー指示** — 本番提出準備。設定クレジットとデバッグ露出封鎖。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-SHIP-CREDITS-DEBUG-001-1 | **設定に「クレジット」** — Kenney／TomMusic SE・BGM（Suno 協力）・フォント OFL | P3-AUDIO-BGM-001-4 完了 |
+| P3-SHIP-CREDITS-DEBUG-001-2 | **`DebugAccess.is_allowed()`=`OS.is_debug_build()`** | release テンプレートで UI／apply／セーブ復元を遮断 |
+| P3-SHIP-CREDITS-DEBUG-001-3 | **対象** — タイトル「デバッグ」・拠点デバッグメニュー・`DebugFullUnlock.apply`・load 時 `debug_full_unlock` | 出荷ビルドで進行バイパス不可 |
 

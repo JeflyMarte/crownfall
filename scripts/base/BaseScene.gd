@@ -12,6 +12,7 @@ const _NinaDialogueOverlay := preload("res://scripts/ui/NinaDialogueOverlay.gd")
 const _ChapterClearNinaLines := preload("res://scripts/ui/ChapterClearNinaLines.gd")
 const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
 const _HubDebugMenuOverlay := preload("res://scripts/debug/HubDebugMenuOverlay.gd")
+const _DebugAccess := preload("res://scripts/debug/DebugAccess.gd")
 
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
@@ -722,7 +723,7 @@ func _build_left_menu() -> void:
 		if btn != null and not bool(card_entry.get("locked", false)):
 			btn.pressed.connect(_on_menu_entry_pressed.bind(str(card_entry["id"])))
 		_menu_vbox.add_child(card)
-	if GameState.debug_full_unlock:
+	if GameState.debug_full_unlock and _DebugAccess.is_allowed():
 		var debug_entry := {
 			"id": "debug",
 			"title": "デバッグ",
@@ -769,6 +770,8 @@ func _on_menu_entry_pressed(entry_id: String) -> void:
 
 
 func _on_debug_menu_pressed() -> void:
+	if not _DebugAccess.is_allowed():
+		return
 	if not GameState.debug_full_unlock:
 		return
 	if get_node_or_null("HubDebugMenuOverlay") != null:

@@ -8,6 +8,7 @@ const _EquipmentRandomMods = preload("res://scripts/equipment/EquipmentRandomMod
 const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
 const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
 const _SurveySystem = preload("res://scripts/survey/SurveySystem.gd")
+const _DebugAccess = preload("res://scripts/debug/DebugAccess.gd")
 
 ## 本編セーブ（はじめから／つづきから）。デバッグは別ファイル。
 const SAVE_PATH_NORMAL: String = "user://save_data.json"
@@ -679,6 +680,9 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.gold = int(data["gold"])
 	## 章／ダンジョン解放判定より前に復元（sanitize が参照する）。
 	GameState.debug_full_unlock = bool(data.get("debug_full_unlock", false))
+	## 出荷ビルドではデバッグセーブ由来のフラグを落として進行バイパスを防ぐ。
+	if GameState.debug_full_unlock and not _DebugAccess.is_allowed():
+		GameState.debug_full_unlock = false
 	if data.has("dungeon_progress") and data["dungeon_progress"] is Dictionary:
 		GameState.dungeon_progress = data["dungeon_progress"]
 	if data.has("hub_survey_progress") and data["hub_survey_progress"] is Dictionary:

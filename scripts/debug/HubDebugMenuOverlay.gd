@@ -4,6 +4,7 @@ extends CanvasLayer
 ## 拠点左メニュー「デバッグ」— 演出イベント呼び出し（debug_full_unlock 限定）。
 
 const _HubDebugEvents := preload("res://scripts/debug/HubDebugEvents.gd")
+const _DebugAccess := preload("res://scripts/debug/DebugAccess.gd")
 
 signal closed
 signal event_requested(entry_id: String)
@@ -153,6 +154,8 @@ func _close() -> void:
 
 
 static func show_on(parent: Node) -> CanvasLayer:
+	if not _DebugAccess.is_allowed():
+		return null
 	var overlay := new()
 	overlay.name = "HubDebugMenuOverlay"
 	parent.add_child(overlay)

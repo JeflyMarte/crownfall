@@ -16,6 +16,7 @@ const _CatalogHelper = preload("res://scripts/codex/CatalogHelper.gd")
 const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
 const _CommanderTitles = preload("res://scripts/commander/CommanderTitles.gd")
 const _CommanderPermitBoost = preload("res://scripts/commander/CommanderPermitBoost.gd")
+const _DebugAccess = preload("res://scripts/debug/DebugAccess.gd")
 
 const DEBUG_GOLD: int = 999_999
 const DEBUG_GACHA_TOKEN: int = 9_999
@@ -29,6 +30,9 @@ const DEBUG_COMMANDER_S_PLUS: int = 99
 
 ## 現在の GameState をデバッグ用フル所持へ上書きする。セーブは呼び出し側。
 static func apply() -> void:
+	if not _DebugAccess.is_allowed():
+		push_warning("DebugFullUnlock.apply blocked outside debug builds")
+		return
 	GameState.reset_for_new_game()
 	GameState.debug_full_unlock = true
 	GameState.survey_staff_nonoka_unlocked = true

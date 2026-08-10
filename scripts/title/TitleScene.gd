@@ -9,6 +9,7 @@ const STARTER_PICK_SCENE: String = "res://scenes/roster/StarterPickScene.tscn"
 const INTRO_LORE_SCENE: String = "res://scenes/intro/IntroLoreScene.tscn"
 const BG_PATH: String = "res://assets/ui/UI_BG_TitleMain.png"
 const _DebugFullUnlock = preload("res://scripts/debug/DebugFullUnlock.gd")
+const _DebugAccess = preload("res://scripts/debug/DebugAccess.gd")
 
 ## 背景太陽（右上の雲の切れ目）付近の薄い発光。比率は 720×1280 基準。
 const SUN_GLOW_ANCHOR_X: float = 0.78
@@ -93,9 +94,10 @@ func _build_ui() -> void:
 	_btn_continue.pressed.connect(_on_continue)
 	menu_col.add_child(_btn_continue)
 
-	var btn_debug := _make_menu_button("デバッグ")
-	btn_debug.pressed.connect(_on_debug_pressed)
-	menu_col.add_child(btn_debug)
+	if _DebugAccess.is_allowed():
+		var btn_debug := _make_menu_button("デバッグ")
+		btn_debug.pressed.connect(_on_debug_pressed)
+		menu_col.add_child(btn_debug)
 
 	var btn_settings := _make_menu_button("設定")
 	btn_settings.pressed.connect(func() -> void: SceneRouter.open_settings("res://scenes/title/TitleScene.tscn"))
@@ -253,6 +255,8 @@ func _debug_fresh_dialog_text() -> String:
 
 
 func _on_debug_pressed() -> void:
+	if not _DebugAccess.is_allowed():
+		return
 	SaveManager.use_debug_slot()
 	var has: bool = SaveManager.has_debug_save()
 	if _btn_debug_reset != null:
@@ -270,6 +274,8 @@ func _on_debug_pressed() -> void:
 
 
 func _on_debug_confirmed() -> void:
+	if not _DebugAccess.is_allowed():
+		return
 	SaveManager.use_debug_slot()
 	if SaveManager.has_debug_save():
 		GameState.reset_for_new_game()
@@ -289,6 +295,8 @@ func _on_debug_confirmed() -> void:
 
 func _on_debug_custom_action(action: StringName) -> void:
 	if str(action) != "reset_debug":
+		return
+	if not _DebugAccess.is_allowed():
 		return
 	_confirm_debug.hide()
 	SaveManager.use_debug_slot()
