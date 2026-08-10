@@ -60,3 +60,6 @@ docs/devlog/yt_*/voice/
 .cursor/tmp_ban/
 .cursor/tmp_qa/
 .tmp_iconcheck/
+
+# Import scratch backups
+*.bak_chr_import
