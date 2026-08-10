@@ -43,7 +43,7 @@ func _rebuild_list() -> void:
 		child.queue_free()
 	## P3-JOB-EVO-OMIT-001: 到達形認定はβオミット。画面は案内のみ。
 	if not Constants.JOB_EVOLUTION_PLAYABLE:
-		_label_status.text = "ジョブ到達形（昇格・認定）はβではオミットしています。"
+		_label_status.text = "ジョブの到達形（上級資格の認定）は、現在ご利用いただけません。"
 		return
 	var roster: Array = GameState.get_roster()
 	var sorted: Array = roster.duplicate()

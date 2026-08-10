@@ -13,6 +13,7 @@ const FORBIDDEN_ASCII_TERMS: Array[String] = [
 
 const FORBIDDEN_JP_OMIT: Array[String] = [
 	"鑑定",
+	"オミット",
 ]
 
 
