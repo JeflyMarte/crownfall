@@ -7,7 +7,7 @@ func test_boss_summon_skills_are_once_designated() -> void:
 	var cases := {
 		"moldgar": {"skill": "enemy_moldgar_call_marsh", "enemy": "marsh_king", "count": 1},
 		"nereion": {"skill": "enemy_nereion_call_dread", "enemy": "black_tide_shark", "count": 2},
-		"chronos_wave": {"skill": "enemy_chronos_wave_call_moth", "enemy": "clock_moth", "count": 2},
+		"chronos_wave": {"skill": "enemy_chronos_wave_call_moth", "enemy": "clock_moth", "count": 1},
 	}
 	for boss_id: String in cases.keys():
 		var boss: Resource = DataRegistry.get_enemy_data(boss_id)

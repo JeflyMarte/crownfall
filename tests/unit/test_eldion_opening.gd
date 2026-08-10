@@ -11,7 +11,7 @@ func test_eldion_no_opening_companions_and_resist() -> void:
 	assert_true("boss_buff_break_all" in boss.skill_ids)
 	assert_eq(int(boss.max_hp), 2550)
 	assert_eq(int(boss.attack), 300)
-	assert_almost_eq(float(boss.attack_speed), 1.35, 0.001)
+	assert_almost_eq(float(boss.attack_speed), 1.5, 0.001)
 	assert_almost_eq(float(boss.skill_use_chance), 0.72, 0.001)
 
 

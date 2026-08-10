@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "enemy_chronos_wave_call_moth"
 display_name = "時蛾招来"
-description = "クロックモスを二体、一度だけ呼び寄せる。"
+description = "クロックモスを一体、一度だけ呼び寄せる。"
 skill_type = "boss"
 target_type = "self"
 power_multiplier = 1.0
@@ -19,4 +19,4 @@ apply_status_id = ""
 apply_status_chance = 0.0
 cast_time = 0.0
 summon_enemy_id = "clock_moth"
-summon_count = 2
+summon_count = 1
