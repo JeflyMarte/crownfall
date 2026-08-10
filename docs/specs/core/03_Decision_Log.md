@@ -7954,3 +7954,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-EQ-SHADOW-DEATHREAP-001-6 | **除外** — 通常★プール／鍛冶／灰冠／SET | 限定経路の防衛 |
 | P3-EQ-SHADOW-DEATHREAP-001-7 | **SSOT** — `123_ShadowStalkerDeathreapWeapons.md`／`ShadowStalkerLoot.gd` | 実装正 |
 
+## 全ボス状態耐性＋速度1.35（2026-08-10 — P3-BAL-BOSS-STATUS-SPEED-001）
+
+> **オーナー指示** — 全ボスに耐性。速度は下限1.0ののち **全体1.35** へ統一。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-BOSS-STATUS-SPEED-001-1 | **`incoming_status_chance_mult=0.55`** を全 BOSS に | 付与減衰の共通化 |
+| P3-BAL-BOSS-STATUS-SPEED-001-2 | **`attack_speed=1.35`** を全 BOSS に統一 | オーナー「ボス全体の速さを1.35」 |
+| P3-BAL-BOSS-STATUS-SPEED-001-3 | **SSOT** — `124_BossStatusResistSpeedFloor.md` | 実装正 |
+
