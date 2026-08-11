@@ -18,7 +18,8 @@ alwaysApply: false
 | セーブキー欠落で設定が戻る（探索方針等） | GameState フィールドだけ追加し SaveManager に未載 | セーブキーは **GameState＋SaveManager 同コミット**（`current_exploration_policy` 同様） |
 | クリア後も同じ章に再入場する | `current_stage_id` がクリア済みのまま。`resolve` は明示選択を尊重 | クリア時 `advance_current_stage_past_cleared`。UI デフォルトは `preferred_default_stage_for_biome`。再プレイはカード明示 |
 | 袋満杯なのに撃破で装備入手ログ／FX | `_spawn_*` 失敗でも drop id を返していた | `_spawn_*` は bool。失敗時は空を返し演出しない |
-| ダンジョン選択の章カードが実機で無反応 | ScrollTouch が Button を PASS 化 | 章／Biome／選択ボタンに `_cf_keep_mouse_stop` |
+| ダンジョン選択の章カードが実機で無反応 | ScrollTouch が Button を PASS 化 | タブ／選択等は `_cf_keep_mouse_stop`。フル幅バナー／章は PASS＋`gui_input` 短押し（全面 STOP だと畳み時スクロール不能） |
+| ダンジョン選択の畳みバナー上でスクロール不能 | バナー全面 STOP（タップ優先） | → **`ui-layout.mdc` ScrollTouch**（PASS＋短押し） |
 | ダンジョン選択の下情報欄が左欠け／リストに重なる | 長いイベント要約で Footer 最小幅＝全文幅＋設計高不足 | → **`ui-layout.mdc` FooterPanel**（clip＋ellipsis＋MainColumn 下端を Footer 実高で再計算） |
 | iPhone で Godot ロゴのまま進まない | iOS PCK に `docs/devlog` 等を同梱し数GB化（起動読込で固まる） | `export_presets` の `exclude_filter` に `docs/*,wiki/*,tests/*,tools/*,addons/gut/*`。`setup_ios_testplay.sh --export` が毎回強制。PCK 目安 <1.5GB。LLDB shared cache 警告は無関係 |
 | iOS 再エクスポート後 PCK が数MB | Cursor サンドボックス／`.cursorignore` でアセット未読込のまま export | `required_permissions: ["all"]` で実行。完了後 `du -m build/ios/Crownfall.pck` が ~546 であること確認 |
