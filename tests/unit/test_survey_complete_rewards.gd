@@ -228,3 +228,49 @@ func test_queue_notice_uses_dungeon_name_and_detail() -> void:
 	assert_true(kinds.has("gold"), str(kinds))
 	assert_true(kinds.has("token"), str(kinds))
 	GameState.pending_content_unlock_notices.clear()
+
+
+func test_merge_complete_tickets_into_claim_rewards() -> void:
+	var rewards: Dictionary = {"gold": 10, "token": 5}
+	_SurveySystem._merge_complete_rewards_into_claim(
+		rewards,
+		{
+			"ok": true,
+			"gold": 200,
+			"token": 100,
+			"tickets": {"ticket_gacha_free": 1, "ticket_seal_free": 1},
+			"materials": {"base_ore": 3},
+			"pet_id": "pet_ash",
+		}
+	)
+	assert_eq(int(rewards.get("gold", 0)), 210)
+	assert_eq(int(rewards.get("token", 0)), 105)
+	var tickets: Dictionary = rewards.get("tickets", {})
+	assert_eq(int(tickets.get("ticket_gacha_free", 0)), 1)
+	assert_eq(int(tickets.get("ticket_seal_free", 0)), 1)
+	assert_eq(int((rewards.get("complete_materials", {}) as Dictionary).get("base_ore", 0)), 3)
+	assert_eq(str(rewards.get("complete_pet_id", "")), "pet_ash")
+
+
+func test_claim_path_complete_out_skips_notice_and_merges() -> void:
+	## 受取ポップ相当: notify=false で complete_out を取り、マージする。
+	GameState.hub_survey_progress["mourngate"] = 99.0
+	GameState.pending_content_unlock_notices.clear()
+	var complete_out: Array = []
+	_SurveySystem.add_survey_percent("mourngate", 2.0, false, false, complete_out)
+	assert_eq(complete_out.size(), 1, "100%到達で complete_out に載る")
+	assert_true(bool((complete_out[0] as Dictionary).get("ok", false)))
+	assert_eq(int((complete_out[0] as Dictionary).get("gold", 0)), 200)
+	assert_true(_SurveyCompleteRewards.is_claimed("mourngate"))
+	for notice_v in GameState.pending_content_unlock_notices:
+		if not (notice_v is Dictionary):
+			continue
+		assert_ne(str((notice_v as Dictionary).get("kind", "")), "survey_complete")
+	var rewards: Dictionary = {"gold": 15, "token": 3}
+	_SurveySystem._merge_complete_rewards_into_claim(rewards, complete_out[0] as Dictionary)
+	assert_eq(int(rewards.get("gold", 0)), 215)
+	assert_eq(int(rewards.get("token", 0)), 103)
+	var tickets_v: Variant = rewards.get("tickets", {})
+	if tickets_v is Dictionary:
+		for tid_v in (tickets_v as Dictionary).keys():
+			assert_gt(int((tickets_v as Dictionary)[tid_v]), 0)

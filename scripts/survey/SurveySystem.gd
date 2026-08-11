@@ -130,7 +130,13 @@ static func is_survey_clear(dungeon_id: String) -> bool:
 	return get_survey_percent(dungeon_id) + 0.001 >= _SurveyConfig.SURVEY_CLEAR_PERCENT
 
 
-static func add_survey_percent(dungeon_id: String, amount: float, from_room: bool = false) -> float:
+static func add_survey_percent(
+	dungeon_id: String,
+	amount: float,
+	from_room: bool = false,
+	notify_complete: bool = true,
+	complete_out: Variant = null
+) -> float:
 	if dungeon_id.is_empty() or amount <= 0.0:
 		return get_survey_percent(dungeon_id)
 	if from_room:
@@ -146,7 +152,9 @@ static func add_survey_percent(dungeon_id: String, amount: float, from_room: boo
 	## 完全調査（100%）: 景品付与 → 0% リセット（案A）。ペットは try_claim 内で未所持時のみ。
 	const _SurveyCompleteRewards := preload("res://scripts/survey/SurveyCompleteRewards.gd")
 	if nxt + 0.001 >= _SurveyConfig.SURVEY_COMPLETE_PERCENT:
-		_SurveyCompleteRewards.try_claim(dungeon_id, true)
+		var granted: Dictionary = _SurveyCompleteRewards.try_claim(dungeon_id, notify_complete)
+		if complete_out is Array and bool(granted.get("ok", false)):
+			(complete_out as Array).append(granted)
 	_ContentUnlockNotice.queue_newly_unlocked(unlock_before)
 	return get_survey_percent(dungeon_id)
 
@@ -728,12 +736,50 @@ static func claim_cycle() -> Dictionary:
 	var exp_result: Dictionary = grant_dispatch_exp(dungeon_id, preset, assignees)
 	rewards["exp_pool"] = int(exp_result.get("pool", 0))
 	rewards["exp_entries"] = exp_result.get("entries", [])
-	add_survey_percent(dungeon_id, _SurveyConfig.cycle_survey_add(preset), true)
+	## 受取ポップに載せるため、完全調査景品は通知オフで取得してマージ（二重表示防止）。
+	var complete_out: Array = []
+	add_survey_percent(
+		dungeon_id, _SurveyConfig.cycle_survey_add(preset), true, false, complete_out
+	)
+	if not complete_out.is_empty() and complete_out[0] is Dictionary:
+		_merge_complete_rewards_into_claim(rewards, complete_out[0] as Dictionary)
 	rewards["ok"] = true
 	rewards["dungeon_id"] = dungeon_id
 	rewards["token_over_cap"] = over_cap
 	SaveManager.save_game()
 	return rewards
+
+
+## 完全調査で当たったチケット等をサイクル受取結果へ載せる。
+static func _merge_complete_rewards_into_claim(rewards: Dictionary, complete: Dictionary) -> void:
+	if not bool(complete.get("ok", false)):
+		return
+	var tickets_v: Variant = complete.get("tickets", {})
+	if tickets_v is Dictionary and not (tickets_v as Dictionary).is_empty():
+		var merged: Dictionary = {}
+		var existing: Variant = rewards.get("tickets", {})
+		if existing is Dictionary:
+			merged = (existing as Dictionary).duplicate()
+		for tid_v in (tickets_v as Dictionary).keys():
+			var tid: String = str(tid_v)
+			var qty: int = int((tickets_v as Dictionary)[tid_v])
+			if tid.is_empty() or qty <= 0:
+				continue
+			merged[tid] = int(merged.get(tid, 0)) + qty
+		rewards["tickets"] = merged
+	## 表示合計を所持増加と揃える（サイクル分＋完全調査分）。
+	var c_gold: int = int(complete.get("gold", 0))
+	if c_gold > 0:
+		rewards["gold"] = int(rewards.get("gold", 0)) + c_gold
+	var c_token: int = int(complete.get("token", 0))
+	if c_token > 0:
+		rewards["token"] = int(rewards.get("token", 0)) + c_token
+	var c_mats: Variant = complete.get("materials", {})
+	if c_mats is Dictionary and not (c_mats as Dictionary).is_empty():
+		rewards["complete_materials"] = (c_mats as Dictionary).duplicate(true)
+	var pet_id: String = str(complete.get("pet_id", "")).strip_edges()
+	if not pet_id.is_empty():
+		rewards["complete_pet_id"] = pet_id
 
 
 ## 対象 DG の雑魚クリア相当 EXP（ボス除外の推定）。

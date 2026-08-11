@@ -155,6 +155,28 @@ func _populate(result: Dictionary) -> void:
 	if not weapon_id.is_empty():
 		any = true
 		col.add_child(_make_weapon_row(weapon_id))
+	var tickets_v: Variant = result.get("tickets", {})
+	if tickets_v is Dictionary:
+		for tid_v in (tickets_v as Dictionary).keys():
+			var tid: String = str(tid_v)
+			var tqty: int = int((tickets_v as Dictionary)[tid_v])
+			if tid.is_empty() or tqty <= 0:
+				continue
+			any = true
+			col.add_child(_make_ticket_row(tid, tqty))
+	var complete_mats: Variant = result.get("complete_materials", {})
+	if complete_mats is Dictionary:
+		for mid_v in (complete_mats as Dictionary).keys():
+			var mid: String = str(mid_v)
+			var mqty: int = int((complete_mats as Dictionary)[mid_v])
+			if mid.is_empty() or mqty <= 0:
+				continue
+			any = true
+			col.add_child(_make_material_row(mid, mqty))
+	var complete_pet: String = str(result.get("complete_pet_id", "")).strip_edges()
+	if not complete_pet.is_empty():
+		any = true
+		col.add_child(_make_pet_row(complete_pet))
 	var exp_entries: Array = result.get("exp_entries", []) as Array
 	if not exp_entries.is_empty():
 		any = true
@@ -250,6 +272,35 @@ func _make_weapon_row(weapon_id: String) -> Control:
 	UiTypography.apply_body(qty_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
 	name_lbl_col.add_child(qty_lbl)
 	row.add_child(name_lbl_col)
+	return row
+
+
+func _make_ticket_row(ticket_id: String, qty: int) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var tex: Texture2D = IconPaths.get_icon_texture(ticket_id, "ticket")
+	row.add_child(_make_plain_icon(tex, 72))
+	var tname: String = TicketSystem.display_name(ticket_id)
+	if tname.is_empty():
+		var td: Resource = DataRegistry.get_ticket_data(ticket_id)
+		tname = str(td.display_name) if td != null else ticket_id
+	row.add_child(_make_name_qty_col(tname, qty))
+	return row
+
+
+func _make_pet_row(pet_id: String) -> Control:
+	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var tex: Texture2D = ChrIdlePortrait.get_idle_texture(pet_id)
+	if tex == null:
+		tex = IconPaths.get_icon_texture(pet_id, "chr")
+	row.add_child(_make_plain_icon(tex, 72))
+	var pet: Resource = _PetSystem.get_pet_data(pet_id)
+	var pname: String = str(pet.display_name) if pet != null else pet_id
+	row.add_child(_make_name_qty_col(pname, 1))
 	return row
 
 
