@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Crownfall"
 config/description="2D見下ろし型自動探索ハクスラRPG"
-config/version="0.1.0"
+config/version="1.0.0"
 run/main_scene="res://scenes/boot/BootScene.tscn"
 config/features=PackedStringArray("4.6", "Mobile")
 config/icon="res://icon.png"
