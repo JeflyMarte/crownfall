@@ -49,11 +49,12 @@ func test_forge_gold_sink_raised() -> void:
 	assert_eq(EquipmentEnhancer.get_gold_cost(1, Enums.Rarity.LEGENDARY), 300)
 	assert_eq(EquipmentEnhancer.get_gold_cost(5, Enums.Rarity.SET), 1960)
 	assert_eq(EquipmentEnhancer.get_gold_cost(5, Enums.Rarity.MYTHIC), 2240)
-	## P3-BAL-ALCHEMY-RARITY-GOLD-001: 単価180＋帯。レアなし（◇）。
+	## P3-BAL-ALCHEMY-BASE-TIER-001: 単価180＋素材帯×主材帯。主材Lv省略時は1（×1.5）。
 	assert_eq(EquipmentEnhancer.ALCHEMY_GOLD_PER_GAIN, 180)
-	assert_eq(EquipmentEnhancer.alchemy_gold_cost(10, 20), 2700)
-	assert_eq(EquipmentEnhancer.alchemy_gold_cost(10, 40), 3600)
-	assert_eq(EquipmentEnhancer.alchemy_gold_cost(10, 20, Enums.Rarity.LEGENDARY), 8100)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(10, 20, Enums.Rarity.COMMON, 1), 4050)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(10, 40, Enums.Rarity.COMMON, 1), 5400)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(10, 20, Enums.Rarity.LEGENDARY, 1), 12150)
+	assert_eq(EquipmentEnhancer.alchemy_gold_cost(10, 20, Enums.Rarity.COMMON, 51), 8100)
 
 
 func test_elite_and_boss_material_chances() -> void:

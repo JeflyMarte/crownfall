@@ -8031,3 +8031,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-SHIP-CREDITS-DEBUG-001-2 | **`DebugAccess.is_allowed()`=`OS.is_debug_build()`** | release テンプレートで UI／apply／セーブ復元を遮断 |
 | P3-SHIP-CREDITS-DEBUG-001-3 | **対象** — タイトル「デバッグ」・拠点デバッグメニュー・`DebugFullUnlock.apply`・load 時 `debug_full_unlock` | 出荷ビルドで進行バイパス不可 |
 
+
+## 錬成 Gold に主材Lv帯（2026-08-11 — P3-BAL-ALCHEMY-BASE-TIER-001）
+
+> **オーナー GO・案A** — 高Lv主材＋安い素材で安く上げられる穴を塞ぐ。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-ALCHEMY-BASE-TIER-001-1 | **主材帯** — 素材帯と同表を主材Lvにも乗算 | 高Lv主材は安い素材でも高くなる |
+| P3-BAL-ALCHEMY-BASE-TIER-001-2 | **式** — `ceil(180 × 実上昇 × 素材帯 × 主材帯 × レア倍率)` | 単価・レアは据置 |
+| P3-BAL-ALCHEMY-BASE-TIER-001-3 | **上書き** — 91 の「帯＝素材のみ」 | 本 Decision が正 |
+| P3-BAL-ALCHEMY-BASE-TIER-001-4 | **SSOT** — `102_AlchemyBaseLevelGoldTier.md` | Decision 本体 |
