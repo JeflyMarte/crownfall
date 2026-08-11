@@ -185,6 +185,34 @@ sync_ios_version_from_project() {
     green "OK: iOS version/short_version=${ver} (from project.godot)"
 }
 
+## Godot が埋め込む CODE_SIGN_IDENTITY / 空 PROVISIONING_* は
+## Automatically manage signing と衝突しやすいので削除する。
+fix_ios_automatic_signing() {
+    local pbx="$ROOT/build/ios/Crownfall.xcodeproj/project.pbxproj"
+    if [[ ! -f "$pbx" ]]; then
+        return 0
+    fi
+    python3 - "$pbx" <<'PY'
+from pathlib import Path
+import sys
+p = Path(sys.argv[1])
+lines = p.read_text().splitlines(True)
+out = []
+n = 0
+for line in lines:
+    if "CODE_SIGN_IDENTITY" in line:
+        n += 1
+        continue
+    if "PROVISIONING_PROFILE =" in line or "PROVISIONING_PROFILE_SPECIFIER =" in line:
+        n += 1
+        continue
+    out.append(line)
+p.write_text("".join(out))
+print(f"fix_ios_automatic_signing: removed {n} lines")
+PY
+    green "OK: Automatic signing 向けに project.pbxproj を調整"
+}
+
 ## mode: debug | release
 export_ios_project() {
     local mode="${1:-debug}"
@@ -211,6 +239,8 @@ export_ios_project() {
         export_flag="--export-release"
     fi
     "$GODOT_BIN" --path "$ROOT" --headless "$export_flag" "iOS" "$ROOT/build/ios/Crownfall.xcodeproj"
+    ## Automatic signing と衝突する手動 identity / 空プロファイル指定を除去する。
+    fix_ios_automatic_signing
     local pck="$ROOT/build/ios/Crownfall.pck"
     if [[ -f "$pck" ]]; then
         local mb
