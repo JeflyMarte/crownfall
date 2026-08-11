@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-11（**結果ダンジョン名ずれ修正／統合＋main**: 全滅・リタイアでも今回ステージを記録。要実機）
 2026-08-11（**次プロジェクト用 Cursor キット追加／統合＋main**: `docs/templates/godot-solo-cursor-kit`。ソロ Godot 向け AGENTS／ルール雛形）
 2026-08-11（**先端をiOS再エクスポート＋Xcode適用**: main先端（モーンゲートNソロ1.20ほか）・PCK 546MB。要実機Build／再インストール）
 2026-08-11（**モーンゲートNソロ能力1.20／統合＋main**: HP/ATK/SPDのみ。他章・H/NMは1.50据置。要実機）

@@ -1143,6 +1143,8 @@ func _ready() -> void:
 	else:
 		GameState.current_stage_id = ""
 		$DungeonController.start_dungeon(dungeon_id)
+	## 結果画面名は last_run_stage_id。入場時点で今回ランの id を確定（前回クリア分の残留防止）。
+	_sync_last_run_stage_id()
 	if GameState.debug_start_at_boss:
 		_seek_debug_boss_room()
 	$CombatController.reset_party_hp_for_run()
@@ -10704,6 +10706,7 @@ func _queue_pet_followup_attack() -> void:
 
 
 func _commit_commander_run_stats(outcome: String) -> void:
+	_sync_last_run_stage_id()
 	var context: Dictionary = {
 		"dungeon_id": GameState.get_active_dungeon_id(),
 		"stage_id": GameState.last_run_stage_id,
@@ -10715,6 +10718,17 @@ func _commit_commander_run_stats(outcome: String) -> void:
 		GameState.last_run_combat_stats,
 		context
 	)
+
+
+## 結果ヘッダ／MVP 用。前回ランの stage_id 残留で「潜った章と結果名がずれる」のを防ぐ。
+func _sync_last_run_stage_id() -> void:
+	if $DungeonController.current_stage_data != null:
+		GameState.last_run_stage_id = str($DungeonController.current_stage_data.id)
+		return
+	if not str(GameState.current_stage_id).is_empty():
+		GameState.last_run_stage_id = str(GameState.current_stage_id)
+		return
+	GameState.last_run_stage_id = ""
 
 func _handle_party_wipe(cause_kind: String = "") -> void:
 	$CombatTimer.stop()
@@ -11157,12 +11171,10 @@ func _on_finish_button_pressed() -> void:
 		GameState.last_run_accessory_dropped = $DungeonController.last_accessory_dropped
 	var dungeon_id: String = GameState.get_active_dungeon_id()
 	var tier: int = GameState.current_dungeon_tier
+	_sync_last_run_stage_id()
 	if $DungeonController.current_stage_data != null:
-		var stage_id: String = str($DungeonController.current_stage_data.id)
-		GameState.last_run_stage_id = stage_id
-		GameState.mark_stage_cleared(stage_id, tier)
+		GameState.mark_stage_cleared(str($DungeonController.current_stage_data.id), tier)
 	else:
-		GameState.last_run_stage_id = ""
 		GameState.mark_dungeon_tier_cleared(dungeon_id, tier)
 		if tier == _DungeonTierConfig.TIER_NORMAL:
 			GameState.mark_dungeon_cleared(dungeon_id)
