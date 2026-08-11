@@ -56,7 +56,7 @@ func test_hodaka_action_skip_chance() -> void:
 	var member: Resource = _make_member("gacha_helper_p", "swordsman", 4)
 	var ids: Array = _ids(CombatPassives.for_member(member))
 	assert_eq(ids, ["hodaka_blood_price"])
-	assert_almost_eq(CombatPassives.action_skip_chance_for_member(member), 0.20, 0.001)
+	assert_almost_eq(CombatPassives.action_skip_chance_for_member(member), 0.10, 0.001)
 	assert_eq(CombatPassives.action_skip_label_for_member(member), "血潮の代償")
 	var plain: Resource = _make_member("adventurer_0", "swordsman", Adventurer.STARTER_RARITY)
 	assert_almost_eq(CombatPassives.action_skip_chance_for_member(plain), 0.0, 0.001)

@@ -265,7 +265,7 @@ const _DEFS: Dictionary = {
 		"status_id": "empower",
 		"target": "self",
 		"cooldown": 0.0,
-		"action_skip_chance": 0.20,
+		"action_skip_chance": 0.10,
 	},
 	# ---- ジョブフォールバック補完（P3-D155） ----
 	"foresight": {
