@@ -21,6 +21,16 @@ func test_resolve_respects_explicit_stage_selection() -> void:
 	GameState.current_stage_id = "mourngate_1_1"
 	assert_eq(GameState.resolve_stage_for_run("mourngate"), "mourngate_1_1")
 
+func test_clear_advances_current_stage_to_next() -> void:
+	GameState.current_stage_id = "mourngate_1_1"
+	GameState.mark_stage_cleared("mourngate_1_1")
+	assert_eq(GameState.current_stage_id, "mourngate_1_2")
+
+func test_preferred_default_skips_cleared_current() -> void:
+	GameState.mark_stage_cleared("mourngate_1_1")
+	GameState.current_stage_id = "mourngate_1_1"
+	assert_eq(GameState.preferred_default_stage_for_biome("mourngate"), "mourngate_1_2")
+
 func test_resolve_skips_locked_explicit_stage() -> void:
 	GameState.current_stage_id = "mourngate_1_3"
 	assert_eq(GameState.resolve_stage_for_run("mourngate"), "mourngate_1_1")

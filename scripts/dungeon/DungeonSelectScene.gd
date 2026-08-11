@@ -273,6 +273,14 @@ func _ready() -> void:
 	_setup_enter_confirm()
 	_setup_party_empty_dialog()
 	_setup_route_guide_help()
+	_mark_scroll_safe_button(_btn_featured_select)
+	_mark_scroll_safe_button(_btn_tier_normal)
+	_mark_scroll_safe_button(_btn_tier_hard)
+	_mark_scroll_safe_button(_btn_tier_nightmare)
+	_mark_scroll_safe_button(_btn_route_main)
+	_mark_scroll_safe_button(_btn_route_sub)
+	_mark_scroll_safe_button(_btn_route_event)
+	_mark_scroll_safe_button(_btn_route_abyss)
 	_refresh_all()
 	call_deferred("_maybe_show_content_unlock")
 
@@ -431,11 +439,13 @@ func _setup_enter_confirm() -> void:
 	_enter_confirm_yes.pressed.connect(_on_enter_confirmed)
 	panel_host.add_child(_enter_confirm_yes)
 	_place_enter_confirm_button(_enter_confirm_yes, DungeonSelectUiTokens.ENTER_CONFIRM_YES_RECT, panel_w, panel_h)
+	_mark_scroll_safe_button(_enter_confirm_yes)
 
 	_enter_confirm_no = _make_enter_confirm_hit_button(false)
 	_enter_confirm_no.pressed.connect(_hide_enter_confirm)
 	panel_host.add_child(_enter_confirm_no)
 	_place_enter_confirm_button(_enter_confirm_no, DungeonSelectUiTokens.ENTER_CONFIRM_NO_RECT, panel_w, panel_h)
+	_mark_scroll_safe_button(_enter_confirm_no)
 
 
 func _make_enter_confirm_hit_button(yes: bool) -> Button:
@@ -797,12 +807,18 @@ func _sync_selected_stage_for_biome(biome_id: String) -> void:
 		var current: Resource = DataRegistry.get_stage_data(_selected_stage_id)
 		if current != null and str(current.biome_id) == biome_id and GameState.is_stage_unlocked(_selected_stage_id):
 			return
-	if not GameState.current_stage_id.is_empty():
-		var saved: Resource = DataRegistry.get_stage_data(GameState.current_stage_id)
-		if saved != null and str(saved.biome_id) == biome_id and GameState.is_stage_unlocked(GameState.current_stage_id):
-			_selected_stage_id = GameState.current_stage_id
-			return
-	_selected_stage_id = GameState.resolve_stage_for_run(biome_id)
+	var preferred: String = GameState.preferred_default_stage_for_biome(biome_id)
+	_selected_stage_id = preferred
+	## クリア済みが current に残っている旧状態は、UI デフォルトに合わせて進める。
+	if (
+		not preferred.is_empty()
+		and preferred != GameState.current_stage_id
+		and (
+			GameState.current_stage_id.is_empty()
+			or GameState.is_stage_cleared(GameState.current_stage_id)
+		)
+	):
+		GameState.current_stage_id = preferred
 
 func _format_stage_label(stage: Resource) -> String:
 	return "%d-%d %s" % [int(stage.biome_index), int(stage.chapter_index), str(stage.display_name)]
@@ -983,6 +999,7 @@ func _make_stage_card(stage: Resource) -> Control:
 		content.add_child(status_col)
 	btn.pressed.connect(_on_stage_card_pressed.bind(stage_id))
 	UiTypography.apply_button(btn, selected)
+	_mark_scroll_safe_button(btn)
 	wrap.add_child(btn)
 	return wrap
 
@@ -1348,6 +1365,13 @@ func _enable_list_touch_scroll() -> void:
 	ScrollTouchHelper.enable(_scroll_list)
 
 
+## ScrollTouch が pressed を奪わないよう、一覧内の操作ボタンは STOP を維持する。
+func _mark_scroll_safe_button(btn: BaseButton) -> void:
+	if btn != null:
+		btn.set_meta(&"_cf_keep_mouse_stop", true)
+		btn.mouse_filter = Control.MOUSE_FILTER_STOP
+
+
 func _make_event_tab_placeholder() -> Control:
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_top", 24)
@@ -1525,6 +1549,7 @@ func _make_hourly_tier_enter_card(dungeon_id: String) -> Control:
 	if open_now:
 		btn.pressed.connect(_on_hourly_tier_enter_pressed.bind(dungeon_id))
 	UiTypography.apply_button(btn, selected and open_now)
+	_mark_scroll_safe_button(btn)
 	wrap.add_child(btn)
 	return wrap
 
@@ -1872,6 +1897,7 @@ func _make_biome_banner_header(
 	header_btn.disabled = not unlocked
 	header_btn.pressed.connect(_on_biome_accordion_pressed.bind(dungeon_id))
 	UiTypography.apply_button(header_btn, is_featured or is_expanded)
+	_mark_scroll_safe_button(header_btn)
 	root.add_child(header_btn)
 	return root
 
@@ -1943,6 +1969,7 @@ func _make_biome_text_header(
 	header_btn.disabled = not unlocked
 	header_btn.pressed.connect(_on_biome_accordion_pressed.bind(dungeon_id))
 	UiTypography.apply_button(header_btn, is_featured or is_expanded)
+	_mark_scroll_safe_button(header_btn)
 	root.add_child(header_btn)
 	return header_wrap
 
@@ -2063,6 +2090,7 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 		btn.disabled = true
 		if Constants.BETA_MOURNGATE_ONLY and str(data.route_type) == "main":
 			btn.tooltip_text = "今後のアップデートで解放予定"
+	_mark_scroll_safe_button(btn)
 	action.add_child(btn)
 	return card
 

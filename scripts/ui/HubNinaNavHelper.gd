@@ -570,7 +570,7 @@ static func _explore_recommend_line() -> String:
 	if dungeon != null and not str(dungeon.display_name).is_empty():
 		dungeon_name = str(dungeon.display_name)
 	if Constants.SUB_STAGES_PLAYABLE:
-		var stage_id: String = GameState.resolve_stage_for_run(biome_id)
+		var stage_id: String = GameState.preferred_default_stage_for_biome(biome_id)
 		if not stage_id.is_empty() and not GameState.is_stage_cleared(stage_id):
 			var stage: Resource = DataRegistry.get_stage_data(stage_id)
 			var stage_name: String = str(stage.display_name) if stage != null else ""

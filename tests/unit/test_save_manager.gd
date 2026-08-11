@@ -46,6 +46,7 @@ func _reset_game_state() -> void:
 	GameState.owned_relics = []
 	GameState.current_dungeon_id = Constants.DEFAULT_DUNGEON_ID
 	GameState.current_stage_id = ""
+	GameState.current_exploration_policy = ""
 	GameState.stage_progress = {}
 	GameState.commander = {}
 
@@ -228,6 +229,13 @@ func test_roundtrip_restores_stage_progress() -> void:
 	SaveManager.load_game()
 	assert_true(GameState.is_stage_cleared("mourngate_1_2"))
 	assert_eq(GameState.current_stage_id, "mourngate_1_2")
+
+func test_roundtrip_restores_exploration_policy() -> void:
+	GameState.current_exploration_policy = "material"
+	SaveManager.save_game()
+	GameState.current_exploration_policy = ""
+	SaveManager.load_game()
+	assert_eq(GameState.current_exploration_policy, "material")
 
 func test_migrate_v2_stage_progress_adds_tiers() -> void:
 	var migrated: Dictionary = SaveManager._migrate_save_data({

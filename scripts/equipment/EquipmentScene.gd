@@ -3970,6 +3970,7 @@ func _on_policy_selected(index: int) -> void:
 		return
 	GameState.set_exploration_policy(str(_POLICY_IDS[index]))
 	_sync_policy_hint()
+	SaveManager.save_game()
 
 func _skill_label_name(skill_id: String) -> String:
 	var sd: Resource = DataRegistry.get_skill_data(skill_id)

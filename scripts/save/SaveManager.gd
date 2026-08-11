@@ -81,6 +81,7 @@ func save_game() -> bool:
 		"ticket_inventory": GameState.ticket_inventory.duplicate(),
 		"redeemed_codes": GameState.redeemed_codes.duplicate(),
 		"combat_presets": GameState.combat_presets.duplicate(true),
+		"current_exploration_policy": GameState.current_exploration_policy,
 		"saved_parties": GameState.saved_parties.duplicate(true),
 		"owned_relics": GameState.owned_relics.duplicate(),
 		"daily_mission_state": GameState.daily_mission_state.duplicate(true),
@@ -892,6 +893,12 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.enemy_codex = codex
 	if data.has("combat_presets") and data["combat_presets"] is Array:
 		GameState.combat_presets = (data["combat_presets"] as Array).duplicate(true)
+	## 探索方針は PLAYABLE=false でもキー残置（set_exploration_policy 経由だと消えるため直代入）。
+	if data.has("current_exploration_policy"):
+		var policy: String = str(data["current_exploration_policy"])
+		GameState.current_exploration_policy = (
+			policy if policy in GameState.EXPLORATION_POLICIES else ""
+		)
 	if data.has("saved_parties") and data["saved_parties"] is Array:
 		GameState.saved_parties = (data["saved_parties"] as Array).duplicate(true)
 	## owned_relics は _apply_roster_save 前に復元済み（_apply_owned_relics_from_save）。

@@ -65,4 +65,19 @@ func test_gacha_pull_blocked_when_full() -> void:
 	var result: Dictionary = GachaEquipSystem.pull(false)
 	assert_false(bool(result.get("ok", true)))
 	assert_eq(str(result.get("reason", "")), "inventory_full")
+
+
+func test_spawn_weapon_fails_when_inventory_full() -> void:
+	var _DungeonController := load("res://scripts/dungeon/DungeonController.gd")
+	for i in Constants.MAX_EQUIPMENT_INVENTORY:
+		var w: Resource = WeaponInstance.new()
+		w.instance_id = "cap_spawn_%d" % i
+		w.weapon_id = "iron_sword"
+		w.is_appraised = true
+		assert_true(GameState.try_add_weapon_instance(w))
+	var dc: Node = _DungeonController.new()
+	add_child_autofree(dc)
+	dc.start_dungeon("mourngate")
+	assert_false(dc._spawn_weapon("iron_sword"))
+	assert_eq(dc.last_weapon_dropped, "")
 	assert_eq(GameState.gacha_token, before_token, "満杯時は魔晶石を消費しない")

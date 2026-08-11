@@ -2046,7 +2046,8 @@ func generate_treasure_loot() -> Dictionary:
 				var weapon_id: String = _pick_weighted_weapon(null)
 				if weapon_id.is_empty():
 					continue
-				_spawn_weapon(weapon_id)
+				if not _spawn_weapon(weapon_id):
+					continue
 				result["weapon_id"] = weapon_id
 				result["equip_category"] = "weapon"
 				return result
@@ -2175,27 +2176,27 @@ func apply_boss_legendary_loot(stage: Resource, defeated_enemy_id: String = "") 
 	var armor_id: String = str(stage.legendary_armor_id) if "legendary_armor_id" in stage else ""
 	var accessory_id: String = str(stage.legendary_accessory_id) if "legendary_accessory_id" in stage else ""
 	if not armor_id.is_empty():
-		_spawn_armor(armor_id)
-		bonus["armor_id"] = armor_id
+		if _spawn_armor(armor_id):
+			bonus["armor_id"] = armor_id
 	if not accessory_id.is_empty():
-		_spawn_accessory(accessory_id)
-		bonus["accessory_id"] = accessory_id
+		if _spawn_accessory(accessory_id):
+			bonus["accessory_id"] = accessory_id
 	var build_roll: Dictionary = _BuildLegendaryLoot.roll_one()
 	if not build_roll.is_empty():
 		var build_cat: String = str(build_roll.get("category", ""))
 		var build_id: String = str(build_roll.get("id", ""))
 		if build_cat == "armor" and not build_id.is_empty():
-			_spawn_armor(build_id)
-			bonus["build_category"] = "armor"
-			bonus["build_id"] = build_id
+			if _spawn_armor(build_id):
+				bonus["build_category"] = "armor"
+				bonus["build_id"] = build_id
 		elif build_cat == "accessory" and not build_id.is_empty():
-			_spawn_accessory(build_id)
-			bonus["build_category"] = "accessory"
-			bonus["build_id"] = build_id
+			if _spawn_accessory(build_id):
+				bonus["build_category"] = "accessory"
+				bonus["build_id"] = build_id
 		elif build_cat == "weapon" and not build_id.is_empty():
-			_spawn_weapon(build_id)
-			bonus["build_category"] = "weapon"
-			bonus["build_id"] = build_id
+			if _spawn_weapon(build_id):
+				bonus["build_category"] = "weapon"
+				bonus["build_id"] = build_id
 	return bonus
 
 ## ボス再クリア時の神話ドロップ（P3-EQ-MYTHIC-001）。通常レア抽選外。
@@ -2207,11 +2208,14 @@ func apply_boss_mythic_loot(stage: Resource) -> Dictionary:
 	var category: String = str(rolled.get("category", ""))
 	var item_id: String = str(rolled.get("id", ""))
 	if category == "weapon":
-		_spawn_weapon(item_id)
+		if not _spawn_weapon(item_id):
+			return bonus
 	elif category == "armor":
-		_spawn_armor(item_id)
+		if not _spawn_armor(item_id):
+			return bonus
 	elif category == "accessory":
-		_spawn_accessory(item_id)
+		if not _spawn_accessory(item_id):
+			return bonus
 	else:
 		return bonus
 	bonus["category"] = category
@@ -2328,19 +2332,22 @@ func _roll_multi_category_equip_drop(enemy_data: Resource) -> Dictionary:
 			var armor_id: String = _pick_kill_armor_id(enemy_data)
 			if armor_id.is_empty():
 				return {}
-			_spawn_armor(armor_id)
+			if not _spawn_armor(armor_id):
+				return {}
 			return {"category": "armor", "id": armor_id}
 		"accessory":
 			var accessory_id: String = _pick_kill_accessory_id(enemy_data)
 			if accessory_id.is_empty():
 				return {}
-			_spawn_accessory(accessory_id)
+			if not _spawn_accessory(accessory_id):
+				return {}
 			return {"category": "accessory", "id": accessory_id}
 		_:
 			var weapon_id: String = _pick_weighted_weapon(enemy_data)
 			if weapon_id.is_empty():
 				return {}
-			_spawn_weapon(weapon_id)
+			if not _spawn_weapon(weapon_id):
+				return {}
 			return {"category": "weapon", "id": weapon_id}
 
 
@@ -2365,11 +2372,14 @@ func _try_wander_mythic_drop(enemy_data: Resource) -> Dictionary:
 		return {}
 	match category:
 		"weapon":
-			_spawn_weapon(item_id)
+			if not _spawn_weapon(item_id):
+				return {}
 		"armor":
-			_spawn_armor(item_id)
+			if not _spawn_armor(item_id):
+				return {}
 		"accessory":
-			_spawn_accessory(item_id)
+			if not _spawn_accessory(item_id):
+				return {}
 		_:
 			return {}
 	return {"category": category, "id": item_id, "mythic": true}
@@ -2483,7 +2493,10 @@ func roll_kill_weapon_drop(room_type: int, enemy_data: Resource = null) -> Strin
 	if randf() > chance:
 		return ""
 	var weapon_id: String = _pick_weighted_weapon(enemy_data)
-	_spawn_weapon(weapon_id)
+	if weapon_id.is_empty():
+		return ""
+	if not _spawn_weapon(weapon_id):
+		return ""
 	return weapon_id
 
 func _resolve_weapon_drop_chance(room_type: int, enemy_data: Resource) -> float:
@@ -2592,13 +2605,13 @@ func _auto_appraise(instance: Resource, category: String, rarity: int) -> void:
 		instance.is_appraised = true
 	return
 
-func _spawn_weapon(weapon_id: String) -> void:
+func _spawn_weapon(weapon_id: String) -> bool:
 	var weapon_data = load("res://resources/weapons/" + weapon_id + ".tres")
 	if weapon_data == null:
-		return
+		return false
 	var instance_class = load("res://scripts/domain/WeaponInstance.gd")
 	if instance_class == null:
-		return
+		return false
 	var instance = instance_class.new()
 	instance.instance_id = str(Time.get_ticks_msec()) + "_" + str(randi() % 100000)
 	instance.weapon_id = weapon_id
@@ -2608,12 +2621,13 @@ func _spawn_weapon(weapon_id: String) -> void:
 	)
 	_auto_appraise(instance, _AffixRoller.CATEGORY_WEAPON, weapon_data.rarity)
 	if not GameState.try_add_weapon_instance(instance):
-		return
+		return false
 	last_weapon_dropped = weapon_id
 	EventBus.weapon_obtained.emit(weapon_id)
 	GameState.note_equipment_obtained(instance)
 	GameState.mark_equipment_new(instance)
 	GameState.record_last_run_equipment_drop(instance, "weapon")
+	return true
 
 func _generate_armor_loot() -> void:
 	# ダンジョン別プール（P3-D154）。未設定は従来: 革(rarity0)70% / 骨(rarity1)30%
@@ -2650,13 +2664,13 @@ func _pick_rarity_weighted(pool: Array, category: String, enemy_data: Resource =
 			return str(pool[i])
 	return str(pool[pool.size() - 1])
 
-func _spawn_armor(armor_id: String) -> void:
+func _spawn_armor(armor_id: String) -> bool:
 	var armor_data = load("res://resources/armors/" + armor_id + ".tres")
 	if armor_data == null:
-		return
+		return false
 	var instance_class = load("res://scripts/domain/ArmorInstance.gd")
 	if instance_class == null:
-		return
+		return false
 	var instance = instance_class.new()
 	instance.instance_id = str(Time.get_ticks_msec() + 1) + "_" + str(randi() % 100000)
 	instance.armor_id = armor_id
@@ -2667,12 +2681,13 @@ func _spawn_armor(armor_id: String) -> void:
 	)
 	_auto_appraise(instance, _AffixRoller.CATEGORY_ARMOR, armor_data.rarity)
 	if not GameState.try_add_armor_instance(instance):
-		return
+		return false
 	last_armor_dropped = armor_id
 	EventBus.armor_obtained.emit(armor_id)
 	GameState.note_equipment_obtained(instance)
 	GameState.mark_equipment_new(instance)
 	GameState.record_last_run_equipment_drop(instance, "armor")
+	return true
 
 func _generate_accessory_loot() -> void:
 	# ダンジョン別プール（P3-D154）。未設定は従来: silver_ring のみ
@@ -2682,13 +2697,13 @@ func _generate_accessory_loot() -> void:
 	const ACCESSORY_POOL: Array[String] = ["silver_ring"]
 	_spawn_accessory(ACCESSORY_POOL[randi() % ACCESSORY_POOL.size()])
 
-func _spawn_accessory(accessory_id: String) -> void:
+func _spawn_accessory(accessory_id: String) -> bool:
 	var accessory_data = load("res://resources/accessories/" + accessory_id + ".tres")
 	if accessory_data == null:
-		return
+		return false
 	var instance_class = load("res://scripts/domain/AccessoryInstance.gd")
 	if instance_class == null:
-		return
+		return false
 	var instance = instance_class.new()
 	instance.instance_id = str(Time.get_ticks_msec() + 2) + "_" + str(randi() % 100000)
 	instance.accessory_id = accessory_id
@@ -2698,9 +2713,10 @@ func _spawn_accessory(accessory_id: String) -> void:
 	)
 	_auto_appraise(instance, _AffixRoller.CATEGORY_ACCESSORY, accessory_data.rarity)
 	if not GameState.try_add_accessory_instance(instance):
-		return
+		return false
 	last_accessory_dropped = accessory_id
 	EventBus.accessory_obtained.emit(accessory_id)
 	GameState.note_equipment_obtained(instance)
 	GameState.mark_equipment_new(instance)
 	GameState.record_last_run_equipment_drop(instance, "accessory")
+	return true

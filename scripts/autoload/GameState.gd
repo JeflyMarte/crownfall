@@ -462,6 +462,9 @@ func mark_stage_cleared(stage_id: String, tier: int = -1) -> void:
 	if first_clear and (has_boss or (is_final_chapter and not is_abyss)):
 		if t == _DungeonTierConfig.TIER_HARD or t == _DungeonTierConfig.TIER_NIGHTMARE:
 			_ContentUnlockNotice.queue_next_after_main_biome_clear(biome_id, t)
+	## 選択中の章をクリアしたら次章へ進める（拠点／再入場のデフォルト）。再プレイはカード明示タップ。
+	if current_stage_id == stage_id:
+		advance_current_stage_past_cleared()
 
 func count_cleared_stages(biome_id: String) -> int:
 	var count: int = 0
@@ -491,6 +494,56 @@ func sanitize_current_stage_id() -> void:
 		return
 	if not current_dungeon_id.is_empty() and str(stage.biome_id) != current_dungeon_id:
 		current_stage_id = ""
+
+## クリア済みの current_stage_id を同一 Biome の次章／未クリア章へ進める。全クリアなら据置。
+func advance_current_stage_past_cleared() -> void:
+	if current_stage_id.is_empty():
+		return
+	if not is_stage_cleared(current_stage_id):
+		return
+	var next_id: String = get_next_stage_after(current_stage_id)
+	if not next_id.is_empty():
+		current_stage_id = next_id
+		return
+	var stage: Resource = DataRegistry.get_stage_data(current_stage_id)
+	if stage == null:
+		return
+	var biome_id: String = str(stage.biome_id)
+	for s in DataRegistry.get_stages_for_biome(biome_id):
+		if s == null:
+			continue
+		var sid: String = str(s.id)
+		if is_stage_unlocked(sid) and not is_stage_cleared(sid):
+			current_stage_id = sid
+			return
+
+## ダンジョン選択のデフォルト章。未クリアを優先（クリア済み current はスキップ）。再プレイは明示選択後の resolve を使う。
+func preferred_default_stage_for_biome(biome_id: String) -> String:
+	if not Constants.SUB_STAGES_PLAYABLE:
+		return ""
+	if not current_stage_id.is_empty():
+		var selected: Resource = DataRegistry.get_stage_data(current_stage_id)
+		if (
+			selected != null
+			and str(selected.biome_id) == biome_id
+			and is_stage_unlocked(current_stage_id)
+			and not is_stage_cleared(current_stage_id)
+		):
+			return current_stage_id
+	var stages: Array = DataRegistry.get_stages_for_biome(biome_id)
+	if stages.is_empty():
+		return ""
+	for stage in stages:
+		if is_stage_unlocked(str(stage.id)) and not is_stage_cleared(str(stage.id)):
+			return str(stage.id)
+	if not current_stage_id.is_empty():
+		var cur: Resource = DataRegistry.get_stage_data(current_stage_id)
+		if cur != null and str(cur.biome_id) == biome_id and is_stage_unlocked(current_stage_id):
+			return current_stage_id
+	for stage in stages:
+		if is_stage_unlocked(str(stage.id)):
+			return str(stage.id)
+	return str(stages[0].id)
 
 func sync_progress_from_stages() -> void:
 	if not Constants.SUB_STAGES_PLAYABLE:
