@@ -8011,6 +8011,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-N-TRAP-FAIL-002-3 | **据置** — 罠ダメ割合／状態異常率／宝箱・碑文・泉 | 罠発動率のみ |
 | P3-BAL-MOURN-N-SWARM2-TRAP-002-3 | **SSOT** — `10_NonCombatTension.md`／`BalanceConfig`／`DungeonController` | 実装正 |
 
+## セルディオン速度1.1（2026-08-11 — P3-BAL-SERDION-SPEED-110-001）
+
+> **オーナー指示** — セルディオンの速さを1.1にする。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-SERDION-SPEED-110-001-1 | **`serdion.attack_speed` 1.35→1.1** | ①ボスの行動圧を緩和 |
+| P3-BAL-SERDION-SPEED-110-001-2 | **据置** — 他ボス速度・状態耐性・人数連動係数 | スコープ最小 |
+| P3-BAL-SERDION-SPEED-110-001-3 | **SSOT** — `124_BossStatusResistSpeedFloor.md` | 特枠として上書き |
+
 ## クレジット表記＋デバッグ出荷ガード（2026-08-10 — P3-SHIP-CREDITS-DEBUG-001）
 
 > **オーナー指示** — 本番提出準備。設定クレジットとデバッグ露出封鎖。
