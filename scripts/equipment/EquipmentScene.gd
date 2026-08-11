@@ -277,12 +277,36 @@ func _ready() -> void:
 	_compact_member_nav_buttons()
 	_compact_inventory_header_row()
 	PetSystem.ensure_starter_pet()
-	if GameState.equipment_focus_member_index >= 0:
-		_selected_member_index = _clamp_roster_index(GameState.equipment_focus_member_index)
-		GameState.equipment_focus_member_index = -1
+	_apply_equipment_focus_selection()
 	call_deferred("_handle_layout_resized")
 	## ヘッダ／ナビを先に出し、所持グリッド等は次フレ（ローディング中に埋まる）。
 	call_deferred("_refresh_display")
+
+
+## Roster「詳細」等からのフォーカス。ビューはレベル順なので id で解決する。
+func _apply_equipment_focus_selection() -> void:
+	var focus_id: String = str(GameState.equipment_focus_member_id).strip_edges()
+	var legacy_idx: int = GameState.equipment_focus_member_index
+	GameState.equipment_focus_member_id = ""
+	GameState.equipment_focus_member_index = -1
+	if focus_id.is_empty() and legacy_idx >= 0:
+		## 旧 index（未ソート roster）→ id に変換してからビュー照合。
+		var roster: Array = GameState.get_roster()
+		if legacy_idx >= 0 and legacy_idx < roster.size() and roster[legacy_idx] != null:
+			focus_id = str(roster[legacy_idx].id)
+		elif (
+			legacy_idx == roster.size()
+			and GameState.active_pet != null
+		):
+			focus_id = str(GameState.active_pet.id)
+	if focus_id.is_empty():
+		return
+	var members: Array = _get_view_members()
+	for i: int in members.size():
+		var m: Resource = members[i]
+		if m != null and str(m.id) == focus_id:
+			_selected_member_index = i
+			return
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:

@@ -24,6 +24,7 @@ alwaysApply: false
 | ダンジョン入場 SCRIPT ERROR（`rarity_weight_mult` not found） | preload Script へ静的メソッド呼び出し | → **`pitfalls-startup.mdc`**（定数配列を直接読む） |
 | DungeonScene パース失敗（Constant has the same name） | 先頭 `const _DungeonTierConfig = preload(...)` の二重定義 | → **`pitfalls-startup.mdc`**（同名 preload は1件のみ） |
 | キャラ画面入場で即終了（`apply_body` argument Label） | RichTextLabel に `UiTypography.apply_body` | → **`pitfalls-startup.mdc`**（`apply_display_rich`／`apply_log_rich`） |
+| キャラ「詳細」で別人（例: ヴァルデン→カイダ） | Roster は未ソート index、Equipment はレベル順ビュー | `equipment_focus_member_id` で渡す。index 直渡し禁止 |
 | 一時停止の戦闘ログが常に空 | populate が `SheetVBox/SheetContent` 直指定→Scroll 配下で null。RTL.text 読み戻し依存も脆い | `find_child("SheetContent")`＋`_battle_log_lines` バッファ。表示後に populate |
 | 非戦闘ナラティブ戻る／VFX位置／名ポップサイズ・帯VFX・付与テロップ／野戦調合に+N無し | reset誤用・味方非表示・一律28/48・ColorRect・VFXのみ | → **`14_Presentation_Pitfalls.md`**（回復は `_present_member_heal`） |
 | 味方撃破後もドットが歩き続ける | DoT 等が `visible=false` 未経由 | → **`14_Presentation_Pitfalls.md`**（`_hide_defeated_member_sprite`／sync） |

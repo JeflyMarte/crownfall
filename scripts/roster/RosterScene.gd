@@ -625,18 +625,9 @@ func _on_detail_pressed(member: Resource) -> void:
 	## 入れ替え選択中でも詳細は優先（カード入れ替えに食わせない）。
 	_active_pick_slot = -1
 	_roster_pick_member = null
-	if PetSystem.is_pet_member(member):
-		PetSystem.ensure_starter_pet()
-		## EquipmentScene の ◀▶ 一覧は roster の末尾に active_pet を付ける。
-		GameState.equipment_focus_member_index = GameState.get_roster().size()
-		AudioManager.play_sfx("ui_confirm")
-		SceneRouter.change_scene(EQUIPMENT_SCENE)
-		return
-	var roster: Array = GameState.get_roster()
-	var roster_idx: int = roster.find(member)
-	if roster_idx < 0:
-		roster_idx = 0
-	GameState.equipment_focus_member_index = roster_idx
+	## Equipment はレベル順ビューなので index ではなく id で渡す（取り違え防止）。
+	GameState.equipment_focus_member_id = str(member.id)
+	GameState.equipment_focus_member_index = -1
 	AudioManager.play_sfx("ui_confirm")
 	SceneRouter.change_scene(EQUIPMENT_SCENE)
 

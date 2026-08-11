@@ -156,14 +156,13 @@ func test_detail_does_not_commit_draft_party() -> void:
 	scene._formation_slots = [a, c, null, null]
 	var before0: Resource = GameState.party_members[0]
 	var before1: Resource = GameState.party_members[1]
-	var roster: Array = GameState.get_roster()
-	var expect_idx: int = roster.find(c)
-	## 詳細は focus のみ。遷移は起こるが本編成は変えない。
+	## 詳細は focus id のみ。遷移は起こるが本編成は変えない。
 	scene._on_detail_pressed(c)
 	assert_eq(GameState.party_members[0], before0)
 	assert_eq(GameState.party_members[1], before1)
 	assert_false(GameState.party_members.has(c))
-	assert_eq(GameState.equipment_focus_member_index, expect_idx)
+	assert_eq(str(GameState.equipment_focus_member_id), str(c.id))
+	assert_eq(GameState.equipment_focus_member_index, -1)
 
 
 func test_swap_party_then_list_is_draft_until_save() -> void:

@@ -59,7 +59,8 @@ var pending_clear_stage_id: String = ""
 
 # ガチャ通貨（無償のみ） — P3-D036b
 var gacha_token: int = 0  ## 魔晶石（ガチャ通貨・表示名は CurrencyHelper）
-## EquipmentScene 起動時に選択するメンバー index（-1=先頭）。RosterScene 詳細ボタン用（P3-UI2-017）。
+## 装備画面フォーカス: id 優先（Roster 詳細→Equipment）。index は旧互換／ツール用。
+var equipment_focus_member_id: String = ""
 var equipment_focus_member_index: int = -1
 ## 展示室の自慢キャラ（roster の安定 id）。空=未設定。P3-SHOWCASE-001。
 var showcase_member_id: String = ""
@@ -1696,6 +1697,7 @@ func reset_for_new_game() -> void:
 	commander = {}
 	current_exploration_policy = ""
 	current_weather = ""
+	equipment_focus_member_id = ""
 	equipment_focus_member_index = -1
 	base_initial_view = "hub"
 	hub_npc_hint = {}
