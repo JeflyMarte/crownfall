@@ -11,6 +11,10 @@ const _AccessoryStatResolver := preload("res://scripts/equipment/AccessoryStatRe
 const _AccessoryInstance := preload("res://scripts/domain/AccessoryInstance.gd")
 const _Sets := preload("res://scripts/equipment/EquipmentSetBonuses.gd")
 const _JobStatCalculator := preload("res://scripts/equipment/JobStatCalculator.gd")
+const _DungeonTierConfig := preload("res://scripts/dungeon/DungeonTierConfig.gd")
+
+## 再周回のみ。撃破1回あたり最大1個（一度に複数は出さない）。
+const RECLEAR_CHANCE: float = 0.40
 
 
 static func is_event_dungeon(dungeon_id: String) -> bool:
@@ -37,13 +41,21 @@ static func is_event_exclusive_relic(_relic_id: String) -> bool:
 	return false
 
 
-## ボス撃破ごとエンシェント装備 **1個固定**（未所持部位優先）。
+## 撃破1回あたりエンシェント装備は最大1個（初回確定／再周回40%）。
 ## 戻り値: {weapon_id, armor_id, accessory_id}
-static func apply_boss_loot(dungeon_id: String, _tier: int) -> Dictionary:
+static func apply_boss_loot(dungeon_id: String, tier: int) -> Dictionary:
 	var out: Dictionary = {"weapon_id": "", "armor_id": "", "accessory_id": "", "relic_id": ""}
 	var set_id: String = _Sets.set_id_for_dungeon(dungeon_id)
 	if set_id.is_empty():
 		return out
+	var t: int = _DungeonTierConfig.clamp_tier(tier)
+	var first_clear: bool = not GameState.is_dungeon_tier_cleared(dungeon_id, t)
+	if not first_clear and randf() >= RECLEAR_CHANCE:
+		return out
+	return _grant_picked_piece(set_id, out)
+
+
+static func _grant_picked_piece(set_id: String, out: Dictionary) -> Dictionary:
 	var armor_id: String = str(_Sets.ARMOR_BY_SET.get(set_id, ""))
 	var accessory_id: String = str(_Sets.ACCESSORY_BY_SET.get(set_id, ""))
 	var pick: String = _pick_one_piece(set_id)

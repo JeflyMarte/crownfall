@@ -60,9 +60,11 @@ func test_boss_loot_grants_exactly_one_piece() -> void:
 	assert_eq(pieces_v, 1)
 
 
-func test_boss_loot_always_grants_one_even_after_clear() -> void:
+func test_reclear_grants_at_most_one_piece() -> void:
 	GameState.mark_dungeon_tier_cleared("chronos_mausoleum", _DungeonTierConfig.TIER_NORMAL)
-	for _i: int in 8:
+	var saw_drop := false
+	var saw_miss := false
+	for _i: int in 40:
 		var granted: Dictionary = _Evt.apply_boss_loot("chronos_mausoleum", _DungeonTierConfig.TIER_NORMAL)
 		var pieces: int = 0
 		if not str(granted.get("weapon_id", "")).is_empty():
@@ -71,7 +73,13 @@ func test_boss_loot_always_grants_one_even_after_clear() -> void:
 			pieces += 1
 		if not str(granted.get("accessory_id", "")).is_empty():
 			pieces += 1
-		assert_eq(pieces, 1)
+		assert_lte(pieces, 1)
+		if pieces == 1:
+			saw_drop = true
+		else:
+			saw_miss = true
+	assert_true(saw_drop, "reclear should sometimes drop one")
+	assert_true(saw_miss, "reclear should sometimes drop none")
 
 
 func test_set_activation_requires_three_pieces() -> void:

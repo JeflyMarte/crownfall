@@ -7977,14 +7977,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 
 ## 降臨エンシェント装備1個固定（2026-08-11 — P3-BAL-DESCENT-SET-DROP-ONE-001）
 
-> **オーナー指示** — 降臨ボスからドロップするエンシェント装備は1個固定。
+> **オーナー指示** — 降臨ボスからドロップするエンシェント装備は1個固定（＝一度にいっぱい出さない）。
 
 | # | 決定 | 根拠 |
 |---|---|---|
-| P3-BAL-DESCENT-SET-DROP-ONE-001-1 | **数量** — ボス撃破ごとエンシェント（SET）装備 **1個確定** | オーナー指示 |
-| P3-BAL-DESCENT-SET-DROP-ONE-001-2 | **抽選** — 未所持部位優先。全所持ならいずれか1。武器候補のみのときは編成向き優先 | 旧再周回ロジックを常時化 |
-| P3-BAL-DESCENT-SET-DROP-ONE-001-3 | **上書き** — `19_EventDescentSets` の初回3部位／再周回40% | 本 Decision が正 |
-| P3-BAL-DESCENT-SET-DROP-ONE-001-4 | **据置** — セット品目・3部位加護・プール除外 | スコープ最小 |
+| P3-BAL-DESCENT-SET-DROP-ONE-001-1 | **数量上限** — 撃破1回あたりエンシェント（SET）装備 **最大1個** | 一度に複数ドロップしない |
+| P3-BAL-DESCENT-SET-DROP-ONE-001-2 | **初回** — 当該ティア初回は **1個確定**（未所持優先） | 旧3部位一括を廃止 |
+| P3-BAL-DESCENT-SET-DROP-ONE-001-3 | **再周回** — **40%で1個**（据置） | 「毎回確定」ではない |
+| P3-BAL-DESCENT-SET-DROP-ONE-001-4 | **上書き** — `19_EventDescentSets` の初回3部位 | 本 Decision が正 |
+| P3-BAL-DESCENT-SET-DROP-ONE-001-5 | **据置** — セット品目・3部位加護・プール除外 | スコープ最小 |
 
 ## クレジット表記＋デバッグ出荷ガード（2026-08-10 — P3-SHIP-CREDITS-DEBUG-001）
 
