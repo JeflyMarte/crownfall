@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-11（**攻略Wiki現行同期／統合＋main**: ボス数値・ノーマル召喚なし・エンシェント1個／40%・ヴァルデン鉄誓・火鷹10%・モーンN・探索Gold。データ再生成。要公開デプロイ確認）
 2026-08-11（**App Store提出用 1.0.0 build3 releaseエクスポート＋Xcode適用**: 実機確認済み・提出GO。要Archive/Upload→Connectで1.0に紐づけ）
 2026-08-11（**App Store向け iOS release エクスポート＋Xcode適用**: `--export-release`・`libgodot.ios.release`・PCK 546MB・ver 0.1.0。次は Archive→TestFlightでデバッグ非表示確認）
 2026-08-11（**先端をiOS再エクスポート＋Xcode適用**: main先端（ノーマルボス召喚撤廃・ダンジョン選択スクロールほか）・PCK 546MB。要実機Build／再インストール）
