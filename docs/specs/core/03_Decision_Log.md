@@ -7987,6 +7987,17 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-DESCENT-SET-DROP-ONE-001-4 | **上書き** — `19_EventDescentSets` の初回3部位 | 本 Decision が正 |
 | P3-BAL-DESCENT-SET-DROP-ONE-001-5 | **据置** — セット品目・3部位加護・プール除外 | スコープ最小 |
 
+## モーンゲートNソロ能力1.20（2026-08-11 — P3-BAL-MOURNGATE-N-SOLO-120-001）
+
+> **オーナー指示** — ノーマルのモーンゲートだけ、ソロ敵の能力補正を1.5から1.2に。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-MOURNGATE-N-SOLO-120-001-1 | **対象** — `mourngate` かつノーマル・ソロ開始時の HP/ATK/SPD | 序盤の単体圧を緩和 |
+| P3-BAL-MOURNGATE-N-SOLO-120-001-2 | **倍率** — ×**1.20**（他章／H／NM は ×1.50 据置） | オーナー指定 |
+| P3-BAL-MOURNGATE-N-SOLO-120-001-3 | **据置** — 回避×0.5・AoE寄せ・2体以上の人数連動 | スコープ最小 |
+| P3-BAL-MOURNGATE-N-SOLO-120-001-4 | **SSOT** — `37_SwarmDensitySoloPressure.md`／`BalanceConfig.swarm_density_solo_stat_mult` | 実装正 |
+
 ## クレジット表記＋デバッグ出荷ガード（2026-08-10 — P3-SHIP-CREDITS-DEBUG-001）
 
 > **オーナー指示** — 本番提出準備。設定クレジットとデバッグ露出封鎖。

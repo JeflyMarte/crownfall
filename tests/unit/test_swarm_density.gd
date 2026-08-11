@@ -3,6 +3,8 @@ extends GutTest
 
 
 func test_density_table() -> void:
+	GameState.current_dungeon_id = ""
+	GameState.current_dungeon_tier = 0
 	assert_almost_eq(BalanceConfig.swarm_density_hp_mult(1), 1.50, 0.001)
 	assert_almost_eq(BalanceConfig.swarm_density_atk_mult(1), 1.50, 0.001)
 	assert_almost_eq(BalanceConfig.swarm_density_spd_mult(1), 1.50, 0.001)
@@ -10,6 +12,24 @@ func test_density_table() -> void:
 	assert_almost_eq(BalanceConfig.swarm_density_hp_mult(2), 1.0, 0.001)
 	assert_almost_eq(BalanceConfig.swarm_density_atk_mult(3), 0.85, 0.001)
 	assert_almost_eq(BalanceConfig.swarm_density_hp_mult(4), 0.80, 0.001)
+
+
+func test_mourngate_normal_solo_is_1_2() -> void:
+	GameState.current_dungeon_id = "mourngate"
+	GameState.current_dungeon_tier = 0
+	assert_almost_eq(BalanceConfig.swarm_density_solo_stat_mult(), 1.20, 0.001)
+	assert_almost_eq(BalanceConfig.swarm_density_hp_mult(1), 1.20, 0.001)
+	assert_almost_eq(BalanceConfig.swarm_density_atk_mult(1), 1.20, 0.001)
+	assert_almost_eq(BalanceConfig.swarm_density_spd_mult(1), 1.20, 0.001)
+	## Hard は据置。
+	GameState.current_dungeon_tier = 1
+	assert_almost_eq(BalanceConfig.swarm_density_hp_mult(1), 1.50, 0.001)
+	## 他章ノーマルも据置。
+	GameState.current_dungeon_id = "whisperwood"
+	GameState.current_dungeon_tier = 0
+	assert_almost_eq(BalanceConfig.swarm_density_hp_mult(1), 1.50, 0.001)
+	GameState.current_dungeon_id = ""
+	GameState.current_dungeon_tier = 0
 
 
 func test_solo_vs_pair_stats() -> void:

@@ -309,6 +309,8 @@ const DESCENT_EVENT_SWARM_MAX: int = 4
 const SWARM_DENSITY_SOLO_HP: float = 1.50
 const SWARM_DENSITY_SOLO_ATK: float = 1.50
 const SWARM_DENSITY_SOLO_SPD: float = 1.50
+## モーンゲート・ノーマルのみソロ能力を抑える（P3-BAL-MOURNGATE-N-SOLO-120-001）。
+const SWARM_DENSITY_SOLO_MOURNGATE_NORMAL: float = 1.20
 ## ソロ開始時、味方回避率に乗算（実質命中↑）。
 const SOLO_EVASION_MULT: float = 0.5
 const SWARM_DENSITY_PAIR_HP: float = 1.00
@@ -360,10 +362,17 @@ static func boss_party_speed_mult(combatant_n: int) -> float:
 	return BOSS_PARTY_SPEED_MULT_CAP
 
 
+static func swarm_density_solo_stat_mult() -> float:
+	## モーンゲート・ノーマルだけソロ HP/ATK/SPD を 1.20。他は 1.50。
+	if str(GameState.current_dungeon_id) == "mourngate" and int(GameState.current_dungeon_tier) == 0:
+		return SWARM_DENSITY_SOLO_MOURNGATE_NORMAL
+	return SWARM_DENSITY_SOLO_HP
+
+
 static func swarm_density_hp_mult(start_count: int) -> float:
 	match start_count:
 		1:
-			return SWARM_DENSITY_SOLO_HP
+			return swarm_density_solo_stat_mult()
 		2:
 			return SWARM_DENSITY_PAIR_HP
 		3:
@@ -375,7 +384,7 @@ static func swarm_density_hp_mult(start_count: int) -> float:
 static func swarm_density_atk_mult(start_count: int) -> float:
 	match start_count:
 		1:
-			return SWARM_DENSITY_SOLO_ATK
+			return swarm_density_solo_stat_mult()
 		2:
 			return SWARM_DENSITY_PAIR_ATK
 		3:
@@ -385,7 +394,7 @@ static func swarm_density_atk_mult(start_count: int) -> float:
 
 
 static func swarm_density_spd_mult(start_count: int) -> float:
-	return SWARM_DENSITY_SOLO_SPD if start_count == 1 else 1.0
+	return swarm_density_solo_stat_mult() if start_count == 1 else 1.0
 
 # ── ダンジョンクリア EXP（P3-BAL-CLEAR-EXP-001） ─────────────────────────
 ## CLEAR 時のみ、ラン中獲得 EXP に乗せる完走ボーナス（リタイア／全滅なし）。
