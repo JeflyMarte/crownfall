@@ -7998,6 +7998,19 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-MOURNGATE-N-SOLO-120-001-3 | **据置** — 回避×0.5・AoE寄せ・2体以上の人数連動 | スコープ最小 |
 | P3-BAL-MOURNGATE-N-SOLO-120-001-4 | **SSOT** — `37_SwarmDensitySoloPressure.md`／`BalanceConfig.swarm_density_solo_stat_mult` | 実装正 |
 
+## モーンゲートN群れ上限2＋罠再緩和（2026-08-11 — P3-BAL-MOURN-N-SWARM2-TRAP-002）
+
+> **オーナー指示** — ノーマルのモーンゲートが難しすぎる。群れは2体まで／罠の失敗率を下げる。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-MOURN-N-SWARM2-TRAP-002-1 | **群れ上限** — モーンゲート・ノーマル全体（1-1〜1-5）群れ最高 **2体** | 旧は1-1〜1-3のみ。H/NM・他章据置 |
+| P3-BAL-MOURN-N-SWARM2-TRAP-002-2 | **据置（群れ）** — forced_swarm／降臨・深層・護衛無効ルール | 既存例外を維持 |
+| P3-BAL-N-TRAP-FAIL-002-1 | **罠部屋発動** — N **35→20%**。H65／NM80据置 | 被弾頻度をさらに抑える |
+| P3-BAL-N-TRAP-FAIL-002-2 | **探索罠** — N **8→5%**。H20／NM28据置 | 同上 |
+| P3-BAL-N-TRAP-FAIL-002-3 | **据置** — 罠ダメ割合／状態異常率／宝箱・碑文・泉 | 罠発動率のみ |
+| P3-BAL-MOURN-N-SWARM2-TRAP-002-3 | **SSOT** — `10_NonCombatTension.md`／`BalanceConfig`／`DungeonController` | 実装正 |
+
 ## クレジット表記＋デバッグ出荷ガード（2026-08-10 — P3-SHIP-CREDITS-DEBUG-001）
 
 > **オーナー指示** — 本番提出準備。設定クレジットとデバッグ露出封鎖。

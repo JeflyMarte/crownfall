@@ -18,13 +18,13 @@ func test_trap_damage_fractions_by_tier() -> void:
 
 
 func test_trap_chance_tables_by_tier() -> void:
-	assert_almost_eq(BalanceConfig.trap_explore_chance(0), 0.08, 0.0001)
+	assert_almost_eq(BalanceConfig.trap_explore_chance(0), 0.05, 0.0001)
 	assert_almost_eq(BalanceConfig.trap_explore_chance(1), 0.20, 0.0001)
 	assert_almost_eq(BalanceConfig.trap_explore_chance(2), 0.28, 0.0001)
 	assert_almost_eq(BalanceConfig.trap_aoe_chance(0), 0.25, 0.0001)
 	assert_almost_eq(BalanceConfig.trap_aoe_chance(1), 0.35, 0.0001)
 	assert_almost_eq(BalanceConfig.trap_aoe_chance(2), 0.45, 0.0001)
-	assert_almost_eq(BalanceConfig.trap_room_trigger_chance(0), 0.35, 0.0001)
+	assert_almost_eq(BalanceConfig.trap_room_trigger_chance(0), 0.20, 0.0001)
 	assert_almost_eq(BalanceConfig.trap_room_trigger_chance(1), 0.65, 0.0001)
 	assert_almost_eq(BalanceConfig.trap_room_trigger_chance(2), 0.80, 0.0001)
 	assert_almost_eq(_TrapPresentation.trigger_chance(1), 0.65, 0.0001)

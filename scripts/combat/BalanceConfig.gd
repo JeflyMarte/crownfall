@@ -127,10 +127,10 @@ const TRAP_MAX_HP_FRAC_COMBAT_AOE_BY_TIER: Array[float] = [0.05, 0.08, 0.12]
 const TRAP_MAX_HP_FRAC_ROOM_AOE_BY_TIER: Array[float] = [0.08, 0.12, 0.18]
 ## 発動時に全体パターンになる確率
 const TRAP_AOE_CHANCE_BY_TIER: Array[float] = [0.25, 0.35, 0.45]
-## 戦闘／エリート入室時の探索罠ロール（Nは失敗感を抑える — P3-BAL-N-NONCOMBAT-FAIL-001）
-const TRAP_EXPLORE_CHANCE_BY_TIER: Array[float] = [0.08, 0.20, 0.28]
-## 罠部屋の発動率（N=35%／H・NM据置）
-const TRAP_ROOM_TRIGGER_CHANCE_BY_TIER: Array[float] = [0.35, 0.65, 0.80]
+## 戦闘／エリート入室時の探索罠ロール（N再緩和 — P3-BAL-N-TRAP-FAIL-002）
+const TRAP_EXPLORE_CHANCE_BY_TIER: Array[float] = [0.05, 0.20, 0.28]
+## 罠部屋の発動率（N=20%／H・NM据置 — P3-BAL-N-TRAP-FAIL-002）
+const TRAP_ROOM_TRIGGER_CHANCE_BY_TIER: Array[float] = [0.20, 0.65, 0.80]
 ## 被弾時に毒 or 出血を付与する確率（N=なし）
 const TRAP_STATUS_CHANCE_BY_TIER: Array[float] = [0.0, 0.40, 0.60]
 const TRAP_STATUS_POOL: Array[String] = ["poison", "bleed"]
@@ -295,8 +295,10 @@ const SWARM_CHANCE: float = 0.45        # COMBAT 部屋の群れ出現率（P3-B
 const MIXED_SWARM_CHANCE: float = 0.50  # 群れ時に別種を混ぜる確率
 ## 1-1〜1-3（biome_index=1 かつ chapter 1〜3）の群れ率倍率。序盤の圧を抑える。
 const EARLY_STAGE_SWARM_CHANCE_MULT: float = 0.50
-## モーンゲート 1-1〜1-3・ノーマルのみの群れ頭数上限（単体1／群れ最大2）。
+## モーンゲート・ノーマル全体の群れ頭数上限（単体1／群れ最大2）。H/NM・他章据置。
 const EARLY_STAGE_SWARM_SIZE_CAP: int = 2
+## 互換エイリアス（旧名・値は同一）。
+const MOURNGATE_NORMAL_SWARM_SIZE_CAP: int = EARLY_STAGE_SWARM_SIZE_CAP
 ## 時間帯降臨（時環／境界等）— ノーマルでも群れ多め（P3-BAL-DESCENT-SWARM-001）。
 ## 本編 N=0.45 より高く、曜日イベント forced_swarm 帯（0.30〜0.40）より厚くする。
 const DESCENT_EVENT_SWARM_CHANCE: float = 0.72

@@ -690,13 +690,20 @@ func _early_stage_swarm_chance_mult() -> float:
 	return 1.0
 
 
-## モーンゲート 1-1〜1-3・ノーマルのみ群れ頭数上限。非該当は -1（無制限＝既存キャップのみ）。
+## モーンゲート・ノーマル全体の群れ頭数上限。非該当は -1（無制限＝既存キャップのみ）。
 func _early_normal_swarm_size_cap() -> int:
-	if not _is_mourngate_early_chapter():
+	return _mourngate_normal_swarm_size_cap()
+
+
+## モーンゲート・ノーマルは群れ最高2体。深層・他Biome・H/NM は据置。
+func _mourngate_normal_swarm_size_cap() -> int:
+	if current_stage_data == null or _is_abyss_run():
+		return -1
+	if int(current_stage_data.biome_index) != 1:
 		return -1
 	if int(GameState.current_dungeon_tier) != _DungeonTierConfig.TIER_NORMAL:
 		return -1
-	return BalanceConfig.EARLY_STAGE_SWARM_SIZE_CAP
+	return BalanceConfig.MOURNGATE_NORMAL_SWARM_SIZE_CAP
 
 
 ## モーンゲート 1-1〜1-3・ノーマルはエリート部屋を出さない。
@@ -1827,9 +1834,9 @@ func pick_combat_enemy_group() -> Array[Resource]:
 		hi = maxi(2, hi)
 	var size_bonus: int = _DungeonTierConfig.swarm_size_bonus(GameState.current_dungeon_tier)
 	hi = mini(_DungeonTierConfig.swarm_size_cap(), hi + size_bonus)
-	## モーンゲート 1-1〜1-3 ノーマル: 群れ最高2体（forced_swarm／降臨は対象外）。
+	## モーンゲート・ノーマル: 群れ最高2体（forced_swarm／降臨は対象外）。
 	if not forced_swarm and not descent_swarm:
-		var early_cap: int = _early_normal_swarm_size_cap()
+		var early_cap: int = _mourngate_normal_swarm_size_cap()
 		if early_cap > 0:
 			hi = mini(hi, early_cap)
 	lo = mini(lo, hi)
@@ -1879,7 +1886,7 @@ func _embed_wandering_in_combat_group(
 	if group.size() == 1:
 		var base: Resource = group[0]
 		var pack_hi: int = mini(cap, maxi(2, int(base.swarm_max)))
-		var early_cap: int = _early_normal_swarm_size_cap()
+		var early_cap: int = _mourngate_normal_swarm_size_cap()
 		if early_cap > 0:
 			pack_hi = mini(pack_hi, early_cap)
 		var pack_size: int = maxi(2, mini(pack_hi, 3))
