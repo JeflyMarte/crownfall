@@ -1,0 +1,32 @@
+---
+description: 起動・パース即死の常時短冊（詳細は known-pitfalls）
+alwaysApply: true
+---
+
+# 起動即死ピットフォール（常時）
+
+パース／autoload／シーンロードで即死する既往のみ。UI・演出の詳細は `known-pitfalls.mdc`（按需）と領域ルール。
+
+| 症状 | 再発防止 |
+|---|---|
+| （最初の即死をここに追記） | |
+
+## Godot で起きやすい初期項目（遭遇したら上表へ昇格）
+
+| 症状 | 再発防止 |
+|---|---|
+| セーブキー不一致で続きから即終了 | GameState フィールドと Save 読書きを **同コミット**。片方だけ切り戻さない |
+| `maxf` 等の arity 不一致 | 組み込み引数を確認。変更後 headless で該当シーン |
+| 静的ヘルパ名が組み込みと衝突 | 別名にする（例: `wrap` → プロジェクト接頭辞） |
+| ラムダが外側 `const` を捕獲して Identifier not found | 名前付きメソッドへ |
+| 複数行ラムダ＋`,` で Callable パース失敗 | `_make_*` で Callable 返却 |
+| Python 風 `for`/`else`・`while`/`else` | 禁止（`gdscript.mdc`） |
+| `.tscn` で親 vanish | コメントは `;` のみ。`##` 禁止 |
+| `extends` とシーンルート型不一致 | Boot 等は型を一致させる |
+| 空 autoload・不正 `uid://` | 実在パスのみ。headless 起動確認 |
+| 未実装プロパティ／定数で即終了 | 使用中 Godot 版の API のみ。変更後シーン確認 |
+| public API 削除で参照欠落 | リネーム・削除時は呼び出し側を一括検索 |
+
+## 変更後の最低確認
+
+起動経路を触ったら **headless で該当シーン instantiate／プロジェクト起動**。

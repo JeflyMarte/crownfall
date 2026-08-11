@@ -1,0 +1,33 @@
+---
+description: Godot / GDScript 慣習（ソロ向け最小）
+globs: "**/*.gd,**/*.tscn"
+alwaysApply: false
+---
+
+# GDScript / Godot
+
+対象エンジン版はプロジェクトに合わせて更新する（例: Godot 4.6.x）。
+
+## ❌ やってはいけない
+
+- Python 風 `for`/`else`・`while`/`else`
+- 外側ローカル `const` をラムダで捕獲して `sort_custom` 等に渡す
+- 複数行ラムダを複雑な inline Callable にする（パース失敗しやすい）
+- `.tscn` コメントに `##`（`;` のみ）
+- スクリプト `extends` とシーンルート型の不一致
+- 空 autoload・壊れた `uid://`
+- 使用中バージョンに無いプロパティ／定数
+- 組み込みと同名の静的ヘルパ（`wrap` 等）
+- public API 削除・リネーム時に呼び出し側を残す
+
+## ✅ やる
+
+- Callable は `_make_*` で返す
+- 比較・ソートは名前付きメソッドへ
+- API／セーブキー変更は呼び出し側・Save 読書きと **同コミット**
+- 起動経路変更後は headless でシーン確認
+- UI 文字列はプレイヤー向け日本語。開発語は出さない（`player-copy.mdc`）
+
+## 変更後
+
+触ったシーンを instantiate／ロードできること。失敗したら `pitfalls-startup` へ短行追加。

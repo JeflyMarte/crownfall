@@ -1,0 +1,45 @@
+---
+description: ソロ運用 — 修正完了はコミット＋本線、WIP／STOP 例外
+alwaysApply: true
+---
+
+# 運用（ソロ・Cursor）
+
+正式 SSOT: `docs/specs/core/00_Operations.md`
+
+## HQ の責務
+
+- Scope / Decision / レビュー / Closeout
+- 完了時の `CurrentState.md` / `CurrentSprint.md` 更新
+- Decision への設計判断記録
+
+## 修正完了＝セット（既定）
+
+オーナーが止めない限り、同じターンで:
+
+1. コミット（＋ feature push）
+2. **本線 `main` へマージ → push**
+3. CurrentState（必要なら Decision／CODEMAP）更新
+4. 再発防止・可能なテスト
+
+汎用の「コミットは依頼時のみ」より **本プロジェクトのこの既定が優先**。
+
+| 例外 | 例 |
+|---|---|
+| オーナー明示 | マージしない／レビューだけ／WIP／PR だけ |
+| STOP | 体験・面白さ・システム懸念／曖昧 |
+| 壊れている WIP | 本線禁止 |
+| Decision のみ | 仕様更新のみ |
+
+## Impl 報告に含めるもの
+
+- 何が変わったか（要約）
+- テスト手順と結果
+- 懸念点
+- 再発防止を置いたか（該当時）
+
+## 禁止
+
+- 報告のみで本線未反映（例外明示時を除く）
+- Decision 未承認の仕様変更
+- オーナー指示の無批判な実装（懸念時は STOP）

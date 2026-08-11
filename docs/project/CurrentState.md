@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-11（**次プロジェクト用 Cursor キット追加／統合＋main**: `docs/templates/godot-solo-cursor-kit`。ソロ Godot 向け AGENTS／ルール雛形）
 2026-08-11（**先端をiOS再エクスポート＋Xcode適用**: main先端（モーンゲートNソロ1.20ほか）・PCK 546MB。要実機Build／再インストール）
 2026-08-11（**モーンゲートNソロ能力1.20／統合＋main**: HP/ATK/SPDのみ。他章・H/NMは1.50据置。要実機）
 2026-08-11（**先端をiOS再エクスポート＋Xcode適用**: main先端（降臨エンシェント初回1個／再周回40%ほか）・PCK 546MB。要実機Build／再インストール）
