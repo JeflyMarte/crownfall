@@ -6,6 +6,7 @@
 #   bash tools/setup_ios_testplay.sh --check  # インストール状況だけ確認
 #   bash tools/setup_ios_testplay.sh --export         # debug エクスポート（開発実機）
 #   bash tools/setup_ios_testplay.sh --export-release # release エクスポート（TestFlight / App Store）
+#   bash tools/setup_ios_testplay.sh --bump-build     # ビルド番号だけ +1（再アップロード前）
 #
 # 初回 iPhone 実機テストの流れ（このスクリプトの後）:
 #   1. Xcode → Settings → Accounts で Apple ID を追加
@@ -180,9 +181,35 @@ sync_ios_version_from_project() {
     if [[ -z "$ver" || ! -f "$cfg" ]]; then
         return 0
     fi
+    ## short_version = 表示用（App Store のバージョン）
+    ## version = ビルド番号（毎回ユニーク。marketing と同じにしない）
     perl -i -pe "s#^application/short_version=\".*\"#application/short_version=\"${ver}\"#" "$cfg"
-    perl -i -pe "s#^application/version=\".*\"#application/version=\"${ver}\"#" "$cfg"
-    green "OK: iOS version/short_version=${ver} (from project.godot)"
+    green "OK: iOS short_version=${ver} (from project.godot; build number is separate)"
+}
+
+## App Store Connect は同一 short_version + build の再アップロードを拒否する。
+## export_presets.cfg の application/version（ビルド番号）を +1 する。
+bump_ios_build_number() {
+    local cfg="$ROOT/export_presets.cfg"
+    if [[ ! -f "$cfg" ]]; then
+        return 1
+    fi
+    local cur=""
+    cur="$(rg -o 'application/version="([^"]*)"' -r '$1' "$cfg" | head -1 || true)"
+    if [[ -z "$cur" ]]; then
+        cur="0"
+    fi
+    local next=""
+    if [[ "$cur" =~ ^[0-9]+$ ]]; then
+        next="$((cur + 1))"
+    elif [[ "$cur" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        ## 誤って 0.1.0 が入っている場合は整数ビルドへ切り替える
+        next="2"
+    else
+        next="2"
+    fi
+    perl -i -pe "s#^application/version=\".*\"#application/version=\"${next}\"#" "$cfg"
+    green "OK: iOS build number ${cur} -> ${next}"
 }
 
 ## Godot が埋め込む CODE_SIGN_IDENTITY / 空 PROVISIONING_* は
@@ -230,6 +257,10 @@ export_ios_project() {
     fi
     ensure_ios_export_excludes
     sync_ios_version_from_project
+    if [[ "$mode" == "release" ]]; then
+        ## 再アップロード拒否回避。表示バージョンは変えずビルド番号だけ進める。
+        bump_ios_build_number
+    fi
     mkdir -p "$ROOT/build/ios"
     echo "=== iOS Xcode プロジェクトをエクスポート（${mode}）==="
     ## 旧肥大 PCK を残さない（確認しやすくする）。
@@ -312,6 +343,9 @@ case "$MODE" in
         check_godot
         check_templates
         export_ios_project release
+        ;;
+    --bump-build|bump-build)
+        bump_ios_build_number
         ;;
     --team-id|team-id)
         print_team_id_help
