@@ -1154,6 +1154,10 @@ func _ready() -> void:
 	_pending_floor_choice_heal_amounts.clear()
 	_floor_choice_active = false
 	GameState.last_run_accessory_dropped = ""
+	GameState.last_run_weapon_dropped = ""
+	GameState.last_run_armor_dropped = ""
+	GameState.last_run_weather = ""
+	GameState.last_run_exp_clear_bonus = 0
 	## レリック一覧は begin_run_material_tracking → clear_last_run_relic_drops。
 	GameState.last_run_outcome = ""
 	GameState.last_run_starter_recruited_id = ""

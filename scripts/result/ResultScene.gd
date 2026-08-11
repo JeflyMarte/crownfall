@@ -1088,8 +1088,6 @@ func _build_wipe_cause() -> void:
 
 func _apply_outcome_banner() -> void:
 	var outcome: String = GameState.last_run_outcome
-	if outcome.is_empty():
-		outcome = GameState.RUN_OUTCOME_CLEAR
 	_label_title.text = UiTypography.decorate_title_text("探索結果")
 	match outcome:
 		GameState.RUN_OUTCOME_RETIRE:
@@ -1102,10 +1100,16 @@ func _apply_outcome_banner() -> void:
 			_label_outcome.visible = true
 			_label_outcome.text = "探索失敗"
 			UiTypography.apply_display(_label_outcome, FS_OUTCOME_ALT, COLOR_FAIL)
-		_:
+		GameState.RUN_OUTCOME_CLEAR:
 			_clear_banner.visible = true
 			_label_outcome.visible = false
 			_label_outcome.text = "クリア"
+		_:
+			## outcome 未設定を CLEAR 扱いにしない（前回残留と同型の誤表示防止）。
+			_clear_banner.visible = false
+			_label_outcome.visible = true
+			_label_outcome.text = "探索結果"
+			UiTypography.apply_display(_label_outcome, FS_OUTCOME_ALT, COLOR_SUB)
 
 func _build_stars(filled: int) -> void:
 	for child in _stars_row.get_children():
@@ -1584,10 +1588,8 @@ func _resolve_cleared_stage_id() -> String:
 	return stage_id
 
 func _next_stage_id_available() -> String:
-	var outcome: String = GameState.last_run_outcome
-	if outcome.is_empty():
-		outcome = GameState.RUN_OUTCOME_CLEAR
-	if outcome != GameState.RUN_OUTCOME_CLEAR:
+	## CLEAR 以外（空含む）では次章ボタンを出さない。
+	if GameState.last_run_outcome != GameState.RUN_OUTCOME_CLEAR:
 		return ""
 	if not Constants.SUB_STAGES_PLAYABLE:
 		return ""

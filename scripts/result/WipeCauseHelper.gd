@@ -44,8 +44,6 @@ static func build_snapshot(
 		snap["room_type"] = room_type
 		snap["room_label"] = _room_label(room_type)
 	var weather_id: String = str(GameState.current_weather)
-	if weather_id.is_empty():
-		weather_id = str(GameState.last_run_weather)
 	snap["weather_id"] = weather_id
 	var kind: String = cause_kind.strip_edges()
 	if kind.is_empty():

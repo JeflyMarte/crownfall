@@ -53,6 +53,7 @@ alwaysApply: false
 | レリックが地味で装備意味が薄い | 常時±5〜20%のみ | 尖鋭案B: 発火＋制約。`P3-UX-RELIC-TACTICS-B001` |
 | レリック入手後に結果で見えない／全滅で消える | 報酬行のみ＋wipe で `last_run_relic_dropped` クリア | `record_last_run_relic_drop`→結果グリッド。wipe で消さない（装備ドロップと同扱） |
 | 1-4に潜ったのに結果が1-3 | 全滅／リタイアで `last_run_stage_id` 未更新→前回クリア分が残る | 入場時＋結果遷移前に `_sync_last_run_stage_id` |
+| 全滅ヒントの天候が前回ランのまま | 晴れ時に `last_run_weather` へフォールバック | `WipeCauseHelper` は `current_weather` のみ。入場で `last_run_weather` クリア |
 | パッシブ名と同時にダメ音／敵スキル名が見えない | 既定 combat_skill・固定Y | → **`14_Presentation_Pitfalls.md`** §3 |
 | パッシブ発動でスキル名が出ない | ラベル全クリア／非表示スプライトで return | → **`14_Presentation_Pitfalls.md`** §3（`_announce_passive_fire`） |
 | DungeonScene `label` not declared／balance_sim pet 未解決 | 差し替え削り・-s autoload | → **`pitfalls-startup.mdc`** |

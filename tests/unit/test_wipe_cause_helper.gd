@@ -108,3 +108,12 @@ func test_hint_status_and_weather() -> void:
 		hints[0].contains("残っていた") or hints[0].contains("霧"),
 		"ヒント文言: %s" % hints[0]
 	)
+
+
+func test_wipe_snapshot_does_not_use_stale_last_run_weather() -> void:
+	## 前回ランが雨でも、今回晴れ（current_weather 空）なら weather_id は空のまま。
+	GameState.last_run_weather = "rain"
+	GameState.current_weather = ""
+	var snap: Dictionary = _WipeCause.build_snapshot(null, null, "combat")
+	assert_eq(str(snap.get("weather_id", "")), "")
+	GameState.last_run_weather = ""
