@@ -4,6 +4,8 @@
 # 使い方:
 #   bash tools/setup_ios_testplay.sh          # Godot + export templates を入れる
 #   bash tools/setup_ios_testplay.sh --check  # インストール状況だけ確認
+#   bash tools/setup_ios_testplay.sh --export         # debug エクスポート（開発実機）
+#   bash tools/setup_ios_testplay.sh --export-release # release エクスポート（TestFlight / App Store）
 #
 # 初回 iPhone 実機テストの流れ（このスクリプトの後）:
 #   1. Xcode → Settings → Accounts で Apple ID を追加
@@ -171,7 +173,21 @@ ensure_ios_export_excludes() {
     green "OK: iOS exclude_filter を適用（docs/wiki/tests 等を除外）"
 }
 
+sync_ios_version_from_project() {
+    local cfg="$ROOT/export_presets.cfg"
+    local ver=""
+    ver="$(rg -o 'config/version="([^"]+)"' -r '$1' "$ROOT/project.godot" | head -1 || true)"
+    if [[ -z "$ver" || ! -f "$cfg" ]]; then
+        return 0
+    fi
+    perl -i -pe "s#^application/short_version=\".*\"#application/short_version=\"${ver}\"#" "$cfg"
+    perl -i -pe "s#^application/version=\".*\"#application/version=\"${ver}\"#" "$cfg"
+    green "OK: iOS version/short_version=${ver} (from project.godot)"
+}
+
+## mode: debug | release
 export_ios_project() {
+    local mode="${1:-debug}"
     local team_id="${GODOT_IOS_TEAM_ID:-}"
     if [[ -z "$team_id" && -f "$ROOT/export_presets.cfg" ]]; then
         team_id="$(rg -o 'application/app_store_team_id="([^"]*)"' -r '$1' "$ROOT/export_presets.cfg" | head -1 || true)"
@@ -185,11 +201,16 @@ export_ios_project() {
         perl -i -pe "s/application\\/app_store_team_id=\".*\"/application\\/app_store_team_id=\"$team_id\"/" "$ROOT/export_presets.cfg"
     fi
     ensure_ios_export_excludes
+    sync_ios_version_from_project
     mkdir -p "$ROOT/build/ios"
-    echo "=== iOS Xcode プロジェクトをエクスポート ==="
+    echo "=== iOS Xcode プロジェクトをエクスポート（${mode}）==="
     ## 旧肥大 PCK を残さない（確認しやすくする）。
     rm -f "$ROOT/build/ios/Crownfall.pck"
-    "$GODOT_BIN" --path "$ROOT" --headless --export-debug "iOS" "$ROOT/build/ios/Crownfall.xcodeproj"
+    local export_flag="--export-debug"
+    if [[ "$mode" == "release" ]]; then
+        export_flag="--export-release"
+    fi
+    "$GODOT_BIN" --path "$ROOT" --headless "$export_flag" "iOS" "$ROOT/build/ios/Crownfall.xcodeproj"
     local pck="$ROOT/build/ios/Crownfall.pck"
     if [[ -f "$pck" ]]; then
         local mb
@@ -201,8 +222,18 @@ export_ios_project() {
             green "OK: PCK ${mb}MB（目安 <1500MB）"
         fi
     fi
-    green "Exported: $ROOT/build/ios/Crownfall.xcodeproj"
-    echo "次: open \"$ROOT/build/ios/Crownfall.xcodeproj\""
+    green "Exported: $ROOT/build/ios/Crownfall.xcodeproj (${mode})"
+    if [[ "$mode" == "release" ]]; then
+        cat <<EOF
+次（App Store / TestFlight）:
+  1. open \"$ROOT/build/ios/Crownfall.xcodeproj\"
+  2. 実機 or Any iOS Device → Product → Archive
+  3. Organizer → Distribute App → App Store Connect
+  4. TestFlight でタイトルに「デバッグ」が無いことを確認してから提出
+EOF
+    else
+        echo "次: open \"$ROOT/build/ios/Crownfall.xcodeproj\""
+    fi
 }
 
 print_next_steps() {
@@ -245,13 +276,18 @@ case "$MODE" in
     --export|export)
         check_godot
         check_templates
-        export_ios_project
+        export_ios_project debug
+        ;;
+    --export-release|export-release)
+        check_godot
+        check_templates
+        export_ios_project release
         ;;
     --team-id|team-id)
         print_team_id_help
         ;;
     --help|-h)
-        sed -n '1,20p' "$0"
+        sed -n '1,25p' "$0"
         ;;
     *)
         echo "=== Crownfall iOS テストプレイ環境セットアップ ==="

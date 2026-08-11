@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-11（**App Store向け iOS release エクスポート＋Xcode適用**: `--export-release`・`libgodot.ios.release`・PCK 546MB・ver 0.1.0。次は Archive→TestFlightでデバッグ非表示確認）
 2026-08-11（**先端をiOS再エクスポート＋Xcode適用**: main先端（ノーマルボス召喚撤廃・ダンジョン選択スクロールほか）・PCK 546MB。要実機Build／再インストール）
 2026-08-11（**ノーマルボス召喚撤廃／統合＋main**: 指定召喚・開幕同席は Hard+ のみ。要実機）
 2026-08-11（**ダンジョン選択スクロール改善／統合＋main**: 畳みバナー／章カードを PASS＋短押し。タブ等は STOP 維持。要実機）
