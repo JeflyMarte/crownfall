@@ -54,6 +54,14 @@ static func display_name(tier: int) -> String:
 			return "ノーマル"
 
 
+## ボス戦闘中の指定召喚（沼王招来等）。ノーマル不可・Hard+ のみ（P3-BAL-BOSS-SUMMON-HARD-PLUS-001）。
+static func boss_midcombat_summon_allowed(tier: int = -1) -> bool:
+	var t: int = tier
+	if t < 0:
+		t = int(GameState.current_dungeon_tier)
+	return clamp_tier(t) >= TIER_HARD
+
+
 ## メインノーマル最終（N5-5）相当の敵Lv。ステージデータから最大値を取る。
 static func main_normal_cap_level() -> int:
 	if _cached_normal_cap > 0:

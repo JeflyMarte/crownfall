@@ -1682,8 +1682,11 @@ func _append_minions(group: Array[Resource], count: int) -> void:
 
 
 ## ボス開幕同席（P3-BAL-ELDION-OPENING-001）。lead.opening_companion_ids をキャップまで追加。
+## ノーマルでは召喚／同席なし（Hard+ のみ・P3-BAL-BOSS-SUMMON-HARD-PLUS-001）。
 func _append_boss_opening_companions(group: Array[Resource]) -> void:
 	if group.is_empty():
+		return
+	if not _DungeonTierConfig.boss_midcombat_summon_allowed():
 		return
 	var lead: Resource = group[0]
 	if lead == null or not ("opening_companion_ids" in lead):

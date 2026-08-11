@@ -8042,3 +8042,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ALCHEMY-BASE-TIER-001-2 | **式** — `ceil(180 × 実上昇 × 素材帯 × 主材帯 × レア倍率)` | 単価・レアは据置 |
 | P3-BAL-ALCHEMY-BASE-TIER-001-3 | **上書き** — 91 の「帯＝素材のみ」 | 本 Decision が正 |
 | P3-BAL-ALCHEMY-BASE-TIER-001-4 | **SSOT** — `102_AlchemyBaseLevelGoldTier.md` | Decision 本体 |
+
+## ボス召喚は Hard+ のみ（2026-08-11 — P3-BAL-BOSS-SUMMON-HARD-PLUS-001）
+
+> **オーナー指示** — ノーマルではボス召喚なし。ハードから。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-BOSS-SUMMON-HARD-PLUS-001-1 | **ノーマル** — ボス指定召喚・開幕同席を無効 | Nボス圧を下げる |
+| P3-BAL-BOSS-SUMMON-HARD-PLUS-001-2 | **Hard/NM** — 既存召喚スキル据置 | 高難度の差別化 |
+| P3-BAL-BOSS-SUMMON-HARD-PLUS-001-3 | **対象外** — 雑魚の招集スキル | ボス限定 |
+| P3-BAL-BOSS-SUMMON-HARD-PLUS-001-4 | **SSOT** — `103_BossSummonHardPlus.md` | Decision 本体 |

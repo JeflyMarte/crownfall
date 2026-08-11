@@ -86,3 +86,10 @@ func test_phase_weights_include_new_skills() -> void:
 	var c0: Dictionary = CombatBossPhases.phase_def("chronos_wave", 0)
 	assert_false(c0.get("skill_weight", {}).is_empty())
 	assert_false(str(c0.get("skill_weight", {})).contains("call_moth"))
+
+
+func test_boss_summon_allowed_from_hard_only() -> void:
+	## P3-BAL-BOSS-SUMMON-HARD-PLUS-001
+	assert_false(DungeonTierConfig.boss_midcombat_summon_allowed(DungeonTierConfig.TIER_NORMAL))
+	assert_true(DungeonTierConfig.boss_midcombat_summon_allowed(DungeonTierConfig.TIER_HARD))
+	assert_true(DungeonTierConfig.boss_midcombat_summon_allowed(DungeonTierConfig.TIER_NIGHTMARE))

@@ -7282,6 +7282,9 @@ func _enemy_tricky_skill_allowed(skill: Resource, slot: int) -> bool:
 				return false
 			## 指定召喚（ボス等）は一度限り・キャップのみ。同種クローンは HP≤50%。
 			if _enemy_summon_is_designated(skill):
+				## ノーマルではボスの指定召喚を出さない（Hard+ のみ）。
+				if _is_boss_designated_summon_blocked(slot):
+					return false
 				return true
 			return $CombatController.get_enemy_hp_ratio(slot) <= 0.5
 		"buff":
@@ -7300,6 +7303,18 @@ func _enemy_summon_is_designated(skill: Resource) -> bool:
 	if skill == null or not ("summon_enemy_id" in skill):
 		return false
 	return not str(skill.summon_enemy_id).is_empty()
+
+
+## ボス（またはボス部屋）の指定召喚をノーマルで封じる。雑魚の指定召喚は対象外。
+func _is_boss_designated_summon_blocked(slot: int) -> bool:
+	if _DungeonTierConfig.boss_midcombat_summon_allowed():
+		return false
+	if $DungeonController.current_room_type == Enums.RoomType.BOSS:
+		return true
+	var ed: Resource = $CombatController.get_enemy_data_at(slot)
+	if ed != null and int(ed.enemy_type) == Enums.EnemyType.BOSS:
+		return true
+	return false
 
 
 ## 指定召喚＝skill_id で戦闘中1回。同種クローン＝スロット1回。いずれも発動時点で消費。
