@@ -36,5 +36,5 @@ codex_danger = 5
 codex_habitat = "モーンゲート未踏査層"
 codex_research_note = "調時室の金属粉と歯車残滓を取り込み、鱗と時環を機械のように見せる古龍種の生存個体。体内の時環が同期するたび、踏む者の平衡と刻限感覚がずれる。時の王の名は後世の俗称であり、王との関わりは確認されていない。調時の針が何を測っていたかという伝承は継承と結びつけて語られるが、確証はない。不死者でも人形でもない。"
 codex_materials = Array[String]([])
-skill_ids = Array[String](["boss_enrage", "boss_chronos_wave_hex", "enemy_chronos_wave_resonance", "enemy_chronos_wave_gear_crush", "enemy_chronos_wave_call_moth"])
+skill_ids = Array[String](["boss_enrage", "boss_chronos_wave_hex", "enemy_chronos_wave_resonance", "enemy_chronos_wave_gear_crush"])
 skill_use_chance = 0.55

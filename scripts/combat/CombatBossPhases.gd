@@ -239,7 +239,6 @@ const _DEFS: Dictionary = {
 				"boss_chronos_wave_hex": 1.6,
 				"enemy_chronos_wave_resonance": 1.6,
 				"enemy_chronos_wave_gear_crush": 1.4,
-				"enemy_chronos_wave_call_moth": 1.5,
 			},
 		},
 		{
@@ -253,7 +252,6 @@ const _DEFS: Dictionary = {
 				"boss_chronos_wave_hex": 1.7,
 				"enemy_chronos_wave_resonance": 2.0,
 				"enemy_chronos_wave_gear_crush": 1.8,
-				"enemy_chronos_wave_call_moth": 2.2,
 			},
 		},
 		{
@@ -267,7 +265,6 @@ const _DEFS: Dictionary = {
 				"boss_chronos_wave_hex": 1.8,
 				"enemy_chronos_wave_resonance": 2.0,
 				"enemy_chronos_wave_gear_crush": 2.5,
-				"enemy_chronos_wave_call_moth": 0.8,
 			},
 		},
 	],

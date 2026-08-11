@@ -7965,6 +7965,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-BOSS-STATUS-SPEED-001-2 | **`attack_speed`** — 基準1.35。**eldion／chronos_wave／valgard=1.5** | オーナー指示 |
 | P3-BAL-BOSS-STATUS-SPEED-001-3 | **SSOT** — `124_BossStatusResistSpeedFloor.md` | 実装正 |
 
+## クロノス・ウェーブ召喚削除（2026-08-11 — P3-BAL-CHRONOS-NO-SUMMON-001）
+
+> **オーナー指示** — クロノス・ウェーブのクロックモス召喚をなくす。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-BAL-CHRONOS-NO-SUMMON-001-1 | **削除** — `enemy_chronos_wave_call_moth` をクロノス `skill_ids`／フェーズ重みから外す | オーナー指示 |
+| P3-BAL-CHRONOS-NO-SUMMON-001-2 | **上書き** — P3-BAL-BOSS-SUMMON-REGEN-001-4（クロノス召喚） | 本 Decision が正 |
+| P3-BAL-CHRONOS-NO-SUMMON-001-3 | **据置** — スキル tres 本体・道中クロックモス・他ボス召喚 | スコープ最小 |
+
 ## クレジット表記＋デバッグ出荷ガード（2026-08-10 — P3-SHIP-CREDITS-DEBUG-001）
 
 > **オーナー指示** — 本番提出準備。設定クレジットとデバッグ露出封鎖。

@@ -7,7 +7,6 @@ func test_boss_summon_skills_are_once_designated() -> void:
 	var cases := {
 		"moldgar": {"skill": "enemy_moldgar_call_marsh", "enemy": "marsh_king", "count": 1},
 		"nereion": {"skill": "enemy_nereion_call_dread", "enemy": "black_tide_shark", "count": 2},
-		"chronos_wave": {"skill": "enemy_chronos_wave_call_moth", "enemy": "clock_moth", "count": 1},
 	}
 	for boss_id: String in cases.keys():
 		var boss: Resource = DataRegistry.get_enemy_data(boss_id)
@@ -31,6 +30,16 @@ func test_granvel_no_longer_has_summon() -> void:
 	var phase0: Dictionary = CombatBossPhases.phase_def("granvel", 0)
 	var weights: Dictionary = phase0.get("skill_weight", {})
 	assert_false(weights.has("enemy_granvel_call_mirror"))
+
+
+func test_chronos_wave_no_longer_has_summon() -> void:
+	var boss: Resource = DataRegistry.get_enemy_data("chronos_wave")
+	assert_not_null(boss)
+	assert_false("enemy_chronos_wave_call_moth" in boss.skill_ids)
+	for pi: int in range(3):
+		var phase: Dictionary = CombatBossPhases.phase_def("chronos_wave", pi)
+		var weights: Dictionary = phase.get("skill_weight", {})
+		assert_false(weights.has("enemy_chronos_wave_call_moth"), "phase %d" % pi)
 
 
 func test_eldion_glacial_regen_applies_hot() -> void:
@@ -59,8 +68,8 @@ func test_status_resolver_hot_emits_heal_percent() -> void:
 
 
 func test_phase_weights_include_new_skills() -> void:
-	## granvel は仲間呼び削除済み（P3-BAL-GRANVEL-NO-SUMMON-001）。他ボスは call_/regen。
-	for boss_id: String in ["moldgar", "nereion", "chronos_wave", "eldion"]:
+	## granvel／chronos は仲間呼び削除済み。moldgar／nereion／eldion は call_/regen。
+	for boss_id: String in ["moldgar", "nereion", "eldion"]:
 		var phase0: Dictionary = CombatBossPhases.phase_def(boss_id, 0)
 		var weights: Dictionary = phase0.get("skill_weight", {})
 		assert_false(weights.is_empty(), boss_id)
@@ -74,3 +83,6 @@ func test_phase_weights_include_new_skills() -> void:
 	var g0: Dictionary = CombatBossPhases.phase_def("granvel", 0)
 	assert_false(g0.get("skill_weight", {}).is_empty())
 	assert_false(str(g0.get("skill_weight", {})).contains("call_mirror"))
+	var c0: Dictionary = CombatBossPhases.phase_def("chronos_wave", 0)
+	assert_false(c0.get("skill_weight", {}).is_empty())
+	assert_false(str(c0.get("skill_weight", {})).contains("call_moth"))
