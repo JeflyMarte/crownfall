@@ -34,18 +34,44 @@ func test_old_exclusives_removed() -> void:
 	assert_false(CombatPassives.is_relic_passive("relic_valgard_gear"))
 
 
-func test_first_clear_grants_three_pieces() -> void:
+func test_boss_loot_grants_exactly_one_piece() -> void:
 	var granted: Dictionary = _Evt.apply_boss_loot("chronos_mausoleum", _DungeonTierConfig.TIER_NORMAL)
-	assert_false(str(granted.get("weapon_id", "")).is_empty())
-	assert_eq(str(granted.get("armor_id", "")), "chronos_toki_armor")
-	assert_eq(str(granted.get("accessory_id", "")), "chronos_toki_orb")
+	var pieces: int = 0
+	if not str(granted.get("weapon_id", "")).is_empty():
+		pieces += 1
+		assert_eq(_Sets.set_id_of_weapon(str(granted.get("weapon_id", ""))), _Sets.SET_CHRONOS_TOKI)
+	if not str(granted.get("armor_id", "")).is_empty():
+		pieces += 1
+		assert_eq(str(granted.get("armor_id", "")), "chronos_toki_armor")
+	if not str(granted.get("accessory_id", "")).is_empty():
+		pieces += 1
+		assert_eq(str(granted.get("accessory_id", "")), "chronos_toki_orb")
+	assert_eq(pieces, 1)
 	assert_true(str(granted.get("relic_id", "")).is_empty())
-	assert_eq(_Sets.set_id_of_weapon(str(granted.get("weapon_id", ""))), _Sets.SET_CHRONOS_TOKI)
 
 	var granted_v: Dictionary = _Evt.apply_boss_loot("valgard_boundary", _DungeonTierConfig.TIER_NORMAL)
-	assert_false(str(granted_v.get("weapon_id", "")).is_empty())
-	assert_eq(str(granted_v.get("armor_id", "")), "valgard_antique_armor")
-	assert_eq(str(granted_v.get("accessory_id", "")), "valgard_antique_amulet")
+	var pieces_v: int = 0
+	if not str(granted_v.get("weapon_id", "")).is_empty():
+		pieces_v += 1
+	if not str(granted_v.get("armor_id", "")).is_empty():
+		pieces_v += 1
+	if not str(granted_v.get("accessory_id", "")).is_empty():
+		pieces_v += 1
+	assert_eq(pieces_v, 1)
+
+
+func test_boss_loot_always_grants_one_even_after_clear() -> void:
+	GameState.mark_dungeon_tier_cleared("chronos_mausoleum", _DungeonTierConfig.TIER_NORMAL)
+	for _i: int in 8:
+		var granted: Dictionary = _Evt.apply_boss_loot("chronos_mausoleum", _DungeonTierConfig.TIER_NORMAL)
+		var pieces: int = 0
+		if not str(granted.get("weapon_id", "")).is_empty():
+			pieces += 1
+		if not str(granted.get("armor_id", "")).is_empty():
+			pieces += 1
+		if not str(granted.get("accessory_id", "")).is_empty():
+			pieces += 1
+		assert_eq(pieces, 1)
 
 
 func test_set_activation_requires_three_pieces() -> void:

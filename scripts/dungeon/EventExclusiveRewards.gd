@@ -1,7 +1,7 @@
 class_name EventExclusiveRewards
 extends RefCounted
 
-## 降臨セット装備ドロップ（P3-DG-EVENT-SET-001）。旧単品／専用レリックは廃止。
+## 降臨セット装備ドロップ（P3-DG-EVENT-SET-001／P3-BAL-DESCENT-SET-DROP-ONE-001）。
 
 const _WeaponStatResolver := preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _WeaponInstance := preload("res://scripts/domain/WeaponInstance.gd")
@@ -9,11 +9,8 @@ const _ArmorStatResolver := preload("res://scripts/equipment/ArmorStatResolver.g
 const _ArmorInstance := preload("res://scripts/domain/ArmorInstance.gd")
 const _AccessoryStatResolver := preload("res://scripts/equipment/AccessoryStatResolver.gd")
 const _AccessoryInstance := preload("res://scripts/domain/AccessoryInstance.gd")
-const _DungeonTierConfig := preload("res://scripts/dungeon/DungeonTierConfig.gd")
 const _Sets := preload("res://scripts/equipment/EquipmentSetBonuses.gd")
 const _JobStatCalculator := preload("res://scripts/equipment/JobStatCalculator.gd")
-
-const RECLEAR_CHANCE: float = 0.40
 
 
 static func is_event_dungeon(dungeon_id: String) -> bool:
@@ -40,31 +37,16 @@ static func is_event_exclusive_relic(_relic_id: String) -> bool:
 	return false
 
 
+## ボス撃破ごとエンシェント装備 **1個固定**（未所持部位優先）。
 ## 戻り値: {weapon_id, armor_id, accessory_id}
-static func apply_boss_loot(dungeon_id: String, tier: int) -> Dictionary:
+static func apply_boss_loot(dungeon_id: String, _tier: int) -> Dictionary:
 	var out: Dictionary = {"weapon_id": "", "armor_id": "", "accessory_id": "", "relic_id": ""}
 	var set_id: String = _Sets.set_id_for_dungeon(dungeon_id)
 	if set_id.is_empty():
 		return out
-	var t: int = _DungeonTierConfig.clamp_tier(tier)
-	var first_clear: bool = not GameState.is_dungeon_tier_cleared(dungeon_id, t)
 	var armor_id: String = str(_Sets.ARMOR_BY_SET.get(set_id, ""))
 	var accessory_id: String = str(_Sets.ACCESSORY_BY_SET.get(set_id, ""))
-	var weapons: Array = _Sets.WEAPONS_BY_SET.get(set_id, [])
-
-	if first_clear:
-		var weapon_id: String = _pick_weapon_for_party(weapons)
-		if not weapon_id.is_empty() and _grant_weapon(weapon_id):
-			out["weapon_id"] = weapon_id
-		if not armor_id.is_empty() and _grant_armor(armor_id):
-			out["armor_id"] = armor_id
-		if not accessory_id.is_empty() and _grant_accessory(accessory_id):
-			out["accessory_id"] = accessory_id
-		return out
-
-	if randf() >= RECLEAR_CHANCE:
-		return out
-	var pick: String = _pick_reclear_piece(set_id)
+	var pick: String = _pick_one_piece(set_id)
 	if pick.is_empty():
 		return out
 	if pick == armor_id:
@@ -135,12 +117,13 @@ static func _pick_weapon_for_party(weapons: Array) -> String:
 	return str(weapons[randi() % weapons.size()])
 
 
-static func _pick_reclear_piece(set_id: String) -> String:
+static func _pick_one_piece(set_id: String) -> String:
 	var missing: Array[String] = []
 	var all_ids: Array[String] = _Sets.all_piece_ids(set_id)
+	var weapons: Array = _Sets.WEAPONS_BY_SET.get(set_id, [])
 	for pid in all_ids:
 		var owned: bool = false
-		if pid in _Sets.WEAPONS_BY_SET.get(set_id, []):
+		if pid in weapons:
 			owned = _owns_weapon(pid)
 		elif pid == str(_Sets.ARMOR_BY_SET.get(set_id, "")):
 			owned = _owns_armor(pid)
@@ -148,11 +131,18 @@ static func _pick_reclear_piece(set_id: String) -> String:
 			owned = _owns_accessory(pid)
 		if not owned:
 			missing.append(pid)
-	if not missing.is_empty():
-		return missing[randi() % missing.size()]
-	if all_ids.is_empty():
+	var pool: Array[String] = missing if not missing.is_empty() else all_ids
+	if pool.is_empty():
 		return ""
-	return all_ids[randi() % all_ids.size()]
+	## 池が武器のみなら編成向きを優先。混在時は部位を等確率。
+	var only_weapons := true
+	for pid in pool:
+		if pid not in weapons:
+			only_weapons = false
+			break
+	if only_weapons:
+		return _pick_weapon_for_party(pool)
+	return pool[randi() % pool.size()]
 
 
 static func _grant_weapon(weapon_id: String) -> bool:
