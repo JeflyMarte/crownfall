@@ -1,11 +1,9 @@
-# Crownfall 攻略Wiki → GitHub Pages
+# Crownfall 攻略Wiki → https://crownfall-game.github.io/
 #
-# 初回: リポジトリ Settings → Pages → Build and deployment → Source を
-# 「GitHub Actions」にする。
-#
-# 公開URL（想定）: https://crownfall-game.github.io/
-# ※現行の本番公開は Org の crownfall-game.github.io へ mkdocs gh-deploy。
-#   本 Workflow は本体リポジトリ側の代替手段（未使用なら無視可）。
+# 本番は Org の crownfall-game.github.io（ユーザーサイト）へ載せる。
+# 必要: リポジトリ Secrets に WIKI_PAGES_TOKEN
+#   （classic PAT: repo スコープ、または fine-grained で
+#    crownfall-game/crownfall-game.github.io の Contents: Read and write）
 
 name: Deploy Wiki
 
@@ -17,18 +15,15 @@ on:
       - ".github/workflows/wiki-pages.yml"
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 concurrency:
   group: wiki-pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,18 +43,23 @@ jobs:
         working-directory: wiki
         run: mkdocs build --clean
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: wiki/site
+      - name: Require deploy token
+        env:
+          WIKI_PAGES_TOKEN: ${{ secrets.WIKI_PAGES_TOKEN }}
+        run: |
+          if [ -z "$WIKI_PAGES_TOKEN" ]; then
+            echo "::error::Secret WIKI_PAGES_TOKEN が未設定です。crownfall-game/crownfall-game.github.io へ write できる PAT を Settings → Secrets → Actions に追加してください。"
+            exit 1
+          fi
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Deploy to crownfall-game.github.io
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          personal_token: ${{ secrets.WIKI_PAGES_TOKEN }}
+          external_repository: crownfall-game/crownfall-game.github.io
+          publish_branch: main
+          publish_dir: ./wiki/site
+          force_orphan: true
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          commit_message: "deploy wiki from crownfall@${{ github.sha }}"
