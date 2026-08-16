@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-16（**攻略Wiki Tier／パッシブ同期／統合＋main**: 固有パッシブ再編後の表記に追従。Tier表・ペット・ガチャ一言を更新。要公開デプロイ）
 2026-08-16（**iOS App Store 対応言語 EN→JA**: Godot テンプレ en 固定が原因。export 後に `ja.lproj`／`CFBundleDevelopmentRegion=ja` を適用。要 release 再エクスポート→Archive→新ビルド提出）
 2026-08-11（**攻略Wiki現行同期／統合＋main**: ボス数値・ノーマル召喚なし・エンシェント1個／40%・ヴァルデン鉄誓・火鷹10%・モーンN・探索Gold。データ再生成。要公開デプロイ確認）
 2026-08-11（**App Store提出用 1.0.0 build3 releaseエクスポート＋Xcode適用**: 実機確認済み・提出GO。要Archive/Upload→Connectで1.0に紐づけ）
