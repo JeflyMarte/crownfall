@@ -33,12 +33,21 @@ mkdocs build
 
 ## GitHub Pages 公開
 
-想定URL: **https://crownfall-game.github.io/**
+公開URL: **https://crownfall-game.github.io/**
 
-Org `crownfall-game` のユーザーサイト（リポジトリ `crownfall-game.github.io`）へ載せる。  
-手順の正: [`GITHUB_PAGES_ORG.md`](GITHUB_PAGES_ORG.md)
+### いまやること（Cloud Agent 公開）
 
-### 公開（移行後）
+手順の正（画面クリック単位）: [`GITHUB_PAGES_ORG.md`](GITHUB_PAGES_ORG.md)
+
+要約:
+
+1. GitHub で PAT を1つ作る（`crownfall-game.github.io` に Contents Write）
+2. 同じ値を次の2か所に **`WIKI_PAGES_TOKEN`** として入れる  
+   - Cursor 環境 Secrets  
+   - https://github.com/JeflyMarte/crownfall/settings/secrets/actions
+3. チャットで「デプロイ再実行」
+
+### 手元から公開する場合
 
 ```bash
 cd wiki
@@ -46,11 +55,7 @@ source .venv/bin/activate
 mkdocs gh-deploy --force --no-history --remote-name wiki-pages --remote-branch main
 ```
 
-（初回は Org／空リポジトリ作成のあと、上記ドキュメントの remote 追加を行う）
-
-### 旧方式（JeflyMarte/crownfall の gh-pages）
-
-移行完了まで残っていてもよい。新URL運用開始後は旧 Pages を止めるか案内を出す。
+（初回は `GITHUB_PAGES_ORG.md` の remote 追加を行う。デプロイ後は本体 `main` tip を `origin/main` に戻す）
 
 ### 検索に載せるには
 
