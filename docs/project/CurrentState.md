@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-16（**攻略Wiki初心者Tips追記／統合＋main**: 調査室・ペット回復・錬成を beginner に追加。要公開デプロイ）
 2026-08-16（**攻略Wiki全体点検／統合＋main**: ボスATK・深層帯・影狩死告・錬成Gold帯・ペット技能・召喚条件の旧表記を同期。要公開デプロイ）
 2026-08-16（**攻略Wiki Tier／パッシブ同期／統合＋main**: 固有パッシブ再編後の表記に追従。Tier表・ペット・ガチャ一言を更新。要公開デプロイ）
 2026-08-16（**iOS App Store 対応言語 EN→JA**: Godot テンプレ en 固定が原因。export 後に `ja.lproj`／`CFBundleDevelopmentRegion=ja` を適用。要 release 再エクスポート→Archive→新ビルド提出）
