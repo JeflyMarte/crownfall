@@ -7,6 +7,11 @@
 #   bash tools/setup_ios_testplay.sh --export         # debug エクスポート（開発実機）
 #   bash tools/setup_ios_testplay.sh --export-release # release エクスポート（TestFlight / App Store）
 #   bash tools/setup_ios_testplay.sh --bump-build     # ビルド番号だけ +1（再アップロード前）
+#   bash tools/setup_ios_testplay.sh --fix-ja        # 既存 build/ios に日本語 localization だけ適用
+#
+# export 後の自動修正:
+#   - Automatic signing 衝突キー除去
+#   - 日本語 localization（App Store Languages が EN 固定にならないよう ja 化）
 #
 # 初回 iPhone 実機テストの流れ（このスクリプトの後）:
 #   1. Xcode → Settings → Accounts で Apple ID を追加
@@ -240,6 +245,18 @@ PY
     green "OK: Automatic signing 向けに project.pbxproj を調整"
 }
 
+## Godot iOS テンプレートは CFBundleDevelopmentRegion=en / en.lproj 固定。
+## App Store の「対応言語」は Connect のプライマリ言語ではなくバイナリの .lproj 由来。
+## 日本語アプリとして認識させるため export 直後に ja へ書き換える。
+fix_ios_japanese_localization() {
+    local ios_root="$ROOT/build/ios"
+    if [[ ! -d "$ios_root" ]]; then
+        return 0
+    fi
+    python3 "$ROOT/tools/fix_ios_japanese_localization.py" "$ios_root"
+    green "OK: iOS Japanese localization (ja.lproj / CFBundleDevelopmentRegion=ja)"
+}
+
 ## mode: debug | release
 export_ios_project() {
     local mode="${1:-debug}"
@@ -272,6 +289,8 @@ export_ios_project() {
     "$GODOT_BIN" --path "$ROOT" --headless "$export_flag" "iOS" "$ROOT/build/ios/Crownfall.xcodeproj"
     ## Automatic signing と衝突する手動 identity / 空プロファイル指定を除去する。
     fix_ios_automatic_signing
+    ## App Store Languages が EN 固定にならないよう ja localization を適用する。
+    fix_ios_japanese_localization
     local pck="$ROOT/build/ios/Crownfall.pck"
     if [[ -f "$pck" ]]; then
         local mb
@@ -291,6 +310,8 @@ export_ios_project() {
   2. 実機 or Any iOS Device → Product → Archive
   3. Organizer → Distribute App → App Store Connect
   4. TestFlight でタイトルに「デバッグ」が無いことを確認してから提出
+  5. 提出後、商品ページの「言語」が日本語（JA）であることを確認
+     （Connect のプライマリ言語だけでは EN のまま残ることがある）
 EOF
     else
         echo "次: open \"$ROOT/build/ios/Crownfall.xcodeproj\""
@@ -347,11 +368,14 @@ case "$MODE" in
     --bump-build|bump-build)
         bump_ios_build_number
         ;;
+    --fix-ja|fix-ja)
+        fix_ios_japanese_localization
+        ;;
     --team-id|team-id)
         print_team_id_help
         ;;
     --help|-h)
-        sed -n '1,25p' "$0"
+        sed -n '1,30p' "$0"
         ;;
     *)
         echo "=== Crownfall iOS テストプレイ環境セットアップ ==="
