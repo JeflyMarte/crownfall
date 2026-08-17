@@ -5,6 +5,11 @@
 ## Last Update
 
 2026-08-17（**アプリアイコン差し替え／統合＋main**: Downloads「CrownFallロゴ」→`UI_AppIcon`／`icon.png`＋iOS AppIcon。要iOS再ビルド／再インストール）
+2026-08-16（**Wiki公開デプロイ準備**: Actions を Org Pages＋`WIKI_PAGES_TOKEN` 方式へ切替。cursor[bot] は Pages へ 403のため、PAT 登録待ち）
+2026-08-16（**攻略Wiki初心者Tips追記／統合＋main**: 調査室・ペット回復・錬成を beginner に追加。要公開デプロイ）
+2026-08-16（**攻略Wiki全体点検／統合＋main**: ボスATK・深層帯・影狩死告・錬成Gold帯・ペット技能・召喚条件の旧表記を同期。要公開デプロイ）
+2026-08-16（**攻略Wiki Tier／パッシブ同期／統合＋main**: 固有パッシブ再編後の表記に追従。Tier表・ペット・ガチャ一言を更新。要公開デプロイ）
+2026-08-16（**iOS App Store 対応言語 EN→JA**: Godot テンプレ en 固定が原因。export 後に `ja.lproj`／`CFBundleDevelopmentRegion=ja` を適用。要 release 再エクスポート→Archive→新ビルド提出）
 2026-08-11（**攻略Wiki現行同期／統合＋main**: ボス数値・ノーマル召喚なし・エンシェント1個／40%・ヴァルデン鉄誓・火鷹10%・モーンN・探索Gold。データ再生成。要公開デプロイ確認）
 2026-08-11（**App Store提出用 1.0.0 build3 releaseエクスポート＋Xcode適用**: 実機確認済み・提出GO。要Archive/Upload→Connectで1.0に紐づけ）
 2026-08-11（**App Store向け iOS release エクスポート＋Xcode適用**: `--export-release`・`libgodot.ios.release`・PCK 546MB・ver 0.1.0。次は Archive→TestFlightでデバッグ非表示確認）
