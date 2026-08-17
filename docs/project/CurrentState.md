@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-17（**iOS 対応言語 EN→JA を現行Xcode出力へ適用**: `ja.lproj`／`CFBundleDevelopmentRegion=ja`／build 4。要 Archive→Upload。Connectメタデータだけでは直らない）
 2026-08-17（**アプリアイコン差し替え／統合＋main**: Downloads「CrownFallロゴ」→`UI_AppIcon`／`icon.png`＋iOS AppIcon。要iOS再ビルド／再インストール）
 2026-08-16（**Wiki公開デプロイ準備**: Actions を Org Pages＋`WIKI_PAGES_TOKEN` 方式へ切替。cursor[bot] は Pages へ 403のため、PAT 登録待ち）
 2026-08-16（**攻略Wiki初心者Tips追記／統合＋main**: 調査室・ペット回復・錬成を beginner に追加。要公開デプロイ）
