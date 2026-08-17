@@ -324,8 +324,9 @@ v3.4+ 確定スコープ:
 
 | Task | 内容 | 状態 | 主な参照 |
 |---|---|---|---|
-| **P3-MONET-IAP-001-A** | PurchaseManager・カタログ・txn セーブ・GUT | **完了** | `125_F2PArcaniteIap.md` |
-| **P3-MONET-IAP-001-B** | ショップ overlay・召喚不足導線 | **完了** | 同上 |
-| **P3-MONET-IAP-001-C** | 設定文言・Wiki FAQ | **完了** | 同上 |
-| **P3-MONET-IAP-001-D** | App Store Connect 商品・InAppStore プラグイン・TestFlight | **オーナー** | 同上 |
+| **P3-MONET-IAP-001-A** | PurchaseManager・カタログ・txn セーブ・GUT | **オミット** | `125_F2PArcaniteIap.md` |
+| **P3-MONET-IAP-001-B** | ショップ overlay・召喚不足導線 | **オミット** | 同上 |
+| **P3-MONET-IAP-001-C** | 設定文言・Wiki FAQ | **オミット** | 同上 |
+| **P3-MONET-IAP-001-D** | App Store Connect 商品・InAppStore プラグイン・TestFlight | **オミット** | 同上 |
+| **P3-MONET-IAP-OMIT-001** | `IAP_PLAYABLE=false`。導線遮断・コード残置 | **完了** | 同上 |
 

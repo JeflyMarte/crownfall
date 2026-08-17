@@ -51,20 +51,13 @@ func test_fulfill_rejects_unknown_product() -> void:
 	assert_eq(GameState.gacha_token, 0)
 
 
-func test_store_unavailable_without_plugin_or_mock() -> void:
-	assert_false(PurchaseManager.is_store_available())
-	var started: Dictionary = PurchaseManager.purchase(_IapCatalog.PRODUCT_S)
-	assert_false(bool(started.get("ok", false)))
-	assert_eq(str(started.get("reason", "")), "unavailable")
-
-
-func test_mock_purchase_grants_tokens() -> void:
+func test_purchases_are_omitted() -> void:
+	assert_false(Constants.are_iap_purchases_playable())
 	PurchaseManager.enable_mock_for_tests()
 	var started: Dictionary = PurchaseManager.purchase(_IapCatalog.PRODUCT_S)
-	assert_true(bool(started.get("ok", false)))
-	await get_tree().process_frame
-	await get_tree().process_frame
-	assert_eq(GameState.gacha_token, 80)
+	assert_false(bool(started.get("ok", false)))
+	assert_eq(str(started.get("reason", "")), "omitted")
+	assert_eq(GameState.gacha_token, 0)
 
 
 func test_store_event_error_does_not_grant() -> void:

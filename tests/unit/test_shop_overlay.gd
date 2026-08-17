@@ -15,6 +15,14 @@ func test_shop_overlay_builds_and_lists_packs() -> void:
 	assert_false(shop.visible)
 
 
+func test_present_is_blocked_while_omitted() -> void:
+	assert_false(Constants.are_iap_purchases_playable())
+	var host := Control.new()
+	add_child_autofree(host)
+	var shop: CanvasLayer = _ShopOverlay.present(host)
+	assert_null(shop)
+
+
 func _count_buy_buttons(n: Node) -> int:
 	var count: int = 0
 	if n is Button and (n as Button).text == "購入":

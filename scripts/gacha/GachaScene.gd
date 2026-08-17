@@ -107,7 +107,8 @@ func _ready() -> void:
 		return
 	AudioManager.play_bgm("gacha")
 	_setup_gacha_chrome()
-	_setup_shop_entry()
+	if Constants.are_iap_purchases_playable():
+		_setup_shop_entry()
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.GACHA)
 	_btn_back.pressed.connect(_on_back_pressed)
 	_btn_rate_detail.pressed.connect(_on_rate_detail_pressed)
@@ -506,6 +507,8 @@ func _on_token_chip_input(event: InputEvent) -> void:
 
 
 func _open_shop() -> void:
+	if not Constants.are_iap_purchases_playable():
+		return
 	var shop: Node = _ShopOverlay.present(self)
 	if shop == null:
 		return
@@ -993,10 +996,10 @@ func _sync_featured_rotation_state() -> void:
 
 func _set_pull_controls_enabled(enabled: bool) -> void:
 	if _is_seal_page():
-		_button_pull.disabled = not enabled
+		_button_pull.disabled = not enabled or not _GachaEquipSystem.can_pull()
 		_button_pull_ticket.disabled = not enabled or not _GachaEquipSystem.can_pull_with_ticket()
 	else:
-		_button_pull.disabled = not enabled
+		_button_pull.disabled = not enabled or not GachaSystem.can_pull()
 		_button_pull_ticket.disabled = not enabled or not GachaSystem.can_pull_with_ticket()
 	_btn_back.disabled = not enabled
 	_btn_rate_detail.disabled = not enabled
@@ -1096,8 +1099,7 @@ func _ask_pull(use_ticket: bool) -> void:
 			_pull_confirm.dialog_text = "封蔵開封券を1枚使って匣を開きますか？"
 		else:
 			if not _GachaEquipSystem.can_pull():
-				_label_result.text = "%sが足りません。ショップで入手できます。" % CurrencyHelper.DISPLAY_NAME
-				_open_shop()
+				_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
 				return
 			_pull_confirm.dialog_text = "%s %d を使って匣を開きますか？" % [
 				CurrencyHelper.DISPLAY_NAME, _GachaEquipSystem.PULL_COST,
@@ -1111,8 +1113,7 @@ func _ask_pull(use_ticket: bool) -> void:
 		_pull_confirm.dialog_text = "招待無料券を1枚使って引きますか？"
 	else:
 		if not GachaSystem.can_pull():
-			_label_result.text = "%sが足りません。ショップで入手できます。" % CurrencyHelper.DISPLAY_NAME
-			_open_shop()
+			_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
 			return
 		_pull_confirm.dialog_text = "%s %d を使って引きますか？" % [
 			CurrencyHelper.DISPLAY_NAME, GachaSystem.PULL_COST,
@@ -1154,8 +1155,7 @@ func _start_pull(use_ticket: bool, page: int = -1) -> void:
 			if eq_reason == "no_ticket":
 				_label_result.text = "封蔵開封券が足りません。"
 			elif eq_reason == "no_token":
-				_label_result.text = "%sが足りません。ショップで入手できます。" % CurrencyHelper.DISPLAY_NAME
-				_open_shop()
+				_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
 			elif eq_reason == "inventory_full":
 				_label_result.text = "装備袋がいっぱいです（%s）。鍛冶で分解してください。" % (
 					GameState.equipment_inventory_count_label()
@@ -1176,8 +1176,7 @@ func _start_pull(use_ticket: bool, page: int = -1) -> void:
 		if reason == "no_ticket":
 			_label_result.text = "招待無料券が足りません。"
 		elif reason == "no_token":
-			_label_result.text = "%sが足りません。ショップで入手できます。" % CurrencyHelper.DISPLAY_NAME
-			_open_shop()
+			_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
 		else:
 			_label_result.text = "招きを完了できませんでした。時間をおいて再度お試しください。"
 		_set_pull_controls_enabled(true)

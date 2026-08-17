@@ -8069,3 +8069,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-MONET-IAP-001-7 | **ショップ＋召喚不足導線**。初回ボーナスなし | 複雑さ抑制 |
 | P3-MONET-IAP-001-8 | **商品表** — ¥610＝500。SSOT `125_F2PArcaniteIap` | 招待1回アンカー |
 
+## 魔晶石 IAP オミット（2026-08-17 — P3-MONET-IAP-OMIT-001）
+
+> **オーナー指示** — 一旦課金要素を出さない。コード残置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-MONET-IAP-OMIT-001-1 | **`Constants.IAP_PLAYABLE=false`**。ショップ非表示・購入拒否 | 一旦オミット |
+| P3-MONET-IAP-OMIT-001-2 | **残置** — PurchaseManager／カタログ／`iap_fulfilled_txns` | 再掲用 |
+| P3-MONET-IAP-OMIT-001-3 | **上書き** — 001 の公開導線。無償魔晶石経済は据置 | プレイは課金前と同じ |
+
+

@@ -22,6 +22,8 @@ var _buy_buttons: Array[Button] = []
 
 
 static func present(host: Node) -> CanvasLayer:
+	if not Constants.are_iap_purchases_playable():
+		return null
 	if host == null:
 		return null
 	var existing: Node = host.get_node_or_null("ShopOverlay")

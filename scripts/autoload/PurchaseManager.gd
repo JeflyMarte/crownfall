@@ -17,6 +17,9 @@ var _persist_grants: bool = true
 
 
 func _ready() -> void:
+	if not Constants.are_iap_purchases_playable():
+		set_process(false)
+		return
 	if Engine.has_singleton("InAppStore"):
 		_store = Engine.get_singleton("InAppStore")
 		if _store.has_method("set_auto_finish_transaction"):
@@ -60,6 +63,8 @@ func set_persist_grants_for_tests(enabled: bool) -> void:
 
 
 func purchase(product_id: String) -> Dictionary:
+	if not Constants.are_iap_purchases_playable():
+		return _fail("omitted", "現在は購入できません")
 	if _busy:
 		return _fail("busy", "購入処理中です")
 	if _IapCatalog.by_id(product_id).is_empty():

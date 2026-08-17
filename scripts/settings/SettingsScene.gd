@@ -105,7 +105,8 @@ func _rebuild_page() -> void:
 	_speed_buttons.clear()
 	_content_host.add_child(_build_audio_section())
 	_content_host.add_child(_build_gameplay_section())
-	_content_host.add_child(_build_shop_section())
+	if Constants.are_iap_purchases_playable():
+		_content_host.add_child(_build_shop_section())
 	_content_host.add_child(_build_redeem_section())
 	_content_host.add_child(_build_credits_section())
 	_content_host.add_child(_build_system_section())
@@ -186,6 +187,8 @@ func _build_shop_section() -> Control:
 
 
 func _on_shop_pressed() -> void:
+	if not Constants.are_iap_purchases_playable():
+		return
 	AudioManager.play_sfx("ui_confirm", 1.0, 0.08)
 	_ShopOverlay.present(self)
 

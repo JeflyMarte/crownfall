@@ -49,6 +49,8 @@ const CODEX_DUNGEON_PLAYABLE: bool = false
 ## ジョブ到達形（昇格／認定）をプレイ対象に含める（P3-JOB-EVO-OMIT-001）。
 ## false=UI非表示・進化不可・補正／特質／着色なし。データ・セーブ項目は残置。
 const JOB_EVOLUTION_PLAYABLE: bool = false
+## 魔晶石 IAP（P3-MONET-IAP-OMIT-001）。false=ショップ非表示・購入不可。コード／セーブキーは残置。
+const IAP_PLAYABLE: bool = false
 const RESOURCE_STAGES_PATH: String = "res://resources/stages/"
 const COMBAT_TICK_INTERVAL: float = 1.5
 const DEFAULT_PLAYER_SKILL_ID: String = "slash_attack"
@@ -106,6 +108,10 @@ static func is_gacha_helper_id(member_id: String) -> bool:
 
 static func are_gacha_helpers_playable() -> bool:
 	return GACHA_HELPERS_PLAYABLE
+
+
+static func are_iap_purchases_playable() -> bool:
+	return IAP_PLAYABLE
 
 static func is_pet_id(member_id: String) -> bool:
 	return member_id.begins_with("pet_")

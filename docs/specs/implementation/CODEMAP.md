@@ -29,7 +29,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | エリート役割 | `EnemyData.skill_weights`＋キット差し替え（**P3-BAL-ELITE-IDENTITY-001**） |
 | EventSystem | `scripts/autoload/EventSystem.gd`（**P3-EVT-FIELD-001** 30分スロット・重み付き野外速報・`EventWeekRotation` SSOT） |
 | GachaSystem | `scripts/autoload/GachaSystem.gd` |
-| PurchaseManager | `scripts/autoload/PurchaseManager.gd`（**P3-MONET-IAP-001** 魔晶石 IAP） |
+| PurchaseManager | `scripts/autoload/PurchaseManager.gd`（**P3-MONET-IAP-001** 魔晶石 IAP・**OMIT-001 で非公開**） |
 
 **危険度ティア（P3-DG-TIER / P3-BAL-NM-CAP99-001）:** `DungeonTierConfig.gd` — Hard/NM はメイン5キャンペーン周回帯。解放=ノーマル全クリア／ハード全クリア。敵／推奨Lvボーナス= `75−n_end` / `99−n_end`（終端推奨≈75／99）。UI=`DungeonSelectScene` TabsRow。  
 **降臨群れ（P3-BAL-DESCENT-SWARM-001）:** 時間帯降臨は N でも群れ率0.72・頭数2〜4（`DESCENT_EVENT_SWARM_*`）。
@@ -64,7 +64,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | SurveyScene | `scenes/survey/SurveyScene.tscn` | `scripts/survey/SurveyScene.gd`（**P3-HUB-SURVEY-001** 調査室。スタッフ＝`SurveyStaff`。ノノカは **P3-SURVEY-NONOKA-JOIN-001** で③クリア後合流） |
 | CommanderScene | `scenes/commander/CommanderScene.tscn` | `scripts/commander/CommanderScene.gd`（**P3-CMD-001** 隊長台帳・**P3-CMD-RANK-CURVE-003** 閾値D0/C400/B900/A1500/S2200・**P3-CMD-RANK-SPLUS-001** S+n=+400／`57_CommanderSPlusRanks`・**P3-CMD-PERMIT-BOOST-001** 特権強化／`58_CommanderPermitBoost`・到達手当・称号データは残置／マイページ称号 UI オミット）・**P3-CMD-RANKUP-001** `CommanderRankUpOverlay`（拠点ランクアップ祝辞） |
 | CommanderPermitScene | `scenes/commander/CommanderPermitScene.tscn` | `scripts/commander/CommanderPermitScene.gd`（許可点スライダー：略奪／成長／戦力） |
-| SettingsScene | `scenes/settings/SettingsScene.tscn` | `scripts/settings/SettingsScene.gd`（設定 MVP・`SettingsPrefs`・特典コード P3-UX-REDEEM-001・クレジット `CreditsText`・**魔晶石ショップ／IAP 文言 P3-MONET-IAP-001**・デバッグ入口は `DebugAccess`） |
+| SettingsScene | `scenes/settings/SettingsScene.tscn` | `scripts/settings/SettingsScene.gd`（設定 MVP・`SettingsPrefs`・特典コード P3-UX-REDEEM-001・クレジット `CreditsText`・デバッグ入口は `DebugAccess`。魔晶石ショップは **IAP_PLAYABLE=false** で非表示） |
 
 **遷移:** Boot → Title →（Continue: load→ Base / Pick｜New Game: reset→ Pick→ Base）→ Dungeon → Result →（Equipment / **Blacksmith** / **Codex**）→ Base
 
@@ -143,7 +143,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `equipment/` | **状態付与一本化**（`EquipmentRandomMods`／P3-EQ-STATUS-UNIFY-001: 専用炎上付与等→`on_hit_status`）／**平坦帯圧縮**（`51_FlatRollNarrow.md`／上限×0.7・下限55%）／**焼直し**（`EquipmentReforgeHelper`／P3-FORGE-REFORGE-001）／**装備総合力**（`EquipmentPower`／P3-EQ-POWER-RECOMMEND-002・主ステ寄り・非表示・おすすめ比較） | `EquipmentController.gd`, `EquipmentScene.gd`, **`EquipmentUiHelper.gd`**（P3-UI2-019）, **`EquipmentUiTokens.gd`**（装備 chrome）, **`BuildTagHelper.gd`**（P3-UI2-016）, **`EquipmentRandomMods.gd`**（P3-EQ-DIABLO-001）, **`EquipmentReforgeHelper.gd`**, **`EquipmentPower.gd`**, **`EquipmentRecommendHelper.gd`**, **`AffixRoller.gd`**（レガシー）, **`AffixStatCalculator.gd`**, **`AffixDisplayFormatter.gd`**, **`JobStatCalculator.gd`** |
 
 | `blacksmith/` | `BlacksmithScene.gd`（生産／炉研ぎ／**焼直し**／**錬成**／分解 — **P3-FORGE-ALCHEMY-001**／**P3-FORGE-REFORGE-001**。装備ロック＝**P3-UX-EQUIP-LOCK-001** で素材・分解除外）・`BlacksmithUiHelper.gd`・**`ForgeUiTokens.gd`** |
-| `gacha/` | **`GachaSystem.gd`**・**`GachaRarityConfig.gd`**・**`GachaLimitBreak.gd`**（**P3-GACHA-LIMIT-001**）・**`GachaRevealPresenter.gd`**（**P3-GACHA-REVEAL-001**）・**`GachaScene.gd`**（P3-UI2-020・**P3-GACHA-002/003**・**P3-UI-GACHA**・**P3-GACHA-FEATURE-IDLE-001** Featured idle・**P3-GACHA-FEATURE-BLURB-001** 特徴行・**P3-GACHA-EQ-SEAL-UI-001** 招き↔封蔵 ←→・**P3-MONET-IAP-001** 不足時ショップ）・**`GachaEquipSystem.gd`**（封蔵の匣・灰冠27）・**`GachaUiTokens.gd`**・**`GachaUiHelper.gd`** |
+| `gacha/` | **`GachaSystem.gd`**・**`GachaRarityConfig.gd`**・**`GachaLimitBreak.gd`**（**P3-GACHA-LIMIT-001**）・**`GachaRevealPresenter.gd`**（**P3-GACHA-REVEAL-001**）・**`GachaScene.gd`**（P3-UI2-020・**P3-GACHA-002/003**・**P3-UI-GACHA**・**P3-GACHA-FEATURE-IDLE-001** Featured idle・**P3-GACHA-FEATURE-BLURB-001** 特徴行・**P3-GACHA-EQ-SEAL-UI-001** 招き↔封蔵 ←→。IAP ショップ導線は **OMIT**）・**`GachaEquipSystem.gd`**（封蔵の匣・灰冠27）・**`GachaUiTokens.gd`**・**`GachaUiHelper.gd`** |
 | `iap/` | **`IapCatalog.gd`**（パック表）・**`IapLegalText.gd`**（設定文言） |
 | `pets/` | **`PetSystem.gd`**・**`PetData.gd`**（ジャック／色変え・**P3-PET-SURVEY-UNLOCK-001** WW/BS調査100%解放・三角＝サポ／火力／状態異常。ジャックキット＝**P3-BAL-PET-JACK-KIT-001**。基礎ステ差＝**P3-BAL-PET-STAT-DIVERGE-001**） |
 | `survey/` | **`SurveySystem`**／**`SurveyConfig`**／**`SurveyScene`**／**`SurveyClaimResultOverlay`**（サイクル受取＝鍛冶分解同型ポップ＋派遣EXP表示）／**`SurveyCompleteRewards`**（完全調査100%ごと景品→0%・ペット初回のみ・P3-SURVEY-COMPLETE-001）。派遣EXP＝P3-SURVEY-DISPATCH-EXP-001。DISPATCH素材＝Biome重み／武器＝派遣先`weapon_pool`（P3-SURVEY-REWARD-VAR-001） |
