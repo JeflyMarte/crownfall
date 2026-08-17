@@ -1,4 +1,3 @@
-class_name ShopOverlay
 extends CanvasLayer
 
 ## 魔晶石ショップ（P3-MONET-IAP-001-B）。召喚不足時と設定から開く。
@@ -22,18 +21,18 @@ var _list: VBoxContainer = null
 var _buy_buttons: Array[Button] = []
 
 
-static func present(host: Node) -> ShopOverlay:
+static func present(host: Node) -> CanvasLayer:
 	if host == null:
 		return null
 	var existing: Node = host.get_node_or_null("ShopOverlay")
-	if existing is ShopOverlay:
-		var shop: ShopOverlay = existing as ShopOverlay
-		shop.open()
-		return shop
-	var overlay := ShopOverlay.new()
+	if existing != null and existing.has_method("open"):
+		existing.call("open")
+		return existing as CanvasLayer
+	var script: GDScript = load("res://scripts/ui/ShopOverlay.gd") as GDScript
+	var overlay: CanvasLayer = script.new() as CanvasLayer
 	overlay.name = "ShopOverlay"
 	host.add_child(overlay)
-	overlay.open()
+	overlay.call("open")
 	return overlay
 
 

@@ -25,6 +25,7 @@ alwaysApply: true
 | API 差し戻し後に arity 不一致でパース失敗 | 呼び出し側 arity を同時確認。optional 第2引数で互換を残す場合あり |
 | 図鑑等で参照メソッド欠落 | public API 削除・リネーム時は呼び出し側を一括検索 |
 | `HubLayoutHelper` が `SafeAreaHelper` 未解決 | class_name 同士は `preload`（`-s` ツール順対策） |
+| `Identifier not found: ShopOverlay`（GUT／preload） | 同一スクリプトの static が `class_name` で `new()` しない。`load(path).new()`。テストは preload |
 | ダンジョン選択で外側 const＋ラムダ | 上記 `sort_custom` と同じ。比較はメソッドへ |
 | `_execute_member_buff` 差し替えで `label` not declared | 引数追加時に return 文言ブロックを残す。DungeonScene ロード確認 |
 | ガチャ画面メンバ欠落でパース失敗→黒画面 | HEAD の `_setup_gacha_atmosphere` 等を維持。定数は参照前に定義 |

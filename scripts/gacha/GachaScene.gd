@@ -506,14 +506,17 @@ func _on_token_chip_input(event: InputEvent) -> void:
 
 
 func _open_shop() -> void:
-	var shop: ShopOverlay = _ShopOverlay.present(self)
-	if shop != null and not shop.tokens_changed.is_connected(_refresh):
-		shop.tokens_changed.connect(_refresh)
+	var shop: Node = _ShopOverlay.present(self)
+	if shop == null:
+		return
+	var sig: Signal = shop.get("tokens_changed")
+	if not sig.is_connected(_refresh):
+		sig.connect(_refresh)
 
 
 func _shop_is_open() -> bool:
-	var shop: ShopOverlay = get_node_or_null("ShopOverlay") as ShopOverlay
-	return shop != null and shop.visible
+	var shop: Node = get_node_or_null("ShopOverlay")
+	return shop != null and bool(shop.get("visible"))
 
 
 func _setup_gacha_chrome() -> void:
@@ -1540,9 +1543,9 @@ func _on_back_pressed() -> void:
 		_dismiss_summon_reveal()
 		return
 	if _shop_is_open():
-		var shop: ShopOverlay = get_node_or_null("ShopOverlay") as ShopOverlay
-		if shop != null:
-			shop.close()
+		var shop: Node = get_node_or_null("ShopOverlay")
+		if shop != null and shop.has_method("close"):
+			shop.call("close")
 		return
 	if _detail_overlay.visible:
 		_detail_overlay.visible = false
