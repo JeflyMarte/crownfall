@@ -319,3 +319,14 @@ v3.4+ 確定スコープ:
 | **P3-BAL-ENEMY-TRICKY-001** | Phase1: T1胞子霞／T2苔再生／T3ルーン加護（ウィドウ・モスシェル・ローチ） | **完了** | `decisions/35_EnemyTrickySkills.md` |
 | **P3-BAL-ENEMY-TRICKY-002** | Phase2: T5逃走（墓鐘バット） | **完了** | 同上 |
 | **P3-BAL-ENEMY-TRICKY-003** | Phase3: T4自爆／T6通常×0.2／T7スキル×0.2 | **完了** | 同上 |
+
+### Update — 課金（2026-08-17）
+
+| Task | 内容 | 状態 | 主な参照 |
+|---|---|---|---|
+| **P3-MONET-IAP-001-A** | PurchaseManager・カタログ・txn セーブ・GUT | **オミット** | `125_F2PArcaniteIap.md` |
+| **P3-MONET-IAP-001-B** | ショップ overlay・召喚不足導線 | **オミット** | 同上 |
+| **P3-MONET-IAP-001-C** | 設定文言・Wiki FAQ | **オミット** | 同上 |
+| **P3-MONET-IAP-001-D** | App Store Connect 商品・InAppStore プラグイン・TestFlight | **オミット** | 同上 |
+| **P3-MONET-IAP-OMIT-001** | `IAP_PLAYABLE=false`。導線遮断・コード残置 | **完了** | 同上 |
+

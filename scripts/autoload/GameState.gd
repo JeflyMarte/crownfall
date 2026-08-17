@@ -57,8 +57,10 @@ var survey_staff_nonoka_unlocked: bool = false
 ## 功績トーク用の章 id（表示名解決）。
 var pending_clear_stage_id: String = ""
 
-# ガチャ通貨（無償のみ） — P3-D036b
+# ガチャ通貨（無償＋IAP同一ウォレット） — P3-D036b / P3-MONET-IAP-001
 var gacha_token: int = 0  ## 魔晶石（ガチャ通貨・表示名は CurrencyHelper）
+## 消化済み IAP transaction_id。二重付与防止（P3-MONET-IAP-001）。
+var iap_fulfilled_txns: Dictionary = {}
 ## 装備画面フォーカス: id 優先（Roster 詳細→Equipment）。index は旧互換／ツール用。
 var equipment_focus_member_id: String = ""
 var equipment_focus_member_index: int = -1
@@ -1714,6 +1716,7 @@ func reset_for_new_game() -> void:
 	gold = 0
 	## 魔晶石ははじめガイド完了後にギルド支給（CurrencyGainFx）。
 	gacha_token = 0
+	iap_fulfilled_txns = {}
 	debug_full_unlock = false
 	debug_start_at_boss = false
 	owned_helpers = {}

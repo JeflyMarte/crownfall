@@ -8053,3 +8053,30 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-BOSS-SUMMON-HARD-PLUS-001-2 | **Hard/NM** — 既存召喚スキル据置 | 高難度の差別化 |
 | P3-BAL-BOSS-SUMMON-HARD-PLUS-001-3 | **対象外** — 雑魚の招集スキル | ボス限定 |
 | P3-BAL-BOSS-SUMMON-HARD-PLUS-001-4 | **SSOT** — `103_BossSummonHardPlus.md` | Decision 本体 |
+
+## F2P＋魔晶石 IAP（2026-08-17 — P3-MONET-IAP-001）
+
+> **オーナー GO・モデル B** — 無料 DL。売るものは魔晶石パックのみ。無償供給は据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-MONET-IAP-001-1 | **無料 DL**。デジタル通貨は App Store IAP のみ | Apple 3.1 |
+| P3-MONET-IAP-001-2 | **消耗型パックのみ**。招待 500／封蔵 300 据置 | 既存ガチャ接合 |
+| P3-MONET-IAP-001-3 | **無償供給据置** | 加速のみ |
+| P3-MONET-IAP-001-4 | **同一ウォレット** `gacha_token`。txn で二重付与防止 | セーブ互換 |
+| P3-MONET-IAP-001-5 | **iOS のみ**（v1） | 現行提出経路 |
+| P3-MONET-IAP-001-6 | **端末 StoreKit**。未完了トランザクションは起動時消化 | サーバーなし |
+| P3-MONET-IAP-001-7 | **ショップ＋召喚不足導線**。初回ボーナスなし | 複雑さ抑制 |
+| P3-MONET-IAP-001-8 | **商品表** — ¥610＝500。SSOT `125_F2PArcaniteIap` | 招待1回アンカー |
+
+## 魔晶石 IAP オミット（2026-08-17 — P3-MONET-IAP-OMIT-001）
+
+> **オーナー指示** — 一旦課金要素を出さない。コード残置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-MONET-IAP-OMIT-001-1 | **`Constants.IAP_PLAYABLE=false`**。ショップ非表示・購入拒否 | 一旦オミット |
+| P3-MONET-IAP-OMIT-001-2 | **残置** — PurchaseManager／カタログ／`iap_fulfilled_txns` | 再掲用 |
+| P3-MONET-IAP-OMIT-001-3 | **上書き** — 001 の公開導線。無償魔晶石経済は据置 | プレイは課金前と同じ |
+
+

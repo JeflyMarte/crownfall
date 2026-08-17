@@ -7,6 +7,7 @@ const _GachaRevealPresenter := preload("res://scripts/gacha/GachaRevealPresenter
 const _GachaEquipSystem := preload("res://scripts/gacha/GachaEquipSystem.gd")
 const _ChrIdlePortraitView := preload("res://scripts/ui/ChrIdlePortraitView.gd")
 const _RoomGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
+const _ShopOverlay := preload("res://scripts/ui/ShopOverlay.gd")
 
 const PAGE_INVITE: int = 0
 const PAGE_SEAL: int = 1
@@ -106,6 +107,8 @@ func _ready() -> void:
 		return
 	AudioManager.play_bgm("gacha")
 	_setup_gacha_chrome()
+	if Constants.are_iap_purchases_playable():
+		_setup_shop_entry()
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.GACHA)
 	_btn_back.pressed.connect(_on_back_pressed)
 	_btn_rate_detail.pressed.connect(_on_rate_detail_pressed)
@@ -479,6 +482,45 @@ func _setup_reveal_presenter() -> void:
 		GachaUiTokens.load_tex(GachaUiTokens.INVITE_SEALED_STAR2),
 		GachaUiTokens.load_tex(GachaUiTokens.INVITE_OPENING)
 	)
+
+func _setup_shop_entry() -> void:
+	var chip: Control = $Header/HeaderRow/TokenChip as Control
+	if chip == null:
+		return
+	chip.mouse_filter = Control.MOUSE_FILTER_STOP
+	chip.tooltip_text = "ショップ"
+	if not chip.gui_input.is_connected(_on_token_chip_input):
+		chip.gui_input.connect(_on_token_chip_input)
+
+
+func _on_token_chip_input(event: InputEvent) -> void:
+	var pressed: bool = (
+		(event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
+		or (event is InputEventScreenTouch and event.pressed)
+	)
+	if not pressed:
+		return
+	var chip: Control = $Header/HeaderRow/TokenChip as Control
+	if chip != null:
+		chip.accept_event()
+	_open_shop()
+
+
+func _open_shop() -> void:
+	if not Constants.are_iap_purchases_playable():
+		return
+	var shop: Node = _ShopOverlay.present(self)
+	if shop == null:
+		return
+	var sig: Signal = shop.get("tokens_changed")
+	if not sig.is_connected(_refresh):
+		sig.connect(_refresh)
+
+
+func _shop_is_open() -> bool:
+	var shop: Node = get_node_or_null("ShopOverlay")
+	return shop != null and bool(shop.get("visible"))
+
 
 func _setup_gacha_chrome() -> void:
 	_setup_gacha_atmosphere()
@@ -1498,6 +1540,11 @@ func _populate_reveal_content(
 func _on_back_pressed() -> void:
 	if _summon_active:
 		_dismiss_summon_reveal()
+		return
+	if _shop_is_open():
+		var shop: Node = get_node_or_null("ShopOverlay")
+		if shop != null and shop.has_method("close"):
+			shop.call("close")
 		return
 	if _detail_overlay.visible:
 		_detail_overlay.visible = false

@@ -4,6 +4,8 @@ extends Control
 
 const _SettingsPrefs := preload("res://scripts/settings/SettingsPrefs.gd")
 const _CreditsText := preload("res://scripts/settings/CreditsText.gd")
+const _IapLegalText := preload("res://scripts/iap/IapLegalText.gd")
+const _ShopOverlay := preload("res://scripts/ui/ShopOverlay.gd")
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const TITLE_SCENE: String = "res://scenes/title/TitleScene.tscn"
 ## 司令官BGの罫線が「ーーー」に見えるため、設定は単色下地のみ（テクスチャBG禁止）。
@@ -103,6 +105,8 @@ func _rebuild_page() -> void:
 	_speed_buttons.clear()
 	_content_host.add_child(_build_audio_section())
 	_content_host.add_child(_build_gameplay_section())
+	if Constants.are_iap_purchases_playable():
+		_content_host.add_child(_build_shop_section())
 	_content_host.add_child(_build_redeem_section())
 	_content_host.add_child(_build_credits_section())
 	_content_host.add_child(_build_system_section())
@@ -161,6 +165,32 @@ func _build_gameplay_section() -> Control:
 	body.add_child(vib)
 	_add_caption(body, "オフにすると戦闘ヒット時の振動を止めます（対応端末のみ）")
 	return sec["panel"]
+
+
+func _build_shop_section() -> Control:
+	var sec: Dictionary = _begin_section("ショップ")
+	var body: VBoxContainer = sec["body"]
+	_add_caption(body, "魔晶石パック（App Store）")
+	var shop_btn := Button.new()
+	shop_btn.text = "魔晶石ショップ"
+	shop_btn.pressed.connect(_on_shop_pressed)
+	UiTypography.apply_button(shop_btn, true)
+	body.add_child(shop_btn)
+	var legal := Label.new()
+	legal.text = _IapLegalText.settings_body()
+	legal.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	legal.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	legal.custom_minimum_size = Vector2(0, 0)
+	UiTypography.apply_body(legal, UiTypography.SIZE_BODY_SMALL)
+	body.add_child(legal)
+	return sec["panel"]
+
+
+func _on_shop_pressed() -> void:
+	if not Constants.are_iap_purchases_playable():
+		return
+	AudioManager.play_sfx("ui_confirm", 1.0, 0.08)
+	_ShopOverlay.present(self)
 
 
 func _build_redeem_section() -> Control:
