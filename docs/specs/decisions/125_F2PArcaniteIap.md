@@ -1,8 +1,8 @@
 # F2P＋魔晶石 IAP（P3-MONET-IAP-001）
 
 **日付:** 2026-08-17  
-**状態:** 承認依頼（オーナー＝モデル B 確認。本 Decision の GO 待ち）  
-**上書き:** `02_MVP設計.md`「実装しないもの／課金」（GO 後）／`P3-D036b-2`「通貨は無償のみ・購入なし」（GO 後）
+**状態:** 承認（オーナー GO 2026-08-17）  
+**上書き:** `02_MVP設計.md`「実装しないもの／課金」／`P3-D036b-2`「通貨は無償のみ・購入なし」
 
 ---
 
@@ -73,7 +73,7 @@ Connect 登録時の最終 Product ID は Bundle ID に合わせてよい。数�
 | **C** | 設定の特商法／規約文言。Wiki FAQ「課金どこ？」更新 |
 | **D** | App Store Connect 商品登録＋TestFlight サンドボックス（オーナー実機） |
 
-A/B はコード。C は文言。D はストア作業（エージェントだけでは完了しない）。
+A/B/C は本ターンで実装。D は Connect 作業。iOS 実購入には Godot InAppStore プラグインを export の Xcode プロジェクトへ入れる（`Engine.has_singleton("InAppStore")`）。
 
 ---
 

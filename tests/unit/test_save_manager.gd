@@ -42,6 +42,7 @@ func _reset_game_state() -> void:
 		GameState.seed_all_starters_unlocked()
 	GameState.gold = 0
 	GameState.gacha_token = 0
+	GameState.iap_fulfilled_txns = {}
 	GameState.owned_helpers = {}
 	GameState.owned_relics = []
 	GameState.current_dungeon_id = Constants.DEFAULT_DUNGEON_ID
@@ -81,6 +82,20 @@ func test_roundtrip_restores_gold_and_gacha_token() -> void:
 	assert_true(SaveManager.load_game())
 	assert_eq(GameState.gold, 1234, "gold が復元されること")
 	assert_eq(GameState.gacha_token, 56, "gacha_token が復元されること")
+
+
+func test_roundtrip_restores_iap_fulfilled_txns() -> void:
+	GameState.gacha_token = 1100
+	GameState.iap_fulfilled_txns = {"txn_iap_1": true}
+	assert_true(SaveManager.save_game())
+	GameState.gacha_token = 0
+	GameState.iap_fulfilled_txns = {}
+	assert_true(SaveManager.load_game())
+	assert_eq(GameState.gacha_token, 1100)
+	assert_true(GameState.iap_fulfilled_txns.has("txn_iap_1"), "IAP transaction が復元されること")
+	var dup: Dictionary = PurchaseManager.fulfill("iap.arcanite.l", "txn_iap_1")
+	assert_true(bool(dup.get("duplicate", false)))
+	assert_eq(GameState.gacha_token, 1100, "ロード後も二重付与しない")
 
 func test_roundtrip_restores_roster_member_progress() -> void:
 	var member: Resource = GameState.roster[0]
@@ -272,6 +287,16 @@ func test_load_legacy_save_without_version() -> void:
 func test_migrate_save_data_stamps_current_version() -> void:
 	var migrated: Dictionary = SaveManager._migrate_save_data({"gold": 1})
 	assert_eq(int(migrated["save_version"]), SaveManager.SAVE_VERSION, "マイグレーション後は現行バージョンが刻印されること")
+
+
+func test_migrate_v15_adds_iap_fulfilled_txns() -> void:
+	var migrated: Dictionary = SaveManager._migrate_save_data({
+		"save_version": 15,
+		"gold": 10,
+		"gacha_token": 3,
+	})
+	assert_true(migrated.get("iap_fulfilled_txns") is Dictionary)
+	assert_eq(int(migrated["save_version"]), SaveManager.SAVE_VERSION)
 
 
 func test_heal_hub_guide_flag_when_progressed_save_missing_it() -> void:

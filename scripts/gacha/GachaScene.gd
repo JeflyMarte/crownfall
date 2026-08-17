@@ -7,6 +7,7 @@ const _GachaRevealPresenter := preload("res://scripts/gacha/GachaRevealPresenter
 const _GachaEquipSystem := preload("res://scripts/gacha/GachaEquipSystem.gd")
 const _ChrIdlePortraitView := preload("res://scripts/ui/ChrIdlePortraitView.gd")
 const _RoomGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
+const _ShopOverlay := preload("res://scripts/ui/ShopOverlay.gd")
 
 const PAGE_INVITE: int = 0
 const PAGE_SEAL: int = 1
@@ -106,6 +107,7 @@ func _ready() -> void:
 		return
 	AudioManager.play_bgm("gacha")
 	_setup_gacha_chrome()
+	_setup_shop_entry()
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.GACHA)
 	_btn_back.pressed.connect(_on_back_pressed)
 	_btn_rate_detail.pressed.connect(_on_rate_detail_pressed)
@@ -479,6 +481,40 @@ func _setup_reveal_presenter() -> void:
 		GachaUiTokens.load_tex(GachaUiTokens.INVITE_SEALED_STAR2),
 		GachaUiTokens.load_tex(GachaUiTokens.INVITE_OPENING)
 	)
+
+func _setup_shop_entry() -> void:
+	var chip: Control = $Header/HeaderRow/TokenChip as Control
+	if chip == null:
+		return
+	chip.mouse_filter = Control.MOUSE_FILTER_STOP
+	chip.tooltip_text = "ショップ"
+	if not chip.gui_input.is_connected(_on_token_chip_input):
+		chip.gui_input.connect(_on_token_chip_input)
+
+
+func _on_token_chip_input(event: InputEvent) -> void:
+	var pressed: bool = (
+		(event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
+		or (event is InputEventScreenTouch and event.pressed)
+	)
+	if not pressed:
+		return
+	var chip: Control = $Header/HeaderRow/TokenChip as Control
+	if chip != null:
+		chip.accept_event()
+	_open_shop()
+
+
+func _open_shop() -> void:
+	var shop: ShopOverlay = _ShopOverlay.present(self)
+	if shop != null and not shop.tokens_changed.is_connected(_refresh):
+		shop.tokens_changed.connect(_refresh)
+
+
+func _shop_is_open() -> bool:
+	var shop: ShopOverlay = get_node_or_null("ShopOverlay") as ShopOverlay
+	return shop != null and shop.visible
+
 
 func _setup_gacha_chrome() -> void:
 	_setup_gacha_atmosphere()
@@ -954,10 +990,10 @@ func _sync_featured_rotation_state() -> void:
 
 func _set_pull_controls_enabled(enabled: bool) -> void:
 	if _is_seal_page():
-		_button_pull.disabled = not enabled or not _GachaEquipSystem.can_pull()
+		_button_pull.disabled = not enabled
 		_button_pull_ticket.disabled = not enabled or not _GachaEquipSystem.can_pull_with_ticket()
 	else:
-		_button_pull.disabled = not enabled or not GachaSystem.can_pull()
+		_button_pull.disabled = not enabled
 		_button_pull_ticket.disabled = not enabled or not GachaSystem.can_pull_with_ticket()
 	_btn_back.disabled = not enabled
 	_btn_rate_detail.disabled = not enabled
@@ -1057,7 +1093,8 @@ func _ask_pull(use_ticket: bool) -> void:
 			_pull_confirm.dialog_text = "封蔵開封券を1枚使って匣を開きますか？"
 		else:
 			if not _GachaEquipSystem.can_pull():
-				_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
+				_label_result.text = "%sが足りません。ショップで入手できます。" % CurrencyHelper.DISPLAY_NAME
+				_open_shop()
 				return
 			_pull_confirm.dialog_text = "%s %d を使って匣を開きますか？" % [
 				CurrencyHelper.DISPLAY_NAME, _GachaEquipSystem.PULL_COST,
@@ -1071,7 +1108,8 @@ func _ask_pull(use_ticket: bool) -> void:
 		_pull_confirm.dialog_text = "招待無料券を1枚使って引きますか？"
 	else:
 		if not GachaSystem.can_pull():
-			_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
+			_label_result.text = "%sが足りません。ショップで入手できます。" % CurrencyHelper.DISPLAY_NAME
+			_open_shop()
 			return
 		_pull_confirm.dialog_text = "%s %d を使って引きますか？" % [
 			CurrencyHelper.DISPLAY_NAME, GachaSystem.PULL_COST,
@@ -1113,7 +1151,8 @@ func _start_pull(use_ticket: bool, page: int = -1) -> void:
 			if eq_reason == "no_ticket":
 				_label_result.text = "封蔵開封券が足りません。"
 			elif eq_reason == "no_token":
-				_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
+				_label_result.text = "%sが足りません。ショップで入手できます。" % CurrencyHelper.DISPLAY_NAME
+				_open_shop()
 			elif eq_reason == "inventory_full":
 				_label_result.text = "装備袋がいっぱいです（%s）。鍛冶で分解してください。" % (
 					GameState.equipment_inventory_count_label()
@@ -1134,7 +1173,8 @@ func _start_pull(use_ticket: bool, page: int = -1) -> void:
 		if reason == "no_ticket":
 			_label_result.text = "招待無料券が足りません。"
 		elif reason == "no_token":
-			_label_result.text = "%sが足りません。" % CurrencyHelper.DISPLAY_NAME
+			_label_result.text = "%sが足りません。ショップで入手できます。" % CurrencyHelper.DISPLAY_NAME
+			_open_shop()
 		else:
 			_label_result.text = "招きを完了できませんでした。時間をおいて再度お試しください。"
 		_set_pull_controls_enabled(true)
@@ -1498,6 +1538,11 @@ func _populate_reveal_content(
 func _on_back_pressed() -> void:
 	if _summon_active:
 		_dismiss_summon_reveal()
+		return
+	if _shop_is_open():
+		var shop: ShopOverlay = get_node_or_null("ShopOverlay") as ShopOverlay
+		if shop != null:
+			shop.close()
 		return
 	if _detail_overlay.visible:
 		_detail_overlay.visible = false

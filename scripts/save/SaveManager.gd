@@ -23,7 +23,8 @@ const SLOT_DEBUG: String = "debug"
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 15
+## v16 = iap_fulfilled_txns（P3-MONET-IAP-001）
+const SAVE_VERSION: int = 16
 
 ## セッション中の読み書き先。タイトルで本編／デバッグを切り替える。
 var _active_slot: String = SLOT_NORMAL
@@ -77,6 +78,7 @@ func save_game() -> bool:
 		"accessory_inventory": _serialize_accessory_inventory(),
 		"enemy_codex": _serialize_enemy_codex(),
 		"gacha_token": GameState.gacha_token,
+		"iap_fulfilled_txns": GameState.iap_fulfilled_txns.duplicate(),
 		"owned_helpers": GameState.owned_helpers.duplicate(),
 		"ticket_inventory": GameState.ticket_inventory.duplicate(),
 		"redeemed_codes": GameState.redeemed_codes.duplicate(),
@@ -212,7 +214,16 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 		data = _migrate_save_v13_to_v14(data)
 	if version < 15:
 		data = _migrate_save_v14_to_v15(data)
+	if version < 16:
+		data = _migrate_save_v15_to_v16(data)
 	data["save_version"] = SAVE_VERSION
+	return data
+
+
+## P3-MONET-IAP-001: IAP 二重付与防止キー。
+func _migrate_save_v15_to_v16(data: Dictionary) -> Dictionary:
+	if not data.has("iap_fulfilled_txns") or not (data["iap_fulfilled_txns"] is Dictionary):
+		data["iap_fulfilled_txns"] = {}
 	return data
 
 
@@ -1110,6 +1121,14 @@ func _fallback_party_excluding_dispatched() -> Array:
 func _apply_gacha_save(data: Dictionary) -> void:
 	if data.has("gacha_token"):
 		GameState.gacha_token = int(data["gacha_token"])
+	if data.has("iap_fulfilled_txns") and data["iap_fulfilled_txns"] is Dictionary:
+		var tx: Dictionary = {}
+		for k in data["iap_fulfilled_txns"]:
+			if bool(data["iap_fulfilled_txns"][k]):
+				tx[str(k)] = true
+		GameState.iap_fulfilled_txns = tx
+	else:
+		GameState.iap_fulfilled_txns = {}
 	# 旧セーブの gacha_pity は無視（天井ロジック廃止）
 	if data.has("owned_helpers") and data["owned_helpers"] is Dictionary:
 		var oh: Dictionary = {}

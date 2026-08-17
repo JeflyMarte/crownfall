@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-17（**F2P＋魔晶石IAP GO／実装**: パック6種・ショップ・召喚不足導線・設定文言。Connect商品登録と InAppStore プラグインはオーナー作業）
 2026-08-17（**課金モデルB Decision 承認依頼**: 無料DL＋魔晶石 IAP。無償供給据置・iOSのみ。GO 待ち）
 2026-08-16（**Wiki公開デプロイ準備**: Actions を Org Pages＋`WIKI_PAGES_TOKEN` 方式へ切替。cursor[bot] は Pages へ 403のため、PAT 登録待ち）
 2026-08-16（**攻略Wiki初心者Tips追記／統合＋main**: 調査室・ペット回復・錬成を beginner に追加。要公開デプロイ）
