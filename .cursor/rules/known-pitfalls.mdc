@@ -238,7 +238,7 @@ alwaysApply: false
 | デバッグ中なのに時間限定イベントDGが閉じている | `EventDungeonSchedule.is_open_now` が `debug_full_unlock` を見ない | `debug_full_unlock`（または override=-2）で曜日／時間帯を常時開放。表示は「デバッグ常時開放」 |
 | 招待状で下ナビが潰れる／隊長バーが中段に落ちる | chrome＋Mac simulate ON | → `ui-layout.mdc` SafeArea |
 | 招待状が黒画面・下ナビにアイコン無し・BG／タイトル無し | `GachaScene.gd` が欠落メンバ（`TITLE_ART` 等）でパース失敗→スクリプト未実行で chrome／ナビ装飾が走らない | ガチャ画面は HEAD の `_setup_gacha_atmosphere` / `setup_banner_header` を維持。トークン定数は参照前に必ず定義。変更後 headless で GachaScene ロード確認 |
-| アプリアイコンが金の矢印 | iOS 向けに仮 `icon.png`（矢印）を追加したまま放置 | 正は `Downloads/アプリアイコン` → `assets/ui/UI_AppIcon.png`＋`icon.png`（1024²）。iOS は `AppIcon.appiconset` も更新し再ビルド／再インストール |
+| アプリアイコンが金の矢印 | iOS 向けに仮 `icon.png`（矢印）を追加したまま放置 | 正は `Downloads/CrownFallロゴ`（または現行アート）→ `assets/ui/UI_AppIcon.png`＋`icon.png`（1024²）。iOS は `AppIcon.appiconset` も更新し再ビルド／再インストール |
 | つづきからで拠点はじめガイドが再出 | デバッグ再演が `hub_simple_guide_done` を erase＋save／preview 終了で戻さない | 再演は preview のみでフラグ非接触。進行済みセーブは load 時に修復 |
 | `HubLayoutHelper` が `SafeAreaHelper` 未解決 | class_name 早期参照 | → `pitfalls-startup.mdc`／`ui-layout`（preload） |
 | `balance_sim` 即死／EXP=0 | -s autoload／roster空 | → **`pitfalls-startup.mdc`** |
