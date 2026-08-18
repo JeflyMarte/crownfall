@@ -61,6 +61,7 @@ var _layout_scale: float = 1.0
 var _auto_timer: SceneTreeTimer = null
 var _auto_gen: int = 0
 var _confirm_emitted: bool = false
+var auto_select_enabled: bool = true
 
 
 func _ready() -> void:
@@ -155,7 +156,8 @@ func open(heal_mode: bool) -> void:
 	_update_confirm_enabled()
 	visible = true
 	move_to_front()
-	_start_auto_select_timer()
+	if auto_select_enabled:
+		_start_auto_select_timer()
 
 
 func close() -> void:

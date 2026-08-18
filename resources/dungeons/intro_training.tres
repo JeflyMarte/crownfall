@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "intro_training"
+display_name = "ギルド訓練坑"
+difficulty = 0
+recommended_level = 1
+enemy_level = 1
+room_count = 3
+floor_count = 3
+enemy_pool = Array[String](["sepia_hound", "rune_roach"])
+boss_id = ""
+drop_table_id = ""
+discovery_unlocks = {}
+elite_pool = Array[String]([])
+favored_element = ""
+route_type = "tutorial"
+event_room_weight = 0
+min_event_rooms = 0
+weapon_pool = Array[String]([])
+armor_pool = Array[String]([])
+accessory_pool = Array[String]([])
+unlock_after_dungeon_id = ""
+daily_attempt_limit = 0
+disable_wandering = true
+forced_swarm_chance = 0.0
+forced_swarm_min = 1
+forced_swarm_max = 1
+flavor_text = "ギルド地下の訓練用模擬水路。新規隊長の現場確認に使う。"

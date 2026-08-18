@@ -4,7 +4,7 @@ extends Control
 ## 選んだ1人のみ解放。他は章クリア等で加入。
 
 const _IntroUiAssets := preload("res://scripts/intro/IntroUiAssets.gd")
-const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
+const _IntroTutorialConfig := preload("res://scripts/intro/IntroTutorialConfig.gd")
 const PORTRAIT_SIZE := Vector2(112, 148)
 
 var _selected_id: String = ""
@@ -42,7 +42,7 @@ func _build_ui() -> void:
 	root.add_child(title)
 
 	var sub := Label.new()
-	sub.text = "最初に編成の中心とする隊員を選んでください。\n選んだ隊員が先頭になります。"
+	sub.text = "最初に編成の中心とする隊員を選んでください。\n選んだ隊員と、ギルド地下の訓練坑へ向かいます。"
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiTypography.apply_body(sub, 16, Color(0.82, 0.84, 0.90))
@@ -203,5 +203,7 @@ func _on_start_confirmed() -> void:
 		return
 	if not GameState.select_intro_starter(_selected_id):
 		return
+	_IntroTutorialConfig.mark_pending()
+	_IntroTutorialConfig.begin_run()
 	SaveManager.save_game()
-	SceneRouter.change_scene(HOME_SCENE)
+	SceneRouter.change_scene(_IntroTutorialConfig.DUNGEON_SCENE)

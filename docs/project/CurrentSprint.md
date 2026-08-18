@@ -84,6 +84,7 @@
 
 | 順 | ID | 内容 | 状態 |
 |---|---|---|---|
+| — | **P3-INTRO-TUTORIAL-001** | 導入0-0訓練坑（隊員選択後・スキップなし） | ✅ Impl（要実機） |
 | — | **P3-UX-COMBAT-BAND-ART-001** | 帯VFX本番差し替え（案A: ColorRect即オフ→P0 breath/pulse/slash） | ✅ Impl（P0アート待ち） |
 | — | **P3-UX-COMBAT-BAND-001** | ボス詠唱帯VFX＋味方全体／必殺派手演出 | ✅ Impl → ART-001 で仮置きオフ |
 | — | **P3-UX-RELIC-TACTICS-B001** | レリック尖鋭案B全面（発火＋制約） | ✅ Impl（要実機） |

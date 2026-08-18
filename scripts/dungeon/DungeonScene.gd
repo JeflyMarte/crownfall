@@ -752,6 +752,8 @@ const ENEMY_SILENCE_DURATION_SEC: float = 5.0
 const ENEMY_HASTE_CT_REFUND: float = 0.55
 const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuses.gd")
 const _FloorChoiceOverlayScript = preload("res://scripts/dungeon/FloorChoiceOverlay.gd")
+const _IntroTutorialConfig = preload("res://scripts/intro/IntroTutorialConfig.gd")
+const _IntroTutorialGuideOverlayScript = preload("res://scripts/intro/IntroTutorialGuideOverlay.gd")
 const _EquipmentUiTokens = preload("res://scripts/equipment/EquipmentUiTokens.gd")
 
 var _auto_delay: float = AUTO_DELAY_BASE / SPEED_MULT_NORMAL
@@ -777,6 +779,10 @@ var _event_presentation_active: bool = false
 ## 分かれ道三択オーバーレイ表示中（P3-DG-FLOOR-CHOICE-001）。
 var _floor_choice_active: bool = false
 var _floor_choice_overlay: Control = null
+## 導入 0-0 ニーナ説明（P3-INTRO-TUTORIAL-001）。
+var _intro_tutorial_guide_active: bool = false
+var _intro_tutorial_overlay: CanvasLayer = null
+var _intro_tutorial_shown: Dictionary = {}
 ## 戦闘クリア後、次フロア暗転のタイミングで三択を出す予約。
 var _pending_floor_choice: bool = false
 var _pending_floor_choice_heal_mode: bool = false
@@ -1093,6 +1099,13 @@ func _ready() -> void:
 	if pause_log_btn != null and not pause_log_btn.pressed.is_connected(_on_pause_battle_log_pressed):
 		pause_log_btn.pressed.connect(_on_pause_battle_log_pressed)
 	_pause_overlay.get_node("PausePanel/PauseVBox/ButtonPauseRetire").pressed.connect(_on_pause_retire_pressed)
+	if _IntroTutorialConfig.is_run($DungeonController):
+		var retire_btn: Button = _pause_overlay.get_node_or_null(
+			"PausePanel/PauseVBox/ButtonPauseRetire"
+		) as Button
+		if retire_btn != null:
+			retire_btn.visible = false
+			retire_btn.disabled = true
 	EventBus.weapon_obtained.connect(_on_weapon_obtained)
 	EventBus.armor_obtained.connect(_on_armor_obtained)
 	EventBus.accessory_obtained.connect(_on_accessory_obtained)
@@ -1185,7 +1198,7 @@ func _ready() -> void:
 		var field_line: String = EventSystem.run_intro_line()
 		if not field_line.is_empty():
 			_append_log(field_line)
-	if not dungeon_id.is_empty():
+	if not dungeon_id.is_empty() and not _IntroTutorialConfig.is_dungeon_id(dungeon_id):
 		_try_register_discovery("dungeon", dungeon_id)
 	_update_combat_visibility()
 	_apply_combat_speed(SettingsPrefs.get_combat_speed_mult())
@@ -4194,6 +4207,10 @@ func _enter_noncombat_room_async() -> void:
 		return
 	_end_noncombat_party_feedback()
 	_noncombat_enter_fx_active = false
+	if _IntroTutorialConfig.is_run($DungeonController) and $DungeonController.current_room_type == Enums.RoomType.TREASURE:
+		await _present_intro_tutorial_guide(_IntroTutorialConfig.STEP_TREASURE)
+		if not is_inside_tree():
+			return
 	match $DungeonController.current_room_type:
 		Enums.RoomType.HEAL:
 			_resolve_heal_room()
@@ -4759,7 +4776,10 @@ func _resolve_treasure_room_async() -> void:
 		TreasureRoomPresentationScript.timings(_fast_run_enabled).get("setup_hold", 1.0)
 	)
 	await get_tree().create_timer(setup_hold).timeout
-	if not TreasureRoomPresentationScript.is_successful(null, GameState.current_dungeon_tier):
+	if (
+		not _IntroTutorialConfig.is_run($DungeonController)
+		and not TreasureRoomPresentationScript.is_successful(null, GameState.current_dungeon_tier)
+	):
 		var treasure_fail: Dictionary = $DungeonController.generate_treasure_loot_failure()
 		var fail_line: String = TreasureRoomPresentationScript.pick_fail_line()
 		## ダメージ数字は味方ドット上に出す（非表示のままだと位置がずれる／見えない）。
@@ -10750,6 +10770,9 @@ func _sync_last_run_stage_id() -> void:
 	GameState.last_run_stage_id = ""
 
 func _handle_party_wipe(cause_kind: String = "") -> void:
+	if _IntroTutorialConfig.is_run($DungeonController):
+		_retry_intro_tutorial_wipe()
+		return
 	$CombatTimer.stop()
 	_end_combat_session()
 	const _WipeCauseHelper = preload("res://scripts/result/WipeCauseHelper.gd")
@@ -10936,7 +10959,7 @@ func _update_combat_tier_frame() -> void:
 		_start_tier_frame_pulse()
 
 func _start_auto_progress() -> void:
-	if _is_paused or _dive_intro_active or _room_transition_busy or _boss_intro_active or _elite_intro_active or _heal_presentation_active or _treasure_presentation_active or _trap_presentation_active or _event_presentation_active or _noncombat_enter_fx_active or _combat_clear_active or _floor_choice_active:
+	if _is_paused or _dive_intro_active or _intro_tutorial_guide_active or _room_transition_busy or _boss_intro_active or _elite_intro_active or _heal_presentation_active or _treasure_presentation_active or _trap_presentation_active or _event_presentation_active or _noncombat_enter_fx_active or _combat_clear_active or _floor_choice_active:
 		if _is_paused:
 			_auto_progress_paused_remaining = _auto_delay
 		return
@@ -10947,6 +10970,8 @@ func _start_auto_progress() -> void:
 func _queue_floor_choice_if_needed() -> void:
 	_pending_floor_choice = false
 	_pending_floor_choice_heal_mode = false
+	if _IntroTutorialConfig.is_run($DungeonController):
+		return
 	if not $DungeonController.can_offer_floor_choice():
 		return
 	_pending_floor_choice = true
@@ -10983,7 +11008,21 @@ func _offer_floor_choice_replacing_caption(heal_mode: bool) -> void:
 	_label_transition.text = ""
 	_transition_overlay.modulate.a = 1.0
 	_ensure_floor_choice_overlay()
+	if _IntroTutorialConfig.is_run($DungeonController):
+		_offer_intro_tutorial_floor_choice(heal_mode)
+		return
 	(_floor_choice_overlay as FloorChoiceOverlay).open(heal_mode)
+
+
+func _offer_intro_tutorial_floor_choice(heal_mode: bool) -> void:
+	await _present_intro_tutorial_guide(_IntroTutorialConfig.STEP_CHOICE)
+	if not is_inside_tree():
+		return
+	if not _floor_choice_active:
+		return
+	var overlay: FloorChoiceOverlay = _floor_choice_overlay as FloorChoiceOverlay
+	overlay.auto_select_enabled = false
+	overlay.open(heal_mode)
 
 
 func _ensure_floor_choice_overlay() -> void:
@@ -11000,6 +11039,63 @@ func _ensure_floor_choice_overlay() -> void:
 	layer.add_child(overlay)
 	overlay.confirmed.connect(_on_floor_choice_confirmed)
 	_floor_choice_overlay = overlay
+
+
+func _present_intro_tutorial_guide(step: String) -> void:
+	if _intro_tutorial_shown.get(step, false):
+		return
+	var page: Dictionary = _IntroTutorialConfig.page_for(step)
+	if str(page.get("title", "")).is_empty():
+		return
+	_intro_tutorial_shown[step] = true
+	_intro_tutorial_guide_active = true
+	$CombatTimer.stop()
+	$AutoProgressTimer.stop()
+	_ensure_intro_tutorial_overlay()
+	_intro_tutorial_overlay.present(str(page.get("title", "")), str(page.get("body", "")))
+	await _intro_tutorial_overlay.dismissed
+	_intro_tutorial_guide_active = false
+
+
+func _ensure_intro_tutorial_overlay() -> void:
+	if _intro_tutorial_overlay != null and is_instance_valid(_intro_tutorial_overlay):
+		return
+	var overlay: CanvasLayer = _IntroTutorialGuideOverlayScript.new()
+	overlay.name = "IntroTutorialGuideOverlay"
+	add_child(overlay)
+	_intro_tutorial_overlay = overlay
+
+
+func _complete_intro_tutorial() -> void:
+	_btn_finish.disabled = true
+	$CombatTimer.stop()
+	$AutoProgressTimer.stop()
+	_clear_all_member_skill_labels()
+	_clear_turn_order_ui()
+	if $CombatController.is_in_combat:
+		$CombatController.end_combat()
+	await _present_intro_tutorial_guide(_IntroTutorialConfig.STEP_DONE)
+	if not is_inside_tree():
+		return
+	_commit_run_exp_state_to_gamestate()
+	GameState.gold += $DungeonController.run_gold_reward
+	GameState.last_run_gold_reward = $DungeonController.run_gold_reward
+	_IntroTutorialConfig.mark_done()
+	GameState.current_dungeon_id = Constants.DEFAULT_DUNGEON_ID
+	GameState.current_stage_id = ""
+	SaveManager.save_game()
+	SceneRouter.change_scene(_IntroTutorialConfig.HOME_SCENE)
+
+
+func _retry_intro_tutorial_wipe() -> void:
+	$CombatTimer.stop()
+	_end_combat_session()
+	if $CombatController.is_in_combat:
+		$CombatController.end_combat()
+	_append_log("訓練なので倒れません。もう一度！")
+	$CombatController.reset_party_hp_for_run()
+	_update_hp_bars()
+	_enter_current_room()
 
 
 func _on_floor_choice_confirmed(choice_id: String, harvest_kinds: Array[String]) -> void:
@@ -11124,6 +11220,13 @@ func _room_handles_own_progression(room_type: int) -> bool:
 	]
 
 func _finish_room_and_continue() -> void:
+	if (
+		_IntroTutorialConfig.is_run($DungeonController)
+		and $DungeonController.current_room_type == Enums.RoomType.TREASURE
+		and not $DungeonController.is_on_last_floor()
+	):
+		_pending_floor_choice = true
+		_pending_floor_choice_heal_mode = false
 	var grace: float = 0.0
 	if not $DungeonController.is_combat_room():
 		grace = NON_COMBAT_FLOOR_GRACE_SEC
@@ -11171,6 +11274,9 @@ func _advance_with_caption() -> void:
 	_apply_room_transition_caption_style($DungeonController.current_room_type)
 
 func _on_finish_button_pressed() -> void:
+	if _IntroTutorialConfig.is_run($DungeonController):
+		_complete_intro_tutorial()
+		return
 	_btn_finish.disabled = true
 	$CombatTimer.stop()
 	_clear_all_member_skill_labels()
@@ -11593,6 +11699,10 @@ func _on_pause_retire_pressed() -> void:
 	_retire_from_dungeon()
 
 func _retire_from_dungeon() -> void:
+	if _IntroTutorialConfig.is_run($DungeonController):
+		_set_narrative("訓練中は帰還できません")
+		_set_paused(false)
+		return
 	_pause_overlay.visible = false
 	_is_paused = false
 	$CombatTimer.stop()
@@ -13453,6 +13563,17 @@ func _start_combat_after_appear_delay() -> void:
 		return
 	if _boss_intro_active or _elite_intro_active:
 		return
+	if _IntroTutorialConfig.is_run($DungeonController):
+		var step: String = _IntroTutorialConfig.STEP_COMBAT
+		if $DungeonController.current_room_index > 0:
+			step = _IntroTutorialConfig.STEP_COMBAT_2
+		await _present_intro_tutorial_guide(step)
+		if not is_inside_tree():
+			return
+		if session != _combat_session_id:
+			return
+		if not $CombatController.is_in_combat or _is_paused:
+			return
 	_fire_combat_start_passives()
 	_combat_impact_sfx_enabled = true
 	$CombatTimer.start()
@@ -15079,6 +15200,8 @@ func _dungeon_env_obj_path(dungeon_id: String, room_type: int) -> String:
 	return ""
 
 func _dungeon_battle_bg_lookup_id(dungeon_id: String) -> String:
+	if _IntroTutorialConfig.is_dungeon_id(dungeon_id):
+		return _IntroTutorialConfig.ART_BIOME_ID
 	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
 	if _AbyssDungeonConfig.is_abyss_dungeon_id(dungeon_id):
 		var parent: String = _AbyssDungeonConfig.parent_biome_id(dungeon_id)

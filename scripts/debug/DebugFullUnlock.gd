@@ -63,6 +63,8 @@ static func apply() -> void:
 	var first_stage: Resource = DataRegistry.get_stage_by_chapter(Constants.MOURNGATE_DUNGEON_ID, 1)
 	GameState.current_stage_id = str(first_stage.id) if first_stage != null else ""
 	GameState.starter_pick_pending = false
+	const _IntroTutorialConfig := preload("res://scripts/intro/IntroTutorialConfig.gd")
+	_IntroTutorialConfig.mark_done()
 	GameState.normalize_roster_rarity()
 	GameState.normalize_all_equipped_skills()
 	GameState.normalize_all_equipped_passives()

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="DungeonStageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonStageData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "intro_0_0"
+biome_id = "intro_training"
+biome_index = 0
+chapter_index = 0
+display_name = "訓練用模擬水路"
+floor_count = 3
+enemy_level = 1
+recommended_level = 1
+closing_type = "exit"
+requires_elite = false
+spawn_weights = {
+"1": 100
+}
+event_room_weight = 0
+min_event_rooms = 0

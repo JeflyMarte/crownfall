@@ -8043,6 +8043,18 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-ALCHEMY-BASE-TIER-001-3 | **上書き** — 91 の「帯＝素材のみ」 | 本 Decision が正 |
 | P3-BAL-ALCHEMY-BASE-TIER-001-4 | **SSOT** — `102_AlchemyBaseLevelGoldTier.md` | Decision 本体 |
 
+## 導入バトルチュートリアル 0-0（2026-08-18 — P3-INTRO-TUTORIAL-001）
+
+> オーナー GO（案A・スキップなし）。リリース後「バトルが分からない」への対処。`02_NewGameIntro` の強制ダンジョン禁止を上書き。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-INTRO-TUTORIAL-001-1 | **挿入位置** — ニーナ → 初期隊員1人 → **0-0 強制** → 拠点はじめガイド／ジャック | 自分の職で学べる。ジャック説明より前 |
+| P3-INTRO-TUTORIAL-001-2 | **スキップなし**（撤退ボタン非表示）。既存セーブは出さない | 初回のみ現場確認 |
+| P3-INTRO-TUTORIAL-001-3 | **部屋** — 戦闘→宝箱→三択→戦闘。敵は弱く固定・逃げない。報酬は少量Goldのみ | 教えるのは自動戦闘／画面／宝箱／三択 |
+| P3-INTRO-TUTORIAL-001-4 | **一覧非表示・結果画面なし・1-1進行に使わない** | 本編と分離 |
+| P3-INTRO-TUTORIAL-001-5 | **SSOT** — `125_IntroTutorialDungeon.md` | 実装正 |
+
 ## ボス召喚は Hard+ のみ（2026-08-11 — P3-BAL-BOSS-SUMMON-HARD-PLUS-001）
 
 > **オーナー指示** — ノーマルではボス召喚なし。ハードから。

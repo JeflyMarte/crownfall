@@ -15,6 +15,7 @@ const _AbyssLegendaryWeapons = preload("res://scripts/dungeon/AbyssLegendaryWeap
 const _EventExclusiveRewards = preload("res://scripts/dungeon/EventExclusiveRewards.gd")
 const _ShadowStalkerLoot = preload("res://scripts/dungeon/ShadowStalkerLoot.gd")
 const _BalanceConfig = preload("res://scripts/combat/BalanceConfig.gd")
+const _IntroTutorialConfig = preload("res://scripts/intro/IntroTutorialConfig.gd")
 
 const ROOM_SEQUENCE: Array[int] = [
 	Enums.RoomType.START,
@@ -640,6 +641,8 @@ func should_show_shadow_stalker_omen() -> bool:
 
 
 func _roll_run_weather() -> String:
+	if _IntroTutorialConfig.is_run(self):
+		return ""
 	var forced: String = EventSystem.forced_weather_id()
 	if not forced.is_empty():
 		return CombatWeather.normalize(forced)
@@ -1166,6 +1169,8 @@ func _build_room_sequence(dungeon: DungeonData) -> Array[int]:
 	return legacy
 
 func _build_room_sequence_for_stage(stage: Resource) -> Array[int]:
+	if stage != null and _IntroTutorialConfig.is_stage_id(str(stage.id)):
+		return _IntroTutorialConfig.room_sequence()
 	return _generate_random_sequence(
 		current_dungeon_data,
 		int(stage.floor_count),
@@ -1755,6 +1760,8 @@ func _swarm_pool_enemies(include_escorts: bool) -> Array[Resource]:
 # ELITE は N/H=護衛1〜2、NM=双エリート薄護衛 or 単＋護衛2〜3。
 # COMBAT 放浪は通常群れにまぎれる（P3-BAL-WANDER-MIX-001）。ビッグダック／影狩は単独据置。
 func pick_combat_enemy_group() -> Array[Resource]:
+	if _IntroTutorialConfig.is_run(self):
+		return _IntroTutorialConfig.enemy_group_for_room(current_room_index)
 	var group: Array[Resource] = []
 	var wander: Resource = null
 	if current_room_type == Enums.RoomType.COMBAT:
@@ -2009,6 +2016,8 @@ func _finalize_material_outcome(outcome: Dictionary) -> Dictionary:
 	return resolved
 
 func update_discovery(bonus: float = 0.0) -> void:
+	if _IntroTutorialConfig.is_run(self):
+		return
 	if current_dungeon_data == null:
 		return
 	var did: String = current_dungeon_data.id
@@ -2029,6 +2038,16 @@ func update_discovery(bonus: float = 0.0) -> void:
 	GameState.dungeon_progress[did] = prog
 
 func generate_treasure_loot() -> Dictionary:
+	if _IntroTutorialConfig.is_run(self):
+		var gold: int = _IntroTutorialConfig.TREASURE_GOLD
+		accumulate_rewards(0, gold)
+		return {
+			"gold": gold,
+			"weapon_id": "",
+			"armor_id": "",
+			"accessory_id": "",
+			"equip_category": "",
+		}
 	## P3-BAL-TREASURE-EQUIP-001: 成功時は装備1点確定（武器／防具／装飾を均等）。追加抽選なし。
 	var gold: int = BalanceConfig.treasure_gold(GameState.current_dungeon_tier)
 	accumulate_rewards(0, gold)

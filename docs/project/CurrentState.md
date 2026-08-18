@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-18（**導入0-0訓練坑／統合＋main**: ニーナ→隊員1人→強制チュートリアル戦→拠点。スキップなし。要実機）
 2026-08-17（**iOS 1.0.1 へ上げて再提出可能に**: 1.0.0 は承認済みで train closed（90186/90062）。short_version 1.0.1／build 5。要 Archive→Upload。Connect で 1.0.1 バージョン作成）
 2026-08-17（**iOS 対応言語 EN→JA を現行Xcode出力へ適用**: `ja.lproj`／`CFBundleDevelopmentRegion=ja`。1.0.0 は提出不可のため 1.0.1 へ）
 2026-08-17（**アプリアイコン差し替え／統合＋main**: Downloads「CrownFallロゴ」→`UI_AppIcon`／`icon.png`＋iOS AppIcon。要iOS再ビルド／再インストール）

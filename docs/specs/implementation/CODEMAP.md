@@ -45,7 +45,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 |---|---|---|
 | BootScene | `scenes/boot/BootScene.tscn` | `scripts/boot/BootScene.gd`（→ Title。起動時ロードなし） |
 | TitleScene | `scenes/title/TitleScene.tscn` | `scripts/title/TitleScene.gd`（**P3-UI-TITLE-001** / **P3-INTRO-001**） |
-| IntroLore / Name / Nina | `scenes/intro/*.tscn` | `scripts/intro/*`（P3-INTRO-001/002・SCROLL-001 自動クロール・ニーナ文字送り・`IntroUiAssets`） |
+| IntroLore / Name / Nina | `scenes/intro/*.tscn` | `scripts/intro/*`（P3-INTRO-001/002・SCROLL-001・**P3-INTRO-TUTORIAL-001** `IntroTutorialConfig`／`IntroTutorialGuideOverlay`） |
 | StarterPickScene | `scenes/roster/StarterPickScene.tscn` | `scripts/roster/StarterPickScene.gd`（導入BG＋枠） |
 | BaseScene | `scenes/base/BaseScene.tscn` | `scripts/base/BaseScene.gd` |
 | DungeonSelectScene | `scenes/dungeon/DungeonSelectScene.tscn` | `scripts/dungeon/DungeonSelectScene.gd` |

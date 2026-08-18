@@ -23,10 +23,11 @@ Title「はじめから」
 ② プレイヤー名入力（隊長名）
 ③ ニーナ紹介（吹き出し最大3）
 ④ 初期隊員1人選択（既存 StarterPick）
-⑤ 拠点 BaseScene へ解放
+⑤ **0-0 訓練坑（強制・スキップなし）** — `125_IntroTutorialDungeon`
+⑥ 拠点 BaseScene へ解放（はじめガイド → ジャック支給）
 ```
 
-**強制ダンジョン突入はしない。**
+**0-0 は `125_IntroTutorialDungeon` が上書き。** 操作ハイライトツアーはしない。
 
 依存（WIP 可）: `TitleScene` / `StarterPickScene` / 指揮官表示名（TopBar）。
 
@@ -84,7 +85,7 @@ Title「はじめから」
 
 ## 6. スコープ外
 
-- 戦闘チュートリアル戦闘
+- ~~戦闘チュートリアル戦闘~~ → **0-0 訓練坑で採用**（`125_IntroTutorialDungeon`）
 - 拠点全施設の強制案内
 - **拠点初回の「何からやるか」簡易ガイド**は別 Decision（`decisions/10_HubSimpleGuide` / P3-UI-HUB-GUIDE-001）。操作講習ではない
 - 属性 vs 状態の導入専用画面（既存 Codex Guide / P3-D024i に委譲）

@@ -7,6 +7,7 @@ extends Control
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const STARTER_PICK_SCENE: String = "res://scenes/roster/StarterPickScene.tscn"
 const INTRO_LORE_SCENE: String = "res://scenes/intro/IntroLoreScene.tscn"
+const _IntroTutorialConfig := preload("res://scripts/intro/IntroTutorialConfig.gd")
 const BG_PATH: String = "res://assets/ui/UI_BG_TitleMain.png"
 const _DebugFullUnlock = preload("res://scripts/debug/DebugFullUnlock.gd")
 const _DebugAccess = preload("res://scripts/debug/DebugAccess.gd")
@@ -226,6 +227,9 @@ func _on_continue() -> void:
 		return
 	if GameState.needs_starter_pick():
 		SceneRouter.change_scene(STARTER_PICK_SCENE)
+	elif _IntroTutorialConfig.needs_run():
+		_IntroTutorialConfig.begin_run()
+		SceneRouter.change_scene(_IntroTutorialConfig.DUNGEON_SCENE)
 	else:
 		SceneRouter.change_scene(HOME_SCENE)
 
