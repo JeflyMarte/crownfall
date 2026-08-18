@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-19（**iOS 1.0.1 build6 releaseエクスポート＋Xcode適用**: 導入0-0修正込み。`--export-release`・PCK 546MB・ja.lproj。要 Archive→Upload。Connect で 1.0.1 を作成して提出）
 2026-08-19（**導入0-0修正／統合＋main**: はじまりヘッダー上端・三択10秒自動の説明・訓練中の探索罠オフ。要実機）
 2026-08-18（**導入0-0訓練坑／統合＋main**: ニーナ→隊員1人→強制チュートリアル戦→拠点。スキップなし。要実機）
 2026-08-17（**iOS 1.0.1 へ上げて再提出可能に**: 1.0.0 は承認済みで train closed（90186/90062）。short_version 1.0.1／build 5。要 Archive→Upload。Connect で 1.0.1 バージョン作成）
