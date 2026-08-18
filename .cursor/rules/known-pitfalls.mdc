@@ -216,6 +216,8 @@ alwaysApply: false
 | 状態異常リンク不能／章カード名タップ不能（ScrollTouch RTL） | 全 RTL を STOP／PASS 化 | → **`ui-layout.mdc` ScrollTouch** |
 | イベントバナー取り違え・枠なし／戦闘入場前の謎SE | mourngate流用・room_enter・Gate外SE | → `ui-layout` バナー／**`14_Presentation_Pitfalls.md`** §4 |
 | ダンジョンヘッダの ×2 が効かない／「周回」が残る | `.tscn`×2 なのに GD が ×1.5 上書き、または FastRun ボタンを動的追加 | ヘッダは ×1／×1.5／×2 のみ。`ButtonFastRun` は削除。`SPEED_MULT_FAST=2.0` |
+| 導入「はじまり／スキップ」が画面中央 | デスクトップで DisplayServer セーフ矩形の stretch 換算 inset を Intro に足した | デスクトップは inset=0。Intro は `should_apply_chrome()` のときだけ足す → `ui-layout.mdc` SafeArea |
+| 0-0 宝箱後に主人公が罠ダメージ | 次戦闘入場の `_try_exploration_trap`（N 約5%） | 訓練坑は探索罠スキップ |
 | ダンジョン左上 ≡ が押せない | ノッチ未対応＋Menu z 不足 | → `ui-layout.mdc` SafeArea。Menu CanvasLayer 40 |
 | ランHUD「発見100%」が意味不明 | 累積 discovery メーターで進行と無関係 | 「進行 N%」＝`display_floor_current/max`（P3-UX-RUN-HUD-FLOOR-PCT-001） |
 | ≡メニューの設定／リタイアでフォントがバラバラ | 動的「設定」だけ別適用、またはテーマ Display 混在 | `_style_menu_overlay_buttons` で全ボタン本文フォント＋SIZE_BODY＋同 min サイズ |

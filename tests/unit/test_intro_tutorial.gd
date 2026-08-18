@@ -82,6 +82,25 @@ func test_treasure_gold_only() -> void:
 	assert_eq(str(loot.get("accessory_id", "")), "")
 
 
+func test_choice_guide_mentions_auto_select() -> void:
+	var page: Dictionary = _IntroTutorialConfig.page_for(_IntroTutorialConfig.STEP_CHOICE)
+	var body: String = str(page.get("body", ""))
+	assert_true(body.contains("秒"))
+	assert_true(body.contains("自動"))
+
+
+func test_desktop_safe_area_insets_zero_without_simulate() -> void:
+	if OS.get_name() == "iOS" or OS.get_name() == "Android":
+		pass
+		return
+	if bool(ProjectSettings.get_setting("crownfall/ui/simulate_mobile_safe_area", false)):
+		pending("simulate_mobile_safe_area is ON")
+		return
+	var helper = preload("res://scripts/ui/SafeAreaHelper.gd")
+	assert_eq(helper.top_inset(), 0.0)
+	assert_eq(helper.bottom_inset(), 0.0)
+
+
 func test_nina_lines_setup_training() -> void:
 	assert_eq(_IntroLoreContent.NINA_LINES.size(), 3)
 	assert_true(str(_IntroLoreContent.NINA_LINES[1]).contains("訓練坑"))

@@ -19,6 +19,7 @@ const TRAIN_ATK_SPEED: float = 0.75
 const TRAIN_EXP: int = 4
 const TRAIN_GOLD: int = 8
 const TREASURE_GOLD: int = 50
+const _FloorChoiceOverlay := preload("res://scripts/dungeon/FloorChoiceOverlay.gd")
 
 const STEP_COMBAT: String = "combat"
 const STEP_TREASURE: String = "treasure"
@@ -150,7 +151,8 @@ static func page_for(step: String) -> Dictionary:
 				"body": (
 					"戦闘のあとに[color=#9A5018][b]三択[/b][/color]が出ることがあります。\n\n"
 					+ "戦力・回復・収穫など、次のフロアへの備えを一つ選んでください。\n\n"
-					+ "選ばないと先に進めません。好きなものをタップして確定を。"
+					+ "選ばないと、[color=#7A3E12][b]%d秒後[/b][/color]に左の選択肢が自動で決まります。好きなものをタップして確定を。"
+					% int(_FloorChoiceOverlay.AUTO_SELECT_SEC)
 				),
 			}
 		STEP_COMBAT_2:

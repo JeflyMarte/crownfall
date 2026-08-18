@@ -4908,6 +4908,9 @@ func _apply_exploration_event_skills(outcome: Dictionary) -> PackedStringArray:
 	return lines
 
 func _try_exploration_trap() -> void:
+	## 訓練坑は罠を教えない。宝箱の次の戦闘入場で探索罠が当たると主人公が突然減る。
+	if _IntroTutorialConfig.is_run($DungeonController):
+		return
 	var room_type: int = $DungeonController.current_room_type
 	if room_type != Enums.RoomType.COMBAT and room_type != Enums.RoomType.ELITE:
 		return
@@ -11021,7 +11024,6 @@ func _offer_intro_tutorial_floor_choice(heal_mode: bool) -> void:
 	if not _floor_choice_active:
 		return
 	var overlay: FloorChoiceOverlay = _floor_choice_overlay as FloorChoiceOverlay
-	overlay.auto_select_enabled = false
 	overlay.open(heal_mode)
 
 

@@ -149,18 +149,22 @@ func _build_ui() -> void:
 	_IntroUiAssets.add_full_bg(self, _IntroUiAssets.BG_LORE, Color(0.04, 0.05, 0.08, 1.0))
 
 	_root_margin = MarginContainer.new()
-	_root_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_root_margin.add_theme_constant_override("margin_left", 28)
 	_root_margin.add_theme_constant_override("margin_right", 28)
 	_root_margin.add_theme_constant_override("margin_top", 28)
 	_root_margin.add_theme_constant_override("margin_bottom", 24)
 	add_child(_root_margin)
+	_root_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	var root := VBoxContainer.new()
+	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_theme_constant_override("separation", 14)
 	_root_margin.add_child(root)
 
 	var header := HBoxContainer.new()
+	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	header.add_theme_constant_override("separation", 12)
 	root.add_child(header)
 
@@ -257,9 +261,12 @@ func _apply_safe_area_margins() -> void:
 	if _root_margin == null:
 		return
 	## Home Indicator 近傍で本文・ヒントが沈まないよう Intro 専用の下余白を確保する。
-	## aspect=keep 時は SafeAreaHelper が inset=0 を返すため、モバイルでは下限を常時確保する。
-	var top: float = INTRO_BASE_TOP_MARGIN + _SafeAreaHelper.top_inset()
-	var bottom: float = INTRO_BASE_BOTTOM_MARGIN + _SafeAreaHelper.bottom_inset()
+	## デスクトップの DisplayServer 換算 inset は使わない（ヘッダーが画面中央へ落ちる）。
+	var top: float = INTRO_BASE_TOP_MARGIN
+	var bottom: float = INTRO_BASE_BOTTOM_MARGIN
+	if _SafeAreaHelper.should_apply_chrome():
+		top += _SafeAreaHelper.top_inset()
+		bottom += _SafeAreaHelper.bottom_inset()
 	if _needs_intro_bottom_guard():
 		bottom = maxf(bottom, INTRO_MIN_BOTTOM_MARGIN)
 	_root_margin.add_theme_constant_override("margin_top", int(ceil(top)))

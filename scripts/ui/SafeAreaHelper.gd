@@ -92,9 +92,10 @@ static func _insets() -> Vector4:
 
 static func _platform_fallback(computed: Vector4) -> Vector4:
 	var out := computed
-	## デスクトップは inset=0 のまま。
+	## デスクトップは inset=0。DisplayServer 矩形を stretch 換算すると
+	## エディタの小さなポートレート窓で巨大な top inset になり、ヘッダーが中段へ落ちる。
 	if not _needs_mobile_insets():
-		return out
+		return Vector4.ZERO
 	## aspect=keep（案A）は上下黒帯でノッチ／Home Indicator を吸収済み。
 	## ここで 54/24 を足すと TopBar が下がり、下ナビ下に余白が空く。
 	if _uses_letterbox_aspect():

@@ -66,6 +66,7 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 
 ❌ BAD
 - Mac で `simulate_mobile_safe_area=true` のまま TopBar／左メニューを動的に下げる
+- デスクトップで `top_inset()` を `should_apply_chrome()` なしに Intro 等へ足す（stretch 換算で巨大 inset → 「はじまり／スキップ」が画面中央へ）
 - 全画面の `BottomNavHelper.setup` で無条件に chrome を当て、招待状の下ナビを潰す
 - `LeftMenuPanel` 高さを Scroll 子の **`size.y`** で決める
 - letterbox（`aspect=keep`）で inset=0 なのに 54/24 等の強制フォールバック
