@@ -7,10 +7,12 @@ const _WeaponInstance := preload("res://scripts/domain/WeaponInstance.gd")
 
 func before_each() -> void:
 	GameState.reset_for_new_game()
+	SaveManager.delete_save()
 
 
 func _make_weapon() -> Resource:
 	var w: Resource = _WeaponInstance.new()
+	w.instance_id = "lock_test_%d" % randi()
 	w.weapon_id = "iron_sword"
 	w.is_appraised = true
 	w.equip_level = 1
