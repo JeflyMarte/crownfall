@@ -258,7 +258,8 @@ func _build() -> void:
 	body_scroll.name = "BodyScroll"
 	body_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	body_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	body_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	body_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	body_scroll.clip_contents = true
 	body_scroll.mouse_filter = Control.MOUSE_FILTER_STOP
 	body_scroll.resized.connect(_sync_body_label_wrap_width)
 	_body_scroll = body_scroll
@@ -268,7 +269,7 @@ func _build() -> void:
 	_body_label.bbcode_enabled = true
 	_body_label.fit_content = true
 	_body_label.scroll_active = false
-	_body_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_body_label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	_body_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_body_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_body_label.add_theme_color_override("default_color", INK_BODY)
@@ -279,6 +280,7 @@ func _build() -> void:
 		_body_label.add_theme_font_override("normal_font", body_font)
 		_body_label.add_theme_font_override("bold_font", body_font)
 	body_scroll.add_child(_body_label)
+	ScrollTouchHelper.enable(body_scroll)
 
 	_page_label = Label.new()
 	_page_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -396,6 +398,8 @@ func _refresh_page() -> void:
 		_title_label, 28, INK_TITLE, 0
 	)
 	_body_label.text = str(page.get("body", ""))
+	if _body_scroll != null:
+		_body_scroll.scroll_vertical = 0
 	_page_label.text = "%d / %d" % [_page_index + 1, PAGES.size()]
 	var last: bool = _page_index >= PAGES.size() - 1
 	_next_btn.text = "はじめる" if last else "次へ"

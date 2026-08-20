@@ -122,14 +122,15 @@ func _build() -> void:
 
 	var body_scroll := ScrollContainer.new()
 	body_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	body_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	body_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	body_scroll.clip_contents = true
 	body_scroll.mouse_filter = Control.MOUSE_FILTER_STOP
 	inner.add_child(body_scroll)
 	_body_label = RichTextLabel.new()
 	_body_label.bbcode_enabled = true
 	_body_label.fit_content = true
 	_body_label.scroll_active = false
-	_body_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_body_label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	_body_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_body_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_body_label.add_theme_color_override("default_color", INK_BODY)
@@ -140,6 +141,7 @@ func _build() -> void:
 		_body_label.add_theme_font_override("normal_font", body_font)
 		_body_label.add_theme_font_override("bold_font", body_font)
 	body_scroll.add_child(_body_label)
+	ScrollTouchHelper.enable(body_scroll)
 
 	_next_btn = Button.new()
 	_next_btn.text = "次へ"

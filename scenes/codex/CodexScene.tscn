@@ -135,6 +135,7 @@ theme_override_font_sizes/font_size = 18
 text = "0"
 
 [node name="MainScroll" type="ScrollContainer" parent="."]
+clip_contents = true
 layout_mode = 1
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -142,7 +143,7 @@ offset_top = 46.0
 offset_bottom = -84.0
 grow_horizontal = 2
 grow_vertical = 2
-horizontal_scroll_mode = 0
+horizontal_scroll_mode = 3
 
 [node name="MainVBox" type="VBoxContainer" parent="MainScroll"]
 layout_mode = 2
@@ -203,9 +204,10 @@ theme_override_font_sizes/font_size = 20
 text = "手引き"
 
 [node name="EntryListScroll" type="ScrollContainer" parent="MainScroll/MainVBox"]
+clip_contents = true
 layout_mode = 2
 size_flags_vertical = 3
-horizontal_scroll_mode = 0
+horizontal_scroll_mode = 3
 
 [node name="EntryListContainer" type="VBoxContainer" parent="MainScroll/MainVBox/EntryListScroll"]
 layout_mode = 2

@@ -86,7 +86,9 @@ func _ready() -> void:
 	$Header/HeaderRow/LabelTitle.text = ""
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.CODEX)
 	## 一覧は動的生成 Button の Scroll。未適用だと実機でタッチスクロールできない。
-	ScrollTouchHelper.enable($MainScroll)
+	## MainScroll 内に EntryListScroll があるため入れ子競合を避ける（外側は nest しない）。
+	ScrollTouchHelper.enable($MainScroll, false)
+	ScrollTouchHelper.enable($MainScroll/MainVBox/EntryListScroll)
 	ScrollTouchHelper.enable(_detail_scroll)
 	HeaderCurrencyHelper.apply_to_row($Header/HeaderRow)
 	_decorate_static()

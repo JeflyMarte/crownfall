@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-21（**デバッグOFF＋アプリアイコン＋手引きスクロール／統合＋main**: FORCE_ALLOW撤去・Downloadsロゴ差し替え・手引き/図鑑にScrollTouch＋SHOW_NEVER。要iOS再ビルド・手引き実機確認）
 2026-08-20（**無限11Fフリーズ対策／統合＋main**: 天候VFXを暗転明けへ遅延・tweenをWeatherLayer紐づけ・雪preprocess抑制。要iOS実機で虚脈11F確認）
 2026-08-19（**iOS 1.0.2 build7 releaseエクスポート＋Xcode適用**: 1.0.1 は承認済みで train closed（90186/90062）。`--export-release`・PCK 546MB・ja.lproj。要 Archive→Upload。Connect で **1.0.2** を作成して提出）
 2026-08-19（**iOS 1.0.1 build6 releaseエクスポート＋Xcode適用**: 導入0-0修正込み。`--export-release`・PCK 546MB・ja.lproj。1.0.1 は train closed のため提出不可）
