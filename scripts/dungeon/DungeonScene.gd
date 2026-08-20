@@ -786,6 +786,9 @@ var _intro_tutorial_shown: Dictionary = {}
 ## 戦闘クリア後、次フロア暗転のタイミングで三択を出す予約。
 var _pending_floor_choice: bool = false
 var _pending_floor_choice_heal_mode: bool = false
+## 深層 10F 境界の天候 VFX 差し替え予約（暗転中点では作らず遷移完了後に適用）。
+var _pending_abyss_weather_refresh: bool = false
+var _pending_abyss_weather_log: bool = false
 ## 次フロア入場で適用済み・味方表示後に VFX／名ポップ／SE する応急手当の実回復量。
 var _pending_floor_choice_heal_amounts: Dictionary = {}
 ## 非戦闘入場の回復パッシブ演出（野営の調合など）中。
@@ -1165,6 +1168,8 @@ func _ready() -> void:
 	_pending_floor_choice = false
 	_pending_floor_choice_heal_mode = false
 	_pending_floor_choice_heal_amounts.clear()
+	_pending_abyss_weather_refresh = false
+	_pending_abyss_weather_log = false
 	_floor_choice_active = false
 	GameState.last_run_accessory_dropped = ""
 	GameState.last_run_weapon_dropped = ""
@@ -1207,13 +1212,26 @@ func _ready() -> void:
 
 # 天候の可視化（P3-D101）。HUD ラベル併記＋procedural オーバーレイ（新規アセット無し）。
 ## 深層は 10F ごとに再抽選するため、差し替え時は旧レイヤを外す。
+## ループ tween は WeatherLayer に紐づけ（Scene 直下 create_tween だと差し替え後に解放済みを追い続け得る）。
 func _refresh_weather() -> void:
-	var old: Node = get_node_or_null("WeatherLayer")
-	if old != null:
-		old.name = "WeatherLayer_old"
-		old.queue_free()
+	_teardown_weather_layer()
 	_field_legend_signature = ""
 	_setup_weather()
+
+
+func _teardown_weather_layer() -> void:
+	var old: Node = get_node_or_null("WeatherLayer")
+	if old == null:
+		old = get_node_or_null("WeatherLayer_old")
+	if old == null:
+		return
+	old.name = "WeatherLayer_old"
+	for c: Node in old.get_children():
+		if c is CPUParticles2D:
+			(c as CPUParticles2D).emitting = false
+	## queue_free だと同フレームに新旧が同居し得る。即 free でレイヤ紐づけ tween も落とす。
+	remove_child(old)
+	old.free()
 
 
 func _setup_weather() -> void:
@@ -1244,10 +1262,11 @@ func _setup_weather() -> void:
 			haze2.set_anchors_preset(Control.PRESET_FULL_RECT)
 			haze2.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			layer.add_child(haze2)
-			var tw := create_tween().set_loops()
+			## tween は layer に紐づけ（差し替え時に free で同時終了）。
+			var tw := layer.create_tween().set_loops()
 			tw.tween_property(haze, "color:a", 0.42, 2.6).set_trans(Tween.TRANS_SINE)
 			tw.tween_property(haze, "color:a", 0.22, 2.6).set_trans(Tween.TRANS_SINE)
-			var tw2 := create_tween().set_loops()
+			var tw2 := layer.create_tween().set_loops()
 			tw2.tween_property(haze2, "color:a", 0.20, 3.4).set_trans(Tween.TRANS_SINE)
 			tw2.tween_property(haze2, "color:a", 0.08, 3.4).set_trans(Tween.TRANS_SINE)
 			var mist := CPUParticles2D.new()
@@ -1291,7 +1310,7 @@ func _setup_weather() -> void:
 			heat.set_anchors_preset(Control.PRESET_FULL_RECT)
 			heat.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			layer.add_child(heat)
-			var heat_tw := create_tween().set_loops()
+			var heat_tw := layer.create_tween().set_loops()
 			heat_tw.tween_property(heat, "color:a", 0.20, 2.4).set_trans(Tween.TRANS_SINE)
 			heat_tw.tween_property(heat, "color:a", 0.10, 2.4).set_trans(Tween.TRANS_SINE)
 		CombatWeather.SNOW:
@@ -1305,7 +1324,8 @@ func _setup_weather() -> void:
 			snow.texture = _make_snowflake_texture()
 			snow.amount = 130
 			snow.lifetime = clampf(life * 1.08, 4.2, 8.0)
-			snow.preprocess = snow.lifetime * 0.75
+			## preprocess はモバイルでメインスレッドを長く止め得るため軽量に抑える。
+			snow.preprocess = mini(0.35, snow.lifetime * 0.08)
 			snow.local_coords = false
 			snow.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
 			snow.emission_rect_extents = Vector2(view.x * 0.58, 2.0)
@@ -2260,6 +2280,8 @@ func _on_room_transition_finished() -> void:
 	_room_transition_busy = false
 	_label_transition.text = ""
 	_update_run_hud()
+	## 深層 10F 境界の天候 VFX は暗転明けに適用（11F 入場フリーズ対策）。
+	_flush_pending_abyss_weather_vfx()
 	## 応急手当: 戦闘フロアは暗転明けに演出（入場時点は黒幕で見えない）。
 	if $DungeonController.is_combat_room() and not _pending_floor_choice_heal_amounts.is_empty():
 		_present_pending_floor_choice_heal()
@@ -2270,6 +2292,23 @@ func _on_room_transition_finished() -> void:
 		if _room_handles_own_progression($DungeonController.current_room_type):
 			return
 		_start_auto_progress()
+
+
+func _flush_pending_abyss_weather_vfx() -> void:
+	if not _pending_abyss_weather_refresh:
+		return
+	_pending_abyss_weather_refresh = false
+	var do_log: bool = _pending_abyss_weather_log
+	_pending_abyss_weather_log = false
+	_refresh_weather()
+	_update_field_legend()
+	if not do_log:
+		return
+	var wid: String = GameState.get_weather()
+	if wid.is_empty():
+		_append_log("天候が変わった（晴れ）")
+	else:
+		_append_log("天候が変わった（%s）" % CombatWeather.label(wid))
 
 # 戦闘可読性（P3-UX-001）: ログ行に現れる補正マーカーをラン単位で集計する。
 # Result の「効いた戦闘要素」の材料。キー=ログ内マーカー / 値=表示ラベル。
@@ -4041,14 +4080,12 @@ func _advance_to_next_room() -> void:
 		_on_finish_button_pressed()
 		return
 	if $DungeonController.last_abyss_weather_rerolled:
-		_refresh_weather()
-		## 同抽選で id が変わらないときはログしない（途中で変わったように見える誤認防止）。
-		if $DungeonController.last_abyss_weather_changed:
-			var wid: String = GameState.get_weather()
-			if wid.is_empty():
-				_append_log("天候が変わった（晴れ）")
-			else:
-				_append_log("天候が変わった（%s）" % CombatWeather.label(wid))
+		## GameState 天候は advance 内で更新済み。VFX 差し替えは遷移完了後へ遅延。
+		_pending_abyss_weather_refresh = true
+		_pending_abyss_weather_log = $DungeonController.last_abyss_weather_changed
+		## 遷移外から呼ばれた場合は即適用（暗転中点以外のフォールバック）。
+		if not _room_transition_busy:
+			_flush_pending_abyss_weather_vfx()
 	_enter_current_room()
 
 func _begin_combat_session() -> void:
@@ -4172,10 +4209,12 @@ func _enter_current_room() -> void:
 				return
 			_start_combat_after_appear_delay()
 		else:
+			## 敵0。次へボタン非表示のため、暗転明けの `_on_room_transition_finished` が自動進行する。
 			_set_narrative("敵が現れなかった")
 			_boss_sprite.visible = false
 			_hide_enemy_sprite()
 			_hide_chr_sprites()
+			_append_log("敵がいなかったため先へ進む")
 	else:
 		_boss_sprite.visible = false
 		_hide_enemy_sprite()
