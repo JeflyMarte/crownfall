@@ -6,8 +6,18 @@ const _WeaponInstance := preload("res://scripts/domain/WeaponInstance.gd")
 
 
 func before_each() -> void:
-	GameState.reset_for_new_game()
+	## 他テストの party を壊さないよう、所持だけ掃除（フル reset はしない）。
+	GameState.inventory.clear()
+	GameState.armor_inventory.clear()
+	GameState.accessory_inventory.clear()
 	SaveManager.delete_save()
+	if GameState.party_members.is_empty() or GameState.roster.is_empty():
+		GameState.seed_all_starters_unlocked()
+
+
+func after_each() -> void:
+	if GameState.party_members.is_empty() or GameState.roster.is_empty():
+		GameState.seed_all_starters_unlocked()
 
 
 func _make_weapon() -> Resource:
@@ -50,8 +60,8 @@ func test_catalog_lock_flush_writes_save() -> void:
 	scene._flush_lock_save()
 	assert_false(bool(scene._lock_save_pending))
 	assert_true(SaveManager.has_save())
-	## 再ロードしてもロックが残る。
-	GameState.reset_for_new_game()
+	## インベントリだけ消して再ロードしてもロックが残る。
+	GameState.inventory.clear()
 	assert_true(SaveManager.load_game())
 	assert_eq(GameState.inventory.size(), 1)
 	assert_true(EquipmentEnhancer.is_item_locked(GameState.inventory[0]))
