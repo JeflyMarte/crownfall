@@ -13,6 +13,8 @@ const COLOR_ACCENT: Color = Color(0.75, 0.82, 0.95, 1)
 ## iPhone は静止長押しでも微細 ScreenDrag が来る。累積キャンセル禁止（フリック／実スクロールのみ）。
 const CELL_PRESS_FLICK_CANCEL_PX: float = 40.0
 const CELL_LONG_PRESS_SEC: float = 0.50
+## ロックは軽操作なのにフルセーブすると所持が多い実機で固まる。まとめて書く。
+const LOCK_SAVE_DEBOUNCE_SEC: float = 0.45
 const _CELL_PRESS_NONE: int = 0
 const _CELL_PRESS_TOUCH: int = 1
 const _CELL_PRESS_MOUSE: int = 2
@@ -54,6 +56,8 @@ var _cell_press_relic_id: String = ""
 var _cell_press_btn: Button = null
 var _lock_toast: Label = null
 var _lock_toast_tween: Tween = null
+var _lock_save_pending: bool = false
+var _lock_save_timer: Timer = null
 
 func _ready() -> void:
 	$Header/HeaderRow/LabelTitle.text = ""
@@ -89,6 +93,11 @@ func _ready() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
 		call_deferred("_sync_inventory_scroll_height")
+
+
+func _exit_tree() -> void:
+	## 画面離脱前に未書き込みロックを確定（debounce 待ちを落とさない）。
+	_flush_lock_save()
 
 
 func _sync_inventory_scroll_height() -> void:
@@ -435,10 +444,16 @@ func _begin_cell_press(
 func _on_cell_long_press_timeout() -> void:
 	if not _cell_pointer_down:
 		return
-	_cell_long_press_fired = true
 	## レリックはロック対象外。武／防／飾のみ。
 	if _cell_press_item != null and _cell_press_relic_id.is_empty():
-		_toggle_catalog_item_lock(_cell_press_item, _cell_press_category, _cell_press_btn)
+		var item: Resource = _cell_press_item
+		var category: String = _cell_press_category
+		var btn: Button = _cell_press_btn
+		## release 欠落でも次の操作が死なないよう、ロック後は即 press 状態をクリア。
+		_cancel_cell_press()
+		_toggle_catalog_item_lock(item, category, btn)
+		return
+	_cell_long_press_fired = true
 
 func _end_cell_press() -> void:
 	if not _cell_pointer_down:
@@ -474,7 +489,8 @@ func _toggle_catalog_item_lock(item: Resource, category: String, btn: Button) ->
 	if category != "weapon" and category != "armor" and category != "accessory":
 		return
 	var now_locked: bool = EquipmentEnhancer.toggle_item_locked(item)
-	SaveManager.save_game()
+	## 同期フルセーブは所持が多いと主スレッドが数秒止まり「フリーズ」に見える。
+	_request_lock_save()
 	## バッジだけ更新（全グリッド再生成は重い）。
 	if btn != null and is_instance_valid(btn):
 		_clear_item_cell_overlay_badges(btn)
@@ -486,8 +502,65 @@ func _toggle_catalog_item_lock(item: Resource, category: String, btn: Button) ->
 			GameState.find_item_equipped_owner(item) != null
 		)
 	if item == _selected_item and category == _selected_category:
-		_refresh_detail_panel()
+		## pressed 中に詳細を壊すと発信 Button ごと free → Abort（鍛冶焼直しと同型）。
+		call_deferred("_sync_catalog_lock_row_after_toggle")
 	_show_lock_toast("ロックしました" if now_locked else "ロックを解除しました")
+
+
+func _request_lock_save() -> void:
+	_lock_save_pending = true
+	_ensure_lock_save_timer()
+	_lock_save_timer.start(LOCK_SAVE_DEBOUNCE_SEC)
+
+
+func _ensure_lock_save_timer() -> void:
+	if _lock_save_timer != null and is_instance_valid(_lock_save_timer):
+		return
+	_lock_save_timer = Timer.new()
+	_lock_save_timer.name = "CatalogLockSaveTimer"
+	_lock_save_timer.one_shot = true
+	_lock_save_timer.wait_time = LOCK_SAVE_DEBOUNCE_SEC
+	_lock_save_timer.timeout.connect(_flush_lock_save)
+	add_child(_lock_save_timer)
+
+
+func _flush_lock_save() -> void:
+	if not _lock_save_pending:
+		return
+	_lock_save_pending = false
+	if _lock_save_timer != null and is_instance_valid(_lock_save_timer):
+		_lock_save_timer.stop()
+	SaveManager.save_game()
+
+
+func _sync_catalog_lock_row_after_toggle() -> void:
+	## 詳細全文 rebuild せず、ロック行の文言だけ合わせる（Abort／ちらつき回避）。
+	if _selected_item == null:
+		return
+	if (
+		_selected_category != "weapon"
+		and _selected_category != "armor"
+		and _selected_category != "accessory"
+	):
+		return
+	var row: Node = _detail_host.get_node_or_null("CatalogLockRow")
+	if row == null:
+		_refresh_detail_panel()
+		return
+	var lock_btn: Button = null
+	for child in row.get_children():
+		if child is Button:
+			lock_btn = child as Button
+			break
+	if lock_btn == null:
+		_refresh_detail_panel()
+		return
+	var locked: bool = EquipmentEnhancer.is_item_locked(_selected_item)
+	lock_btn.text = (
+		"%s ロック解除" % EquipmentUiHelper.LOCK_BADGE_TEXT
+		if locked
+		else "%s ロックする" % EquipmentUiHelper.LOCK_BADGE_TEXT
+	)
 
 func _show_lock_toast(text: String) -> void:
 	if text.is_empty():
@@ -877,5 +950,6 @@ func _close_effect_family_sheet() -> void:
 
 
 func _on_back_pressed() -> void:
+	_flush_lock_save()
 	_close_effect_family_sheet()
 	SceneRouter.change_scene(HOME_SCENE)
