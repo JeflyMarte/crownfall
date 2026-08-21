@@ -4,7 +4,7 @@
 
 ## Last Update
 
-2026-08-21（**フリーズ種P0対策／統合＋main**: SaveManager debounce・装備着脱／戦術／許可スライダー・スキル等トグル deferred。GUT要確認。要実機で着脱連打・許可ドラッグ）
+2026-08-21（**フリーズ種P0対策／統合＋main**: SaveManager debounce・装備着脱／戦術／許可スライダー・スキル等トグル deferred。GUT 1592 PASS。要実機で着脱連打・許可ドラッグ）
 2026-08-21（**装備ロックフリーズ対策／統合＋main**: トグル毎フルセーブを debounce＋離脱 flush。長押し後 press 固着解除・詳細ロックは文言のみ同期。GUT 1589 PASS。要実機で連続ロック確認）
 2026-08-21（**iOS 1.0.2 build8 releaseエクスポート＋Xcode適用**: 無限11F対策・新ロゴ・手引きScroll込み。`--export-release`・PCK 546MB・ja.lproj。要 Archive→Upload→Connect提出）
 2026-08-21（**デバッグOFF＋アプリアイコン＋手引きスクロール／統合＋main**: FORCE_ALLOW撤去・Downloadsロゴ差し替え・手引き/図鑑にScrollTouch＋SHOW_NEVER。要iOS再ビルド・手引き実機確認）

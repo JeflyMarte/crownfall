@@ -3502,6 +3502,7 @@ func _on_passive_toggle_pressed(passive_id: String) -> void:
 	if member == null:
 		return
 	GameState.toggle_member_passive(member, passive_id)
+	SaveManager.request_save()
 	## トグル Button 自身を含むリストを即 rebuild すると Abort。
 	call_deferred("_deferred_refresh_passive_ui")
 
@@ -3513,6 +3514,7 @@ func _on_relic_passive_toggle_pressed(passive_id: String) -> void:
 		GameState.toggle_member_relic_passive(member, "")
 	else:
 		GameState.toggle_member_relic_passive(member, passive_id)
+	SaveManager.request_save()
 	call_deferred("_deferred_refresh_passive_ui")
 
 func _deferred_refresh_passive_ui() -> void:
@@ -4318,15 +4320,19 @@ func _on_skill_toggle_pressed(skill_id: String) -> void:
 	if member == null:
 		return
 	GameState.toggle_member_skill(member, skill_id)
+	SaveManager.request_save()
 	## SkillList 内 Button の pressed 中 rebuild は Abort 種。
 	call_deferred("_rebuild_skill_tab")
 
 func _on_back_pressed() -> void:
 	_close_member_list_sheet()
 	_close_effect_family_sheet()
-	SaveManager.flush_pending_save()
 	_go_to(HOME_SCENE)
 
 func _go_to(scene_path: String) -> void:
-	SaveManager.flush_pending_save()
+	## pending があれば flush、無ければ明示セーブ（スキル等の未 debounce 漏れ防止は request 側で担保）。
+	if SaveManager.has_pending_save():
+		SaveManager.flush_pending_save()
+	else:
+		SaveManager.save_game()
 	SceneRouter.change_scene(scene_path)
