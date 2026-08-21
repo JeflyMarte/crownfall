@@ -28,6 +28,11 @@ const SAVE_VERSION: int = 15
 ## セッション中の読み書き先。タイトルで本編／デバッグを切り替える。
 var _active_slot: String = SLOT_NORMAL
 
+## 装備着脱・スライダー等の連打で同期フルセーブすると弱機で固まる。
+const DEFAULT_SAVE_DEBOUNCE_SEC: float = 0.45
+var _debounced_save_pending: bool = false
+var _debounced_save_timer: Timer = null
+
 
 func get_active_save_path() -> String:
 	return SAVE_PATH_DEBUG if _active_slot == SLOT_DEBUG else SAVE_PATH_NORMAL
@@ -47,6 +52,57 @@ func is_debug_slot() -> bool:
 
 func get_active_slot() -> String:
 	return _active_slot
+
+
+## 軽操作向け。debounce_sec < 0 で既定秒、0 で即時、>0 で指定秒。
+func request_save(debounce_sec: float = -1.0) -> void:
+	if is_equal_approx(debounce_sec, 0.0):
+		_debounced_save_pending = false
+		_stop_debounced_save_timer()
+		save_game()
+		return
+	var wait: float = DEFAULT_SAVE_DEBOUNCE_SEC if debounce_sec < 0.0 else debounce_sec
+	_debounced_save_pending = true
+	_ensure_debounced_save_timer()
+	_debounced_save_timer.start(wait)
+
+
+func flush_pending_save() -> void:
+	if not _debounced_save_pending:
+		return
+	_debounced_save_pending = false
+	_stop_debounced_save_timer()
+	save_game()
+
+
+func has_pending_save() -> bool:
+	return _debounced_save_pending
+
+
+func _ensure_debounced_save_timer() -> void:
+	if _debounced_save_timer != null and is_instance_valid(_debounced_save_timer):
+		return
+	_debounced_save_timer = Timer.new()
+	_debounced_save_timer.name = "SaveDebounceTimer"
+	_debounced_save_timer.one_shot = true
+	_debounced_save_timer.timeout.connect(_on_debounced_save_timeout)
+	add_child(_debounced_save_timer)
+
+
+func _stop_debounced_save_timer() -> void:
+	if _debounced_save_timer != null and is_instance_valid(_debounced_save_timer):
+		_debounced_save_timer.stop()
+
+
+func _on_debounced_save_timeout() -> void:
+	flush_pending_save()
+
+
+func _notification(what: int) -> void:
+	## 終了時に未書き込みを落とさない。
+	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_PREDELETE:
+		flush_pending_save()
+
 
 
 func save_game() -> bool:

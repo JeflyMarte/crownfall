@@ -34,39 +34,40 @@ func equip_weapon_for_member(item: Resource, member: Resource) -> void:
 	GameState.clear_item_from_other_roster_members(item, member)
 	## 装備Lv は永続値。装着者キャラLvへのクリップは EXP 成長時のみ（P3-EQ-LVL-001-4）。
 	member.equipped_weapon = item
-	SaveManager.save_game()
+	## 連打着脱で同期フルセーブすると弱機フリーズ（ロックと同型）。
+	SaveManager.request_save()
 
 func equip_armor_for_member(item: Resource, member: Resource) -> void:
 	if member == null or item == null:
 		return
 	GameState.clear_item_from_other_roster_members(item, member)
 	member.equipped_armor = item
-	SaveManager.save_game()
+	SaveManager.request_save()
 
 func equip_accessory_for_member(item: Resource, member: Resource) -> void:
 	if member == null or item == null:
 		return
 	GameState.clear_item_from_other_roster_members(item, member)
 	member.equipped_accessory = item
-	SaveManager.save_game()
+	SaveManager.request_save()
 
 func unequip_weapon_for_member(member: Resource) -> void:
 	if member == null:
 		return
 	member.equipped_weapon = null
-	SaveManager.save_game()
+	SaveManager.request_save()
 
 func unequip_armor_for_member(member: Resource) -> void:
 	if member == null:
 		return
 	member.equipped_armor = null
-	SaveManager.save_game()
+	SaveManager.request_save()
 
 func unequip_accessory_for_member(member: Resource) -> void:
 	if member == null:
 		return
 	member.equipped_accessory = null
-	SaveManager.save_game()
+	SaveManager.request_save()
 
 func equip_weapon(item: Resource, member_index: int) -> void:
 	if not _is_valid_member_index(member_index):
