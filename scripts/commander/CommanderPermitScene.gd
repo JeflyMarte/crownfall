@@ -70,6 +70,10 @@ func _notification(what: int) -> void:
 		_configure_layout()
 
 
+func _exit_tree() -> void:
+	SaveManager.flush_pending_save()
+
+
 func _configure_layout() -> void:
 	if _main_scroll == null:
 		return
@@ -200,7 +204,8 @@ func _on_track_changed(value: float, track: String) -> void:
 	if _updating_sliders:
 		return
 	_CommanderPermitBoost.set_alloc(track, int(round(value)))
-	SaveManager.save_game()
+	## ドラッグ中の毎ステップ同期セーブは弱機フリーズ種。
+	SaveManager.request_save()
 	_refresh_labels()
 	_refresh_slider_bounds()
 
@@ -243,5 +248,5 @@ func _bounce_locked() -> void:
 
 func _on_back_pressed() -> void:
 	AudioManager.play_sfx("ui_cancel")
-	SaveManager.save_game()
+	SaveManager.flush_pending_save()
 	get_tree().change_scene_to_file(COMMANDER_SCENE)

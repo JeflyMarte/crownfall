@@ -312,6 +312,10 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
 		call_deferred("_handle_layout_resized")
 
+
+func _exit_tree() -> void:
+	SaveManager.flush_pending_save()
+
 func _handle_layout_resized() -> void:
 	if not is_node_ready():
 		return
@@ -2326,9 +2330,13 @@ func _tap_inventory_item(item: Resource, category: String) -> void:
 				$EquipmentController.unequip_armor_for_member(view_member)
 			"accessory":
 				$EquipmentController.unequip_accessory_for_member(view_member)
-		_refresh_display()
+		_refresh_display_deferred()
 	else:
 		_request_equip_item(item, category)
+
+func _refresh_display_deferred() -> void:
+	## pressed / gui_input 中の全再生成は発信セル破棄で Abort しうる。
+	call_deferred("_refresh_display")
 
 func _show_relic_stats_overlay(relic_id: String, pinned: bool = false) -> void:
 	_ensure_item_detail_overlay()
@@ -2512,8 +2520,9 @@ func _apply_equip_relic(relic_id: String) -> void:
 	if member == null or _is_viewing_pet():
 		return
 	GameState.set_member_relic(member, relic_id)
+	SaveManager.request_save()
 	AudioManager.play_sfx("ui_equip")
-	_refresh_display()
+	_refresh_display_deferred()
 
 func _hide_item_detail_overlay() -> void:
 	if _detail_overlay != null:
@@ -2593,7 +2602,7 @@ func _apply_equip_item(item: Resource, category: String) -> void:
 		"accessory":
 			$EquipmentController.equip_accessory_for_member(item, member)
 	AudioManager.play_sfx("ui_equip")
-	_refresh_display()
+	_refresh_display_deferred()
 
 func _on_take_equip_confirmed() -> void:
 	if not _pending_take_relic_id.is_empty():
@@ -3493,8 +3502,8 @@ func _on_passive_toggle_pressed(passive_id: String) -> void:
 	if member == null:
 		return
 	GameState.toggle_member_passive(member, passive_id)
-	_rebuild_passive_tab()
-	_rebuild_equip_slots()
+	## トグル Button 自身を含むリストを即 rebuild すると Abort。
+	call_deferred("_deferred_refresh_passive_ui")
 
 func _on_relic_passive_toggle_pressed(passive_id: String) -> void:
 	var member: Resource = _get_view_adventurer()
@@ -3504,6 +3513,9 @@ func _on_relic_passive_toggle_pressed(passive_id: String) -> void:
 		GameState.toggle_member_relic_passive(member, "")
 	else:
 		GameState.toggle_member_relic_passive(member, passive_id)
+	call_deferred("_deferred_refresh_passive_ui")
+
+func _deferred_refresh_passive_ui() -> void:
 	_rebuild_passive_tab()
 	_rebuild_equip_slots()
 
@@ -3721,8 +3733,12 @@ func _on_tactics_set_pressed(tactics_id: String) -> void:
 	if member == null:
 		return
 	GameState.set_member_tactics(member, tactics_id)
-	SaveManager.save_game()
-	_refresh_tactics_list(member)
+	SaveManager.request_save()
+	## 行内 Button の pressed 中に一覧を消さない。
+	call_deferred("_deferred_refresh_tactics_list")
+
+func _deferred_refresh_tactics_list() -> void:
+	_refresh_tactics_list(_get_view_adventurer())
 
 ## カスタム行動ルールUIはオミット（既存ノードが残っていれば隠す）。
 func _omit_gambit_ui() -> void:
@@ -4302,14 +4318,15 @@ func _on_skill_toggle_pressed(skill_id: String) -> void:
 	if member == null:
 		return
 	GameState.toggle_member_skill(member, skill_id)
-	_rebuild_skill_tab()
+	## SkillList 内 Button の pressed 中 rebuild は Abort 種。
+	call_deferred("_rebuild_skill_tab")
 
 func _on_back_pressed() -> void:
 	_close_member_list_sheet()
 	_close_effect_family_sheet()
-	SaveManager.save_game()
+	SaveManager.flush_pending_save()
 	_go_to(HOME_SCENE)
 
 func _go_to(scene_path: String) -> void:
-	SaveManager.save_game()
+	SaveManager.flush_pending_save()
 	SceneRouter.change_scene(scene_path)

@@ -13,8 +13,6 @@ const COLOR_ACCENT: Color = Color(0.75, 0.82, 0.95, 1)
 ## iPhone は静止長押しでも微細 ScreenDrag が来る。累積キャンセル禁止（フリック／実スクロールのみ）。
 const CELL_PRESS_FLICK_CANCEL_PX: float = 40.0
 const CELL_LONG_PRESS_SEC: float = 0.50
-## ロックは軽操作なのにフルセーブすると所持が多い実機で固まる。まとめて書く。
-const LOCK_SAVE_DEBOUNCE_SEC: float = 0.45
 const _CELL_PRESS_NONE: int = 0
 const _CELL_PRESS_TOUCH: int = 1
 const _CELL_PRESS_MOUSE: int = 2
@@ -56,8 +54,6 @@ var _cell_press_relic_id: String = ""
 var _cell_press_btn: Button = null
 var _lock_toast: Label = null
 var _lock_toast_tween: Tween = null
-var _lock_save_pending: bool = false
-var _lock_save_timer: Timer = null
 
 func _ready() -> void:
 	$Header/HeaderRow/LabelTitle.text = ""
@@ -97,7 +93,7 @@ func _notification(what: int) -> void:
 
 func _exit_tree() -> void:
 	## 画面離脱前に未書き込みロックを確定（debounce 待ちを落とさない）。
-	_flush_lock_save()
+	SaveManager.flush_pending_save()
 
 
 func _sync_inventory_scroll_height() -> void:
@@ -490,7 +486,7 @@ func _toggle_catalog_item_lock(item: Resource, category: String, btn: Button) ->
 		return
 	var now_locked: bool = EquipmentEnhancer.toggle_item_locked(item)
 	## 同期フルセーブは所持が多いと主スレッドが数秒止まり「フリーズ」に見える。
-	_request_lock_save()
+	SaveManager.request_save()
 	## バッジだけ更新（全グリッド再生成は重い）。
 	if btn != null and is_instance_valid(btn):
 		_clear_item_cell_overlay_badges(btn)
@@ -505,32 +501,6 @@ func _toggle_catalog_item_lock(item: Resource, category: String, btn: Button) ->
 		## pressed 中に詳細を壊すと発信 Button ごと free → Abort（鍛冶焼直しと同型）。
 		call_deferred("_sync_catalog_lock_row_after_toggle")
 	_show_lock_toast("ロックしました" if now_locked else "ロックを解除しました")
-
-
-func _request_lock_save() -> void:
-	_lock_save_pending = true
-	_ensure_lock_save_timer()
-	_lock_save_timer.start(LOCK_SAVE_DEBOUNCE_SEC)
-
-
-func _ensure_lock_save_timer() -> void:
-	if _lock_save_timer != null and is_instance_valid(_lock_save_timer):
-		return
-	_lock_save_timer = Timer.new()
-	_lock_save_timer.name = "CatalogLockSaveTimer"
-	_lock_save_timer.one_shot = true
-	_lock_save_timer.wait_time = LOCK_SAVE_DEBOUNCE_SEC
-	_lock_save_timer.timeout.connect(_flush_lock_save)
-	add_child(_lock_save_timer)
-
-
-func _flush_lock_save() -> void:
-	if not _lock_save_pending:
-		return
-	_lock_save_pending = false
-	if _lock_save_timer != null and is_instance_valid(_lock_save_timer):
-		_lock_save_timer.stop()
-	SaveManager.save_game()
 
 
 func _sync_catalog_lock_row_after_toggle() -> void:
@@ -950,6 +920,6 @@ func _close_effect_family_sheet() -> void:
 
 
 func _on_back_pressed() -> void:
-	_flush_lock_save()
+	SaveManager.flush_pending_save()
 	_close_effect_family_sheet()
 	SceneRouter.change_scene(HOME_SCENE)

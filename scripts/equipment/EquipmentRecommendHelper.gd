@@ -42,7 +42,7 @@ static func apply_for_adventurer(member: Resource) -> Dictionary:
 		equipped[category] = item
 		changed = true
 	if changed:
-		SaveManager.save_game()
+		SaveManager.request_save()
 	return {
 		"ok": true,
 		"changed": changed,
