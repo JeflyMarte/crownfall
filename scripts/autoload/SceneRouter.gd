@@ -46,9 +46,12 @@ func warmup_hub_scenes() -> void:
 
 func hub_warmup_paths() -> PackedStringArray:
 	## BottomNavHelper と揃える（循環 preload 回避のため直書き）。
+	## ダンジョン／結果は初潜り・初クリアの同期 load 待ちを減らす。
 	return PackedStringArray([
 		HOME_SCENE,
 		"res://scenes/dungeon/DungeonSelectScene.tscn",
+		"res://scenes/dungeon/DungeonScene.tscn",
+		"res://scenes/result/ResultScene.tscn",
 		"res://scenes/equipment/EquipmentScene.tscn",
 		"res://scenes/roster/RosterScene.tscn",
 		"res://scenes/blacksmith/BlacksmithScene.tscn",

@@ -27,7 +27,9 @@ const _META_BODY_BASE_TOP: StringName = &"_cf_body_base_top"
 var _speed_buttons: Dictionary = {}
 var _redeem_input: LineEdit = null
 var _redeem_status: Label = null
-var _redeem_dialog: AcceptDialog = null
+## AcceptDialog 禁止（実機入力食い）。結果は Control オーバーレイ。
+var _redeem_overlay: Control = null
+var _redeem_overlay_label: Label = null
 var _confirm_title: ConfirmationDialog = null
 
 
@@ -336,12 +338,67 @@ func _opened_from_title() -> bool:
 
 
 func _ensure_redeem_dialog() -> void:
-	if _redeem_dialog != null:
+	## AcceptDialog は実機で入力を食う既往あり → Control オーバーレイ。
+	if _redeem_overlay != null:
 		return
-	_redeem_dialog = AcceptDialog.new()
-	_redeem_dialog.title = "特典コード"
-	_redeem_dialog.ok_button_text = "OK"
-	add_child(_redeem_dialog)
+	_redeem_overlay = Control.new()
+	_redeem_overlay.name = "RedeemResultOverlay"
+	_redeem_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_redeem_overlay.visible = false
+	_redeem_overlay.z_index = 90
+	_redeem_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_redeem_overlay)
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.0, 0.0, 0.0, 0.62)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	dim.gui_input.connect(_on_redeem_overlay_dim_input)
+	_redeem_overlay.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_redeem_overlay.add_child(center)
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(480, 240)
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.07, 0.06, 0.05, 0.97)
+	sb.border_color = Color(0.55, 0.48, 0.32, 1.0)
+	sb.set_border_width_all(2)
+	sb.set_content_margin_all(20)
+	panel.add_theme_stylebox_override("panel", sb)
+	center.add_child(panel)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 16)
+	panel.add_child(col)
+	var title := Label.new()
+	title.text = "特典コード"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_body(title, UiTypography.SIZE_BODY, COLOR_GOLD)
+	col.add_child(title)
+	_redeem_overlay_label = Label.new()
+	_redeem_overlay_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_redeem_overlay_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_caption(_redeem_overlay_label, COLOR_SUB)
+	col.add_child(_redeem_overlay_label)
+	var ok := Button.new()
+	ok.text = "OK"
+	ok.custom_minimum_size = Vector2(140, 44)
+	ok.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	UiTypography.apply_menu_button(ok)
+	ok.pressed.connect(_hide_redeem_overlay)
+	col.add_child(ok)
+
+
+func _hide_redeem_overlay() -> void:
+	AudioManager.play_sfx("ui_cancel")
+	if _redeem_overlay != null:
+		_redeem_overlay.visible = false
+
+
+func _on_redeem_overlay_dim_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_hide_redeem_overlay()
 
 
 func _ensure_title_confirm() -> void:
@@ -375,8 +432,10 @@ func _on_redeem_pressed() -> void:
 	if _redeem_status != null:
 		_redeem_status.text = message
 	_ensure_redeem_dialog()
-	_redeem_dialog.dialog_text = message
-	_redeem_dialog.popup_centered()
+	if _redeem_overlay_label != null:
+		_redeem_overlay_label.text = message
+	if _redeem_overlay != null:
+		_redeem_overlay.visible = true
 
 
 func _on_back_pressed() -> void:

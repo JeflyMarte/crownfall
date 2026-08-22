@@ -373,7 +373,8 @@ func _build_loop_aura(status_id: String) -> CPUParticles2D:
 	parts.explosiveness = 0.0
 	parts.lifetime = float(profile.get("lifetime", 0.6))
 	parts.amount = int(profile.get("amount", 8))
-	parts.preprocess = parts.lifetime
+	## 満 lifetime の preprocess は弱機で付与瞬間に固まる。雪 VFX と同型で短く。
+	parts.preprocess = minf(0.12, parts.lifetime * 0.18)
 	parts.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
 	parts.emission_sphere_radius = 14.0
 	parts.direction = Vector2(0.0, -1.0)
