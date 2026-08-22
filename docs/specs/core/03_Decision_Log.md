@@ -8065,3 +8065,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-BOSS-SUMMON-HARD-PLUS-001-2 | **Hard/NM** — 既存召喚スキル据置 | 高難度の差別化 |
 | P3-BAL-BOSS-SUMMON-HARD-PLUS-001-3 | **対象外** — 雑魚の招集スキル | ボス限定 |
 | P3-BAL-BOSS-SUMMON-HARD-PLUS-001-4 | **SSOT** — `103_BossSummonHardPlus.md` | Decision 本体 |
+
+## 第6職 機巧士（草案）（2026-08-22 — P3-JOB-ENGINEER-001）
+
+> **オーナー承認待ち。** 「機巧士面白いので詰めて」への Decision 草案。実装は GO 後アップデート枠。
+
+| # | 決定候補 | 根拠 |
+|---|---|---|
+| P3-JOB-ENGINEER-001-1 | 基本職6種。id=`engineer`・表示**機巧士** | 設置装置ビルドの穴埋め |
+| P3-JOB-ENGINEER-001-2 | テーマ＝設置／起爆／機巧適性 | 93 既存テーマと非重複 |
+| P3-JOB-ENGINEER-001-3 | 武器＝双剣・弓 | 現行5職に無い組み合わせ |
+| P3-JOB-ENGINEER-001-4 | 装置＝HPなしトークン（召喚ではない） | 撃破ゲート・ペットと非干渉 |
+| P3-JOB-ENGINEER-001-5 | SSOT — `126_EngineerJob.md` | Decision 本体 |
