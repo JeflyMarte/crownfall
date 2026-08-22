@@ -4,7 +4,7 @@
 
 ## Last Update
 
-2026-08-22（**フリーズ種P2対策／統合＋main**: 状態オーラ preprocess 短縮・Dungeon/Result warmup・編成空／特典の AcceptDialog を Control 化。要実機）
+2026-08-22（**フリーズ種P2対策／統合＋main**: 状態オーラ preprocess 短縮・Dungeon/Result warmup・編成空／特典の AcceptDialog を Control 化。DungeonScene UID 修正。GUT 1598 PASS。要実機）
 2026-08-22（**フリーズ種P1対策／統合＋main**: ダンジョン選択アコーディオン／日課・ギフト・ギルド受取を deferred。暗転中の敵シート表示を明け後へ。GUT 1595 PASS。要実機）
 2026-08-21（**フリーズ種P0対策／統合＋main**: SaveManager debounce・装備着脱／戦術／許可スライダー・スキル等トグル deferred。GUT 1592 PASS。要実機で着脱連打・許可ドラッグ）
 2026-08-21（**装備ロックフリーズ対策／統合＋main**: トグル毎フルセーブを debounce＋離脱 flush。長押し後 press 固着解除・詳細ロックは文言のみ同期。GUT 1589 PASS。要実機で連続ロック確認）
