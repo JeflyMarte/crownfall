@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-22（**第6職・機巧士 Decision 草案**: `126_EngineerJob.md` — 設置／起爆／機巧適性・装置トークン・武器双剣弓。オーナー GO／修正待ち。実装なし）
 2026-08-22（**フリーズ種P2対策／統合＋main**: 状態オーラ preprocess 短縮・Dungeon/Result warmup・編成空／特典の AcceptDialog を Control 化。DungeonScene UID 修正。GUT 1598 PASS。要実機）
 2026-08-22（**フリーズ種P1対策／統合＋main**: ダンジョン選択アコーディオン／日課・ギフト・ギルド受取を deferred。暗転中の敵シート表示を明け後へ。GUT 1595 PASS。要実機）
 2026-08-21（**フリーズ種P0対策／統合＋main**: SaveManager debounce・装備着脱／戦術／許可スライダー・スキル等トグル deferred。GUT 1592 PASS。要実機で着脱連打・許可ドラッグ）
