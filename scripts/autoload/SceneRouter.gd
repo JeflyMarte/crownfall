@@ -44,6 +44,11 @@ func warmup_hub_scenes() -> void:
 		_request_threaded(path)
 
 
+## 任意シーンの裏読み（ダンジョン選択入場時の補完など）。
+func request_warmup(path: String) -> void:
+	_request_threaded(path)
+
+
 func hub_warmup_paths() -> PackedStringArray:
 	## BottomNavHelper と揃える（循環 preload 回避のため直書き）。
 	## ダンジョン／結果は初潜り・初クリアの同期 load 待ちを減らす。

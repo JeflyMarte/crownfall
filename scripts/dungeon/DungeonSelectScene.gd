@@ -294,8 +294,6 @@ func _ready() -> void:
 	_mark_scroll_safe_button(_btn_route_event)
 	_mark_scroll_safe_button(_btn_route_abyss)
 	_refresh_all()
-	## 初潜りの DungeonScene 同期 load を減らす（hub warmup の取りこぼし補完）。
-	SceneRouter.request_warmup("res://scenes/dungeon/DungeonScene.tscn")
 	call_deferred("_maybe_show_content_unlock")
 
 
