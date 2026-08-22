@@ -4,6 +4,8 @@ extends RefCounted
 ## 状態異常・属性の戦闘 VFX（P3-VFX-STATUS-001）。
 ## 付与バースト（ワンショット CPUParticles2D）と常駐オーラを管理する。
 
+const _SettingsPrefs := preload("res://scripts/settings/SettingsPrefs.gd")
+
 const AURA_STATUS_IDS: Array[String] = [
 	"poison", "chill", "shock", "ignite", "curse", "major_curse", "bleed", "stun", "fear",
 	## P3-UX-COMBAT-VFX-001: バフ／攻防デバフも常駐オーラでログ無し視認
@@ -194,6 +196,8 @@ func clear_all() -> void:
 func spawn_apply_burst(scene_root: Node, world_pos: Vector2, status_id: String) -> void:
 	if scene_root == null or status_id.is_empty():
 		return
+	if _SettingsPrefs.is_light_mode():
+		return
 	var parts := _build_burst_particles(status_color(status_id), _apply_burst_profile(status_id))
 	parts.global_position = world_pos
 	scene_root.add_child(parts)
@@ -203,6 +207,8 @@ func spawn_apply_burst(scene_root: Node, world_pos: Vector2, status_id: String) 
 
 func spawn_dot_tick(scene_root: Node, world_pos: Vector2, status_id: String) -> void:
 	if scene_root == null or status_id.is_empty():
+		return
+	if _SettingsPrefs.is_light_mode():
 		return
 	var color: Color = status_color(status_id)
 	color.a = 0.85
@@ -221,6 +227,9 @@ func sync_unit_auras(
 	anchor_visible: bool = true
 ) -> void:
 	if unit_key.is_empty() or anchor == null or not is_instance_valid(anchor):
+		return
+	if _SettingsPrefs.is_light_mode():
+		_remove_unit_auras(unit_key)
 		return
 	if not anchor_visible or not anchor.visible:
 		_remove_unit_auras(unit_key)
