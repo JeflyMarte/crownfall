@@ -320,11 +320,12 @@ func _on_gift_claim_pressed(entry_id: String, claim_btn: Button) -> void:
 	var result: Dictionary = _CommanderGiftBox.claim(entry_id)
 	if not bool(result.get("ok", false)):
 		return
-	SaveManager.save_game()
+	SaveManager.request_save()
 	var rewards: Dictionary = {}
 	if result.get("rewards") is Dictionary:
 		rewards = result["rewards"] as Dictionary
-	_rebuild_page()
+	## Claim Button を含むページを即 rebuild しない。
+	call_deferred("_rebuild_page")
 	_play_gift_claim_fx(from_global, rewards)
 
 
@@ -337,7 +338,7 @@ func _on_gift_claim_all_pressed(claim_btn: Button = null) -> void:
 	var result: Dictionary = _CommanderGiftBox.claim_all()
 	if not bool(result.get("ok", false)):
 		return
-	SaveManager.save_game()
+	SaveManager.request_save()
 	var merged: Dictionary = {"gold": 0, "gacha_token": 0, "materials": {}}
 	var claimed: Array = []
 	if result.get("claimed") is Array:
@@ -359,7 +360,7 @@ func _on_gift_claim_all_pressed(claim_btn: Button = null) -> void:
 				var mid: String = str(mat_id)
 				dest[mid] = int(dest.get(mid, 0)) + int(mats[mat_id])
 			merged["materials"] = dest
-	_rebuild_page()
+	call_deferred("_rebuild_page")
 	_play_gift_claim_fx(from_global, merged)
 
 
@@ -1017,4 +1018,5 @@ func _fmt_or_dash(value: int) -> String:
 
 
 func _on_back_pressed() -> void:
+	SaveManager.flush_pending_save()
 	SceneRouter.change_scene(HOME_SCENE)

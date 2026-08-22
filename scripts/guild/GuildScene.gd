@@ -165,12 +165,14 @@ func _on_certify(adv: Resource) -> void:
 	if not _JobEvolution.evolve(adv):
 		_label_status.text = "認定できませんでした"
 		return
-	SaveManager.save_game()
+	SaveManager.request_save()
 	var evolved_name: String = _JobEvolution.get_evolved_name(adv)
 	_label_status.text = "%s を %s に認定しました" % [adv.display_name, evolved_name]
-	_refresh_all()
+	## 認定 Button を含む一覧を即 rebuild しない。
+	call_deferred("_refresh_all")
 
 func _on_back_pressed() -> void:
+	SaveManager.flush_pending_save()
 	SceneRouter.change_scene(HOME_SCENE)
 
 func _go_to(path: String) -> void:

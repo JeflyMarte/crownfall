@@ -789,6 +789,9 @@ var _pending_floor_choice_heal_mode: bool = false
 ## 深層 10F 境界の天候 VFX 差し替え予約（暗転中点では作らず遷移完了後に適用）。
 var _pending_abyss_weather_refresh: bool = false
 var _pending_abyss_weather_log: bool = false
+## 暗転中点の敵シート load／get_image を明け後へ遅延（弱機フリーズ種）。
+var _defer_combat_room_visuals: bool = false
+var _pending_swarm_enemy_ids: Array = []
 ## 次フロア入場で適用済み・味方表示後に VFX／名ポップ／SE する応急手当の実回復量。
 var _pending_floor_choice_heal_amounts: Dictionary = {}
 ## 非戦闘入場の回復パッシブ演出（野営の調合など）中。
@@ -1170,6 +1173,8 @@ func _ready() -> void:
 	_pending_floor_choice_heal_amounts.clear()
 	_pending_abyss_weather_refresh = false
 	_pending_abyss_weather_log = false
+	_defer_combat_room_visuals = false
+	_pending_swarm_enemy_ids.clear()
 	_floor_choice_active = false
 	GameState.last_run_accessory_dropped = ""
 	GameState.last_run_weapon_dropped = ""
@@ -2282,6 +2287,8 @@ func _on_room_transition_finished() -> void:
 	_update_run_hud()
 	## 深層 10F 境界の天候 VFX は暗転明けに適用（11F 入場フリーズ対策）。
 	_flush_pending_abyss_weather_vfx()
+	## 敵シート load／正規化も暗転明けへ（弱機の同期 I/O フリーズ対策）。
+	_flush_deferred_combat_room_visuals()
 	## 応急手当: 戦闘フロアは暗転明けに演出（入場時点は黒幕で見えない）。
 	if $DungeonController.is_combat_room() and not _pending_floor_choice_heal_amounts.is_empty():
 		_present_pending_floor_choice_heal()
@@ -2309,6 +2316,17 @@ func _flush_pending_abyss_weather_vfx() -> void:
 		_append_log("天候が変わった（晴れ）")
 	else:
 		_append_log("天候が変わった（%s）" % CombatWeather.label(wid))
+
+
+func _flush_deferred_combat_room_visuals() -> void:
+	if not _defer_combat_room_visuals:
+		return
+	_defer_combat_room_visuals = false
+	var ids: Array = _pending_swarm_enemy_ids.duplicate()
+	_pending_swarm_enemy_ids.clear()
+	_show_enemy_swarm(ids)
+	_update_hp_bars()
+	_show_chr_sprites(false)
 
 # 戦闘可読性（P3-UX-001）: ログ行に現れる補正マーカーをラン単位で集計する。
 # Result の「効いた戦闘要素」の材料。キー=ログ内マーカー / 値=表示ラベル。
@@ -4174,9 +4192,14 @@ func _enter_current_room() -> void:
 			var enemy_ids: Array = []
 			for e in group:
 				enemy_ids.append(e.id)
-			_show_enemy_swarm(enemy_ids)
-			_update_hp_bars()
-			_show_chr_sprites(false)
+			## 暗転中はシート load／get_image を避け、明け後に表示。
+			if _room_transition_busy:
+				_defer_combat_room_visuals = true
+				_pending_swarm_enemy_ids = enemy_ids.duplicate()
+			else:
+				_show_enemy_swarm(enemy_ids)
+				_update_hp_bars()
+				_show_chr_sprites(false)
 			_try_exploration_trap()
 			_update_turn_order_ui($CombatController.get_ct_order())
 			_log_party_passives_on_combat_enter()

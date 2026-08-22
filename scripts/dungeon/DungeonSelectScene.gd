@@ -1323,7 +1323,8 @@ func _set_featured_dungeon(dungeon_id: String) -> void:
 	_refresh_tier_tabs()
 	_refresh_route_tabs()
 	_refresh_featured()
-	_build_list()
+	## アコーディオン Button の pressed／タップ中に一覧を消すと Abort／固まり種。
+	call_deferred("_build_list")
 
 func _on_biome_accordion_pressed(dungeon_id: String) -> void:
 	if not GameState.is_dungeon_unlocked(dungeon_id):
