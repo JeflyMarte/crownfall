@@ -162,6 +162,13 @@ func _build_gameplay_section() -> Control:
 	UiTypography.apply_button(vib, false)
 	body.add_child(vib)
 	_add_caption(body, "オフにすると戦闘ヒット時の振動を止めます（対応端末のみ）")
+	var light := CheckButton.new()
+	light.text = "軽量モード"
+	light.button_pressed = _SettingsPrefs.is_light_mode()
+	light.toggled.connect(_on_light_mode_toggled)
+	UiTypography.apply_button(light, false)
+	body.add_child(light)
+	_add_caption(body, "オンで天候パーティクル・状態オーラ・帯演出などを抑え、発熱しやすい端末向けに軽くします")
 	return sec["panel"]
 
 
@@ -331,6 +338,10 @@ func _on_damage_toggled(v: bool) -> void:
 
 func _on_vibration_toggled(v: bool) -> void:
 	_SettingsPrefs.set_vibration_enabled(v)
+
+
+func _on_light_mode_toggled(v: bool) -> void:
+	_SettingsPrefs.set_light_mode(v)
 
 
 func _opened_from_title() -> bool:

@@ -1243,6 +1243,7 @@ func _setup_weather() -> void:
 	var weather: String = GameState.get_weather()
 	if weather.is_empty():
 		return
+	var light: bool = SettingsPrefs.is_light_mode()
 	var layer := CanvasLayer.new()
 	layer.name = "WeatherLayer"
 	layer.layer = 3
@@ -1274,41 +1275,50 @@ func _setup_weather() -> void:
 			var tw2 := layer.create_tween().set_loops()
 			tw2.tween_property(haze2, "color:a", 0.20, 3.4).set_trans(Tween.TRANS_SINE)
 			tw2.tween_property(haze2, "color:a", 0.08, 3.4).set_trans(Tween.TRANS_SINE)
-			var mist := CPUParticles2D.new()
-			mist.texture = _make_fog_wisp_texture()
-			mist.amount = 48
-			mist.lifetime = 3.6
-			mist.local_coords = false
-			mist.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-			mist.emission_rect_extents = Vector2(view.x * 0.55, view.y * 0.45)
-			mist.position = Vector2(view.x * 0.5, view.y * 0.45)
-			mist.direction = Vector2(1.0, 0.05)
-			mist.spread = 28.0
-			mist.gravity = Vector2(0.0, -6.0)
-			mist.initial_velocity_min = 8.0
-			mist.initial_velocity_max = 28.0
-			mist.scale_amount_min = 0.7
-			mist.scale_amount_max = 1.6
-			mist.modulate = Color(0.78, 0.84, 0.80, 0.55)
-			mist.emitting = true
-			layer.add_child(mist)
+			if not light:
+				var mist := CPUParticles2D.new()
+				mist.texture = _make_fog_wisp_texture()
+				mist.amount = 48
+				mist.lifetime = 3.6
+				mist.local_coords = false
+				mist.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+				mist.emission_rect_extents = Vector2(view.x * 0.55, view.y * 0.45)
+				mist.position = Vector2(view.x * 0.5, view.y * 0.45)
+				mist.direction = Vector2(1.0, 0.05)
+				mist.spread = 28.0
+				mist.gravity = Vector2(0.0, -6.0)
+				mist.initial_velocity_min = 8.0
+				mist.initial_velocity_max = 28.0
+				mist.scale_amount_min = 0.7
+				mist.scale_amount_max = 1.6
+				mist.modulate = Color(0.78, 0.84, 0.80, 0.55)
+				mist.emitting = true
+				layer.add_child(mist)
 		CombatWeather.RAIN:
-			var rain := CPUParticles2D.new()
-			rain.texture = _make_raindrop_texture()
-			rain.amount = 150
-			rain.lifetime = 0.7
-			rain.local_coords = false
-			rain.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-			rain.emission_rect_extents = Vector2(view.x * 0.6, 2.0)
-			rain.position = Vector2(view.x * 0.5, -12.0)
-			rain.direction = Vector2(0.1, 1.0)
-			rain.spread = 4.0
-			rain.gravity = Vector2(20.0, 900.0)
-			rain.initial_velocity_min = 420.0
-			rain.initial_velocity_max = 540.0
-			rain.modulate = Color(0.75, 0.82, 1.0, 0.7)
-			rain.emitting = true
-			layer.add_child(rain)
+			if light:
+				## 軽量: 雨粒パーティクル代わりに薄い青ベールのみ。
+				var rain_veil := ColorRect.new()
+				rain_veil.color = Color(0.35, 0.42, 0.55, 0.14)
+				rain_veil.set_anchors_preset(Control.PRESET_FULL_RECT)
+				rain_veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				layer.add_child(rain_veil)
+			else:
+				var rain := CPUParticles2D.new()
+				rain.texture = _make_raindrop_texture()
+				rain.amount = 150
+				rain.lifetime = 0.7
+				rain.local_coords = false
+				rain.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+				rain.emission_rect_extents = Vector2(view.x * 0.6, 2.0)
+				rain.position = Vector2(view.x * 0.5, -12.0)
+				rain.direction = Vector2(0.1, 1.0)
+				rain.spread = 4.0
+				rain.gravity = Vector2(20.0, 900.0)
+				rain.initial_velocity_min = 420.0
+				rain.initial_velocity_max = 540.0
+				rain.modulate = Color(0.75, 0.82, 1.0, 0.7)
+				rain.emitting = true
+				layer.add_child(rain)
 		CombatWeather.HEAT:
 			var heat := ColorRect.new()
 			heat.color = Color(0.55, 0.22, 0.08, 0.14)
@@ -1319,32 +1329,39 @@ func _setup_weather() -> void:
 			heat_tw.tween_property(heat, "color:a", 0.20, 2.4).set_trans(Tween.TRANS_SINE)
 			heat_tw.tween_property(heat, "color:a", 0.10, 2.4).set_trans(Tween.TRANS_SINE)
 		CombatWeather.SNOW:
-			## 画面上半分くらいまで届く落下距離（旧 lifetime だと途中で消えて薄く見えた）。
-			var fall_depth: float = view.y * 0.52
-			var v_mid: float = 58.0
-			var g_y: float = 52.0
-			var disc: float = v_mid * v_mid + 2.0 * g_y * fall_depth
-			var life: float = (-v_mid + sqrt(maxf(0.0, disc))) / maxf(1.0, g_y)
-			var snow := CPUParticles2D.new()
-			snow.texture = _make_snowflake_texture()
-			snow.amount = 130
-			snow.lifetime = clampf(life * 1.08, 4.2, 8.0)
-			## preprocess はモバイルでメインスレッドを長く止め得るため軽量に抑える。
-			snow.preprocess = mini(0.35, snow.lifetime * 0.08)
-			snow.local_coords = false
-			snow.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-			snow.emission_rect_extents = Vector2(view.x * 0.58, 2.0)
-			snow.position = Vector2(view.x * 0.5, -12.0)
-			snow.direction = Vector2(0.15, 1.0)
-			snow.spread = 18.0
-			snow.gravity = Vector2(10.0, g_y)
-			snow.initial_velocity_min = 46.0
-			snow.initial_velocity_max = 70.0
-			snow.scale_amount_min = 0.85
-			snow.scale_amount_max = 1.35
-			snow.modulate = Color(0.92, 0.96, 1.0, 0.78)
-			snow.emitting = true
-			layer.add_child(snow)
+			if light:
+				var snow_veil := ColorRect.new()
+				snow_veil.color = Color(0.78, 0.86, 0.95, 0.12)
+				snow_veil.set_anchors_preset(Control.PRESET_FULL_RECT)
+				snow_veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				layer.add_child(snow_veil)
+			else:
+				## 画面上半分くらいまで届く落下距離（旧 lifetime だと途中で消えて薄く見えた）。
+				var fall_depth: float = view.y * 0.52
+				var v_mid: float = 58.0
+				var g_y: float = 52.0
+				var disc: float = v_mid * v_mid + 2.0 * g_y * fall_depth
+				var life: float = (-v_mid + sqrt(maxf(0.0, disc))) / maxf(1.0, g_y)
+				var snow := CPUParticles2D.new()
+				snow.texture = _make_snowflake_texture()
+				snow.amount = 130
+				snow.lifetime = clampf(life * 1.08, 4.2, 8.0)
+				## preprocess はモバイルでメインスレッドを長く止め得るため軽量に抑える。
+				snow.preprocess = mini(0.35, snow.lifetime * 0.08)
+				snow.local_coords = false
+				snow.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+				snow.emission_rect_extents = Vector2(view.x * 0.58, 2.0)
+				snow.position = Vector2(view.x * 0.5, -12.0)
+				snow.direction = Vector2(0.15, 1.0)
+				snow.spread = 18.0
+				snow.gravity = Vector2(10.0, g_y)
+				snow.initial_velocity_min = 46.0
+				snow.initial_velocity_max = 70.0
+				snow.scale_amount_min = 0.85
+				snow.scale_amount_max = 1.35
+				snow.modulate = Color(0.92, 0.96, 1.0, 0.78)
+				snow.emitting = true
+				layer.add_child(snow)
 
 func _make_raindrop_texture() -> Texture2D:
 	var img := Image.create(2, 14, false, Image.FORMAT_RGBA8)
@@ -2177,6 +2194,8 @@ func _clear_transition_fx() -> void:
 func _spawn_transition_sparkles(color: Color, amount: int = 36, at_global: Variant = null) -> void:
 	if _transition_fx_host == null:
 		return
+	if SettingsPrefs.is_light_mode():
+		amount = mini(amount, 10)
 	var parts := CPUParticles2D.new()
 	parts.amount = amount
 	parts.lifetime = 0.65
@@ -7801,6 +7820,8 @@ func _resolve_enemy_skill_damage_impact_async(payload: Dictionary) -> void:
 
 ## 敵全体／列／詠唱ダメージの帯・波動・霧（P3-UX-COMBAT-BAND-001）。
 func _play_enemy_skill_band_vfx(skill: Resource, attacker_slot: int = -1) -> void:
+	if SettingsPrefs.is_light_mode():
+		return
 	var style: String = CombatBandVfxScript.classify_enemy_skill(skill)
 	if style.is_empty():
 		return
@@ -10729,6 +10750,8 @@ func _resolve_party_aoe_skill_damage_impact_async(payload: Dictionary) -> void:
 
 
 func _play_ally_aoe_band_vfx(member_idx: int, skill_data: Resource, attack_element: String) -> void:
+	if SettingsPrefs.is_light_mode():
+		return
 	var style: String = CombatBandVfxScript.classify_ally_aoe_skill(skill_data)
 	if style.is_empty():
 		return
@@ -11650,6 +11673,9 @@ func _on_menu_settings_pressed() -> void:
 
 func _on_ingame_settings_closed() -> void:
 	_apply_combat_speed(SettingsPrefs.get_combat_speed_mult())
+	## 軽量モード切替を即反映（天候パーティクル／オーラ）。
+	_refresh_weather()
+	_sync_status_auras()
 
 
 func _on_menu_button_pressed() -> void:
@@ -14939,6 +14965,8 @@ func _clear_boss_intro_fx() -> void:
 func _spawn_boss_debris_fall(short: bool) -> void:
 	_init_dungeon_presentation_ui()
 	if _transition_fx_host == null:
+		return
+	if SettingsPrefs.is_light_mode():
 		return
 	var t: Dictionary = _boss_intro_timings(short)
 	var dungeon_id: String = GameState.get_active_dungeon_id()

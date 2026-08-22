@@ -113,6 +113,12 @@ func _build() -> void:
 	vib_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiTypography.apply_caption(vib_hint, COLOR_SUB)
 	body.add_child(vib_hint)
+	body.add_child(_make_check("軽量モード", _SettingsPrefs.is_light_mode(), _on_light_mode))
+	var light_hint := Label.new()
+	light_hint.text = "オンで天候パーティクル・状態オーラ・帯演出などを抑え、発熱しやすい端末向けに軽くします"
+	light_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_caption(light_hint, COLOR_SUB)
+	body.add_child(light_hint)
 
 	var close_btn := Button.new()
 	close_btn.text = "閉じる"
@@ -201,6 +207,10 @@ func _on_damage(v: bool) -> void:
 
 func _on_vibration(v: bool) -> void:
 	_SettingsPrefs.set_vibration_enabled(v)
+
+
+func _on_light_mode(v: bool) -> void:
+	_SettingsPrefs.set_light_mode(v)
 
 
 func _on_dim_gui_input(event: InputEvent) -> void:
