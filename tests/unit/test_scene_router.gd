@@ -7,6 +7,14 @@ func test_hub_warmup_paths_exist() -> void:
 	assert_gt(paths.size(), 0, "warmup paths")
 	for path: String in paths:
 		assert_true(ResourceLoader.exists(path), path)
+	assert_true(
+		paths.has("res://scenes/dungeon/DungeonScene.tscn"),
+		"dungeon scene warmed for first dive"
+	)
+	assert_true(
+		paths.has("res://scenes/result/ResultScene.tscn"),
+		"result scene warmed"
+	)
 
 
 func test_warmup_fills_cache_for_home() -> void:

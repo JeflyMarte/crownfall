@@ -205,7 +205,9 @@ var _pending_enter_dungeon_id: String = ""
 var _enter_confirm_overlay: Control
 var _enter_confirm_yes: Button
 var _enter_confirm_no: Button
-var _party_empty_dialog: AcceptDialog
+## AcceptDialog 禁止（実機で入力を食う）。Control オーバーレイで通知。
+var _party_empty_overlay: Control = null
+var _party_empty_ok: Button = null
 ## Featured 名の2色行（LabelFeaturedName の代替表示）。
 var _featured_name_twotone: HBoxContainer = null
 ## 一覧フル幅ボタン用：PASS＋短押し（畳みバナー上でもスクロール可能）。
@@ -292,6 +294,8 @@ func _ready() -> void:
 	_mark_scroll_safe_button(_btn_route_event)
 	_mark_scroll_safe_button(_btn_route_abyss)
 	_refresh_all()
+	## 初潜りの DungeonScene 同期 load を減らす（hub warmup の取りこぼし補完）。
+	SceneRouter._request_threaded("res://scenes/dungeon/DungeonScene.tscn")
 	call_deferred("_maybe_show_content_unlock")
 
 
@@ -382,14 +386,60 @@ func _maybe_show_descent_route_guide() -> void:
 	_DungeonRouteGuide.show_on(self, _DungeonRouteGuide.GUIDE_DESCENT, false)
 
 func _setup_party_empty_dialog() -> void:
-	_party_empty_dialog = AcceptDialog.new()
-	_party_empty_dialog.title = "編成が空です"
-	_party_empty_dialog.dialog_text = (
+	## AcceptDialog（Window 排他）は実機で入力を食ってフリーズするため Control 化。
+	if _party_empty_overlay != null:
+		return
+	_party_empty_overlay = Control.new()
+	_party_empty_overlay.name = "PartyEmptyOverlay"
+	_party_empty_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_party_empty_overlay.visible = false
+	_party_empty_overlay.z_index = 85
+	_party_empty_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_party_empty_overlay)
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.0, 0.0, 0.0, 0.62)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	dim.gui_input.connect(_on_party_empty_dim_input)
+	_party_empty_overlay.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_party_empty_overlay.add_child(center)
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(520, 280)
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.07, 0.06, 0.05, 0.97)
+	sb.border_color = Color(0.55, 0.48, 0.32, 1.0)
+	sb.set_border_width_all(2)
+	sb.set_content_margin_all(20)
+	panel.add_theme_stylebox_override("panel", sb)
+	center.add_child(panel)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 16)
+	panel.add_child(col)
+	var title := Label.new()
+	title.text = "編成が空です"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_body(title, UiTypography.SIZE_BODY, COLOR_GOLD)
+	col.add_child(title)
+	var body := Label.new()
+	body.text = (
 		"パーティに冒険者がいません。\n"
 		+ "調査室から戻すか、編成画面で仲間を入れてから潜ってください。"
 	)
-	_party_empty_dialog.ok_button_text = "閉じる"
-	add_child(_party_empty_dialog)
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_caption(body, COLOR_SUB)
+	col.add_child(body)
+	_party_empty_ok = Button.new()
+	_party_empty_ok.text = "閉じる"
+	_party_empty_ok.custom_minimum_size = Vector2(160, 48)
+	_party_empty_ok.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	UiTypography.apply_menu_button(_party_empty_ok)
+	_party_empty_ok.pressed.connect(_hide_party_empty_notice)
+	col.add_child(_party_empty_ok)
 
 
 func _party_has_adventurer() -> bool:
@@ -400,10 +450,22 @@ func _party_has_adventurer() -> bool:
 
 
 func _show_party_empty_notice() -> void:
-	if _party_empty_dialog == null:
+	_setup_party_empty_dialog()
+	if _party_empty_overlay == null:
 		return
 	AudioManager.play_sfx("ui_error")
-	_party_empty_dialog.popup_centered()
+	_party_empty_overlay.visible = true
+
+
+func _hide_party_empty_notice() -> void:
+	AudioManager.play_sfx("ui_cancel")
+	if _party_empty_overlay != null:
+		_party_empty_overlay.visible = false
+
+
+func _on_party_empty_dim_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_hide_party_empty_notice()
 
 
 func _setup_enter_confirm() -> void:

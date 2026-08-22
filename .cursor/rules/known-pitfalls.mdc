@@ -145,6 +145,9 @@ alwaysApply: false
 | 装備着脱／戦術／許可スライダーで固まる | 軽操作のたび同期フルセーブ＋`pressed` 中にリスト全再生成 | `request_save`＋画面離脱 `flush_pending_save`。トグル／着脱 UI は `call_deferred` で rebuild |
 | ダンジョン選択アコーディオン／日課受取／ギフト／ギルド認定で固まる | 発信 Button を含む一覧を `pressed` 中に全再生成 | `call_deferred` で rebuild。受取は `request_save` |
 | 部屋暗転中に固まって見える | 暗転中点で敵シート `load`＋`get_image` が集中 | 群れ／CHR 表示は遷移完了後 `_flush_deferred_combat_room_visuals` |
+| 状態異常オーラ付与で一瞬固まる | `CPUParticles2D.preprocess = lifetime` が主スレッドで重い | preprocess を短くキャップ（雪 VFX と同型） |
+| 初潜り／初リザルトが長い | `DungeonScene`／`ResultScene` が hub warmup 外 | `SceneRouter.hub_warmup_paths` に追加＋選択画面でも threaded request |
+| 編成空／特典コードの AcceptDialog で入力不能 | Window 排他が ScrollTouch 実機で入力を食う | Control オーバーレイへ（鍛冶錬成素材と同型） |
 | iPhoneで装備一覧の長押しロックが効かない | ScreenDrag の**相対移動累積**で即キャンセル。詳細のロックボタンが下に隠れがち | 累積禁止（フリック1発／実スクロールのみ）。Timer ノード。詳細先頭にロックボタン＋トースト |
 | 武器に「炎上付与」と「状態付与 炎上」が二重 | 専用 `*_chance` と `on_hit_status` が併存抽選 | **P3-EQ-STATUS-UNIFY-001**: 状態付与のみ。専用行は sanitize で統合。`test_unify_legacy_ignite_into_on_hit` |
 | 他人装備を黙って奪う | 付け替え確認なしで即装備 | 他人装備中は「〇〇が装備してます。付け替えますか？」確認後に装備 |

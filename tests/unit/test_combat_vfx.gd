@@ -41,13 +41,13 @@ func test_weapon_hit_style_differs_sword_vs_bow() -> void:
 	assert_true(float((sword.get("scale") as Vector2).x) > float((sword.get("scale") as Vector2).y))
 
 
-func test_spawn_burst_without_crash() -> void:
-	var host := Node2D.new()
-	add_child_autofree(host)
+func test_loop_aura_preprocess_is_capped() -> void:
+	## 弱機フリーズ種: preprocess=lifetime 禁止。短くキャップする。
 	var mgr: RefCounted = _CombatVfxManager.new()
-	mgr.spawn_apply_burst(host, Vector2(100, 100), "ignite")
-	mgr.spawn_dot_tick(host, Vector2(120, 100), "poison")
-	assert_gt(host.get_child_count(), 0)
+	var aura: CPUParticles2D = mgr._build_loop_aura("poison")
+	assert_not_null(aura)
+	assert_lt(aura.preprocess, aura.lifetime)
+	assert_lte(aura.preprocess, 0.12)
 
 
 func test_dot_telop_color_mapping() -> void:
