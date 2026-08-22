@@ -1059,8 +1059,9 @@ func _on_daily_claim_pressed(index: int) -> void:
 	var result: Dictionary = DailyMissionSystem.claim(index)
 	if not bool(result.get("ok", false)):
 		return
-	SaveManager.save_game()
-	_refresh_daily_missions()
+	SaveManager.request_save()
+	## 受取 Button 自身を含むリストを即 rebuild すると Abort 種。
+	call_deferred("_refresh_daily_missions")
 	_play_daily_claim_fx(from_global, result)
 
 
