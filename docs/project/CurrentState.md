@@ -4,7 +4,10 @@
 
 ## Last Update
 
-2026-08-22（**フリーズ種P2対策／統合＋main**: 状態オーラ preprocess 短縮・Dungeon/Result warmup・編成空／特典の AcceptDialog を Control 化。要実機）
+2026-08-25（**UIアイコン解像度ダウン／統合＋main**: 敵行動順≤256・CHR／助っ人肖像≤512。ソース約133MB→16MB。要iOS再ビルド・実機で行動順／顔の見た目）
+2026-08-25（**軽量モードB＋ヒットVFXプールC／統合＋main**: ヒットスプライト／紙吹雪を軽量モードで抑止。`HitVfxPool` 再利用。要実機）
+2026-08-22（**設定・軽量モード／統合＋main**: 天候パーティクル・状態オーラ・帯VFX・ボス瓦礫を設定で抑止。既定オフ。要実機でオン時の発熱感）
+2026-08-22（**フリーズ種P2対策／統合＋main**: 状態オーラ preprocess 短縮・Dungeon/Result warmup・編成空／特典の AcceptDialog を Control 化。DungeonScene UID 修正。GUT 1598 PASS。要実機）
 2026-08-22（**フリーズ種P1対策／統合＋main**: ダンジョン選択アコーディオン／日課・ギフト・ギルド受取を deferred。暗転中の敵シート表示を明け後へ。GUT 1595 PASS。要実機）
 2026-08-21（**フリーズ種P0対策／統合＋main**: SaveManager debounce・装備着脱／戦術／許可スライダー・スキル等トグル deferred。GUT 1592 PASS。要実機で着脱連打・許可ドラッグ）
 2026-08-21（**装備ロックフリーズ対策／統合＋main**: トグル毎フルセーブを debounce＋離脱 flush。長押し後 press 固着解除・詳細ロックは文言のみ同期。GUT 1589 PASS。要実機で連続ロック確認）
