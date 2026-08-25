@@ -23,6 +23,7 @@ const _ChrIdlePortrait = preload("res://scripts/ui/ChrIdlePortrait.gd")
 const _GachaLimitBreak = preload("res://scripts/gacha/GachaLimitBreak.gd")
 const _CharacterStatPages = preload("res://scripts/roster/CharacterStatPages.gd")
 const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuses.gd")
+const _VirtualInventoryGrid = preload("res://scripts/ui/VirtualInventoryGrid.gd")
 
 # CombatController.BASE_MEMBER_HP と同値（表示用の素HP）。
 const BASE_MEMBER_HP: int = BalanceConfig.BASE_MEMBER_HP
@@ -137,7 +138,7 @@ var _label_effects_page: Label = null
 @onready var _tabs: TabContainer = $VBoxContainer/TabContainer
 @onready var _tactics_content: VBoxContainer = $VBoxContainer/TabContainer/TabTactics/TacticsContent
 @onready var _category_row: HBoxContainer = $VBoxContainer/TabContainer/TabEquip/EquipContent/CategoryRow
-@onready var _inventory_grid: GridContainer = (
+@onready var _inventory_grid: Control = (
 	$VBoxContainer/TabContainer/TabEquip/EquipContent/InventoryScroll/InventoryGrid
 )
 @onready var _skill_content: VBoxContainer = $VBoxContainer/TabContainer/TabSkill/SkillContent
@@ -190,6 +191,10 @@ const _TAB_LOCKED: Array[bool] = [false, false, false, false, false]
 
 var _inv_cell_size: Vector2 = Vector2(EquipmentUiTokens.INV_CELL_PX, EquipmentUiTokens.INV_CELL_PX)
 var _slot_cell_size: Vector2 = Vector2(EquipmentUiTokens.SLOT_PX, EquipmentUiTokens.SLOT_PX)
+## 着脱時の差分更新用（全 grid 再生成を避ける — P3-EQ-INV-CAP-002）。
+var _inv_item_cells_by_id: Dictionary = {}
+var _inv_relic_cells_by_id: Dictionary = {}
+var _virtual_inv = _VirtualInventoryGrid.new()
 var _detail_overlay: Control = null
 var _detail_host: VBoxContainer = null
 var _detail_title: Label = null
@@ -241,11 +246,8 @@ func _ready() -> void:
 	_btn_filter.pressed.connect(_on_filter_pressed)
 	_btn_effect.pressed.connect(_on_effect_pressed)
 	_btn_recommend.pressed.connect(_on_recommend_equip_pressed)
-	_inventory_grid.columns = GRID_COLUMNS
-	# Scroll 内で Grid が縦／横に EXPAND するとセルが伸び、
-	# InvCell の StyleBoxTexture 辺が巨大な金筋・隙間漏れになる（再発防止）。
-	_inventory_grid.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	_inventory_grid.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_ensure_inventory_virtual_host()
+	_setup_virtual_inventory()
 	## 所持は自然高ホスト。縦スクロールは TabEquip のみ（内側は非 Scroll）。
 	_inventory_scroll.clip_contents = false
 	_inventory_scroll.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -515,6 +517,13 @@ func _on_recommend_equip_pressed() -> void:
 		AudioManager.play_sfx("ui_cancel")
 		return
 	var member: Resource = _get_view_adventurer()
+	var prev_slots: Dictionary = {}
+	if member != null:
+		prev_slots = {
+			"weapon": member.equipped_weapon,
+			"armor": member.equipped_armor,
+			"accessory": member.equipped_accessory,
+		}
 	var result: Dictionary = EquipmentRecommendHelper.apply_for_adventurer(member)
 	if not bool(result.get("ok", false)):
 		AudioManager.play_sfx("ui_cancel")
@@ -522,7 +531,17 @@ func _on_recommend_equip_pressed() -> void:
 		return
 	if bool(result.get("changed", false)):
 		AudioManager.play_sfx("ui_confirm")
-		_refresh_display()
+		var patch: Array = []
+		for category in ["weapon", "armor", "accessory"]:
+			var prev_item: Resource = prev_slots.get(category) as Resource
+			if prev_item != null:
+				patch.append({"item": prev_item, "category": category})
+		var equipped: Dictionary = result.get("equipped", {})
+		for category in equipped.keys():
+			var new_item: Resource = equipped[category] as Resource
+			if new_item != null:
+				patch.append({"item": new_item, "category": str(category)})
+		_refresh_after_equip_change(patch)
 		_flash_recommend_button("装備した")
 	else:
 		AudioManager.play_sfx("ui_cancel")
@@ -1975,13 +1994,9 @@ func _update_inventory_viewport_height() -> void:
 func _fit_inventory_scroll_to_grid() -> void:
 	if _inventory_scroll == null or _inventory_grid == null:
 		return
-	var grid_min: Vector2 = _inventory_grid.get_combined_minimum_size()
-	var height: float = grid_min.y
-	if height < 1.0:
-		var cell_size: Vector2 = _inv_cell_size_vec()
-		var v_sep: int = _inventory_grid.get_theme_constant("v_separation", "GridContainer")
-		var rows: int = maxi(1, int(ceil(float(_inventory_grid.get_child_count()) / float(GRID_COLUMNS))))
-		height = cell_size.y * float(rows) + float(v_sep * maxi(0, rows - 1))
+	var height: float = _virtual_inv.content_height()
+	if height < 1.0 and _virtual_inv.entry_count() == 0:
+		height = 0.0
 	_inventory_scroll.custom_minimum_size.y = height
 
 func _sync_slot_cell_size() -> void:
@@ -2046,10 +2061,69 @@ func _attach_item_icon(
 	btn.add_child(tex_rect)
 
 func _clear_inventory_grid_children() -> void:
-	# queue_free のみだと同フレーム内に旧ノードが残り、列ずれの原因になる。
-	for child in _inventory_grid.get_children():
-		_inventory_grid.remove_child(child)
-		child.queue_free()
+	_inv_item_cells_by_id.clear()
+	_inv_relic_cells_by_id.clear()
+	_virtual_inv.clear()
+
+
+func _ensure_inventory_virtual_host() -> void:
+	if _inventory_grid is GridContainer:
+		var old: GridContainer = _inventory_grid as GridContainer
+		var parent: Node = old.get_parent()
+		var host := Control.new()
+		host.name = old.name
+		host.size_flags_horizontal = old.size_flags_horizontal
+		host.size_flags_vertical = old.size_flags_vertical
+		parent.add_child(host)
+		parent.move_child(host, old.get_index())
+		old.queue_free()
+		_inventory_grid = host
+	_inventory_grid.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_inventory_grid.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+
+
+func _setup_virtual_inventory() -> void:
+	_virtual_inv.columns = GRID_COLUMNS
+	_virtual_inv.cell_size = _inv_cell_size
+	_virtual_inv.h_separation = 4
+	_virtual_inv.v_separation = 4
+	_virtual_inv.bind(
+		_tab_equip_scroll,
+		_inventory_grid,
+		_VirtualInventoryGrid.BindMode.OUTER_SCROLL,
+		_make_virtual_inventory_cell,
+		_make_dim_label,
+		_on_virtual_inventory_cell_unbind
+	)
+
+
+func _make_virtual_inventory_cell(entry: Dictionary, _index: int) -> Control:
+	if str(entry.get("category", "")) == "relic":
+		return _make_relic_cell(str(entry.get("relic_id", "")))
+	return _make_item_cell(entry["item"], str(entry["category"]))
+
+
+func _on_virtual_inventory_cell_unbind(entry: Dictionary, _index: int, cell: Control) -> void:
+	var category: String = str(entry.get("category", ""))
+	if category == "relic":
+		var relic_id: String = str(entry.get("relic_id", ""))
+		if not relic_id.is_empty() and _inv_relic_cells_by_id.get(relic_id) == cell:
+			_inv_relic_cells_by_id.erase(relic_id)
+		return
+	var item: Resource = entry.get("item") as Resource
+	if item == null:
+		return
+	var iid: String = _item_instance_id(item)
+	if iid.is_empty():
+		return
+	var rec: Variant = _inv_item_cells_by_id.get(iid)
+	if rec is Dictionary and rec.get("btn") == cell:
+		_inv_item_cells_by_id.erase(iid)
+
+
+func _deferred_virtual_inventory_refresh() -> void:
+	_virtual_inv.refresh(false)
+	_fit_inventory_scroll_to_grid()
 
 # ---- 所持一覧グリッド ----
 func _rebuild_inventory_grid() -> void:
@@ -2112,19 +2186,17 @@ func _rebuild_inventory_grid() -> void:
 		var empty_msg: String = "該当する装備がありません"
 		if _inventory_filter == "relic":
 			empty_msg = "所持しているレリックがありません"
-		_inventory_grid.add_child(_make_dim_label(empty_msg))
+		_virtual_inv.cell_size = _inv_cell_size_vec()
+		_virtual_inv.set_entries([], empty_msg)
 		_fit_inventory_scroll_to_grid()
 		ScrollTouchHelper.enable(_tab_equip_scroll, false)
 		return
-	for e in EquipmentUiHelper.sort_inventory_entries(entries, _inventory_sort):
-		if str(e.get("category", "")) == "relic":
-			_inventory_grid.add_child(_make_relic_cell(str(e.get("relic_id", ""))))
-		else:
-			_inventory_grid.add_child(_make_item_cell(e["item"], str(e["category"])))
+	var sorted: Array = EquipmentUiHelper.sort_inventory_entries(entries, _inventory_sort)
+	_virtual_inv.cell_size = _inv_cell_size_vec()
+	_virtual_inv.set_entries(sorted, "")
 	_fit_inventory_scroll_to_grid()
-	## 外スクロール（TabEquip）のみ。内側所持 Scroll はネスト enable しない。
 	ScrollTouchHelper.enable(_tab_equip_scroll, false)
-	call_deferred("_fit_inventory_scroll_to_grid")
+	call_deferred("_deferred_virtual_inventory_refresh")
 
 func _make_item_cell(item: Resource, category: String) -> Button:
 	var cell_size: Vector2 = _inv_cell_size_vec()
@@ -2138,11 +2210,20 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 	_attach_item_icon(
 		btn, icon, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX, _item_id(item, category), category
 	)
-	var rarity: int = _item_rarity(item, category)
+	_bind_inventory_cell_interaction(btn, _inventory_item_action.bind(item, category))
+	_apply_inventory_cell_presentation(btn, item, category)
+	var iid: String = _item_instance_id(item)
+	if not iid.is_empty():
+		_inv_item_cells_by_id[iid] = {"btn": btn, "category": category, "item": item}
+	return btn
+
+func _apply_inventory_cell_presentation(btn: Button, item: Resource, category: String) -> void:
+	var cell_size: Vector2 = _inv_cell_size_vec()
+	var cell_px: int = int(cell_size.x)
 	var owner_member: Resource = GameState.find_item_equipped_owner(item)
 	var view_member: Resource = _get_view_adventurer()
 	var is_on_self: bool = owner_member != null and owner_member == view_member
-	## フル hover_summary はセル数ぶん重い（ステ集計＋load）。名＋操作ヒントのみ。詳細は長押し。
+	var rarity: int = _item_rarity(item, category)
 	var item_name: String = _item_display_name(item, category)
 	var job_blocked: bool = (
 		category == "weapon"
@@ -2153,9 +2234,10 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 		btn.tooltip_text = "%s\n（%s）" % [item_name, JobStatCalculator.unequip_reason_weapon(view_member, item)]
 	else:
 		btn.tooltip_text = "%s\n（長押しで詳細）" % item_name
-	## 短押し=着脱、長押し=詳細。ロック操作は装備一覧のみ（P3-UX-EQUIP-LOCK-001）。
-	## disabled にしない: ペット閲覧でも長押し詳細を受け付ける（着脱は tap 側で拒否）。
-	_bind_inventory_cell_interaction(btn, _inventory_item_action.bind(item, category))
+	var owner_badge: Node = btn.get_node_or_null("OwnerBadge")
+	if owner_badge != null:
+		owner_badge.queue_free()
+	_clear_inventory_cell_overlays(btn)
 	if is_on_self:
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
 		_apply_item_cell_styles(btn, rarity, cell_px, true)
@@ -2166,11 +2248,31 @@ func _make_item_cell(item: Resource, category: String) -> Button:
 		btn.modulate = Color(0.7, 0.7, 0.7, 0.9)
 		_apply_item_cell_styles(btn, rarity, cell_px, true)
 	else:
+		btn.modulate = Color.WHITE
 		_apply_item_cell_styles(btn, rarity, cell_px)
 	_apply_item_badges(btn, item, category, cell_size, is_on_self)
 	if owner_member != null:
 		_add_owner_portrait_badge(btn, owner_member, cell_size)
-	return btn
+
+func _clear_inventory_cell_overlays(btn: Button) -> void:
+	if btn == null:
+		return
+	var to_free: Array[Node] = []
+	for child in btn.get_children():
+		var n: String = str(child.name)
+		if n == "ItemIcon" or n == "OwnerBadge":
+			continue
+		if (
+			n == "RarityCornerBadge"
+			or n == "LegendaryBadge"
+			or n == "LockBadge"
+			or n == "NewEquipBadgeHost"
+			or child is Label
+		):
+			to_free.append(child)
+	for node in to_free:
+		btn.remove_child(node)
+		node.queue_free()
 
 func _make_relic_cell(relic_id: String) -> Button:
 	var cell_size: Vector2 = _inv_cell_size_vec()
@@ -2183,11 +2285,22 @@ func _make_relic_cell(relic_id: String) -> Button:
 	var icon_key: String = CombatPassives.relic_icon_key(relic_id)
 	var tex: Texture2D = IconPaths.get_icon_texture(icon_key, "relic")
 	_attach_item_icon(btn, tex, cell_px, EquipmentUiTokens.INV_CELL_DESIGN_PX)
+	btn.tooltip_text = "%s\n（長押しで詳細）" % EquipmentItemDetailHelper.relic_hover_summary(relic_id)
+	_bind_inventory_cell_interaction(btn, _inventory_relic_action.bind(relic_id))
+	_apply_relic_cell_presentation(btn, relic_id)
+	if not relic_id.is_empty():
+		_inv_relic_cells_by_id[relic_id] = btn
+	return btn
+
+func _apply_relic_cell_presentation(btn: Button, relic_id: String) -> void:
+	var cell_size: Vector2 = _inv_cell_size_vec()
+	var cell_px: int = int(cell_size.x)
 	var owner_member: Resource = GameState.find_relic_equipped_owner(relic_id)
 	var view_member: Resource = _get_view_adventurer()
 	var is_on_self: bool = owner_member != null and owner_member == view_member
-	btn.tooltip_text = "%s\n（長押しで詳細）" % EquipmentItemDetailHelper.relic_hover_summary(relic_id)
-	_bind_inventory_cell_interaction(btn, _inventory_relic_action.bind(relic_id))
+	var owner_badge: Node = btn.get_node_or_null("OwnerBadge")
+	if owner_badge != null:
+		owner_badge.queue_free()
 	if is_on_self:
 		btn.modulate = Color(0.72, 0.72, 0.72, 0.85)
 		_apply_relic_cell_styles(btn, cell_px, true)
@@ -2195,10 +2308,10 @@ func _make_relic_cell(relic_id: String) -> Button:
 		btn.modulate = Color(0.7, 0.7, 0.7, 0.9)
 		_apply_relic_cell_styles(btn, cell_px, true)
 	else:
+		btn.modulate = Color.WHITE
 		_apply_relic_cell_styles(btn, cell_px)
 	if owner_member != null:
 		_add_owner_portrait_badge(btn, owner_member, cell_size)
-	return btn
 
 func _inventory_item_action(is_long_press: bool, item: Resource, category: String) -> void:
 	if is_long_press:
@@ -2330,13 +2443,76 @@ func _tap_inventory_item(item: Resource, category: String) -> void:
 				$EquipmentController.unequip_armor_for_member(view_member)
 			"accessory":
 				$EquipmentController.unequip_accessory_for_member(view_member)
-		_refresh_display_deferred()
+		_refresh_after_equip_change([{"item": item, "category": category}])
 	else:
 		_request_equip_item(item, category)
 
-func _refresh_display_deferred() -> void:
-	## pressed / gui_input 中の全再生成は発信セル破棄で Abort しうる。
-	call_deferred("_refresh_display")
+func _refresh_after_equip_change(
+	item_patches: Array = [],
+	relic_patch_ids: Array = []
+) -> void:
+	## 着脱: スロット／ステは即反映。一覧は差分パッチ（無指定時のみ deferred 全再生成）。
+	_refresh_equip_visual_immediate()
+	if item_patches.is_empty() and relic_patch_ids.is_empty():
+		call_deferred("_rebuild_inventory_grid")
+		return
+	if not item_patches.is_empty():
+		_patch_inventory_cells(item_patches)
+	if not relic_patch_ids.is_empty():
+		_patch_relic_cells(relic_patch_ids)
+
+func _refresh_equip_visual_immediate() -> void:
+	_update_character_card()
+	_rebuild_equip_slots()
+	_rebuild_effects()
+	_refresh_inventory_tools()
+
+func _patch_inventory_cells(entries: Array) -> void:
+	for entry in entries:
+		if entry is not Dictionary:
+			continue
+		var item: Resource = entry.get("item") as Resource
+		var category: String = str(entry.get("category", ""))
+		if item == null or category.is_empty():
+			continue
+		var iid: String = _item_instance_id(item)
+		if iid.is_empty():
+			continue
+		var rec: Variant = _inv_item_cells_by_id.get(iid)
+		if rec is not Dictionary:
+			continue
+		var btn: Button = rec.get("btn") as Button
+		if btn == null or not is_instance_valid(btn):
+			continue
+		_apply_inventory_cell_presentation(btn, item, category)
+
+func _patch_relic_cells(relic_ids: Array) -> void:
+	for raw_id in relic_ids:
+		var relic_id: String = str(raw_id)
+		if relic_id.is_empty():
+			continue
+		var btn: Button = _inv_relic_cells_by_id.get(relic_id) as Button
+		if btn == null or not is_instance_valid(btn):
+			continue
+		_apply_relic_cell_presentation(btn, relic_id)
+
+func _relic_ids_to_patch_for_equip(relic_id: String, member: Resource) -> Array[String]:
+	var patch_ids: Array[String] = []
+	if not relic_id.is_empty():
+		patch_ids.append(relic_id)
+	if member == null:
+		return patch_ids
+	var prev_pid: String = GameState.get_equipped_relic_passive_id(member)
+	if prev_pid.is_empty():
+		return patch_ids
+	for rid in GameState.owned_relics:
+		var rid_str: String = str(rid)
+		if rid_str.is_empty() or rid_str == relic_id:
+			continue
+		if CombatPassives.migrate_relic_passive_id(rid_str) == prev_pid:
+			patch_ids.append(rid_str)
+			break
+	return patch_ids
 
 func _show_relic_stats_overlay(relic_id: String, pinned: bool = false) -> void:
 	_ensure_item_detail_overlay()
@@ -2504,7 +2680,7 @@ func _on_relic_equip_pressed(relic_id: String) -> void:
 	var pid: String = CombatPassives.migrate_relic_passive_id(relic_id)
 	if GameState.get_equipped_relic_passive_id(member) == pid:
 		GameState.set_member_relic(member, "")
-		_refresh_display()
+		_refresh_after_equip_change([], [relic_id])
 		return
 	var owner_member: Resource = GameState.find_relic_equipped_owner(relic_id)
 	if owner_member != null and owner_member != member:
@@ -2519,10 +2695,11 @@ func _apply_equip_relic(relic_id: String) -> void:
 	var member: Resource = _get_view_adventurer()
 	if member == null or _is_viewing_pet():
 		return
+	var patch_ids: Array[String] = _relic_ids_to_patch_for_equip(relic_id, member)
 	GameState.set_member_relic(member, relic_id)
 	SaveManager.request_save()
 	AudioManager.play_sfx("ui_equip")
-	_refresh_display_deferred()
+	_refresh_after_equip_change([], patch_ids)
 
 func _hide_item_detail_overlay() -> void:
 	if _detail_overlay != null:
@@ -2594,6 +2771,10 @@ func _apply_equip_item(item: Resource, category: String) -> void:
 	var member: Resource = _get_view_adventurer()
 	if member == null or item == null:
 		return
+	var prev_slot: Resource = _equipped_for_category(category)
+	var patch: Array = [{"item": item, "category": category}]
+	if prev_slot != null and prev_slot != item:
+		patch.append({"item": prev_slot, "category": category})
 	match category:
 		"weapon":
 			$EquipmentController.equip_weapon_for_member(item, member)
@@ -2602,7 +2783,7 @@ func _apply_equip_item(item: Resource, category: String) -> void:
 		"accessory":
 			$EquipmentController.equip_accessory_for_member(item, member)
 	AudioManager.play_sfx("ui_equip")
-	_refresh_display_deferred()
+	_refresh_after_equip_change(patch)
 
 func _on_take_equip_confirmed() -> void:
 	if not _pending_take_relic_id.is_empty():
@@ -2722,6 +2903,13 @@ func _item_rarity(item: Resource, category: String) -> int:
 	if data != null and "rarity" in data:
 		return int(data.rarity)
 	return 0
+
+func _item_instance_id(item: Resource) -> String:
+	if item == null:
+		return ""
+	if "instance_id" in item:
+		return str(item.instance_id)
+	return ""
 
 func _item_id(item: Resource, category: String) -> String:
 	if item == null:

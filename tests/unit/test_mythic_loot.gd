@@ -1,6 +1,6 @@
 extends GutTest
 
-## P3-EQ-MYTHIC-001 — 神話装備ドロップ／錬成禁止。
+## P3-EQ-MYTHIC-001 — 神話装備ドロップ／錬成（2026-08-26 錬成可へ変更）。
 
 const _DungeonController = preload("res://scripts/dungeon/DungeonController.gd")
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
@@ -60,19 +60,35 @@ func test_reclear_can_roll_mythic_with_forced_rng() -> void:
 	assert_false(hit.is_empty(), "再クリア＋低確率でいつか当たる")
 	assert_true(_MythicLoot.is_mythic_id(str(hit.get("id", ""))))
 
-func test_alchemy_blocks_mythic_fodder() -> void:
+func test_alchemy_allows_mythic_base_and_fodder() -> void:
+	GameState.gold = 100000
 	var inst_class = load("res://scripts/domain/ArmorInstance.gd")
-	var mythic = inst_class.new()
+	var mythic: Resource = inst_class.new()
+	mythic.instance_id = "mythic_base"
 	mythic.armor_id = _MythicLoot.ARMOR_ID
 	mythic.rarity = Enums.Rarity.MYTHIC
 	mythic.equip_level = 1
-	var common = inst_class.new()
+	mythic.is_appraised = true
+	var mythic_fodder: Resource = inst_class.new()
+	mythic_fodder.instance_id = "mythic_fodder"
+	mythic_fodder.armor_id = _MythicLoot.ARMOR_ID
+	mythic_fodder.rarity = Enums.Rarity.MYTHIC
+	mythic_fodder.equip_level = 10
+	mythic_fodder.is_appraised = true
+	var common: Resource = inst_class.new()
+	common.instance_id = "common_fodder"
 	common.armor_id = "leather_armor"
 	common.rarity = Enums.Rarity.COMMON
-	common.equip_level = 1
-	var check: Dictionary = _EquipmentEnhancer.can_alchemy(common, mythic)
-	assert_false(bool(check.get("ok", true)))
-	assert_true(str(check.get("reason", "")).find("神話") >= 0)
+	common.equip_level = 10
+	common.is_appraised = true
+	GameState.armor_inventory.append(mythic)
+	GameState.armor_inventory.append(mythic_fodder)
+	var check_mythic_fodder: Dictionary = _EquipmentEnhancer.can_alchemy(mythic, mythic_fodder)
+	assert_true(bool(check_mythic_fodder.get("ok", false)), str(check_mythic_fodder))
+	var check_common_fodder: Dictionary = _EquipmentEnhancer.can_alchemy(mythic, common)
+	assert_true(bool(check_common_fodder.get("ok", false)), str(check_common_fodder))
+	## 神話主材はレア倍率×4（炉研ぎ同表）
+	assert_eq(int(check_mythic_fodder.get("gold_cost", 0)), 3240)
 
 func test_mythic_passive_defs_exist() -> void:
 	assert_false(CombatPassives.get_def("eq_mythic_burial_crown").is_empty())

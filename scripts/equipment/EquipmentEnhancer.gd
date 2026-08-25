@@ -589,10 +589,6 @@ static func can_alchemy(base: Resource, fodder: Resource) -> Dictionary:
 		return fail.call("この装備では実行できません")
 	if cat_base != cat_fodder:
 		return fail.call("同じ種類の装備同士のみ錬成できます")
-	if item_rarity(fodder) >= Enums.Rarity.MYTHIC:
-		return fail.call("神話装備は錬成素材にできません")
-	if item_rarity(base) >= Enums.Rarity.MYTHIC:
-		return fail.call("神話装備は錬成できません")
 	if is_item_locked(fodder):
 		return fail.call("ロック中の装備は錬成素材にできません")
 	## 装備中は素材不可（一覧非表示と一致。外してから選ぶ）。

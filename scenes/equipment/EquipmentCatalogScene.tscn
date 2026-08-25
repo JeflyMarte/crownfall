@@ -166,7 +166,7 @@ text = ""
 layout_mode = 2
 theme_override_colors/font_color = Color(0.62, 0.6, 0.55, 1)
 theme_override_font_sizes/font_size = 14
-text = "0/200件"
+text = "0/400件"
 
 [node name="ButtonSort" type="Button" parent="MainVBox/InventoryHeaderRow"]
 layout_mode = 2

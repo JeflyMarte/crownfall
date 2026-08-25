@@ -971,6 +971,7 @@ func _apply_save_data(data: Dictionary) -> void:
 	_CommanderProfile.ensure_commander()
 	_CommanderProfile.bootstrap_acknowledged_rank_if_needed()
 	_migrate_legacy_global_equipment(data)
+	GameState.mark_equipped_item_owner_cache_dirty()
 
 const _DUNGEON_MIGRATION: Dictionary = {
 	"royal_ruins": Constants.MOURNGATE_DUNGEON_ID,
