@@ -8066,14 +8066,18 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-BAL-BOSS-SUMMON-HARD-PLUS-001-3 | **対象外** — 雑魚の招集スキル | ボス限定 |
 | P3-BAL-BOSS-SUMMON-HARD-PLUS-001-4 | **SSOT** — `103_BossSummonHardPlus.md` | Decision 本体 |
 
-## 第6職 機巧士（草案）（2026-08-22 — P3-JOB-ENGINEER-001）
+## 第6職 機巧士（2026-08-25 — P3-JOB-ENGINEER-001）
 
-> **オーナー承認待ち。** 「機巧士面白いので詰めて」への Decision 草案。実装は GO 後アップデート枠。
+> **オーナー GO（推奨値）。** B案＝敵行動反応の仕掛け。テーマ＝罠／装炎／破砕。実装はアップデート枠・未着手。
 
-| # | 決定候補 | 根拠 |
+| # | 決定 | 根拠 |
 |---|---|---|
-| P3-JOB-ENGINEER-001-1 | 基本職6種。id=`engineer`・表示**機巧士** | 設置装置ビルドの穴埋め |
-| P3-JOB-ENGINEER-001-2 | テーマ＝設置／起爆／機巧適性 | 93 既存テーマと非重複 |
-| P3-JOB-ENGINEER-001-3 | 武器＝双剣・弓 | 現行5職に無い組み合わせ |
-| P3-JOB-ENGINEER-001-4 | 装置＝HPなしトークン（召喚ではない） | 撃破ゲート・ペットと非干渉 |
-| P3-JOB-ENGINEER-001-5 | SSOT — `126_EngineerJob.md` | Decision 本体 |
+| P3-JOB-ENGINEER-001-1 | 基本職6種。id=`engineer`・表示**機巧士** | 機械職の穴埋め |
+| P3-JOB-ENGINEER-001-2 | 戦闘核＝仕掛けトークン（敵行動で発火）。召喚ではない | B案。ペット／撃破ゲートと非干渉 |
+| P3-JOB-ENGINEER-001-3 | テーマ＝**罠／装炎／破砕** | 93 非重複。連動は不採用 |
+| P3-JOB-ENGINEER-001-4 | 装炎＝長CD重スキル＋炎上（チャージゲージなし） | オーナー意図のチャージショット相当 |
+| P3-JOB-ENGINEER-001-5 | 武器＝双剣・弓 | 現行に無い組み合わせ |
+| P3-JOB-ENGINEER-001-6 | SSOT — `126_EngineerJob.md`／`93` 追記／`world/09` 追記 | Decision 本体 |
+
+（2026-08-22 草案の設置／起爆／機巧適性・連動案は本決定で置換）
+
