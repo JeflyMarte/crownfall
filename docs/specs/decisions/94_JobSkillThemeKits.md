@@ -1,6 +1,6 @@
 # 職スキルキット・テーマ再編（P3-SKILL-THEME-KIT-001）
 
-**Status:** Decision 承認済（2026-08-08 — プラン実装 GO）／**機巧士キット追記**（2026-08-25 — P3-JOB-ENGINEER-001・実装未）  
+**Status:** Decision 承認済（2026-08-08 — プラン実装 GO）／**機巧士キット追記**（2026-08-25 — P3-JOB-ENGINEER-001）／**機巧士コード接続**（2026-08-25）  
 **Overrides:** `20_SkillKitCompress.md` §4 キット表／`48_SkillKitDiverge.md`（SW Lv15）／`62_VanguardSkillTriad.md`・`84_VanguardKitTune.md`（VG 攻撃軸1本）／`82_RgBtSkillOrder.md`・`83_BtRgKitTune.md`（RG 順序）の該当行  
 **Maintains:** 習得7／装備枠1／必殺スコープ外／`93_JobBuildThemesPassives.md` 職テーマ／火鷹パッシブ据置  
 **関連:** 機巧士の戦闘核・効果詳細は `126_EngineerJob.md`
@@ -112,7 +112,7 @@
 - `frail_dust` → `attuned_bolt`（装備武器属性。remap あり）
 - `SkillProgression.EQUIPPED_SKILL_REMAP` 追記
 - SSOT ゲーム表: `docs/specs/game/06_キャラクター_ジョブ.md`
-- **機巧士:** 仕掛けトークン API・敵行動フック発火は未実装。`126_EngineerJob.md`
+- **機巧士:** JobData／スキル tres／`EngineerTraps`／DungeonScene 敵行動発火は接続済。キャラ3・専用ドット・L装備は後続。`126_EngineerJob.md`
 
 ---
 

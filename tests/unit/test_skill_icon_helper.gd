@@ -21,7 +21,7 @@ func test_player_skill_mapping_covers_expected_ids() -> void:
 func test_job_learnable_skills_have_base_icons() -> void:
 	## 現行5職の習得スキルは装備UIでベースアイコンが必ず出る。
 	var job_ids: Array[String] = [
-		"swordsman", "vanguard", "ranger", "alchemist", "beast_tamer",
+		"swordsman", "vanguard", "ranger", "alchemist", "beast_tamer", "engineer",
 	]
 	for job_id in job_ids:
 		var job: Resource = DataRegistry.get_job_data(job_id)

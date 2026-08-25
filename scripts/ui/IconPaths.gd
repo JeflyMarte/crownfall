@@ -16,6 +16,8 @@ const ICON_MAP: Dictionary = {
 	"chr:alchemist":               "res://assets/ui/chr_icons/ICO_CHR_Elias.png",
 	"chr:vanguard":                "res://assets/ui/chr_icons/ICO_CHR_Garen.png",
 	"chr:beast_tamer":             "res://assets/ui/chr_icons/ICO_CHR_Mirei.png",
+	## 機巧士は専用 CHR 未作成のため RG アイコンを仮使用（P3-JOB-ENGINEER-001）。
+	"chr:engineer":                "res://assets/ui/chr_icons/ICO_CHR_Riva.png",
 	"chr:pet_jack":                "res://assets/ui/chr_icons/ICO_CHR_Jack.png",
 	"chr:pet_ash":                 "res://assets/ui/chr_icons/ICO_CHR_Ash.png",
 	"chr:pet_ink":                 "res://assets/ui/chr_icons/ICO_CHR_Ink.png",

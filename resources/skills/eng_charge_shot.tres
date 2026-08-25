@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "eng_charge_shot"
+display_name = "チャージショット"
+description = "熱を込めた一射。当たった敵を炎上させる。次まで間が空く。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 2.2
+cooldown = 14.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ranged", "pierce"])
+element = "fire"
+slot_type = "skill"
+range_type = "long"
+apply_status_id = "ignite"
+apply_status_chance = 1.0

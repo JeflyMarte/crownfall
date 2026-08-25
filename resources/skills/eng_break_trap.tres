@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "eng_break_trap"
+display_name = "ブレイクトラップ"
+description = "装甲を蝕む仕掛けを付ける。動くたびに削れ、防御が落ちる。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 0.5
+cooldown = 5.0
+trigger_type = "cooldown"
+effect_type = "buff"
+tags = Array[String](["trap_place", "trap_break", "ranged", "debuff"])
+element = ""
+slot_type = "skill"
+range_type = "long"
+apply_status_id = "armor_break"
+apply_status_chance = 1.0

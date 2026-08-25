@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "eng_burn_trap"
+display_name = "バーントラップ"
+description = "焼夷を叩き込む機巧の極意。敵を燃やし尽くす。次まで大きく間が空く。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 2.6
+cooldown = 24.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ranged", "pierce"])
+element = "fire"
+slot_type = "skill"
+range_type = "long"
+apply_status_id = "ignite"
+apply_status_chance = 1.0

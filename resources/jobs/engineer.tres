@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="JobData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/JobData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "engineer"
+display_name = "機巧士"
+description = "戦場に仕掛けを付け、敵の行動に反応させて戦う。罠・装炎・破砕で型を選ぶ。"
+role = "scout"
+base_hp_modifier = 0.9
+base_attack_modifier = 1.0
+base_defense_modifier = 0.95
+base_initiative_modifier = 1.05
+preferred_weapon_types = Array[String](["dual_blades", "bow"])
+starting_skill_ids = Array[String](["eng_spike_trap"])
+skill_unlocks = Array[Dictionary]([{
+"skill_id": "eng_spike_trap",
+"level": 1
+}, {
+"skill_id": "eng_drill_pierce",
+"level": 8
+}, {
+"skill_id": "eng_snare_trap",
+"level": 15
+}, {
+"skill_id": "eng_charge_shot",
+"level": 22
+}, {
+"skill_id": "eng_break_trap",
+"level": 30
+}, {
+"skill_id": "eng_scrap_burst",
+"level": 40
+}, {
+"skill_id": "eng_burn_trap",
+"level": 50
+}])
+learnable_skill_ids = Array[String](["eng_spike_trap", "eng_drill_pierce", "eng_snare_trap", "eng_charge_shot", "eng_break_trap", "eng_scrap_burst", "eng_burn_trap"])
+passive_tag_ids = Array[String](["artifice"])
+ultimate_skill_id = "eng_overclock"
+evolved_display_name = "機巧匠"
+evolution_level = 30

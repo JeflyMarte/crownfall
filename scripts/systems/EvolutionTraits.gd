@@ -10,6 +10,8 @@ const _JOB_TRAIT_IDS: Dictionary = {
 	"ranger": ["evo_sniper_bounty", "evo_sniper_dead_eye"],
 	"vanguard": ["evo_paladin_smite", "evo_paladin_aegis"],
 	"beast_tamer": ["evo_lord_predator", "evo_lord_wild_sense"],
+	## 機巧士の昇格特質は後続（進化プレイOFF継続）。
+	"engineer": [],
 }
 
 const _DEFS: Dictionary = {

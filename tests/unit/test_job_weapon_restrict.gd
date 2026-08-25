@@ -40,6 +40,10 @@ func test_allowed_types_match_job_data() -> void:
 	assert_true("staff" in _JobCalc.allowed_weapon_types("vanguard"))
 	assert_true("sword" in _JobCalc.allowed_weapon_types("vanguard"))
 	assert_false("dual_blades" in _JobCalc.allowed_weapon_types("vanguard"))
+	assert_true("dual_blades" in _JobCalc.allowed_weapon_types("engineer"))
+	assert_true("bow" in _JobCalc.allowed_weapon_types("engineer"))
+	assert_false("staff" in _JobCalc.allowed_weapon_types("engineer"))
+	assert_false("sword" in _JobCalc.allowed_weapon_types("engineer"))
 
 
 func test_ranger_can_equip_sword_family() -> void:

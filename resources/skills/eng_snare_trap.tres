@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "eng_snare_trap"
+display_name = "スネアトラップ"
+description = "絡みの仕掛けを付ける。動くたびに足を奪う。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 0.25
+cooldown = 4.5
+trigger_type = "cooldown"
+effect_type = "buff"
+tags = Array[String](["trap_place", "trap_snare", "ranged", "debuff"])
+element = ""
+slot_type = "skill"
+range_type = "long"
+apply_status_id = "chill"
+apply_status_chance = 1.0

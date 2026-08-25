@@ -121,6 +121,14 @@ const SKILL_TO_BASE: Dictionary = {
 	"grand_elixir": "heal",
 	"dead_eye": "mark",
 	"beast_dominion": "bow",
+	"eng_spike_trap": "mark",
+	"eng_drill_pierce": "slash",
+	"eng_snare_trap": "snare",
+	"eng_charge_shot": "bow",
+	"eng_break_trap": "mark",
+	"eng_scrap_burst": "bow",
+	"eng_burn_trap": "bow",
+	"eng_overclock": "ultimate",
 }
 
 

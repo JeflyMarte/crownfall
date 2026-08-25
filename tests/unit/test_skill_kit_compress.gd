@@ -3,7 +3,7 @@ extends GutTest
 ## P3-SKILL-KIT-001 / THEME-KIT-001 — 職キット7本＋テーマ再編
 
 func test_each_job_has_seven_unlocks() -> void:
-	for job_id in ["swordsman", "ranger", "vanguard", "alchemist", "beast_tamer"]:
+	for job_id in ["swordsman", "ranger", "vanguard", "alchemist", "beast_tamer", "engineer"]:
 		var job: Resource = DataRegistry.get_job_data(job_id)
 		assert_not_null(job, job_id)
 		assert_eq(job.skill_unlocks.size(), 7, "%s unlocks" % job_id)
@@ -24,6 +24,7 @@ func test_theme_kit_unlock_ids() -> void:
 	var vg: Resource = DataRegistry.get_job_data("vanguard")
 	var al: Resource = DataRegistry.get_job_data("alchemist")
 	var bt: Resource = DataRegistry.get_job_data("beast_tamer")
+	var eng: Resource = DataRegistry.get_job_data("engineer")
 	assert_true(sw.learnable_skill_ids.has("keen_slash"))
 	assert_true(sw.learnable_skill_ids.has("battle_spirit"))
 	assert_false(sw.learnable_skill_ids.has("blade_dance"))
@@ -37,6 +38,37 @@ func test_theme_kit_unlock_ids() -> void:
 	assert_false(al.learnable_skill_ids.has("frail_dust"))
 	assert_true(bt.learnable_skill_ids.has("beast_vet_care"))
 	assert_true(bt.learnable_skill_ids.has("herd_call"))
+	assert_true(eng.learnable_skill_ids.has("eng_spike_trap"))
+	assert_true(eng.learnable_skill_ids.has("eng_break_trap"))
+	assert_true(eng.learnable_skill_ids.has("eng_burn_trap"))
+	assert_eq(str(eng.ultimate_skill_id), "eng_overclock")
+	assert_not_null(DataRegistry.get_skill_data("eng_overclock"))
+
+
+func test_engineer_kit_levels_and_weapons() -> void:
+	## P3-JOB-ENGINEER-001
+	var eng: Resource = DataRegistry.get_job_data("engineer")
+	assert_not_null(eng)
+	var by_lv: Dictionary = {}
+	for entry: Variant in eng.skill_unlocks:
+		by_lv[int(entry.get("level", 0))] = str(entry.get("skill_id", ""))
+	assert_eq(str(by_lv.get(1, "")), "eng_spike_trap")
+	assert_eq(str(by_lv.get(8, "")), "eng_drill_pierce")
+	assert_eq(str(by_lv.get(15, "")), "eng_snare_trap")
+	assert_eq(str(by_lv.get(22, "")), "eng_charge_shot")
+	assert_eq(str(by_lv.get(30, "")), "eng_break_trap")
+	assert_eq(str(by_lv.get(40, "")), "eng_scrap_burst")
+	assert_eq(str(by_lv.get(50, "")), "eng_burn_trap")
+	assert_true("dual_blades" in eng.preferred_weapon_types)
+	assert_true("bow" in eng.preferred_weapon_types)
+	assert_almost_eq(float(DataRegistry.get_skill_data("eng_charge_shot").cooldown), 14.0, 0.001)
+	assert_almost_eq(float(DataRegistry.get_skill_data("eng_burn_trap").cooldown), 24.0, 0.001)
+	var spike: Resource = DataRegistry.get_skill_data("eng_spike_trap")
+	assert_true(spike.tags.has("trap_place"))
+	assert_true(spike.tags.has("trap_spike"))
+	var burn: Resource = DataRegistry.get_skill_data("eng_burn_trap")
+	assert_false(burn.tags.has("trap_place"))
+	assert_eq(str(burn.apply_status_id), "ignite")
 
 
 func test_rg_bt_heal_and_apex() -> void:

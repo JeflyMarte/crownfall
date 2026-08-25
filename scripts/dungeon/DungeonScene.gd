@@ -435,6 +435,8 @@ const CHR_SPRITE_MAP: Dictionary = {
 	"alchemist": "res://resources/animation/CHR_Alchemist.tres",
 	"vanguard": "res://resources/animation/CHR_Vanguard.tres",
 	"beast_tamer": "res://resources/animation/CHR_BeastTamer.tres",
+	## 機巧士は専用ドット未着手のためレンジャーを仮流用（P3-JOB-ENGINEER-001）
+	"engineer": "res://resources/animation/CHR_Ranger.tres",
 }
 const BATTLE_BG_MAP: Dictionary = {
 	"mourngate": "res://assets/dungeon/mourngate/env/BG_Battle_Mourngate.png",
@@ -728,6 +730,7 @@ const ELEMENT_VFX_PATH: Dictionary = {
 	"holy": "res://resources/animation/FX_Hit_Holy.tres",
 }
 const SkillExecutorScript: Script = preload("res://scripts/combat/SkillExecutor.gd")
+const EngineerTrapsScript: Script = preload("res://scripts/combat/EngineerTraps.gd")
 const CombatVfxManagerScript: Script = preload("res://scripts/combat/CombatVfxManager.gd")
 const CombatBandVfxScript: Script = preload("res://scripts/combat/CombatBandVfx.gd")
 const HitVfxPoolScript: Script = preload("res://scripts/combat/HitVfxPool.gd")
@@ -763,6 +766,7 @@ var _auto_progress_finishes: bool = false
 var _pending_room_continuation: bool = false
 var _discovery_toast_tween: Tween
 var _skill_executor: RefCounted = SkillExecutorScript.new()
+var _engineer_traps: RefCounted = EngineerTrapsScript.new()
 var _combat_vfx: RefCounted = CombatVfxManagerScript.new()
 var _hit_vfx_pool: RefCounted = HitVfxPoolScript.new()
 var _is_paused: bool = false
@@ -4187,6 +4191,7 @@ func _enter_current_room() -> void:
 			_update_combat_visibility()
 			_sync_shadow_stalker_floor_dim(group)
 			_skill_executor.reset()
+			_engineer_traps.clear()
 			_skill_cd_visual_rem.clear()
 			_round_active = false
 			_ct_status_accum = 0.0
@@ -5581,6 +5586,10 @@ func _do_enemy_turn(slot: int) -> void:
 	if $CombatController.has_pending_cast("enemy", slot):
 		_advance_enemy_cast(slot)
 		return
+	## 機巧士罠: 行動しようとする時点で発火（冷却スキップより前）
+	_fire_engineer_traps_on_enemy(slot)
+	if not $CombatController.is_enemy_slot_alive(slot):
+		return
 	if $CombatController.should_enemy_skip_action_at(slot):
 		var skip_label: String = $CombatController.get_enemy_skip_action_label_at(slot)
 		if skip_label.is_empty():
@@ -5608,6 +5617,7 @@ func _flee_enemy_slot_no_reward(slot: int, label: String, is_wander: bool) -> vo
 	$CombatController.clear_pending_cast("enemy", slot)
 	$CombatController.flee_enemy_slot(slot)
 	_debuff_marks.erase(slot)
+	_engineer_traps.clear_slot(slot)
 	if slot < _swarm_sprites.size() and _swarm_sprites[slot].visible:
 		_swarm_sprites[slot].visible = false
 	if slot < _swarm_hp_bars.size():
@@ -6048,12 +6058,166 @@ func _execute_member_aoe_damage_skill(
 	return ""
 
 
+## 機巧士：仕掛け設置（印付与。設置時ダメージなし）。
+func _execute_engineer_trap_place(
+	member_idx: int,
+	skill_data: Resource,
+	cast_index: int = 0,
+	suppress_resolve_label: bool = false
+) -> String:
+	if skill_data == null or not _member_has_living_target(member_idx):
+		return ""
+	var kind: String = EngineerTrapsScript.kind_from_skill(skill_data)
+	if kind.is_empty():
+		return ""
+	var target_slot: int = _pick_engineer_trap_target(member_idx)
+	if target_slot < 0 or not $CombatController.is_enemy_slot_alive(target_slot):
+		return ""
+	var cd_key: String = _member_skill_cd_key(member_idx, skill_data)
+	var result: Dictionary = _skill_executor.execute_support_skill(
+		skill_data,
+		cd_key,
+		(_EquipmentSetBonuses.skill_cd_mult(member_idx) * CombatPassives.relic_skill_cd_mult(member_idx))
+	)
+	if not result.get("executed", false):
+		return ""
+	var fires: int = EngineerTrapsScript.fires_for_kind(kind)
+	var power: float = EngineerTrapsScript.power_for_kind(kind)
+	if float(skill_data.power_multiplier) > 0.0:
+		power = float(skill_data.power_multiplier)
+	var status_info: Dictionary = EngineerTrapsScript.status_for_kind(kind)
+	var place_result: Dictionary = _engineer_traps.place(
+		target_slot,
+		kind,
+		member_idx,
+		fires,
+		power,
+		str(status_info.get("id", "")),
+		float(status_info.get("chance", 0.0))
+	)
+	if not place_result.get("ok", false):
+		return ""
+	_play_chr_attack_one(member_idx)
+	if cast_index == 0:
+		_clear_member_skill_labels(member_idx)
+	if not suppress_resolve_label:
+		AudioManager.play_sfx("combat_buff", 1.0, 0.08)
+		_spawn_skill_name(
+			result["display_name"],
+			member_idx,
+			float(cast_index) * SKILL_LABEL_STACK_GAP,
+			""
+		)
+	var kind_label: String = _engineer_trap_kind_label(kind)
+	return "\n【スキル】%s: %sを仕掛けた（残%d）" % [
+		result["display_name"], kind_label, fires,
+	]
+
+
+## 印のない敵を優先。全員に印があれば現行ターゲット（上書き）。
+func _pick_engineer_trap_target(member_idx: int) -> int:
+	var primary: int = $CombatController.get_member_target_slot(member_idx)
+	if primary >= 0 and $CombatController.is_enemy_slot_alive(primary) and not _engineer_traps.has_trap(primary):
+		return primary
+	var living: Array = $CombatController.get_living_enemy_indices()
+	for slot_v: Variant in living:
+		var slot: int = int(slot_v)
+		if $CombatController.is_enemy_slot_alive(slot) and not _engineer_traps.has_trap(slot):
+			return slot
+	return primary
+
+
+func _engineer_trap_kind_label(kind: String) -> String:
+	match kind:
+		"spike":
+			return "スパイク"
+		"snare":
+			return "スネア"
+		"break":
+			return "ブレイク"
+		_:
+			return "仕掛け"
+
+
+## 敵が行動しようとする時点で発火（冷却スキップより前）。
+func _fire_engineer_traps_on_enemy(slot: int) -> void:
+	if slot < 0 or not _engineer_traps.has_trap(slot):
+		return
+	if not $CombatController.is_enemy_slot_alive(slot):
+		return
+	var fired: Dictionary = _engineer_traps.fire(slot)
+	if fired.is_empty():
+		return
+	var placer_idx: int = int(fired.get("placer_idx", -1))
+	var power: float = float(fired.get("power", 0.0))
+	var kind: String = str(fired.get("kind", ""))
+	var status_id: String = str(fired.get("status_id", ""))
+	var status_chance: float = float(fired.get("status_chance", 0.0))
+	var fires_left: int = int(fired.get("fires_left", 0))
+	var dmg: int = 0
+	if power > 0.0:
+		var base_damage: int = 1
+		if placer_idx >= 0:
+			var base_info: Dictionary = _calc_attack_base(placer_idx)
+			base_damage = maxi(1, int(base_info.get("base_damage", 1)))
+		var raw: int = maxi(1, int(round(float(base_damage) * power)))
+		var enemy_data: Resource = $CombatController.get_enemy_data_at(slot)
+		raw = _apply_enemy_defense(raw, enemy_data)
+		dmg = maxi(
+			1,
+			int(round(float(raw) * $CombatController.get_enemy_incoming_damage_multiplier_at(slot)))
+		)
+		$CombatController.apply_damage_to_enemy_slot(slot, dmg)
+		if placer_idx >= 0 and $CombatController.is_member_alive(placer_idx):
+			$CombatController.add_threat(placer_idx, float(dmg) * CombatController.THREAT_DAMAGE_K)
+			GameState.record_run_damage(placer_idx, dmg, "eng_trap_%s" % kind, "仕掛け")
+		_spawn_hit_vfx(_enemy_slot_pos(slot))
+		var enemy_spr: AnimatedSprite2D = _enemy_sprite_for_slot(slot)
+		if enemy_spr != null and enemy_spr.visible:
+			var tick_pos: Vector2 = _sprite_visual_center_global(enemy_spr)
+			_spawn_damage_number(
+				str(dmg),
+				tick_pos + Vector2(0.0, -20.0),
+				Color(0.9, 0.75, 0.4),
+				0.95,
+				dmg,
+				true
+			)
+		_check_boss_phase_transition(slot)
+	if (
+		not status_id.is_empty()
+		and status_chance > 0.0
+		and $CombatController.is_enemy_slot_alive(slot)
+		and randf() <= status_chance
+	):
+		var src_atk: int = 0
+		if placer_idx >= 0:
+			src_atk = _dot_source_attack_for_member(placer_idx)
+		if $CombatController.apply_status_to_enemy_slot(slot, status_id, 1, src_atk):
+			if placer_idx >= 0:
+				_party_applied_enemy_status(placer_idx, slot, status_id)
+			_update_status_icons()
+	var kind_label: String = _engineer_trap_kind_label(kind)
+	if dmg > 0:
+		_append_log("[仕掛け・%s] %dダメージ（残%d）" % [kind_label, dmg, fires_left])
+	else:
+		_append_log("[仕掛け・%s] 発動（残%d）" % [kind_label, fires_left])
+	_update_hp_bars()
+	if $CombatController.get_enemy_hp_at(slot) <= 0:
+		var killer: int = -1
+		if placer_idx >= 0 and $CombatController.is_member_alive(placer_idx):
+			killer = placer_idx
+		_on_enemy_slot_killed(slot, killer)
+
+
 func _execute_member_skill(
 	member_idx: int,
 	skill_data: Resource,
 	cast_index: int = 0,
 	suppress_resolve_label: bool = false
 ) -> String:
+	if skill_data != null and skill_data.tags.has("trap_place"):
+		return _execute_engineer_trap_place(member_idx, skill_data, cast_index, suppress_resolve_label)
 	match skill_data.effect_type:
 		"heal":
 			return _execute_member_heal(member_idx, skill_data, cast_index, suppress_resolve_label)
@@ -9188,6 +9352,7 @@ func _on_enemy_slot_killed(killed_slot: int, killer_member_idx: int = -1) -> boo
 	_AbyssWeaponEffects.clear_focus_on_enemy_death(killed_slot)
 	$CombatController.clear_pending_cast("enemy", killed_slot)
 	_debuff_marks.erase(killed_slot)
+	_engineer_traps.clear_slot(killed_slot)
 	_award_enemy_kill_at(killed_slot)
 	if killed_slot == $CombatController.active_enemy_index:
 		$CombatController.advance_active_enemy()
@@ -9571,16 +9736,21 @@ func _try_cast_member_skill(member_idx: int, skill_data: Resource, is_ultimate: 
 			if not CombatTactics.heal_allowed(heal_tactics, heal_ratio):
 				return false
 		"buff":
-			if str(skill_data.target_type) == "pet" or skill_data.tags.has("pet_only"):
-				if not _is_active_pet_alive():
+			## 機巧士仕掛けは敵向け。味方バフ温存ロジックを通さない。
+			if skill_data.tags.has("trap_place"):
+				if not _member_has_living_target(member_idx):
 					return false
-			elif str(skill_data.id) == "herd_call" and not _is_active_pet_alive() and GameState.party_members.is_empty():
-				return false
-			var buff_ctx: Dictionary = _build_tactics_context(member_idx)
-			if CombatTactics.buff_reapply_blocked(
-				skill_data, str(buff_ctx.get("tactics_id", "")), buff_ctx
-			):
-				return false
+			else:
+				if str(skill_data.target_type) == "pet" or skill_data.tags.has("pet_only"):
+					if not _is_active_pet_alive():
+						return false
+				elif str(skill_data.id) == "herd_call" and not _is_active_pet_alive() and GameState.party_members.is_empty():
+					return false
+				var buff_ctx: Dictionary = _build_tactics_context(member_idx)
+				if CombatTactics.buff_reapply_blocked(
+					skill_data, str(buff_ctx.get("tactics_id", "")), buff_ctx
+				):
+					return false
 		"damage":
 			if not _member_has_living_target(member_idx):
 				return false

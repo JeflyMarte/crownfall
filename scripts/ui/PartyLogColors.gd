@@ -22,6 +22,7 @@ const COLOR_BY_JOB: Dictionary = {
 	"alchemist": Color("#A3BE8C"),
 	"vanguard": Color("#B48EAD"),
 	"beast_tamer": Color("#D08770"),
+	"engineer": Color("#D4A574"),
 }
 
 

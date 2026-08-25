@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "eng_spike_trap"
+display_name = "スパイクトラップ"
+description = "敵に棘の仕掛けを付ける。動くたびに刺さり、何度か反応する。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 0.55
+cooldown = 4.0
+trigger_type = "cooldown"
+effect_type = "buff"
+tags = Array[String](["trap_place", "trap_spike", "ranged"])
+element = ""
+slot_type = "skill"
+range_type = "long"
+apply_status_id = ""
+apply_status_chance = 0.0

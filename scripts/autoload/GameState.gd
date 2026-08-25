@@ -1678,6 +1678,7 @@ const STARTING_WEAPON_BY_JOB: Dictionary = {
 	"alchemist": "apprentice_staff",
 	"vanguard": "iron_sword",
 	"beast_tamer": "hunting_bow",
+	"engineer": "hunting_bow",
 }
 
 const _GachaRarityConfig: Script = preload("res://scripts/gacha/GachaRarityConfig.gd")

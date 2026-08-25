@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "eng_scrap_burst"
+display_name = "スクラップバースト"
+description = "廃材を撒き、敵全体を薄く削る。"
+skill_type = "player"
+target_type = "all_enemies"
+power_multiplier = 0.55
+cooldown = 5.5
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ranged", "aoe"])
+element = ""
+slot_type = "skill"
+range_type = "long"
+apply_status_id = ""
+apply_status_chance = 0.0

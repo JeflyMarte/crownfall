@@ -1,9 +1,9 @@
 # 第6職：機巧士（engineer）（P3-JOB-ENGINEER-001）
 
 **Status:** Decision **承認済**（2026-08-25 — テーマ GO／同日 **スキルキット GO**）  
-**実装:** 未着手（アップデート枠。コード未接続。仮数値は実装時調整可）  
+**実装:** **コード接続済**（JobData／スキル tres／`EngineerTraps`／DungeonScene 発火。キャラ3・専用ドット・L装備・パッシブ数値は後続。アップデート枠・β本線即時投入なし）  
 **上書き:** `93_JobBuildThemesPassives.md`（テーマ）／`94_JobSkillThemeKits.md`（§2.6 機巧士）  
-**後続で反映（実装 Task 時）:** `07_JobWeaponRestrict.md`／JobData・スキル tres／`95` L装備  
+**後続で反映（残）:** `95` L装備／専用 CHR／キャラ3名・加入  
 **維持:** 基本5職キット・パッシブ据置／上位下位なし／習得7・装備枠1／ペット枠外／Decision 122
 
 ---

@@ -214,6 +214,9 @@ static func preferred_support_skill_index(member: Resource) -> int:
 static func _is_support_skill(skill_data: Resource) -> bool:
 	if skill_data == null:
 		return false
+	## 機巧士仕掛けは攻撃寄りの設置。サポート枠に入れない。
+	if "tags" in skill_data and skill_data.tags is Array and skill_data.tags.has("trap_place"):
+		return false
 	var effect: String = str(skill_data.get("effect_type"))
 	if effect == "heal" or effect == "buff":
 		return true
@@ -230,6 +233,9 @@ static func _is_support_skill(skill_data: Resource) -> bool:
 ## スキル効果カテゴリ: damage | heal | buff（その他は damage 扱い）。
 static func skill_category(skill_data: Resource) -> String:
 	if skill_data == null:
+		return "damage"
+	## 仕掛け設置はダメージ枠で回す（設置優先の意図に近い）。
+	if "tags" in skill_data and skill_data.tags is Array and skill_data.tags.has("trap_place"):
 		return "damage"
 	var effect: String = str(skill_data.get("effect_type"))
 	if effect == "heal":
@@ -257,6 +263,8 @@ static func buff_reapply_blocked(skill_data: Resource, tactics_id: String, ctx: 
 	if skill_data == null:
 		return false
 	if str(skill_data.get("effect_type")) != "buff":
+		return false
+	if "tags" in skill_data and skill_data.tags is Array and skill_data.tags.has("trap_place"):
 		return false
 	var status_id: String = ""
 	if "apply_status_id" in skill_data:
