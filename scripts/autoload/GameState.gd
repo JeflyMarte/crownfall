@@ -131,6 +131,10 @@ var tutorial_flags: Dictionary = {}
 var armor_inventory: Array = []
 var accessory_inventory: Array = []
 
+## 装備 instance_id → 装備中メンバー（find_item_equipped_owner の O(1) 化 — P3-EQ-INV-CAP-002）。
+var _equipped_item_owner_by_id: Dictionary = {}
+var _equipped_item_owner_cache_dirty: bool = true
+
 var last_run_exp_reward: int = 0
 ## 直近ランのメンバー別EXP { member_id: amount }（撃破時点の生存者のみ積立）。
 var last_run_exp_by_member: Dictionary = {}
@@ -1354,9 +1358,27 @@ func can_add_equipment(count: int = 1, ignore_cap: bool = false) -> bool:
 	return equipment_inventory_count() + count <= Constants.MAX_EQUIPMENT_INVENTORY
 
 
-## 装備袋表示用（例: 10/200件）。
+## 装備袋表示用（例: 10/400件）。
 func equipment_inventory_count_label() -> String:
 	return "%d/%d件" % [equipment_inventory_count(), Constants.MAX_EQUIPMENT_INVENTORY]
+
+
+func mark_equipped_item_owner_cache_dirty() -> void:
+	_equipped_item_owner_cache_dirty = true
+
+
+func rebuild_equipped_item_owner_cache() -> void:
+	_equipped_item_owner_by_id.clear()
+	for adv: Resource in roster:
+		if adv == null:
+			continue
+		for item: Resource in [adv.equipped_weapon, adv.equipped_armor, adv.equipped_accessory]:
+			if item == null:
+				continue
+			var iid: String = _equipped_instance_id(item)
+			if not iid.is_empty():
+				_equipped_item_owner_by_id[iid] = adv
+	_equipped_item_owner_cache_dirty = false
 
 
 func try_add_weapon_instance(instance: Resource, ignore_cap: bool = false) -> bool:
@@ -1553,6 +1575,7 @@ func _apply_preset_equipment_slot(
 				member.equipped_armor = null
 			"accessory":
 				member.equipped_accessory = null
+		mark_equipped_item_owner_cache_dirty()
 		return
 	var item: Resource = null
 	match kind:
@@ -1581,6 +1604,7 @@ func _apply_preset_equipment_slot(
 			member.equipped_armor = item
 		"accessory":
 			member.equipped_accessory = item
+	mark_equipped_item_owner_cache_dirty()
 
 
 ## P3-EQ-JOB-WPN-001: 非適合武器を外す（所持インベントリはそのまま）。
@@ -1596,6 +1620,8 @@ func strip_incompatible_equipped_weapons() -> int:
 			continue
 		member.equipped_weapon = null
 		stripped += 1
+	if stripped > 0:
+		mark_equipped_item_owner_cache_dirty()
 	return stripped
 
 func find_item_equipped_member_index(item: Resource) -> int:
@@ -1616,6 +1642,7 @@ func find_item_equipped_member_index(item: Resource) -> int:
 func clear_item_from_other_members(item: Resource, keep_member_index: int) -> void:
 	if item == null:
 		return
+	var changed: bool = false
 	for i in party_members.size():
 		if i == keep_member_index:
 			continue
@@ -1624,39 +1651,49 @@ func clear_item_from_other_members(item: Resource, keep_member_index: int) -> vo
 			continue
 		if member.equipped_weapon == item:
 			member.equipped_weapon = null
+			changed = true
 		if member.equipped_armor == item:
 			member.equipped_armor = null
+			changed = true
 		if member.equipped_accessory == item:
 			member.equipped_accessory = null
+			changed = true
+	if changed:
+		mark_equipped_item_owner_cache_dirty()
 
 ## ロスター全体（編成外含む）で、他メンバーの装備を外す。
 ## `EquipmentScene` の「編成外キャラにも装備できる」機能用（重複所持を避ける）。
 func clear_item_from_other_roster_members(item: Resource, keep_member: Resource) -> void:
 	if item == null:
 		return
+	var changed: bool = false
 	for adv in roster:
 		if adv == null or adv == keep_member:
 			continue
 		if adv.equipped_weapon == item:
 			adv.equipped_weapon = null
+			changed = true
 		if adv.equipped_armor == item:
 			adv.equipped_armor = null
+			changed = true
 		if adv.equipped_accessory == item:
 			adv.equipped_accessory = null
+			changed = true
+	if changed:
+		mark_equipped_item_owner_cache_dirty()
 
 ## 所持しているメンバー（編成外含む）を返す。見つからなければ null。
 func find_item_equipped_owner(item: Resource) -> Resource:
 	if item == null:
 		return null
-	for adv in roster:
-		if adv == null:
-			continue
-		if (
-			adv.equipped_weapon == item
-			or adv.equipped_armor == item
-			or adv.equipped_accessory == item
-		):
-			return adv
+	if _equipped_item_owner_cache_dirty:
+		rebuild_equipped_item_owner_cache()
+	var iid: String = _equipped_instance_id(item)
+	if iid.is_empty():
+		return null
+	var owner: Variant = _equipped_item_owner_by_id.get(iid)
+	if owner is Resource and is_instance_valid(owner):
+		return owner as Resource
 	return null
 
 ## 所持しているレリック所持者（編成外含む）を返す。見つからなければ null。
@@ -2038,6 +2075,7 @@ func _grant_member_starting_weapon(member: Resource) -> void:
 	if not try_add_weapon_instance(instance, true):
 		return
 	member.equipped_weapon = instance
+	mark_equipped_item_owner_cache_dirty()
 
 # 解放済みスターターの欠落のみ補完する（未解放は追加しない — P3-STORY-STARTER-001）。
 func ensure_base_roster_complete() -> void:

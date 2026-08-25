@@ -36,6 +36,7 @@ func equip_weapon_for_member(item: Resource, member: Resource) -> void:
 	member.equipped_weapon = item
 	## 連打着脱で同期フルセーブすると弱機フリーズ（ロックと同型）。
 	SaveManager.request_save()
+	GameState.mark_equipped_item_owner_cache_dirty()
 
 func equip_armor_for_member(item: Resource, member: Resource) -> void:
 	if member == null or item == null:
@@ -43,6 +44,7 @@ func equip_armor_for_member(item: Resource, member: Resource) -> void:
 	GameState.clear_item_from_other_roster_members(item, member)
 	member.equipped_armor = item
 	SaveManager.request_save()
+	GameState.mark_equipped_item_owner_cache_dirty()
 
 func equip_accessory_for_member(item: Resource, member: Resource) -> void:
 	if member == null or item == null:
@@ -50,24 +52,28 @@ func equip_accessory_for_member(item: Resource, member: Resource) -> void:
 	GameState.clear_item_from_other_roster_members(item, member)
 	member.equipped_accessory = item
 	SaveManager.request_save()
+	GameState.mark_equipped_item_owner_cache_dirty()
 
 func unequip_weapon_for_member(member: Resource) -> void:
 	if member == null:
 		return
 	member.equipped_weapon = null
 	SaveManager.request_save()
+	GameState.mark_equipped_item_owner_cache_dirty()
 
 func unequip_armor_for_member(member: Resource) -> void:
 	if member == null:
 		return
 	member.equipped_armor = null
 	SaveManager.request_save()
+	GameState.mark_equipped_item_owner_cache_dirty()
 
 func unequip_accessory_for_member(member: Resource) -> void:
 	if member == null:
 		return
 	member.equipped_accessory = null
 	SaveManager.request_save()
+	GameState.mark_equipped_item_owner_cache_dirty()
 
 func equip_weapon(item: Resource, member_index: int) -> void:
 	if not _is_valid_member_index(member_index):

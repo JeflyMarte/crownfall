@@ -17,6 +17,8 @@ const _CELL_PRESS_NONE: int = 0
 const _CELL_PRESS_TOUCH: int = 1
 const _CELL_PRESS_MOUSE: int = 2
 
+const _VirtualInventoryGrid = preload("res://scripts/ui/VirtualInventoryGrid.gd")
+
 @onready var _button_back: Button = $Header/HeaderRow/ButtonBack
 @onready var _label_gold: Label = $Header/HeaderRow/GoldChip/GoldRow/LabelGold
 @onready var _label_token: Label = $Header/HeaderRow/TokenChip/TokenRow/LabelToken
@@ -26,7 +28,7 @@ const _CELL_PRESS_MOUSE: int = 2
 @onready var _btn_effect: Button = $MainVBox/InventoryHeaderRow/ButtonEffect
 @onready var _label_count: Label = $MainVBox/InventoryHeaderRow/LabelCount
 @onready var _inventory_scroll: ScrollContainer = $MainVBox/InventoryScroll
-@onready var _inventory_grid: GridContainer = $MainVBox/InventoryScroll/InventoryGrid
+@onready var _inventory_grid: Control = $MainVBox/InventoryScroll/InventoryGrid
 @onready var _detail_panel: PanelContainer = $MainVBox/DetailPanel
 @onready var _detail_host: VBoxContainer = $MainVBox/DetailPanel/DetailScroll/DetailVBox
 
@@ -54,6 +56,7 @@ var _cell_press_relic_id: String = ""
 var _cell_press_btn: Button = null
 var _lock_toast: Label = null
 var _lock_toast_tween: Tween = null
+var _virtual_inv = _VirtualInventoryGrid.new()
 
 func _ready() -> void:
 	$Header/HeaderRow/LabelTitle.text = ""
@@ -68,9 +71,8 @@ func _ready() -> void:
 	_btn_sort.pressed.connect(_on_sort_pressed)
 	_btn_filter.pressed.connect(_on_filter_pressed)
 	_btn_effect.pressed.connect(_on_effect_pressed)
-	_inventory_grid.columns = GRID_COLUMNS
-	_inventory_grid.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	_inventory_grid.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_ensure_inventory_virtual_host()
+	_setup_virtual_inventory()
 	_inventory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	_inventory_scroll.clip_contents = true
 	var detail_scroll: ScrollContainer = _detail_host.get_parent() as ScrollContainer
@@ -101,12 +103,54 @@ func _sync_inventory_scroll_height() -> void:
 		return
 	## セルは固定 px。幅連動の再計算／全再生成はしない（重さ・枠肥大の再発防止）。
 	_inv_cell_size = Vector2(EquipmentUiTokens.INV_CELL_PX, EquipmentUiTokens.INV_CELL_PX)
-	var v_sep: int = _inventory_grid.get_theme_constant("v_separation", "GridContainer")
+	var v_sep: int = _virtual_inv.v_separation
 	var height: float = (
 		_inv_cell_size.y * float(INV_VISIBLE_ROWS)
 		+ float(v_sep * maxi(0, INV_VISIBLE_ROWS - 1))
 	)
 	_inventory_scroll.custom_minimum_size.y = height
+	_virtual_inv.cell_size = _inv_cell_size
+	call_deferred("_deferred_virtual_inventory_refresh")
+
+
+func _ensure_inventory_virtual_host() -> void:
+	if _inventory_grid is GridContainer:
+		var old: GridContainer = _inventory_grid as GridContainer
+		var parent: Node = old.get_parent()
+		var host := Control.new()
+		host.name = old.name
+		host.size_flags_horizontal = old.size_flags_horizontal
+		host.size_flags_vertical = old.size_flags_vertical
+		parent.add_child(host)
+		parent.move_child(host, old.get_index())
+		old.queue_free()
+		_inventory_grid = host
+	_inventory_grid.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_inventory_grid.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+
+
+func _setup_virtual_inventory() -> void:
+	_virtual_inv.columns = GRID_COLUMNS
+	_virtual_inv.cell_size = _inv_cell_size
+	_virtual_inv.h_separation = 4
+	_virtual_inv.v_separation = 4
+	_virtual_inv.bind(
+		_inventory_scroll,
+		_inventory_grid,
+		_VirtualInventoryGrid.BindMode.INNER_SCROLL,
+		_make_virtual_inventory_cell,
+		_make_hint_label
+	)
+
+
+func _make_virtual_inventory_cell(entry: Dictionary, _index: int) -> Control:
+	if str(entry.get("category", "")) == "relic":
+		return _make_relic_cell(str(entry.get("relic_id", "")))
+	return _make_item_cell(entry["item"], str(entry["category"]))
+
+
+func _deferred_virtual_inventory_refresh() -> void:
+	_virtual_inv.refresh(false)
 
 
 func _setup_chrome() -> void:
@@ -214,8 +258,6 @@ func _refresh_display() -> void:
 
 func _rebuild_inventory_grid() -> void:
 	_selected_cell_btn = null
-	for child in _inventory_grid.get_children():
-		child.queue_free()
 	var entries: Array = []
 	if _inventory_filter == "all" or _inventory_filter == "weapon":
 		for it in $EquipmentController.get_appraised_weapons():
@@ -242,20 +284,18 @@ func _rebuild_inventory_grid() -> void:
 		var empty_msg: String = "該当する装備がありません"
 		if _inventory_filter == "relic":
 			empty_msg = "所持しているレリックがありません"
-		_inventory_grid.add_child(_make_hint_label(empty_msg))
 		_selected_item = null
 		_selected_category = ""
 		_selected_relic_id = ""
+		_virtual_inv.set_entries([], empty_msg)
 		_refresh_detail_panel()
 		ScrollTouchHelper.enable(_inventory_scroll)
 		return
-	for e in EquipmentUiHelper.sort_inventory_entries(entries, _inventory_sort):
-		if str(e.get("category", "")) == "relic":
-			_inventory_grid.add_child(_make_relic_cell(str(e.get("relic_id", ""))))
-		else:
-			_inventory_grid.add_child(_make_item_cell(e["item"], str(e["category"])))
-	## rebuild 後も Scroll 内 Button を PASS 化（スクロール＋短押し両立）。
+	var sorted: Array = EquipmentUiHelper.sort_inventory_entries(entries, _inventory_sort)
+	_virtual_inv.cell_size = _inv_cell_size
+	_virtual_inv.set_entries(sorted, "")
 	ScrollTouchHelper.enable(_inventory_scroll)
+	call_deferred("_deferred_virtual_inventory_refresh")
 
 func _make_hint_label(text: String) -> Label:
 	var lbl := Label.new()

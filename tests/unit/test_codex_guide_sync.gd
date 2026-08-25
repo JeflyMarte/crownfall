@@ -60,7 +60,8 @@ func test_guide_no_outdated_combat_or_gacha_copy() -> void:
 
 	var eq010: String = str(by_id.get("EQUIP-G010", ""))
 	assert_true(eq010.contains("錬成"), "錬成手引き")
-	assert_true(eq010.contains("神話"), "神話は錬成不可")
+	assert_true(eq010.contains("神話"), "神話の錬成コストに言及")
+	assert_true(eq010.contains("ゴールド") or eq010.contains("高"), "錬成コストの案内")
 
 	assert_true(str(by_id.get("SYS-G008", "")).contains("指揮官"), "指揮官ランク")
 	assert_true(str(by_id.get("SYS-G009", "")).contains("封蔵") or str(by_id.get("SYS-G009", "")).contains("灰冠"), "封蔵")
@@ -93,7 +94,7 @@ func test_equip_level_guide_is_player_facing() -> void:
 	assert_false(desc.contains("10 + 現在装備レベル"), "必要EXP式を出さない")
 	assert_false(desc.contains("敵レベル÷2"), "内部計算式を出さない")
 	assert_true(desc.contains("錬成"), "錬成導線に言及")
-	assert_true(desc.contains("神話"), "神話は錬成不可を案内")
+	assert_true(desc.contains("神話"), "神話の錬成コストに言及")
 	assert_true(desc.contains("炉研ぎ"), "炉研ぎと別枠であることに言及")
 
 
