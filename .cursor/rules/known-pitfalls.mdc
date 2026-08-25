@@ -148,7 +148,8 @@ alwaysApply: false
 | 状態異常オーラ付与で一瞬固まる | `CPUParticles2D.preprocess = lifetime` が主スレッドで重い | preprocess を短くキャップ（雪 VFX と同型） |
 | 初潜り／初リザルトが長い | `DungeonScene`／`ResultScene` が hub warmup 外 | `SceneRouter.hub_warmup_paths` に追加＋選択画面でも threaded request |
 | 編成空／特典コードの AcceptDialog で入力不能 | Window 排他が ScrollTouch 実機で入力を食う | Control オーバーレイへ（鍛冶錬成素材と同型） |
-| 弱機で探索中に発熱／重い（レビュー） | 天候粒子・状態オーラ・帯VFX が常時負荷 | 設定「軽量モード」（既定オフ）。オンで粒子／オーラ／帯／ボス瓦礫を抑止。探索中切替は設定閉じで天候再適用 |
+| 弱機で探索中に発熱／重い（レビュー） | 天候粒子・状態オーラ・帯VFX が常時負荷 | 設定「軽量モード」（既定オフ）。オンで粒子／オーラ／帯／ボス瓦礫／ヒットスプライト／紙吹雪を抑止。探索中切替は設定閉じで天候再適用 |
+| 連撃・AoE でヒットVFXが重い | 命中ごとに `AnimatedSprite2D.new`＋`queue_free` | `HitVfxPool` で再利用＋SpriteFrames キャッシュ。戦闘終了で `clear` |
 | UI アイコンが原寸〜1254²のまま | 表示は 64〜280px なのに Lossless 原寸を戦闘／拠点で保持 | 敵行動順≤256／CHR・助っ人肖像≤512（`tools/downscale_ui_icons_a.gd`）。Desktop 取込後も再実行 |
 | アイコン差替後 GUT が ctex null | `.godot/imported` を消したまま `--import` せずテスト | 差替後は `godot4 --headless --import` で再生成してから GUT |
 | iPhoneで装備一覧の長押しロックが効かない | ScreenDrag の**相対移動累積**で即キャンセル。詳細のロックボタンが下に隠れがち | 累積禁止（フリック1発／実スクロールのみ）。Timer ノード。詳細先頭にロックボタン＋トースト |

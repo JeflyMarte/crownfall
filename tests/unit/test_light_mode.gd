@@ -70,7 +70,16 @@ func test_dungeon_weather_and_band_gate_light_mode() -> void:
 	var src: String = FileAccess.get_file_as_string("res://scripts/dungeon/DungeonScene.gd")
 	assert_true(src.contains("SettingsPrefs.is_light_mode()"), "DungeonScene gates light mode")
 	assert_true(src.contains("_refresh_weather()"), "settings close refreshes weather")
+	assert_true(src.contains("play_ultimate_band"), "ultimate band path present")
+	assert_true(
+		src.contains("not SettingsPrefs.is_light_mode()") and src.contains("play_ultimate_band"),
+		"ultimate band gated by light mode"
+	)
+	assert_true(src.contains("_spawn_combat_clear_confetti"), "clear confetti present")
+	assert_true(src.contains("HitVfxPool"), "hit vfx pool wired")
 	var settings_src: String = FileAccess.get_file_as_string("res://scripts/settings/SettingsScene.gd")
 	assert_true(settings_src.contains("軽量モード"), "settings UI has light mode toggle")
+	assert_true(settings_src.contains("ヒット演出"), "settings caption mentions hit fx")
 	var overlay_src: String = FileAccess.get_file_as_string("res://scripts/ui/InGameSettingsOverlay.gd")
 	assert_true(overlay_src.contains("軽量モード"), "in-game settings has light mode toggle")
+	assert_true(overlay_src.contains("紙吹雪"), "overlay caption mentions confetti")
