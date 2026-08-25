@@ -40,7 +40,7 @@ static var _combat_speed_id: String = SPEED_ID_X1
 static var _show_damage_numbers: bool = true
 static var _show_battle_log: bool = true
 static var _vibration_enabled: bool = true
-## 軽量モード: 天候パーティクル・状態オーラ・帯VFX 等を抑える（既定オフ＝見た目据置）。
+## 軽量モード: 天候パーティクル・状態オーラ・帯VFX・ヒットスプライト・紙吹雪等を抑える（既定オフ＝見た目据置）。
 static var _light_mode: bool = false
 
 

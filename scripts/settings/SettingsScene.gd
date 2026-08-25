@@ -168,7 +168,7 @@ func _build_gameplay_section() -> Control:
 	light.toggled.connect(_on_light_mode_toggled)
 	UiTypography.apply_button(light, false)
 	body.add_child(light)
-	_add_caption(body, "オンで天候パーティクル・状態オーラ・帯演出などを抑え、発熱しやすい端末向けに軽くします")
+	_add_caption(body, "オンで天候・オーラ・帯・ヒット演出・紙吹雪などを抑え、発熱しやすい端末向けに軽くします")
 	return sec["panel"]
 
 

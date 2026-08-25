@@ -730,6 +730,7 @@ const ELEMENT_VFX_PATH: Dictionary = {
 const SkillExecutorScript: Script = preload("res://scripts/combat/SkillExecutor.gd")
 const CombatVfxManagerScript: Script = preload("res://scripts/combat/CombatVfxManager.gd")
 const CombatBandVfxScript: Script = preload("res://scripts/combat/CombatBandVfx.gd")
+const HitVfxPoolScript: Script = preload("res://scripts/combat/HitVfxPool.gd")
 const _StatusEffectLinkHelper = preload("res://scripts/ui/StatusEffectLinkHelper.gd")
 const _SkillEffectOneLineHelper = preload("res://scripts/ui/SkillEffectOneLineHelper.gd")
 const _CombatMemberInspectHelper = preload("res://scripts/ui/CombatMemberInspectHelper.gd")
@@ -763,6 +764,7 @@ var _pending_room_continuation: bool = false
 var _discovery_toast_tween: Tween
 var _skill_executor: RefCounted = SkillExecutorScript.new()
 var _combat_vfx: RefCounted = CombatVfxManagerScript.new()
+var _hit_vfx_pool: RefCounted = HitVfxPoolScript.new()
 var _is_paused: bool = false
 var _combat_speed_mult: float = SPEED_MULT_NORMAL
 var _fast_run_enabled: bool = false
@@ -4018,17 +4020,15 @@ func _play_status_apply_vfx(
 		var element: String = CombatVfxManagerScript.status_element(status_id)
 		if not element.is_empty():
 			_spawn_hit_vfx(world_pos, element, 0.85, false)
-		elif ResourceLoader.exists(VFX_HIT_PATH):
-			var tinted := AnimatedSprite2D.new()
-			var frames: SpriteFrames = load(VFX_HIT_PATH) as SpriteFrames
-			if frames != null:
-				tinted.sprite_frames = frames
-				tinted.scale = _hit_vfx_sprite.scale * 0.85
-				_spawn_transient_vfx_sprite(
-					tinted, world_pos, CombatVfxManagerScript.status_color(status_id)
-				)
-				tinted.play("default")
-				tinted.animation_finished.connect(func() -> void: tinted.queue_free())
+		elif not SettingsPrefs.is_light_mode():
+			## 属性なしデバフ: 通常ヒットを状態色で（軽量モード時はバースト同様スキップ）。
+			_spawn_pooled_hit_frames(
+				world_pos,
+				VFX_HIT_PATH,
+				_hit_vfx_sprite.scale * 0.85,
+				0.0,
+				CombatVfxManagerScript.status_color(status_id)
+			)
 	_pulse_sprite_on_status_apply(sprite, is_buff)
 	_flash_sprite_status_apply(sprite, status_id, statuses_after, member)
 	_spawn_status_apply_name(world_pos, status_id, is_buff)
@@ -9213,6 +9213,7 @@ func _finalize_combat_cleared() -> void:
 	_end_combat_session()
 	$CombatController.end_combat()
 	_combat_vfx.clear_all()
+	_hit_vfx_pool.clear()
 	_clear_all_member_skill_labels()
 	_update_status_labels()
 	_clear_turn_order_ui()
@@ -9243,6 +9244,7 @@ func _finalize_combat_fled() -> void:
 	_end_combat_session()
 	$CombatController.end_combat()
 	_combat_vfx.clear_all()
+	_hit_vfx_pool.clear()
 	_clear_all_member_skill_labels()
 	_update_status_labels()
 	_clear_turn_order_ui()
@@ -13396,19 +13398,49 @@ func _play_chr_hurt(member_idx: int) -> void:
 
 # ---- VFX ----
 
-func _spawn_transient_vfx_sprite(spr: AnimatedSprite2D, world_pos: Vector2, tint: Color = Color.WHITE) -> void:
+func _spawn_transient_vfx_sprite(
+	spr: AnimatedSprite2D,
+	world_pos: Vector2,
+	tint: Color = Color.WHITE,
+	reuse_material: bool = false
+) -> void:
 	spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	spr.centered = true
 	spr.modulate = tint
-	var mat := CanvasItemMaterial.new()
-	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-	spr.material = mat
+	if not reuse_material or spr.material == null:
+		var mat := CanvasItemMaterial.new()
+		mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		spr.material = mat
 	var host: Node = _combat_sprites_host if _combat_sprites_host != null and is_instance_valid(_combat_sprites_host) else self
 	host.add_child(spr)
 	if host == _combat_sprites_host:
 		spr.position = _combat_sprites_host.to_local(world_pos)
 	else:
 		spr.global_position = world_pos
+
+
+func _spawn_pooled_hit_frames(
+	world_pos: Vector2,
+	frames_path: String,
+	spr_scale: Vector2,
+	rotation_deg: float,
+	tint: Color
+) -> void:
+	var frames: SpriteFrames = _hit_vfx_pool.get_frames(frames_path)
+	if frames == null:
+		return
+	var spr: AnimatedSprite2D = _hit_vfx_pool.acquire() as AnimatedSprite2D
+	spr.sprite_frames = frames
+	spr.scale = spr_scale
+	spr.rotation_degrees = rotation_deg
+	_spawn_transient_vfx_sprite(spr, world_pos, tint, true)
+	spr.play("default")
+	spr.animation_finished.connect(_on_pooled_hit_vfx_finished.bind(spr), CONNECT_ONE_SHOT)
+
+
+func _on_pooled_hit_vfx_finished(spr: AnimatedSprite2D) -> void:
+	_hit_vfx_pool.release(spr)
+
 
 func _play_combat_clear_celebration(finish_dungeon_after: bool = false) -> void:
 	if _combat_clear_active:
@@ -13457,6 +13489,8 @@ func _play_combat_clear_celebration(finish_dungeon_after: bool = false) -> void:
 	)
 
 func _spawn_combat_clear_confetti(piece_count: int = 56) -> void:
+	if SettingsPrefs.is_light_mode():
+		return
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	var bf: Control = $MainVBox/BattlefieldArea
@@ -13491,10 +13525,11 @@ func _play_hit_vfx(element: String = "", is_critical: bool = false, weapon_type:
 	var enemy_pos: Vector2 = _active_enemy_pos()
 	_spawn_hit_vfx(enemy_pos, element, 1.0, is_critical, weapon_type)
 
-# 命中ごとに使い捨ての Hit VFX を生成（敵味方両対応・同一tick内の複数ヒットも個別表示）。
+# 命中ごとに Hit VFX を再生（敵味方両対応・同一tick内の複数ヒットも個別表示）。
 # 属性専用VFX(ELEMENT_VFX_PATH)があればそれを無着色で再生、無ければ
 # FX_Hit_Normal を ELEMENT_COLOR でティント着色してフォールバックする。
 # weapon_type で見た目・SEを分岐（P3-UX-COMBAT-VFX-001）。
+# スプライトは HitVfxPool で再利用（軽量化 C）。軽量モード時は SE のみ（B）。
 func _spawn_hit_vfx(
 	world_pos: Vector2,
 	element: String = "",
@@ -13512,44 +13547,36 @@ func _spawn_hit_vfx(
 			"combat_crit" if is_critical else SfxCatalog.hit_sfx_for_weapon(weapon_type)
 		)
 		AudioManager.play_sfx(hit_sfx, 1.0, 0.03)
+	if SettingsPrefs.is_light_mode():
+		return
 	var wpn_style: Dictionary = CombatVfxManagerScript.weapon_hit_style(weapon_type)
 	var style_scale: Vector2 = wpn_style.get("scale", Vector2.ONE) as Vector2
 	var style_rot: float = float(wpn_style.get("rotation_deg", 0.0))
 	var style_tint: Color = wpn_style.get("tint", Color.WHITE) as Color
 	if is_critical and ResourceLoader.exists(VFX_CRIT_PATH):
-		var crit_frames: SpriteFrames = load(VFX_CRIT_PATH) as SpriteFrames
-		if crit_frames != null:
-			var crit_spr := AnimatedSprite2D.new()
-			crit_spr.sprite_frames = crit_frames
-			crit_spr.scale = _hit_vfx_sprite.scale * style_scale * maxf(scale_mult, 1.15)
-			crit_spr.rotation_degrees = style_rot
-			_spawn_transient_vfx_sprite(crit_spr, world_pos, Color.WHITE)
-			crit_spr.play("default")
-			crit_spr.animation_finished.connect(func() -> void: crit_spr.queue_free())
-			return
+		_spawn_pooled_hit_frames(
+			world_pos,
+			VFX_CRIT_PATH,
+			_hit_vfx_sprite.scale * style_scale * maxf(scale_mult, 1.15),
+			style_rot,
+			Color.WHITE
+		)
+		return
 	var elem_path: String = str(ELEMENT_VFX_PATH.get(element, ""))
 	var use_dedicated: bool = not elem_path.is_empty() and ResourceLoader.exists(elem_path)
-	var frames: SpriteFrames = null
-	if use_dedicated:
-		frames = load(elem_path) as SpriteFrames
-	# 専用素材が無い/未インポートで読めない場合は通常VFXをティント着色してフォールバック
-	if frames == null:
-		use_dedicated = false
-		if not ResourceLoader.exists(VFX_HIT_PATH):
-			return
-		frames = load(VFX_HIT_PATH) as SpriteFrames
-	if frames == null:
+	var frames_path: String = elem_path if use_dedicated else VFX_HIT_PATH
+	if not ResourceLoader.exists(frames_path):
 		return
-	var spr := AnimatedSprite2D.new()
-	spr.sprite_frames = frames
-	spr.scale = _hit_vfx_sprite.scale * style_scale * scale_mult
-	spr.rotation_degrees = style_rot
 	var tint: Color = Color.WHITE if use_dedicated else ELEMENT_COLOR.get(element, Color.WHITE)
 	if not use_dedicated and element.is_empty() and style_tint != Color.WHITE:
 		tint = style_tint
-	_spawn_transient_vfx_sprite(spr, world_pos, tint)
-	spr.play("default")
-	spr.animation_finished.connect(func() -> void: spr.queue_free())
+	_spawn_pooled_hit_frames(
+		world_pos,
+		frames_path,
+		_hit_vfx_sprite.scale * style_scale * scale_mult,
+		style_rot,
+		tint
+	)
 
 func _spawn_miss_telop(world_pos: Vector2) -> void:
 	_spawn_damage_number("Miss!", world_pos, Color(0.82, 0.86, 0.95), 1.05, 0, true)
@@ -14100,9 +14127,9 @@ func _play_ultimate_resolve_vfx(
 	_flash_battlefield(ULTIMATE_FLASH_DAMAGE, 0.48)
 	_request_combat_shake(14.0)
 	_shake_battlefield(12.0)
-	## 必殺ごとの帯追加（斬／狙撃ビーム／咆哮リング）。
+	## 必殺ごとの帯追加（斬／狙撃ビーム／咆哮リング）。軽量モードでは帯のみ抑止。
 	var ult_style: String = CombatBandVfxScript.classify_ultimate(skill_data)
-	if not ult_style.is_empty():
+	if not ult_style.is_empty() and not SettingsPrefs.is_light_mode():
 		var from: Vector2 = _member_sprite_world_pos(member_idx, 0.35)
 		var spd: float = _combat_speed_mult if _combat_speed_mult > 0.0 else 1.0
 		CombatBandVfxScript.play_ultimate_band(
@@ -14325,6 +14352,8 @@ func _rainbow_bbcode_text(plain: String, hue_phase: float) -> String:
 	return "[b]%s[/b]" % "".join(parts)
 
 func _spawn_relic_confetti(piece_count: int = 44) -> void:
+	if SettingsPrefs.is_light_mode():
+		return
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	var vp: Rect2 = get_viewport().get_visible_rect()
