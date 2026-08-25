@@ -1,8 +1,9 @@
 # 職スキルキット・テーマ再編（P3-SKILL-THEME-KIT-001）
 
-**Status:** Decision 承認済（2026-08-08 — プラン実装 GO）  
+**Status:** Decision 承認済（2026-08-08 — プラン実装 GO）／**機巧士キット追記**（2026-08-25 — P3-JOB-ENGINEER-001・実装未）  
 **Overrides:** `20_SkillKitCompress.md` §4 キット表／`48_SkillKitDiverge.md`（SW Lv15）／`62_VanguardSkillTriad.md`・`84_VanguardKitTune.md`（VG 攻撃軸1本）／`82_RgBtSkillOrder.md`・`83_BtRgKitTune.md`（RG 順序）の該当行  
-**Maintains:** 習得7／装備枠1／必殺スコープ外／`93_JobBuildThemesPassives.md` 職テーマ／火鷹パッシブ据置
+**Maintains:** 習得7／装備枠1／必殺スコープ外／`93_JobBuildThemesPassives.md` 職テーマ／火鷹パッシブ据置  
+**関連:** 機巧士の戦闘核・効果詳細は `126_EngineerJob.md`
 
 ---
 
@@ -85,6 +86,22 @@
 | 40 | `pet_command_fang` | 指揮の牙 | テーマ | ペット連携 |
 | 50 | `apex_tame` | 極意調教 | テーマ | 長CD＋ペット |
 
+### 2.6 機巧士（罠／装炎／破砕 ＋ 拡張: 薄全体）— P3-JOB-ENGINEER-001
+
+**Status:** キット表 **承認済**（2026-08-25）／**実装未**  
+詳細効果・仮数値の正: `126_EngineerJob.md` §5.8  
+例外: 通常のテーマ5＋拡張2ではなく **テーマ6＋拡張1**（罠3本を優先）。
+
+| Lv | id | 表示名 | 枠 | 役割 |
+|---|---|---|---|---|
+| 1 | `eng_spike_trap` | スパイクトラップ | テーマ | 罠・敵行動で物理（複数回） |
+| 8 | `eng_drill_pierce` | ドリルピアス | テーマ | 破砕・単体＋甲砕 |
+| 15 | `eng_snare_trap` | スネアトラップ | テーマ | 罠・敵行動で冷却 |
+| 22 | `eng_charge_shot` | チャージショット | テーマ | 装炎・長CD＋炎上 |
+| 30 | `eng_break_trap` | ブレイクトラップ | テーマ | 罠・敵行動で物理＋甲砕 |
+| 40 | `eng_scrap_burst` | スクラップバースト | 拡張 | 敵全薄物理（本家未満） |
+| 50 | `eng_burn_trap` | バーントラップ | テーマ | 装炎・極意長CD＋炎上（印設置ではない） |
+
 ---
 
 ## 3. 実装メモ
@@ -95,9 +112,11 @@
 - `frail_dust` → `attuned_bolt`（装備武器属性。remap あり）
 - `SkillProgression.EQUIPPED_SKILL_REMAP` 追記
 - SSOT ゲーム表: `docs/specs/game/06_キャラクター_ジョブ.md`
+- **機巧士:** 仕掛けトークン API・敵行動フック発火は未実装。`126_EngineerJob.md`
 
 ---
 
 ## 4. やらないこと
 
 - 必殺再設計／装備枠2／パッシブ再変更／同型威力階段
+- 機巧士の専用チャージゲージ／砲台召喚／印の手動設置
