@@ -51,9 +51,11 @@ alwaysApply: false
 | アルド／リーヴァ／エリアス／ガレン／ミレイ | `ui/chr_icons/ICO_CHR_*.png` | `tools/import_desktop_chr_icons.py --apply` |
 | 助っ人11名（ヴァルデン等） | `gacha/portraits/ART_HELPER_helper_*.png` | 同上 |
 | （取込後）焼き込み枠 | 枠除去 | `strip_chr_icon_frames.py` / `strip_helper_portrait_frames.py --apply` |
+| （取込後）解像度 | 表示近傍へ | `godot4 --headless -s tools/downscale_ui_icons_a.gd`（敵行動順≤256／CHR・助っ人≤512） |
 
 - 黒マットは **縁から flood**（暗い服に穴を開けない）
 - ペット（ジャック／アッシュ／インク）はこのフォルダ対象外
+- Desktop 原寸（〜1254²）のままコミットしない。UI 表示は数十〜280px。過大だと iOS 発熱・メモリ圧
 - 差替後は `.godot/imported` 該当分クリア＋Godot 再起動
 - **手引き顔**（Downloads `ニーナの手引きアイコン`）→ `ICO_NPC_Nina_Guide.png`（枠付き・本体 alpha=255）。調査室顔 `ICO_NPC_Nina` とは別。配線は `IntroUiAssets.NINA_ICON_GUIDE`
 - **最初から紹介立ち絵**（Downloads `最初からニーナ`）→ `ART_NPC_Nina.png`。調査室ポートレートは旧図書館背景を `ART_NPC_Nina_Library.png` に退避
