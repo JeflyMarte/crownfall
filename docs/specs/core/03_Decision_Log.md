@@ -8083,3 +8083,17 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 
 （2026-08-22 草案の設置／起爆／機巧適性・連動・マルチトラップ案は本決定で置換）
 
+## 魔晶石発掘・案A（2026-08-25 — P3-UX-CRYSTAL-EXCAVATE-001）
+
+> **オーナー GO（案A）。** 上限300・日課隣・必殺なし。選択→戦闘風（対石）→結果。Impl 未着手。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-CRYSTAL-EXCAVATE-001-1 | **簡易発掘**（本編戦闘に非搭載） | 案A |
+| P3-UX-CRYSTAL-EXCAVATE-001-2 | **日次1回**（日課と同 day_key） | 日次枠の明確化 |
+| P3-UX-CRYSTAL-EXCAVATE-001-3 | **報酬＝魔晶石のみ・硬上限300** | オーナー上限 |
+| P3-UX-CRYSTAL-EXCAVATE-001-4 | **必殺不可** | オーナー指示 |
+| P3-UX-CRYSTAL-EXCAVATE-001-5 | **入口＝日課隣**（調査室横くらい・BottomNav 追加なし） | オーナー配置 |
+| P3-UX-CRYSTAL-EXCAVATE-001-6 | **フロー**＝キャラ＋スキル選択→発掘→対石ダメ表示→結果 | オーナー体験像 |
+| P3-UX-CRYSTAL-EXCAVATE-001-7 | SSOT — `127_CrystalExcavate.md` | Decision 本体 |
+
