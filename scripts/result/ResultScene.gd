@@ -938,7 +938,7 @@ func _play_mvp_intro_async() -> void:
 	await lower_tw.finished
 	_flash_mvp_screen()
 	_mvp_intro_active = false
-	_button_retry.visible = true
+	_button_retry.visible = _can_retry_current_run()
 	_button_home.visible = true
 	_refresh_next_stage_button()
 
@@ -1549,10 +1549,26 @@ func _on_retry_pressed() -> void:
 		GameState.last_run_outcome, GameState.last_run_exp_reward
 	):
 		_apply_pending_exp()
+	## 曜日短編など日次制限ありは選択入場と同じ消費。枠切れ／門閉じは再挑戦不可（P3-BUG-EVENT-RETRY-001）。
+	if not _can_retry_current_run():
+		_button_retry.visible = false
+		return
+	var dungeon_id: String = GameState.get_active_dungeon_id()
+	if not GameState.consume_event_dungeon_attempt(dungeon_id):
+		_button_retry.visible = false
+		return
 	_set_buttons_disabled(true)
 	_SurveySystem.ensure_party_restored_if_awaiting_claim(false)
 	SaveManager.save_game()
 	SceneRouter.change_scene(DUNGEON_SCENE)
+
+## 結果「再挑戦」可否。limit<=0（本編・降臨・無限）は常に可（門が開いている前提）。
+## 曜日短編は can_attempt（残回数＋開催中）を正とする。
+func _can_retry_current_run() -> bool:
+	var dungeon_id: String = GameState.get_active_dungeon_id()
+	if dungeon_id.is_empty():
+		return false
+	return GameState.can_attempt_event_dungeon(dungeon_id)
 
 func _on_home_pressed() -> void:
 	AudioManager.play_sfx("ui_confirm")
