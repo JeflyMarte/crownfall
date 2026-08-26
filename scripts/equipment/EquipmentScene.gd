@@ -1415,14 +1415,16 @@ func _show_limit_break_result(member: Resource, prev_bt: int, new_bt: int) -> vo
 		UiTypography.apply_body(empty, UiTypography.SIZE_BODY_SMALL, COLOR_SUB)
 		_lb_result_stats_host.add_child(empty)
 	else:
-		var scaled_def: Dictionary = _GachaLimitBreak.scale_passive_def(raw_def, new_bt)
+		## prev→new の数値差をハイライト（定性 description だけでは強化が見えない）。
+		var before_def: Dictionary = _GachaLimitBreak.scale_passive_def(raw_def, prev_bt)
+		var after_def: Dictionary = _GachaLimitBreak.scale_passive_def(raw_def, new_bt)
 		var name_lbl := Label.new()
 		name_lbl.text = "パッシブスキル名　%s" % str(raw_def.get("display_name", ""))
 		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		UiTypography.apply_body(name_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_GOLD)
 		_lb_result_stats_host.add_child(name_lbl)
-		var effect_text: String = RosterUiHelper.passive_effect_highlighted_text(raw_def, scaled_def)
+		var effect_text: String = RosterUiHelper.passive_effect_highlighted_text(before_def, after_def)
 		var effect_rtl := RichTextLabel.new()
 		effect_rtl.bbcode_enabled = true
 		effect_rtl.fit_content = true

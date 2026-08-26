@@ -2402,19 +2402,29 @@ func default_saved_party_name(slot: int) -> String:
 
 
 ## 指定スロットへ編成を保存（上書き可）。members 省略時は現在のアクティブ編成（party_members）。
+## 陣形（formation_slot / formation_row）も保存する（P3-BUG-SAVED-PARTY-FORM-001）。
 func save_party_preset(slot: int, members: Array = []) -> void:
 	if slot < 0 or slot >= SAVED_PARTY_SLOTS:
 		return
 	var source: Array = members if not members.is_empty() else party_members
 	var ids: Array = []
+	var formations: Array = []
 	for member in source:
-		if member != null:
-			ids.append(str(member.id))
+		if member == null:
+			continue
+		var mid: String = str(member.id)
+		ids.append(mid)
+		formations.append({
+			"id": mid,
+			"formation_slot": get_member_formation_slot(member),
+			"formation_row": get_member_formation_row(member),
+		})
 	while saved_parties.size() <= slot:
 		saved_parties.append({})
 	saved_parties[slot] = {
 		"name": default_saved_party_name(slot),
 		"member_ids": ids,
+		"formations": formations,
 	}
 
 
@@ -2439,8 +2449,41 @@ func apply_saved_party(slot: int) -> String:
 	var reject: String = active_party_reject_reason(members)
 	if not reject.is_empty():
 		return reject
+	_apply_saved_party_formations(slot, members)
 	set_active_party(members)
 	return ""
+
+
+## プリセットに保存された陣形をメンバーへ書き戻す。旧セーブ（formations 無し）は何もしない。
+func _apply_saved_party_formations(slot: int, members: Array) -> void:
+	if not has_saved_party(slot):
+		return
+	var formations: Variant = (saved_parties[slot] as Dictionary).get("formations", [])
+	if not formations is Array or (formations as Array).is_empty():
+		return
+	var by_id: Dictionary = {}
+	for entry: Variant in formations as Array:
+		if not entry is Dictionary:
+			continue
+		var mid: String = str((entry as Dictionary).get("id", ""))
+		if mid.is_empty():
+			continue
+		by_id[mid] = entry
+	for member: Resource in members:
+		if member == null:
+			continue
+		var mid: String = str(member.id)
+		if not by_id.has(mid):
+			continue
+		var f: Dictionary = by_id[mid] as Dictionary
+		var fslot: int = clampi(int(f.get("formation_slot", 0)), 0, 3)
+		set_member_formation_slot(member, fslot)
+		if f.has("formation_row"):
+			set_member_formation_row(member, int(f.get("formation_row", FORMATION_FRONT)))
+		else:
+			set_member_formation_row(
+				member, FORMATION_BACK if fslot >= 2 else FORMATION_FRONT
+			)
 
 
 ## 空文字=採用可。失敗時はプレイヤー向け短文。

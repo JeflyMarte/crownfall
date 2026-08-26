@@ -95,3 +95,25 @@ func test_stat_passive_scales_via_core() -> void:
 	## first_attack 1.75 → excess 0.75 * 1.5 = 1.125 → 2.125
 	assert_almost_eq(float(mods.get("first_attack_mult", 1.0)), 2.125, 0.001)
 	assert_almost_eq(float(mods.get("outgoing_mult", 1.0)), 1.0, 0.001)
+
+
+func test_limit_break_result_text_shows_numeric_upgrade() -> void:
+	## 定性 description だけのパッシブでも、ポップ用文面に数値が入りハイライトされる。
+	var raw: Dictionary = CombatPassives.get_def("valden_iron_oath")
+	assert_false(raw.is_empty())
+	var before: Dictionary = _LimitBreak.scale_passive_def(raw, 0)
+	var after: Dictionary = _LimitBreak.scale_passive_def(raw, 5)
+	var text0: String = RosterUiHelper.passive_numeric_effect_text(before)
+	assert_true(text0.contains("40%"), "base resist 40%%: %s" % text0)
+	var highlighted: String = RosterUiHelper.passive_effect_highlighted_text(before, after)
+	assert_true(highlighted.contains("[color="), "should highlight changed resist: %s" % highlighted)
+	assert_true(highlighted.contains("60%"), "bt5 resist 60%%: %s" % highlighted)
+
+
+func test_kaida_first_attack_highlight() -> void:
+	var raw: Dictionary = CombatPassives.get_def("kaida_arena_edge")
+	var before: Dictionary = _LimitBreak.scale_passive_def(raw, 0)
+	var after: Dictionary = _LimitBreak.scale_passive_def(raw, 5)
+	var highlighted: String = RosterUiHelper.passive_effect_highlighted_text(before, after)
+	assert_true(highlighted.contains("×"), highlighted)
+	assert_true(highlighted.contains("[color="), highlighted)

@@ -1186,6 +1186,8 @@ func _on_party_overwrite_confirmed() -> void:
 func _save_party_to_slot(slot: int) -> void:
 	## 保存対象は画面に表示中の下書き編成（未確定でも保存できる）。
 	_sync_formation_slots_from_selection()
+	## プリセットに陣形を残すため、下書きスロットを Adventurer へ書いてから保存する。
+	_apply_formation_rows_from_slots()
 	var party: Array = _ordered_party_from_formation()
 	if party.is_empty():
 		_label_status.text = "編成が空のため保存できません"

@@ -138,39 +138,139 @@ static func _status_label(status_id: String) -> String:
 const _PASSIVE_SCALE_RATE_FIELDS: Array[String] = [
 	"status_chance", "evasion_rate_add", "incoming_block_chance",
 	"death_save_chance", "heal_max_hp_fraction", "lifesteal_ratio",
+	"combat_regen_max_hp_fraction", "back_row_evasion_rate_add",
 ]
 ## ボーナス系倍率フィールド（(値-1)*100 が本文の%として埋め込まれる）。
 const _PASSIVE_SCALE_BONUS_MULT_FIELDS: Array[String] = [
-	"outgoing_mult", "elemental_outgoing_mult", "pet_outgoing_mult", "ultimate_power_mult",
+	"outgoing_mult", "outgoing_vs_status_mult", "elemental_outgoing_mult",
+	"pet_outgoing_mult", "ultimate_power_mult",
 	"skill_power_mult", "exp_gain_mult", "party_exp_gain_mult", "speed_mult",
+]
+## 耐性系（1未満）: 本文は「耐性 N%」=(1-mult)*100。
+const _PASSIVE_SCALE_RESIST_MULT_FIELDS: Array[String] = [
+	"party_incoming_status_chance_mult",
 ]
 
 
 ## 限界突破で強化された数値だけ色を変えつつ、パッシブ効果の全文を返す（結果ポップ用・BBCode）。
-## raw_def: 生の（未スケール）定義。scaled_def: 現在の限界突破段階でスケール済みの定義。
+## before_def / after_def: 比較前後の定義（通常は prev_bt スケールと new_bt スケール）。
 static func passive_effect_highlighted_text(
-	raw_def: Dictionary, scaled_def: Dictionary, highlight_hex: String = "8ce080"
+	before_def: Dictionary, after_def: Dictionary, highlight_hex: String = "8ce080"
 ) -> String:
-	var text: String = passive_description(raw_def)
-	if raw_def.is_empty() or scaled_def.is_empty():
+	## 定性 description 優先だと数値が無くハイライト不能なため、数値つき文面を正とする。
+	var text: String = passive_numeric_effect_text(before_def)
+	if before_def.is_empty() or after_def.is_empty():
 		return text
 	for key: String in _PASSIVE_SCALE_BONUS_MULT_FIELDS:
-		if not raw_def.has(key):
+		if not before_def.has(key) and not after_def.has(key):
 			continue
-		var old_pct: int = int(round((float(raw_def.get(key, 1.0)) - 1.0) * 100.0))
-		var new_pct: int = int(round((float(scaled_def.get(key, 1.0)) - 1.0) * 100.0))
+		var old_pct: int = int(round((float(before_def.get(key, 1.0)) - 1.0) * 100.0))
+		var new_pct: int = int(round((float(after_def.get(key, 1.0)) - 1.0) * 100.0))
 		text = _highlight_pct(text, old_pct, new_pct, highlight_hex)
-	if raw_def.has("incoming_mult"):
-		var old_pct: int = int(round((1.0 - float(raw_def.get("incoming_mult", 1.0))) * 100.0))
-		var new_pct: int = int(round((1.0 - float(scaled_def.get("incoming_mult", 1.0))) * 100.0))
-		text = _highlight_pct(text, old_pct, new_pct, highlight_hex)
+	if before_def.has("incoming_mult") or after_def.has("incoming_mult"):
+		var old_pct_in: int = int(round((1.0 - float(before_def.get("incoming_mult", 1.0))) * 100.0))
+		var new_pct_in: int = int(round((1.0 - float(after_def.get("incoming_mult", 1.0))) * 100.0))
+		text = _highlight_pct(text, old_pct_in, new_pct_in, highlight_hex)
+	if before_def.has("party_incoming_mult") or after_def.has("party_incoming_mult"):
+		var old_pct_pi: int = int(round((1.0 - float(before_def.get("party_incoming_mult", 1.0))) * 100.0))
+		var new_pct_pi: int = int(round((1.0 - float(after_def.get("party_incoming_mult", 1.0))) * 100.0))
+		text = _highlight_pct(text, old_pct_pi, new_pct_pi, highlight_hex)
+	for key: String in _PASSIVE_SCALE_RESIST_MULT_FIELDS:
+		if not before_def.has(key) and not after_def.has(key):
+			continue
+		var old_r: int = int(round((1.0 - float(before_def.get(key, 1.0))) * 100.0))
+		var new_r: int = int(round((1.0 - float(after_def.get(key, 1.0))) * 100.0))
+		text = _highlight_pct(text, old_r, new_r, highlight_hex)
 	for key: String in _PASSIVE_SCALE_RATE_FIELDS:
-		if not raw_def.has(key):
+		if not before_def.has(key) and not after_def.has(key):
 			continue
-		var old_pct: int = int(round(float(raw_def.get(key, 0.0)) * 100.0))
-		var new_pct: int = int(round(float(scaled_def.get(key, 0.0)) * 100.0))
-		text = _highlight_pct(text, old_pct, new_pct, highlight_hex)
+		var old_pct_r: int = int(round(float(before_def.get(key, 0.0)) * 100.0))
+		var new_pct_r: int = int(round(float(after_def.get(key, 0.0)) * 100.0))
+		text = _highlight_pct(text, old_pct_r, new_pct_r, highlight_hex)
+	if before_def.has("first_attack_mult") or after_def.has("first_attack_mult"):
+		var old_x: String = "%.1f" % float(before_def.get("first_attack_mult", 1.0))
+		var new_x: String = "%.1f" % float(after_def.get("first_attack_mult", 1.0))
+		if old_x != new_x and text.find(old_x) >= 0:
+			text = text.replace(old_x, "[color=#%s]%s[/color]" % [highlight_hex, new_x])
+	if before_def.has("threat_base_add") or after_def.has("threat_base_add"):
+		var old_t: int = int(round(float(before_def.get("threat_base_add", 0.0))))
+		var new_t: int = int(round(float(after_def.get("threat_base_add", 0.0))))
+		if old_t != new_t:
+			var old_frag: String = "+%d" % old_t
+			if text.find(old_frag) >= 0:
+				text = text.replace(old_frag, "[color=#%s]+%d[/color]" % [highlight_hex, new_t])
+	if str(before_def.get("effect", "")) == "heal" or str(after_def.get("effect", "")) == "heal":
+		var old_v: int = int(before_def.get("value", 0))
+		var new_v: int = int(after_def.get("value", 0))
+		if old_v != new_v and text.find(str(old_v)) >= 0:
+			text = text.replace(str(old_v), "[color=#%s]%d[/color]" % [highlight_hex, new_v])
 	return text
+
+
+## 限凸ポップ用: 数値が見える効果文（flavor description よりフィールド値を優先）。
+static func passive_numeric_effect_text(def: Dictionary) -> String:
+	if def.is_empty():
+		return ""
+	var parts: PackedStringArray = PackedStringArray()
+	if float(def.get("party_incoming_status_chance_mult", 1.0)) < 1.0:
+		parts.append(
+			"味方全体の状態異常耐性 %d%%"
+			% int(round((1.0 - float(def["party_incoming_status_chance_mult"])) * 100.0))
+		)
+	if float(def.get("first_attack_mult", 1.0)) > 1.0:
+		parts.append("戦闘中最初の通常攻撃の威力 ×%.1f" % float(def["first_attack_mult"]))
+	if float(def.get("outgoing_vs_status_mult", 1.0)) > 1.0:
+		parts.append(
+			"状態異常の敵への与ダメージ +%d%%"
+			% int(round((float(def["outgoing_vs_status_mult"]) - 1.0) * 100.0))
+		)
+	if float(def.get("outgoing_mult", 1.0)) > 1.0:
+		parts.append("与ダメージ +%d%%" % int(round((float(def["outgoing_mult"]) - 1.0) * 100.0)))
+	if float(def.get("elemental_outgoing_mult", 1.0)) > 1.0:
+		parts.append(
+			"属性与ダメージ +%d%%"
+			% int(round((float(def["elemental_outgoing_mult"]) - 1.0) * 100.0))
+		)
+	if float(def.get("incoming_mult", 1.0)) < 1.0:
+		parts.append("被ダメージ軽減 %d%%" % int(round((1.0 - float(def["incoming_mult"])) * 100.0)))
+	if float(def.get("party_incoming_mult", 1.0)) < 1.0:
+		parts.append(
+			"パーティ被ダメージ軽減 %d%%"
+			% int(round((1.0 - float(def["party_incoming_mult"])) * 100.0))
+		)
+	if float(def.get("ultimate_power_mult", 1.0)) > 1.0:
+		parts.append(
+			"必殺技威力 +%d%%" % int(round((float(def["ultimate_power_mult"]) - 1.0) * 100.0))
+		)
+	if float(def.get("skill_power_mult", 1.0)) > 1.0:
+		parts.append(
+			"スキル威力 +%d%%" % int(round((float(def["skill_power_mult"]) - 1.0) * 100.0))
+		)
+	if float(def.get("exp_gain_mult", 1.0)) > 1.0:
+		parts.append("自身の獲得経験値 +%d%%" % int(round((float(def["exp_gain_mult"]) - 1.0) * 100.0)))
+	if float(def.get("party_exp_gain_mult", 1.0)) > 1.0:
+		parts.append(
+			"パーティ獲得経験値 +%d%%"
+			% int(round((float(def["party_exp_gain_mult"]) - 1.0) * 100.0))
+		)
+	if float(def.get("evasion_rate_add", 0.0)) > 0.0:
+		parts.append("回避率 +%d%%" % int(round(float(def["evasion_rate_add"]) * 100.0)))
+	if float(def.get("combat_regen_max_hp_fraction", 0.0)) > 0.0:
+		var interval: float = float(def.get("combat_regen_interval_sec", 3.0))
+		parts.append(
+			"%.0f秒ごとに最大HPの %d%% を回復"
+			% [interval, int(round(float(def["combat_regen_max_hp_fraction"]) * 100.0))]
+		)
+	if float(def.get("threat_base_add", 0.0)) > 0.0:
+		parts.append("敵の注目 +%d" % int(round(float(def["threat_base_add"]))))
+	if float(def.get("lifesteal_ratio", 0.0)) > 0.0:
+		parts.append("与ダメの %d%% を吸収" % int(round(float(def["lifesteal_ratio"]) * 100.0)))
+	if str(def.get("effect", "")) == "heal" and int(def.get("value", 0)) > 0:
+		parts.append("回復量 %d" % int(def["value"]))
+	if not parts.is_empty():
+		return "／".join(parts)
+	## 数値フィールドが無い固有のみ flavor にフォールバック。
+	return passive_description(def)
 
 
 static func _highlight_pct(text: String, old_pct: int, new_pct: int, hex: String) -> String:

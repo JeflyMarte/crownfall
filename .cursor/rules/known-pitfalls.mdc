@@ -47,6 +47,8 @@ alwaysApply: false
 | 死体再利用後に同種クローン召喚が不発 | `_mark_enemy_summon_used` の `slot:` が残り、再利用時未クリア | `_execute_enemy_summon` で `_kill_award_slots` と共に `slot:` を erase（`skill:` は残す） |
 | 死体再利用後もクローン召喚が CD で不発 | 招集は CD9999。再利用時に `enemy:slot:` CD 未クリア | `SkillExecutor.clear_cooldown_keys_with_prefix("enemy:N:")` を再利用と同タイミング |
 | はじめから後に編成プリセットが残る | `reset_for_new_game` が `saved_parties`／`showcase_member_id` 未クリア | reset で空配列／空文字。Continue／Debug つづける前も reset→load |
+| 保存パーティ読込で前衛後衛が崩れる | プリセットが member_ids のみで陣形未保存。適用時は各人の現行スロット＋衝突再配置 | `formations`（slot/row）も保存し適用前に書き戻す。保存前に下書きスロットを Adventurer へ書く |
+| 限凸結果が「強化された」のに数値が変わって見えない | ポップが定性 `description` 優先でハイライト不可 | `passive_numeric_effect_text`＋prev/new スケール比較ハイライト |
 | 4人編成以降で敵の殴り／DoTが痛くない | グローバルATK薄＋回復ループ | `ENEMY_GLOBAL_ATK`×1.25・味方DoT×1.40・`heal_block`／後列技 |
 | 被弾で防御が半永久半減 | on_hit `guard` 再付与が持続リセット＋短いCD | CD延長＋`skip_if_status_active`（付与中不発）。`110_GuardOnHitUptime` |
 | 調剤師の薬で常時半減 | 回復のたび `guard` 再付与・CDなし | 対象別 CD12＋付与中不発（`_maybe_apply_heal_guard`） |
