@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-26（**iOS 1.0.2 releaseエクスポート＋Xcode適用**: 先端（GUT修正・曜日再挑戦日次・特典コード4種ほか）。`--export-release`・PCK 482MB・ja.lproj。要 Archive／実機。remote push は SSH鍵拒否で未了）
 2026-08-26（**特典コード4種追加／統合＋main**: THANKYOU-1K／NOTE-CROWN／YOUTUBE-FALL／NINA-RECORD。魔晶石＋招待／封蔵（Goldなし）。βコード据置。GUT 1626 PASS）
 2026-08-26（**曜日イベント再挑戦の日次すり抜け修正／統合＋main**: 結果「再挑戦」も選択入場と同じ can/consume。降臨無制限据置。手引き明記。GUT 1625 PASS）
 2026-08-26（**GUT回帰2件修正／統合＋main**: 軽量モードON時のオーラVFXテストと装備者キャッシュ未更新の錬成テスト。GUT 1621 PASS）
