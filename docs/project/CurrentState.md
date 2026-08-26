@@ -4,7 +4,7 @@
 
 ## Last Update
 
-2026-08-26（**iOS 1.0.3 へ上げて releaseエクスポート＋Xcode適用**: 1.0.2 はリリース済みのため short_version 1.0.3。N・R自動分解ほか先端込み。要 Archive→Upload。Connect で **1.0.3** を作成して提出。remote push は SSH鍵拒否で未了）
+2026-08-26（**iOS 1.0.3 build15 releaseエクスポート＋Xcode適用**: 1.0.2 はリリース済みのため short_version 1.0.3。N・R自動分解ほか先端込み。PCK 483MB・ja.lproj。要 Archive→Upload。Connect で **1.0.3** を作成して提出。remote push は SSH鍵拒否で未了）
 2026-08-26（**iOS 1.0.2 build14 releaseエクスポート＋Xcode適用**: N・R自動分解ほか先端込み。`--export-release`・PCK 483MB・ja.lproj。要 Archive／実機。remote push は SSH鍵拒否で未了）
 2026-08-26（**N・R自動分解の表示文言／統合＋main**: 設定ラベルを「N・Rを自動分解」に（◇◆表記を廃止））
 2026-08-26（**◇◆自動分解設定／統合＋main**: 設定ONでダンジョン拾得のノーマル／レアのみ素材化。所持済みは対象外。既定オフ。GUT 1635 PASS）
