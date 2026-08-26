@@ -176,6 +176,7 @@ static func _grant_weapon(weapon_id: String) -> bool:
 	GameState.note_equipment_obtained(instance)
 	GameState.mark_equipment_new(instance)
 	GameState.record_last_run_equipment_drop(instance, "weapon")
+	EquipmentEnhancer.maybe_auto_dismantle_dungeon_drop(instance)
 	return true
 
 
@@ -197,6 +198,7 @@ static func _grant_armor(armor_id: String) -> bool:
 	GameState.note_equipment_obtained(instance)
 	GameState.mark_equipment_new(instance)
 	GameState.record_last_run_equipment_drop(instance, "armor")
+	EquipmentEnhancer.maybe_auto_dismantle_dungeon_drop(instance)
 	return true
 
 
@@ -218,4 +220,5 @@ static func _grant_accessory(accessory_id: String) -> bool:
 	GameState.note_equipment_obtained(instance)
 	GameState.mark_equipment_new(instance)
 	GameState.record_last_run_equipment_drop(instance, "accessory")
+	EquipmentEnhancer.maybe_auto_dismantle_dungeon_drop(instance)
 	return true

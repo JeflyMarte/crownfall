@@ -1306,7 +1306,12 @@ func _build_equipment_drops() -> void:
 		var instance_id: String = str(entry.get("instance_id", "")).strip_edges()
 		if category.is_empty() or item_id.is_empty():
 			continue
-		_rare_list.add_child(_make_equipment_drop_cell(item_id, category, instance_id))
+		_rare_list.add_child(_make_equipment_drop_cell(
+			item_id,
+			category,
+			instance_id,
+			bool(entry.get("auto_dismantled", false))
+		))
 	for rid_raw: Variant in relics:
 		var rid: String = CombatPassives.migrate_relic_passive_id(str(rid_raw).strip_edges())
 		if rid.is_empty():
@@ -1367,7 +1372,9 @@ func _make_relic_drop_cell(relic_id: String) -> Control:
 	return cell
 
 
-func _make_equipment_drop_cell(item_id: String, category: String, instance_id: String) -> Control:
+func _make_equipment_drop_cell(
+	item_id: String, category: String, instance_id: String, auto_dismantled: bool = false
+) -> Control:
 	var item_name: String = ""
 	match category:
 		"weapon":
@@ -1399,10 +1406,18 @@ func _make_equipment_drop_cell(item_id: String, category: String, instance_id: S
 	name_label.add_theme_font_size_override("font_size", DROP_EQUIP_NAME_FS)
 	name_label.add_theme_color_override("font_color", BlacksmithUiHelper.rarity_name_color(rarity))
 	cell.add_child(name_label)
+	if auto_dismantled:
+		var note := Label.new()
+		note.text = "自動分解"
+		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		note.add_theme_font_size_override("font_size", 12)
+		note.add_theme_color_override("font_color", COLOR_SUB)
+		cell.add_child(note)
 	## instance_id は将来タップ詳細用に保持（現状は表示のみ）。
 	cell.set_meta("drop_instance_id", instance_id)
 	cell.set_meta("drop_category", category)
 	cell.set_meta("drop_item_id", item_id)
+	cell.set_meta("auto_dismantled", auto_dismantled)
 	return cell
 
 

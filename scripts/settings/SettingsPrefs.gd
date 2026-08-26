@@ -17,6 +17,7 @@ const KEY_DAMAGE_NUMBERS: String = "show_damage_numbers"
 const KEY_BATTLE_LOG: String = "show_battle_log"
 const KEY_VIBRATION: String = "vibration_enabled"
 const KEY_LIGHT_MODE: String = "light_mode"
+const KEY_AUTO_DISMANTLE_CR: String = "auto_dismantle_common_rare"
 
 const BUS_MASTER: String = "Master"
 const BUS_BGM: String = "BGM"
@@ -42,6 +43,8 @@ static var _show_battle_log: bool = true
 static var _vibration_enabled: bool = true
 ## 軽量モード: 天候パーティクル・状態オーラ・帯VFX・ヒットスプライト・紙吹雪等を抑える（既定オフ＝見た目据置）。
 static var _light_mode: bool = false
+## ダンジョン拾得の◇◆を自動分解（既定オフ。所持済みは対象外）。
+static var _auto_dismantle_common_rare: bool = false
 
 
 static func ensure_loaded() -> void:
@@ -67,6 +70,7 @@ static func load_from_disk() -> void:
 	_show_battle_log = bool(cfg.get_value(SECTION, KEY_BATTLE_LOG, true))
 	_vibration_enabled = bool(cfg.get_value(SECTION, KEY_VIBRATION, true))
 	_light_mode = bool(cfg.get_value(SECTION, KEY_LIGHT_MODE, false))
+	_auto_dismantle_common_rare = bool(cfg.get_value(SECTION, KEY_AUTO_DISMANTLE_CR, false))
 
 
 static func save_to_disk() -> void:
@@ -80,6 +84,7 @@ static func save_to_disk() -> void:
 	cfg.set_value(SECTION, KEY_BATTLE_LOG, _show_battle_log)
 	cfg.set_value(SECTION, KEY_VIBRATION, _vibration_enabled)
 	cfg.set_value(SECTION, KEY_LIGHT_MODE, _light_mode)
+	cfg.set_value(SECTION, KEY_AUTO_DISMANTLE_CR, _auto_dismantle_common_rare)
 	cfg.save(PATH)
 
 
@@ -93,6 +98,7 @@ static func _reset_defaults() -> void:
 	_show_battle_log = true
 	_vibration_enabled = true
 	_light_mode = false
+	_auto_dismantle_common_rare = false
 
 
 static func ensure_audio_buses() -> void:
@@ -241,6 +247,17 @@ static func is_light_mode() -> bool:
 static func set_light_mode(v: bool) -> void:
 	ensure_loaded()
 	_light_mode = v
+	save_to_disk()
+
+
+static func is_auto_dismantle_common_rare() -> bool:
+	ensure_loaded()
+	return _auto_dismantle_common_rare
+
+
+static func set_auto_dismantle_common_rare(v: bool) -> void:
+	ensure_loaded()
+	_auto_dismantle_common_rare = v
 	save_to_disk()
 
 

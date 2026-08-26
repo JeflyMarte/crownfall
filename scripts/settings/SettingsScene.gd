@@ -169,6 +169,13 @@ func _build_gameplay_section() -> Control:
 	UiTypography.apply_button(light, false)
 	body.add_child(light)
 	_add_caption(body, "オンで天候・オーラ・帯・ヒット演出・紙吹雪などを抑え、発熱しやすい端末向けに軽くします")
+	var auto_dm := CheckButton.new()
+	auto_dm.text = "◇◆を自動分解"
+	auto_dm.button_pressed = _SettingsPrefs.is_auto_dismantle_common_rare()
+	auto_dm.toggled.connect(_on_auto_dismantle_toggled)
+	UiTypography.apply_button(auto_dm, false)
+	body.add_child(auto_dm)
+	_add_caption(body, "オンでダンジョン拾得のノーマル／レア装備だけを素材に戻します（既に所持中の装備は対象外）")
 	return sec["panel"]
 
 
@@ -342,6 +349,10 @@ func _on_vibration_toggled(v: bool) -> void:
 
 func _on_light_mode_toggled(v: bool) -> void:
 	_SettingsPrefs.set_light_mode(v)
+
+
+func _on_auto_dismantle_toggled(v: bool) -> void:
+	_SettingsPrefs.set_auto_dismantle_common_rare(v)
 
 
 func _opened_from_title() -> bool:

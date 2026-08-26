@@ -8097,3 +8097,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-CRYSTAL-EXCAVATE-001-6 | **フロー**＝キャラ＋スキル選択→発掘→対石ダメ表示→結果 | オーナー体験像 |
 | P3-UX-CRYSTAL-EXCAVATE-001-7 | SSOT — `127_CrystalExcavate.md` | Decision 本体 |
 
+
+## ◇◆自動分解設定（2026-08-26 — P3-UX-AUTO-DISMANTLE-001）
+> **オーナー GO** — 設定でオンにするとダンジョン拾得のノーマル／レアのみ自動分解。所持済みは対象外。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-UX-AUTO-DISMANTLE-001-1 | **設定** — `SettingsPrefs.auto_dismantle_common_rare`（既定オフ） | 誤爆防止 |
+| P3-UX-AUTO-DISMANTLE-001-2 | **対象** — ダンジョン拾得の◇◆のみ。Epic以上・所持済み・装備中・ロックは対象外 | オーナー指示 |
+| P3-UX-AUTO-DISMANTLE-001-3 | **経路** — `_spawn_*`／イベント専用付与の直後に `maybe_auto_dismantle_dungeon_drop` | 拾得時のみ |
+| P3-UX-AUTO-DISMANTLE-001-4 | **結果** — 入手装備一覧に「自動分解」注記。素材は通常のラン素材差分へ | 可視化 |
+

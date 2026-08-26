@@ -46,6 +46,7 @@ func test_defaults() -> void:
 	assert_true(_SettingsPrefs.is_vibration_enabled())
 	assert_false(_SettingsPrefs.is_light_mode())
 	assert_false(_SettingsPrefs.is_muted())
+	assert_false(_SettingsPrefs.is_auto_dismantle_common_rare())
 
 
 func test_persist_volume_and_toggles() -> void:
@@ -58,6 +59,7 @@ func test_persist_volume_and_toggles() -> void:
 	_SettingsPrefs.set_show_battle_log(false)
 	_SettingsPrefs.set_vibration_enabled(false)
 	_SettingsPrefs.set_light_mode(true)
+	_SettingsPrefs.set_auto_dismantle_common_rare(true)
 	_SettingsPrefs.set_combat_speed_id(_SettingsPrefs.SPEED_ID_X15)
 	_SettingsPrefs._loaded = false
 	_SettingsPrefs.ensure_loaded()
@@ -70,6 +72,7 @@ func test_persist_volume_and_toggles() -> void:
 	assert_true(_SettingsPrefs.show_battle_log())
 	assert_false(_SettingsPrefs.is_vibration_enabled())
 	assert_true(_SettingsPrefs.is_light_mode())
+	assert_true(_SettingsPrefs.is_auto_dismantle_common_rare())
 	assert_eq(_SettingsPrefs.get_combat_speed_id(), _SettingsPrefs.SPEED_ID_X15)
 	assert_almost_eq(_SettingsPrefs.get_combat_speed_mult(), _SettingsPrefs.SPEED_X15, 0.001)
 

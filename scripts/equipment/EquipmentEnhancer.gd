@@ -858,3 +858,20 @@ static func dismantle_bulk_common_rare() -> Dictionary:
 		"materials": preview.get("materials", {}),
 		"gold": gold,
 	}
+
+
+## ダンジョン拾得分のみ。設定ONかつ◇◆なら分解して素材化（所持済み一覧の一括はしない）。
+static func maybe_auto_dismantle_dungeon_drop(item: Resource) -> bool:
+	const _SettingsPrefs := preload("res://scripts/settings/SettingsPrefs.gd")
+	if item == null:
+		return false
+	if not _SettingsPrefs.is_auto_dismantle_common_rare():
+		return false
+	var rarity: int = item_rarity(item)
+	if rarity != Enums.Rarity.COMMON and rarity != Enums.Rarity.RARE:
+		return false
+	var result: Dictionary = dismantle_item(item)
+	if not bool(result.get("ok", false)):
+		return false
+	GameState.mark_last_equipment_drop_auto_dismantled(item)
+	return true

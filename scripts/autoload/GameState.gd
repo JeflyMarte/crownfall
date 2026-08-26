@@ -335,6 +335,25 @@ func record_last_run_equipment_drop(instance: Resource, category: String = "") -
 	})
 
 
+## 直近に積んだドロップを自動分解済みとしてマーク（結果画面用）。
+func mark_last_equipment_drop_auto_dismantled(instance: Resource) -> void:
+	if instance == null or last_run_equipment_drops.is_empty():
+		return
+	var iid: String = ""
+	if "instance_id" in instance:
+		iid = str(instance.instance_id).strip_edges()
+	if iid.is_empty():
+		return
+	for i in range(last_run_equipment_drops.size() - 1, -1, -1):
+		var entry: Variant = last_run_equipment_drops[i]
+		if not (entry is Dictionary):
+			continue
+		if str((entry as Dictionary).get("instance_id", "")) != iid:
+			continue
+		(entry as Dictionary)["auto_dismantled"] = true
+		return
+
+
 ## ラン中に新規解放したレリックを結果一覧へ積む（入手順・重複しない）。
 func record_last_run_relic_drop(relic_id: String) -> void:
 	var rid: String = CombatPassives.migrate_relic_passive_id(str(relic_id).strip_edges())
