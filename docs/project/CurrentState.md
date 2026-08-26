@@ -4,10 +4,11 @@
 
 ## Last Update
 
+2026-08-26（**iOS 1.0.2 build11 releaseエクスポート＋Xcode適用**: N・R自動分解ほか先端込み。`--export-release`・PCK 483MB・ja.lproj。要 Archive／実機。remote push は SSH鍵拒否で未了）
 2026-08-26（**N・R自動分解の表示文言／統合＋main**: 設定ラベルを「N・Rを自動分解」に（◇◆表記を廃止））
 2026-08-26（**◇◆自動分解設定／統合＋main**: 設定ONでダンジョン拾得のノーマル／レアのみ素材化。所持済みは対象外。既定オフ。GUT 1635 PASS）
 2026-08-26（**保存パーティ陣形＋限凸表示修正／統合＋main**: プリセットに formation 保存。限凸結果を数値ハイライト。GUT 1631 PASS）
-2026-08-26（**iOS 1.0.2 releaseエクスポート＋Xcode適用**: 先端（GUT修正・曜日再挑戦日次・特典コード4種ほか）。`--export-release`・PCK 482MB・ja.lproj。要 Archive／実機。remote push は SSH鍵拒否で未了）
+2026-08-26（**iOS 1.0.2 build10 releaseエクスポート＋Xcode適用**: 先端（GUT修正・曜日再挑戦日次・特典コード4種ほか）。`--export-release`・PCK 482MB・ja.lproj。要 Archive／実機。remote push は SSH鍵拒否で未了）
 2026-08-26（**特典コード4種追加／統合＋main**: THANKYOU-1K／NOTE-CROWN／YOUTUBE-FALL／NINA-RECORD。魔晶石＋招待／封蔵（Goldなし）。βコード据置。GUT 1626 PASS）
 2026-08-26（**曜日イベント再挑戦の日次すり抜け修正／統合＋main**: 結果「再挑戦」も選択入場と同じ can/consume。降臨無制限据置。手引き明記。GUT 1625 PASS）
 2026-08-26（**GUT回帰2件修正／統合＋main**: 軽量モードON時のオーラVFXテストと装備者キャッシュ未更新の錬成テスト。GUT 1621 PASS）
