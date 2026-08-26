@@ -585,6 +585,10 @@ const STATUS_ICON_DEF: Dictionary = {
 	"mire_toxin": {"abbrev": "瘴", "color": Color(0.35, 0.7, 0.28)},
 	"heal_block": {"abbrev": "封", "color": Color(0.72, 0.18, 0.42)},
 	"regen": {"abbrev": "再", "color": Color(0.35, 0.85, 0.45)},
+	## 機巧士仕掛け（敵頭上マーク）
+	"eng_trap_spike": {"abbrev": "棘", "color": Color(0.75, 0.65, 0.35)},
+	"eng_trap_snare": {"abbrev": "絡", "color": Color(0.4, 0.7, 0.9)},
+	"eng_trap_break": {"abbrev": "穿", "color": Color(0.85, 0.55, 0.25)},
 	## 敵スキル沈黙（StatusEffect ではなく戦闘ローカル）。頭上❌と併用。
 	"skill_silence": {"abbrev": "❌", "color": Color(0.75, 0.12, 0.18)},
 }
@@ -3120,6 +3124,43 @@ func _populate_status_icon_row(row: HBoxContainer, statuses: Array) -> void:
 	for entry: Dictionary in statuses:
 		row.add_child(_build_status_icon(entry))
 
+
+## 敵頭上用: 状態異常一覧に機巧士仕掛け印を先頭へ足す（stacks＝残発）。
+func _enemy_status_list_with_traps(slot: int) -> Array:
+	var statuses: Array = $CombatController.get_enemy_status_list_at(slot).duplicate()
+	var trap_entry: Dictionary = _engineer_trap_status_entry(slot)
+	if not trap_entry.is_empty():
+		statuses.push_front(trap_entry)
+	return statuses
+
+
+func _engineer_trap_status_entry(slot: int) -> Dictionary:
+	if slot < 0 or not _engineer_traps.has_trap(slot):
+		return {}
+	var t: Dictionary = _engineer_traps.get_trap(slot)
+	var kind: String = str(t.get("kind", ""))
+	if kind.is_empty():
+		return {}
+	var fires: int = int(t.get("fires_left", 0))
+	if fires <= 0:
+		return {}
+	var effect_id: String = "eng_trap_%s" % kind
+	var display: String = _engineer_trap_kind_label(kind)
+	match kind:
+		"spike":
+			display = "スパイクトラップ"
+		"snare":
+			display = "スネアトラップ"
+		"break":
+			display = "ブレイクトラップ"
+	return {
+		"effect_id": effect_id,
+		"display_name": display,
+		"stacks": fires,
+		"remaining_ticks": 0,
+	}
+
+
 func _set_status_row_above_sprite(
 	row: HBoxContainer,
 	sprite: AnimatedSprite2D,
@@ -3202,7 +3243,7 @@ func _update_status_icons() -> void:
 			_set_status_row_above_sprite(
 				boss_row,
 				_boss_sprite,
-				$CombatController.get_enemy_status_list_at(boss_slot),
+				_enemy_status_list_with_traps(boss_slot),
 				-1,
 				boss_slot
 			)
@@ -3218,7 +3259,7 @@ func _update_status_icons() -> void:
 			_set_status_row_above_sprite(
 				row,
 				_swarm_sprites[slot],
-				$CombatController.get_enemy_status_list_at(slot),
+				_enemy_status_list_with_traps(slot),
 				-1,
 				slot
 			)
@@ -3234,7 +3275,7 @@ func _update_status_icons() -> void:
 			_set_status_row_above_sprite(
 				row,
 				_swarm_sprites[slot],
-				$CombatController.get_enemy_status_list_at(slot),
+				_enemy_status_list_with_traps(slot),
 				-1,
 				slot
 			)
@@ -6109,6 +6150,7 @@ func _execute_engineer_trap_place(
 			""
 		)
 	var kind_label: String = _engineer_trap_kind_label(kind)
+	_update_status_icons()
 	return "\n【スキル】%s: %sを仕掛けた（残%d）" % [
 		result["display_name"], kind_label, fires,
 	]
@@ -6196,13 +6238,13 @@ func _fire_engineer_traps_on_enemy(slot: int) -> void:
 		if $CombatController.apply_status_to_enemy_slot(slot, status_id, 1, src_atk):
 			if placer_idx >= 0:
 				_party_applied_enemy_status(placer_idx, slot, status_id)
-			_update_status_icons()
 	var kind_label: String = _engineer_trap_kind_label(kind)
 	if dmg > 0:
 		_append_log("[仕掛け・%s] %dダメージ（残%d）" % [kind_label, dmg, fires_left])
 	else:
 		_append_log("[仕掛け・%s] 発動（残%d）" % [kind_label, fires_left])
 	_update_hp_bars()
+	_update_status_icons()
 	if $CombatController.get_enemy_hp_at(slot) <= 0:
 		var killer: int = -1
 		if placer_idx >= 0 and $CombatController.is_member_alive(placer_idx):

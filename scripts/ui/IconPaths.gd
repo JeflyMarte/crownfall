@@ -683,6 +683,10 @@ const ICON_MAP: Dictionary = {
 	"status:mire_toxin":            "res://assets/ui/status/ICO_STA_Poison.png",
 	"status:heal_block":            "res://assets/ui/status/ICO_STA_Curse.png",
 	"status:regen":                 "res://assets/ui/status/ICO_STA_Regen.png",
+	## 機巧士仕掛け印（敵頭上・P3-JOB-ENGINEER-001）
+	"status:eng_trap_spike":        "res://assets/ui/status/ICO_STA_EngTrapSpike.png",
+	"status:eng_trap_snare":        "res://assets/ui/status/ICO_STA_EngTrapSnare.png",
+	"status:eng_trap_break":        "res://assets/ui/status/ICO_STA_EngTrapBreak.png",
 	## 天候レジェンド（P3-UX-STATUS-LEGEND-002）
 	"weather:rain":                 "res://assets/ui/weather/ICO_WTH_Rain.png",
 	"weather:night":                "res://assets/ui/weather/ICO_WTH_Night.png",

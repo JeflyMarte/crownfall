@@ -8093,6 +8093,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-JOB-ENGINEER-001-C2 | パッシブ＝先置きの棘／装炎の余熱／継ぎ目穿ち | 開幕印・長CD炎上・甲砕特化。平与ダメ%禁止 |
 | P3-JOB-ENGINEER-001-C3 | 加入＝ガチャ助っ人。BASE_ROSTER に足さない | 開始5人据置 |
 | P3-JOB-ENGINEER-001-C4 | SSOT — `126` §6.1／`93` 表 | Decision 本体 |
+| P3-JOB-ENGINEER-001-M1 | 仕掛け頭上マーク3種（棘／輪／ドリル）GO・ステータス行表示 | 視認性。残発＝stacks |
 
 ## 魔晶石発掘・案A（2026-08-25 — P3-UX-CRYSTAL-EXCAVATE-001）
 
