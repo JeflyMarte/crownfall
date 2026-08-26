@@ -13,6 +13,8 @@ func before_each() -> void:
 	# party_members は他テストと共有するため消さない。無いときだけ補完。
 	if GameState.party_members.is_empty() or GameState.roster.is_empty():
 		GameState.seed_all_starters_unlocked()
+	## 直接 equipped_* を触るテスト用にキャッシュを無効化。
+	GameState.mark_equipped_item_owner_cache_dirty()
 
 
 func after_all() -> void:
@@ -113,14 +115,19 @@ func test_alchemy_allows_equipped_base_but_blocks_equipped_fodder() -> void:
 	assert_gte(GameState.party_members.size(), 2, "need two party members")
 	var member_a: Resource = GameState.party_members[0]
 	var member_b: Resource = GameState.party_members[1]
+	var prev_a: Resource = member_a.equipped_weapon
+	var prev_b: Resource = member_b.equipped_weapon
 	var base: Resource = _make_weapon(12)
 	var fodder: Resource = _make_weapon(10)
 	member_a.equipped_weapon = base
 	member_b.equipped_weapon = fodder
+	## 装備スロット直書き後は owner キャッシュを再構築させる。
+	GameState.mark_equipped_item_owner_cache_dirty()
 	var check_equipped_fodder: Dictionary = EquipmentEnhancer.can_alchemy(base, fodder)
 	assert_false(bool(check_equipped_fodder.get("ok", false)), "equipped fodder blocked")
 	assert_true(str(check_equipped_fodder.get("reason", "")).contains("装備中"))
 	member_b.equipped_weapon = null
+	GameState.mark_equipped_item_owner_cache_dirty()
 	var check: Dictionary = EquipmentEnhancer.can_alchemy(base, fodder)
 	assert_true(bool(check.get("ok", false)), "unequipped fodder ok: %s" % str(check))
 	var result: Dictionary = EquipmentEnhancer.perform_alchemy(base, fodder)
@@ -128,6 +135,9 @@ func test_alchemy_allows_equipped_base_but_blocks_equipped_fodder() -> void:
 	assert_eq(int(base.equip_level), 14)
 	assert_false(fodder in GameState.inventory)
 	assert_eq(member_a.equipped_weapon, base, "base stays equipped")
+	member_a.equipped_weapon = prev_a
+	member_b.equipped_weapon = prev_b
+	GameState.mark_equipped_item_owner_cache_dirty()
 
 
 func test_locked_fodder_cannot_alchemy() -> void:

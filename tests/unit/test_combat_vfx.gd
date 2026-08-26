@@ -2,6 +2,7 @@ extends GutTest
 ## P3-VFX-STATUS-001 — 状態異常 VFX マネージャ。
 
 const _CombatVfxManager = preload("res://scripts/combat/CombatVfxManager.gd")
+const _SettingsPrefs := preload("res://scripts/settings/SettingsPrefs.gd")
 
 
 func test_status_element_mapping() -> void:
@@ -86,6 +87,10 @@ func test_is_buff_status_classification() -> void:
 
 
 func test_sync_and_clear_auras() -> void:
+	## 軽量モードONだとオーラ生成をスキップするため、テスト中だけ強制OFF（ディスクは触らない）。
+	_SettingsPrefs.ensure_loaded()
+	var prev_light: bool = _SettingsPrefs._light_mode
+	_SettingsPrefs._light_mode = false
 	var anchor := Node2D.new()
 	add_child_autofree(anchor)
 	var mgr: RefCounted = _CombatVfxManager.new()
@@ -97,6 +102,7 @@ func test_sync_and_clear_auras() -> void:
 	var host_after: Node = anchor.get_node_or_null("StatusAuraHost")
 	if host_after != null:
 		assert_eq(host_after.get_child_count(), 0)
+	_SettingsPrefs._light_mode = prev_light
 
 
 func test_combat_vfx_sprite_assets_exist() -> void:
