@@ -22,6 +22,35 @@ static func entries() -> Dictionary:
 			"gacha_token": 30,
 			"tickets": {TicketIds.GACHA_FREE: 1},
 		},
+		## 配布用（Gold なし・魔晶石＋招待／封蔵）。入力はハイフン無視。
+		"THANKYOU1K": {
+			"id": "thankyou_1k",
+			"display_name": "お礼特典",
+			"gold": 0,
+			"gacha_token": 100,
+			"tickets": {TicketIds.GACHA_FREE: 1},
+		},
+		"NOTECROWN": {
+			"id": "note_crown",
+			"display_name": "作成日記読者特典",
+			"gold": 0,
+			"gacha_token": 200,
+			"tickets": {TicketIds.SEAL_FREE: 1},
+		},
+		"YOUTUBEFALL": {
+			"id": "youtube_fall",
+			"display_name": "視聴者特典",
+			"gold": 0,
+			"gacha_token": 100,
+			"tickets": {TicketIds.GACHA_FREE: 1, TicketIds.SEAL_FREE: 1},
+		},
+		"NINARECORD": {
+			"id": "nina_record",
+			"display_name": "記録官の差し入れ",
+			"gold": 0,
+			"gacha_token": 150,
+			"tickets": {TicketIds.GACHA_FREE: 1, TicketIds.SEAL_FREE: 1},
+		},
 	}
 
 
