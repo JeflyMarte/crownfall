@@ -75,6 +75,9 @@ static func hit_sfx_for_weapon(weapon_type: String) -> String:
 			return ID_COMBAT_HIT_BOW
 		"staff":
 			return ID_COMBAT_HIT_STAFF
+		"hammer":
+			## 鈍器 — 杖ヒット帯を流用（専用SEは後続）
+			return ID_COMBAT_HIT_STAFF
 		_:
 			## sword / dual_blades / 空 → 斬撃系
 			return ID_COMBAT_HIT

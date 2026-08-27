@@ -12,7 +12,7 @@ base_hp_modifier = 0.9
 base_attack_modifier = 1.0
 base_defense_modifier = 0.95
 base_initiative_modifier = 1.05
-preferred_weapon_types = Array[String](["dual_blades", "bow"])
+preferred_weapon_types = Array[String](["dual_blades", "hammer"])
 starting_skill_ids = Array[String](["eng_spike_trap"])
 skill_unlocks = Array[Dictionary]([{
 "skill_id": "eng_spike_trap",

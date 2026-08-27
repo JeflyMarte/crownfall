@@ -8094,12 +8094,25 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-JOB-ENGINEER-001-C3 | 加入＝ガチャ助っ人。BASE_ROSTER に足さない | 開始5人据置 |
 | P3-JOB-ENGINEER-001-C4 | SSOT — `126` §6.1／`93` 表 | Decision 本体 |
 | P3-JOB-ENGINEER-001-C5 | 見た目・レア＝ブラン★4ガスマスク／オルソ★2作業着少女＋大金槌（見た目）／トリム★3メガネ髭小太り | 2026-08-27 オーナー GO。旧シルエット案を置換 |
-| P3-JOB-ENGINEER-001-C6 | オルソの槌はビジュアルのみ。武器種は双剣・弓据置 | 新武器種を増やさない |
+| P3-JOB-ENGINEER-001-C6 | ~~オルソの槌はビジュアルのみ~~ → **戦鎚種追加で置換**（`129`） | 2026-08-27 戦鎚 GO |
 | P3-JOB-ENGINEER-001-M1 | 仕掛け頭上マーク3種（棘／輪／ドリル）GO・ステータス行表示 | 視認性。残発＝stacks |
 | P3-JOB-ENGINEER-001-U1 | キャラ別必殺＝フルアーム・カスケード／ブレイズ・オーバーロード／穿甲の極撃 | テーマ一致。機巧士のみ例外 |
 | P3-JOB-ENGINEER-001-U2 | プレイヤー文面は「作動」優先（仕様の発火＝作動） | わかりやすさ |
 | P3-JOB-ENGINEER-001-U3 | SSOT — `126` §6.3。職 `eng_overclock` はフォールバック残置可 | Impl 時 |
 | P3-JOB-ENGINEER-001-U4 | トリム必殺＝**全体薄いダメ＋スパイク一斉設置**（最大3）。旧「既存印の一斉即作動」は不採用 | オーナー差し替えGO。強さ・説明が明快 |
+
+## 戦鎚武器種（2026-08-27 — P3-EQ-WARHAMMER-001）
+
+> **オーナー GO。** 表示＝戦鎚／`hammer`。特性＝破砕（低攻速・高一発・近接やや長め・甲砕寄り）。機巧士＝戦鎚・双剣（弓外す）。他職は当面解放しない。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-WARHAMMER-001-1 | 表示名 **戦鎚**／`weapon_type=hammer` | オーナー指定 |
+| P3-EQ-WARHAMMER-001-2 | 特性＝破砕（推奨①）。COMMON 目安 ASPD0.80／range1.15／KB0.85 | 推奨案 GO |
+| P3-EQ-WARHAMMER-001-3 | 機巧士許可＝`hammer`＋`dual_blades`。弓は外す | オーナー指定 |
+| P3-EQ-WARHAMMER-001-4 | 他職は当面不可。`consecrated_maul` は sword 据置 | 波及抑制 |
+| P3-EQ-WARHAMMER-001-5 | 旧「槌は見た目のみ」方針を置換。オルソ見た目＝戦鎚と一致 | `126` 上書き |
+| P3-EQ-WARHAMMER-001-6 | SSOT — `129`／`07`／`126`／`95`／`game/07`／`world/09`。COMMON `iron_warhammer` | Decision 本体 |
 
 ## 魔晶石発掘・案A（2026-08-25 — P3-UX-CRYSTAL-EXCAVATE-001）
 

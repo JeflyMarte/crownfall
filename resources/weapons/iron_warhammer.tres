@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "iron_warhammer"
+display_name = "王国制式戦鎚"
+description = "工房規格の鉄塊戦鎚。振りは遅いが、装甲の継ぎ目を叩き割る一打向き。"
+base_attack = 92
+rarity = 0
+base_attack_speed = 0.8
+base_critical_rate = 0.04
+base_knockback = 0.85
+base_stagger_power = 0.55
+base_attack_range = 1.15
+weight = 1.3
+element = ""
+weapon_type = "hammer"
+tags = Array[String](["blunt"])
