@@ -2280,6 +2280,8 @@ const WEAPON_POOL: Array[String] = [
 	"storm_edge",
 	"umbral_fang",
 	"consecrated_maul",
+	"iron_warhammer",
+	"seam_breaker_maul",
 ]
 
 # レア度別ドロップ重み（レアほど低確率＝レア度を体感に反映）。

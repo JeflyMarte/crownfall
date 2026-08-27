@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "verdant_maul"
+display_name = "森伐りの戦鎚"
+description = "囁きの森の堅木を鉄輪で締めた戦鎚。根や樹皮を割り砕く現場の道具が、戦場へ持ち込まれた。"
+fixed_skill_id = ""
+base_attack = 138
+rarity = 0
+base_attack_speed = 0.8
+base_critical_rate = 0.04
+base_knockback = 0.85
+base_stagger_power = 0.55
+base_attack_range = 1.15
+weight = 1.3
+element = ""
+weapon_type = "hammer"
+tags = Array[String](["blunt"])

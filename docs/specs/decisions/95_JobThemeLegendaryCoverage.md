@@ -47,6 +47,14 @@
 | `consecrated_maul` | 剣 | SW○ | SW一撃 | 初撃×1.45 |
 | `aegis_line_sword` | 剣 | VG○ | VGカウンター | 開幕反撃+1、反撃ダメ+30%（脅威も軽く残す） |
 
+### 機巧士・戦鎚L（2026-08-27 — `129` 梯子A／新規最小）
+
+新武器種のため転用ではなく **最小新規1本**（方針§1-4の例外。追加テーマLは後続）。
+
+| ID | 種別 | テーマ | 効果概要 |
+|---|---|---|---|
+| `seam_breaker_maul` | 戦鎚 | EN破砕 | 甲砕中与+25%。攻撃25%で甲砕 |
+
 既存のビルドL（`pulse_amulet`／`flurry_light_mail`／`cover_aegis_cloak`／`blade_dance_ring`／`hexweave_robe`／`blightcord_bow` 等）と合わせて、不足だったテーマを **各2点以上** にする。
 
 ### 修正前の誤り（参考）

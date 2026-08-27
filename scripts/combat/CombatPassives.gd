@@ -1027,6 +1027,21 @@ const _DEFS: Dictionary = {
 		"counter_charges": 1,
 		"cooldown": 0.0,
 	},
+	## 機巧士・戦鎚テーマL（P3-EQ-WARHAMMER-001-A）
+	"eq_wpn_seam_breaker_maul": {
+		"display_name": "継ぎ目穿ちの戦鎚",
+		"category": "weapon",
+		"description": "甲砕中の敵へ与ダメ +25%。攻撃時25%で甲砕を付与（機巧士・破砕）。",
+		"outgoing_vs_status_mult": 1.25,
+		"outgoing_vs_status_ids": ["armor_break"],
+		"trigger": "on_attack",
+		"condition": "always",
+		"effect": "apply_status",
+		"status_id": "armor_break",
+		"target": "enemy",
+		"status_chance": 0.25,
+		"cooldown": 0.0,
+	},
 	# ---- 灰冠の九（P3-GACHA-EQ-KAIWAN／S2・F2・W1） ----
 	"eq_wpn_kaiwan_silent": {
 		"display_name": "裂鍵の刺し",

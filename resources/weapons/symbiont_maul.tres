@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "symbiont_maul"
+display_name = "共生蔦の戦鎚"
+description = "共生する蔦が柄を締め上げる戦鎚。熱を帯びた一打で樹皮も装甲も同時に割る。"
+fixed_skill_id = "kindling_strike"
+base_attack = 166
+rarity = 2
+base_attack_speed = 0.8
+base_critical_rate = 0.06
+base_knockback = 0.85
+base_stagger_power = 0.55
+base_attack_range = 1.15
+weight = 1.3
+element = "fire"
+weapon_type = "hammer"
+tags = Array[String](["blunt", "fire"])
