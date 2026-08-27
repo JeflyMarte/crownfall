@@ -204,8 +204,10 @@ static func _preferred_weapon_id(job_id: String) -> String:
 	match job_id:
 		"swordsman", "vanguard":
 			return "iron_sword"
-		"ranger", "beast_tamer", "engineer":
+		"ranger", "beast_tamer":
 			return "hunting_bow"
+		"engineer":
+			return "iron_warhammer"
 		"alchemist":
 			return "apprentice_staff"
 		_:
