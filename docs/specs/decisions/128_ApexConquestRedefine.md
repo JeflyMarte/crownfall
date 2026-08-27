@@ -94,8 +94,8 @@
 
 | 枠 | 暫定 id（ピン） |
 |---|---|
-| `enemy_pool` | `sepia_hound`, `crystal_hedgehog`, `clock_moth`, `skullface_mantis`, `spore_needle_wasp`, `ship_eater_crab`, `samurai_fish`, `frost_claw_raptor`, `wind_ripper`, `oldrex`（霜枠は少数に抑え雪山感を出さない） |
-| `elite_pool` | `greios`, `anchor_lord`, `rune_carcinos` |
+| `enemy_pool` | `sepia_hound`, `crystal_hedgehog`, `skullface_mantis`, `moss_boar`, `spore_needle_wasp`, `ship_eater_crab`, `samurai_fish`, `frost_claw_raptor`, `wind_ripper`, `oldrex`, `clock_moth`（霜枠は少数。`clock_moth` は降臨感のスパイス） |
+| `elite_pool` | `greios`, `anchor_lord`, `mist_wyvern`（翼・潮・霧の重圧を混ぜる） |
 | Boss | `albark` |
 | 出さない | `eldion`／フロスト偏重5種セット／`polar_tricera` |
 
