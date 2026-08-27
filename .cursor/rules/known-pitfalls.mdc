@@ -136,6 +136,7 @@ alwaysApply: false
 | 混成群れで図鑑登録が1体だけ／防具装飾が未登録 | `_register_discoveries_for_room` が `current_enemy_data` のみ。`DiscoveryRegistry` に armor/accessory 無し | 群れ全スロット＋召集時も登録。装備は weapon/armor/accessory を EventBus＋register |
 | 戦闘速度が ×0.75 のまま／設定と不一致 | `SPEED_MULT_NORMAL=0.75` と設定の不一致 | ×1／×1.5／×2 の3択に統一。旧 ×0.75 は ×1 へ |
 | レジェンド武器が落ちても気づかない | 通常装備と同じ小アイコンのみで SE／テロップ無し | ★以上は `legendary_drop` SE＋フラッシュ＋テロップ＋大きめアイコン（P3-EQ-LEG-DROP-001） |
+| 新レジェンド武器で GUT `test_all_legendary_weapon_icons_unique_bytes` FAIL | `IconPaths` が既存Lと同一PNGを流用（バイト衝突） | Lは **専用PNG必須**（仮でも別ファイル）。COMMON/RARE/EPICの仮流用は可（例: 戦鎚梯子→祝槌ICO、`seam_breaker_maul`のみ別） |
 | キャラ画面のスクロールが重い／効かない・実機で落ちる | 入れ子 Scroll＋セル毎 new＋内側 enable | → `ui-layout.mdc` ScrollTouch。所持は非 Scroll。StyleBox／Idle キャッシュ |
 | パッシブタブが重い／スクロール不能 | rebuild 後未再適用＋STOP RTL がドラッグ奪取 | → `ui-layout.mdc` ScrollTouch（リンク RTL のみ `_cf_keep_mouse_stop`） |
 | キャラ／装備一覧でセル上スクロールが効かない | 長押し用 `gui_input` で press 時に `accept_event()` → 親 Scroll がドラッグ開始できない | セルは `accept_event` しない（PASS＋gui_input で短タップ／長押し）。スクロールは親に任せる |
