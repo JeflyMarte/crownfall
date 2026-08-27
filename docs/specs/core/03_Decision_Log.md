@@ -8097,6 +8097,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-JOB-ENGINEER-001-U1 | キャラ別必殺＝フルアーム・カスケード／ブレイズ・オーバーロード／穿甲の極撃 | テーマ一致。機巧士のみ例外 |
 | P3-JOB-ENGINEER-001-U2 | プレイヤー文面は「作動」優先（仕様の発火＝作動） | わかりやすさ |
 | P3-JOB-ENGINEER-001-U3 | SSOT — `126` §6.3。職 `eng_overclock` はフォールバック残置可 | Impl 時 |
+| P3-JOB-ENGINEER-001-U4 | トリム必殺＝**全体薄いダメ＋スパイク一斉設置**（最大3）。旧「既存印の一斉即作動」は不採用 | オーナー差し替えGO。強さ・説明が明快 |
 
 ## 魔晶石発掘・案A（2026-08-25 — P3-UX-CRYSTAL-EXCAVATE-001）
 
