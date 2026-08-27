@@ -34,6 +34,7 @@ const ICON_MAP: Dictionary = {
 	"weapon:storm_edge":           "res://assets/ui/equipment/ICO_WPN_StormEdge.png",
 	"weapon:umbral_fang":          "res://assets/ui/equipment/ICO_WPN_UmbralFang.png",
 	"weapon:consecrated_maul":     "res://assets/ui/equipment/ICO_WPN_ConsecratedMaul.png",
+	"weapon:iron_warhammer":       "res://assets/ui/equipment/ICO_WPN_ConsecratedMaul.png",  ## 仮流用・専用ICO後続
 	"weapon:chronos_toki_sword":   "res://assets/ui/equipment/ICO_WPN_ChronosTokiSword.png",
 	"weapon:chronos_toki_dual":    "res://assets/ui/equipment/ICO_WPN_ChronosTokiDual.png",
 	"weapon:chronos_toki_staff":   "res://assets/ui/equipment/ICO_WPN_ChronosTokiStaff.png",
