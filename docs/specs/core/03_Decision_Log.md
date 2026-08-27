@@ -8115,3 +8115,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-CRYSTAL-EXCAVATE-001-6 | **フロー**＝キャラ＋スキル選択→発掘→対石ダメ表示→結果 | オーナー体験像 |
 | P3-UX-CRYSTAL-EXCAVATE-001-7 | SSOT — `127_CrystalExcavate.md` | Decision 本体 |
 
+## 征討（apex）再定義（2026-08-27 — P3-DG-APEX-REDEFINE-001）
+
+> **オーナー GO（#1〜#6）。** 常設・20F固定・降臨N・エンシェント・⑤クリア後一括・パイロット1本。対象 id は指定待ち。Impl 未着手。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-APEX-REDEFINE-001-1 | 征討＝**固定長20F**（深層＝無限と分離） | オーナー #1 |
+| P3-DG-APEX-REDEFINE-001-2 | 降臨＝時間帯短編据置／征討＝常設長編・**別エンシェントセット** | オーナー #2/#4 |
+| P3-DG-APEX-REDEFINE-001-3 | **パイロット1本のみ**。クロノス／ヴァルは降臨据置 | オーナー #3 |
+| P3-DG-APEX-REDEFINE-001-4 | 難度＝**降臨N**。解放＝**メイン5 N 全クリア後一括** | オーナー #5/#6 |
+| P3-DG-APEX-REDEFINE-001-5 | UI＝イベントタブ常設。`route_type=apex`。寄り道オミット維持 | 役割整理 |
+| P3-DG-APEX-REDEFINE-001-6 | SSOT — `128_ApexConquestRedefine.md`／`05_Biomes §2.1` | Decision 本体 |
+
