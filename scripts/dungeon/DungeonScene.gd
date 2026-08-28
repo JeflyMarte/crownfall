@@ -5879,6 +5879,8 @@ func _conditional_skill_power_mult(skill_data: Resource, target_slot: int) -> fl
 		return CONDITIONAL_STATUS_POWER_MULT
 	if skill_data.tags.has("vs_mark") and $CombatController.get_enemy_status_stacks_at(target_slot, "mark") > 0:
 		return CONDITIONAL_STATUS_POWER_MULT
+	if skill_data.tags.has("vs_armor_break") and $CombatController.get_enemy_status_stacks_at(target_slot, "armor_break") > 0:
+		return 1.35
 	## 場の敵数で単体威力が伸びる（追勢斬・P3-SKILL-KIT-DIVERGE-001）。
 	if skill_data.tags.has("swarm_power"):
 		var living: int = $CombatController.get_living_enemy_indices().size()
@@ -6058,9 +6060,14 @@ func _execute_member_aoe_damage_skill(
 		total_dmg += final_dmg
 	var skill_is_crit: bool = result.get("is_critical", false)
 	var crit_tag: String = "  CRITICAL!" if skill_is_crit else ""
+	var cascade_trap_log: String = ""
+	if skill_data != null and skill_data.tags.has("eng_cascade"):
+		cascade_trap_log = _place_engineer_cascade_traps(member_idx, 3, 3, 0.55)
 	var log_line: String = "\n【スキル】%s: 敵全体へ計%dダメージ%s%s（%d体）" % [
 		result["display_name"], total_dmg, crit_tag, form_tag, hits.size(),
 	]
+	if not cascade_trap_log.is_empty():
+		log_line += cascade_trap_log
 	if cast_index == 0:
 		_clear_member_skill_labels(member_idx)
 	## 必殺の全体攻撃はカットイン経路（単体必殺と同尺）。
@@ -6166,7 +6173,68 @@ func _pick_engineer_trap_target(member_idx: int) -> int:
 		var slot: int = int(slot_v)
 		if $CombatController.is_enemy_slot_alive(slot) and not _engineer_traps.has_trap(slot):
 			return slot
-	return primary
+	if primary >= 0 and $CombatController.is_enemy_slot_alive(primary):
+		return primary
+	if not living.is_empty():
+		return int(living[0])
+	return -1
+
+
+## カスケード必殺など：印なし優先で最大 max_count 体。
+func _pick_engineer_multi_trap_targets(member_idx: int, max_count: int) -> Array[int]:
+	var out: Array[int] = []
+	if max_count <= 0:
+		return out
+	var living: Array = $CombatController.get_living_enemy_indices()
+	for slot_v: Variant in living:
+		var slot: int = int(slot_v)
+		if not $CombatController.is_enemy_slot_alive(slot):
+			continue
+		if _engineer_traps.has_trap(slot):
+			continue
+		out.append(slot)
+		if out.size() >= max_count:
+			return out
+	var primary: int = $CombatController.get_member_target_slot(member_idx)
+	if primary >= 0 and $CombatController.is_enemy_slot_alive(primary) and not out.has(primary):
+		out.append(primary)
+	for slot_v: Variant in living:
+		var slot: int = int(slot_v)
+		if out.has(slot):
+			continue
+		out.append(slot)
+		if out.size() >= max_count:
+			break
+	return out
+
+
+func _place_engineer_cascade_traps(
+	member_idx: int,
+	max_count: int,
+	fires: int,
+	power: float
+) -> String:
+	var slots: Array[int] = _pick_engineer_multi_trap_targets(member_idx, max_count)
+	if slots.is_empty():
+		return ""
+	var placed: int = 0
+	var status_info: Dictionary = EngineerTrapsScript.status_for_kind("spike")
+	for slot: int in slots:
+		var place_result: Dictionary = _engineer_traps.place(
+			slot,
+			"spike",
+			member_idx,
+			fires,
+			power,
+			str(status_info.get("id", "")),
+			float(status_info.get("chance", 0.0))
+		)
+		if place_result.get("ok", false):
+			placed += 1
+	if placed <= 0:
+		return ""
+	_update_status_icons()
+	return "\n【必殺】スパイクの仕掛けを%d体に付けた" % placed
 
 
 func _engineer_trap_kind_label(kind: String) -> String:
@@ -7237,6 +7305,15 @@ func _deal_member_damage_to_enemy(
 				"is_critical": is_critical,
 			}
 		)
+		if not is_basic:
+			_fire_member_passives(
+				member_idx, "on_skill_hit", {
+					"damage": damage,
+					"target_slot": target_slot,
+					"skill_id": sid,
+					"is_critical": is_critical,
+				}
+			)
 		if is_basic:
 			_apply_enemy_traits_after_basic_hit(member_idx, target_slot)
 		var tide_burst: int = _AbyssWeaponEffects.after_attack_hit(member_idx, target_slot, damage)
@@ -9993,7 +10070,12 @@ func _get_member_ultimate_skill(member_idx: int) -> Resource:
 	if GameState.is_pet_combatant(member_idx) or Constants.is_pet_id(str(member.id)):
 		return null
 	var ult_id: String = Constants.DEFAULT_ULTIMATE_SKILL_ID
-	if not str(member.job_id).is_empty():
+	var adv_id: String = str(member.id)
+	if adv_id.begins_with("gacha_"):
+		var helper: Resource = DataRegistry.get_gacha_helper_data(adv_id.trim_prefix("gacha_"))
+		if helper != null and "ultimate_skill_id" in helper and not str(helper.ultimate_skill_id).is_empty():
+			ult_id = str(helper.ultimate_skill_id)
+	if ult_id == Constants.DEFAULT_ULTIMATE_SKILL_ID and not str(member.job_id).is_empty():
 		var job: Resource = DataRegistry.get_job_data(member.job_id)
 		if job != null and "ultimate_skill_id" in job and not str(job.ultimate_skill_id).is_empty():
 			ult_id = str(job.ultimate_skill_id)
@@ -10155,6 +10237,17 @@ func _fire_member_passives(member_idx: int, trigger: String, ctx: Dictionary = {
 				_passive_attack_hits[member_idx] = hits
 				if hits % every_n != 0:
 					continue
+		if trigger == "on_skill_hit":
+			var min_cd: float = float(p.get("min_skill_cooldown", 0.0))
+			if min_cd > 0.0:
+				var skill_id: String = str(ctx.get("skill_id", ""))
+				var skill_cd: float = float(ctx.get("skill_cooldown", 0.0))
+				if skill_cd <= 0.0 and not skill_id.is_empty():
+					var skill_data: Resource = DataRegistry.get_skill_data(skill_id)
+					if skill_data != null:
+						skill_cd = float(skill_data.cooldown)
+				if skill_cd < min_cd:
+					continue
 		if _try_fire_passive(member_idx, p, ctx):
 			return
 
@@ -10217,6 +10310,17 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			var sid: String = str(p.get("status_id", ""))
 			if sid.is_empty():
 				return false
+			var target_kind_apply: String = str(p.get("target", "self"))
+			if bool(p.get("armor_break_stack", false)) and sid == "armor_break" and target_kind_apply == "enemy":
+				var stack_slot: int = int(ctx.get("target_slot", -1))
+				if stack_slot < 0:
+					stack_slot = $CombatController.get_member_target_slot(member_idx)
+				if (
+					stack_slot >= 0
+					and $CombatController.is_enemy_slot_alive(stack_slot)
+					and $CombatController.get_enemy_status_stacks_at(stack_slot, "armor_break") > 0
+				):
+					sid = "armor_break_light"
 			var source_atk: int = _dot_source_attack_for_member(member_idx, ctx)
 			var target_kind: String = str(p.get("target", "self"))
 			if target_kind == "party":
@@ -10362,6 +10466,31 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			if charges > 0:
 				CombatPassives.grant_combat_counter_charges(member_idx, charges)
 				applied = true
+		"place_engineer_trap":
+			var trap_kind: String = str(p.get("trap_kind", "spike"))
+			var trap_fires: int = maxi(1, int(p.get("trap_fires", 2)))
+			var trap_power: float = float(p.get("trap_power", 0.35))
+			var trap_slot: int = int(ctx.get("target_slot", -1))
+			if trap_slot < 0:
+				trap_slot = $CombatController.get_member_target_slot(member_idx)
+			if trap_slot < 0:
+				var living_trap: Array = $CombatController.get_living_enemy_indices()
+				if not living_trap.is_empty():
+					trap_slot = int(living_trap[0])
+			if trap_slot >= 0 and $CombatController.is_enemy_slot_alive(trap_slot):
+				var trap_status: Dictionary = EngineerTrapsScript.status_for_kind(trap_kind)
+				var trap_result: Dictionary = _engineer_traps.place(
+					trap_slot,
+					trap_kind,
+					member_idx,
+					trap_fires,
+					trap_power,
+					str(trap_status.get("id", "")),
+					float(trap_status.get("chance", 0.0))
+				)
+				if trap_result.get("ok", false):
+					applied = true
+					_update_status_icons()
 		"chance_cast_equipped_skill":
 			if _passive_skill_echo_depth > 0:
 				return false

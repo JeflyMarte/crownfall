@@ -6,7 +6,7 @@ extends RefCounted
 ## 基本5職ロスターはキャラ固有パッシブを優先、それ以外はジョブフォールバック。
 ##
 ## trigger: "on_combat_start" | "on_combat_end" | "on_action_start" | "on_hit_taken" | "on_ally_death" |
-##   "on_attack" | "on_kill" | "on_noncombat_enter"
+##   "on_attack" | "on_skill_hit" | "on_kill" | "on_noncombat_enter"
 ## condition: "always" | "self_hp_below"（value=HP割合）| "ally_hp_below"（味方誰かHP割合）
 ## effect: "apply_status" | "heal" | "bonus_damage" | "counter_attack" | "grant_next_attack_mult" |
 ##   "refund_ct" | "grant_party_incoming_mult" | "grant_self_evasion" | "grant_counter_charges" |
@@ -245,6 +245,44 @@ const _DEFS: Dictionary = {
 		"condition": "always",
 		"effect": "counter_attack",
 		"cooldown": 3.5,
+	},
+	## 機巧士ガチャ助っ人（P3-JOB-ENGINEER-001 §6.1）
+	"eng_trap_opener": {
+		"display_name": "先置きの棘",
+		"description": "戦闘開始時、敵1体に弱いスパイクの仕掛けを付ける（残発2）。",
+		"trigger": "on_combat_start",
+		"condition": "always",
+		"effect": "place_engineer_trap",
+		"trap_kind": "spike",
+		"trap_fires": 2,
+		"trap_power": 0.35,
+		"target": "enemy",
+		"cooldown": 0.0,
+	},
+	"eng_brand_afterheat": {
+		"display_name": "装炎の余熱",
+		"description": "クール12秒以上のスキルが当たったとき、相手を炎上させる。",
+		"trigger": "on_skill_hit",
+		"condition": "always",
+		"effect": "apply_status",
+		"status_id": "ignite",
+		"status_chance": 1.0,
+		"target": "enemy",
+		"min_skill_cooldown": 12.0,
+		"cooldown": 0.0,
+	},
+	"eng_seam_pierce": {
+		"display_name": "継ぎ目穿ち",
+		"description": "攻撃やスキルが当たったとき、3回に1回甲砕を付与する。甲砕中はさらに防御が下がる。",
+		"trigger": "on_attack",
+		"condition": "always",
+		"effect": "apply_status",
+		"status_id": "armor_break",
+		"status_chance": 1.0,
+		"target": "enemy",
+		"every_n": 3,
+		"armor_break_stack": true,
+		"cooldown": 0.0,
 	},
 	"neri_waterfowl_call": {
 		"display_name": "水鳥の指揮",

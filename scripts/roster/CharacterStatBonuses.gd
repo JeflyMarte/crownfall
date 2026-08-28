@@ -49,6 +49,12 @@ const HELPER_BONUS: Dictionary = {
 	"helper_o": {"hp": -50, "attack": 40, "defense": 30},
 	## 火鷹★4 — 規格外ステ＋デメリットパッシブ前提
 	"helper_p": {"hp": 180, "attack": 300, "defense": 90},
+	## トリム★3 — 罠職・開幕仕掛け
+	"helper_q": {"hp": 80, "attack": 120, "defense": 90},
+	## ブラン★4 — 装炎決め技
+	"helper_r": {"hp": 120, "attack": 200, "defense": 80},
+	## オルソ★2 — 破砕・低耐久高打点
+	"helper_s": {"hp": 20, "attack": 180, "defense": 70},
 }
 
 

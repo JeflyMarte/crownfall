@@ -30,6 +30,9 @@ const ICON_ALIAS: Dictionary = {
 	"neri_waterfowl_call": "pack_instinct",
 	"hodaka_blood_price": "battle_fervor",
 	"sian_silent_line": "foresight",
+	"eng_trap_opener": "foresight",
+	"eng_brand_afterheat": "sword_charge",
+	"eng_seam_pierce": "bulwark",
 }
 
 ## パッシブ群に近い絵が無い場合の直接パス（スキルベース等）。
@@ -41,6 +44,9 @@ const ICON_PATH_OVERRIDE: Dictionary = {
 	"elias_field_elixir": "res://assets/ui/skills/base/ICO_SKILL_BASE_Hex_fg.png",
 	"sian_silent_line": "res://assets/ui/status/ICO_STA_Chill.png",
 	"mira_beast_call": "res://assets/ui/status/ICO_STA_Bleed.png",
+	"eng_trap_opener": "res://assets/ui/status/ICO_STA_EngTrapSpike.png",
+	"eng_brand_afterheat": "res://assets/ui/status/ICO_STA_Ignite.png",
+	"eng_seam_pierce": "res://assets/ui/status/ICO_STA_ArmorBreak.png",
 }
 
 

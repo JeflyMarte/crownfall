@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="GachaHelperData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/GachaHelperData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "helper_q"
+display_name = "トリム"
+job_id = "engineer"
+origin_note = "開幕から仕掛けを仕込む、罠職の小太り機械工！！"
+summon_quote = "……先に棘を置いておく。動いたら刺さる。"
+rarity = 3
+passive_id = "eng_trap_opener"
+ultimate_skill_id = "eng_full_arm_cascade"
+hometown = "下鍛冶街の工房路地"
+height_cm = 162
+likes = "真鍮の工具、整然とした作業台"
+dislikes = "急かされる作業、油のない歯車"
+backstory = "小太りの体格を活かし、狭い遺跡通路でも仕掛けを組み立てる機巧士。作業メガネと短い髭が目印。\n開幕から敵の足元に弱い棘を仕込む「先置きの棘」で、動くほど削れる戦い方を好む。\n口数は少ないが、工具帯の音だけで仲間の位置を把握している。"
+record_note = "工房の灰と真鍮の匂いが服に染み付いている。必殺は複数への仕掛け連鎖。"

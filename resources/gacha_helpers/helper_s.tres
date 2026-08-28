@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="GachaHelperData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/GachaHelperData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "helper_s"
+display_name = "オルソ"
+job_id = "engineer"
+origin_note = "継ぎ目を穿つ破砕職。作業着の少女と大金槌！！"
+summon_quote = "……継ぎ目、見つけた。ここを割る。"
+rarity = 2
+passive_id = "eng_seam_pierce"
+ultimate_skill_id = "eng_armor_gekigeki"
+hometown = "鉱脈坑口の整備小屋"
+height_cm = 154
+likes = "整備された金槌、煤のついた作業着"
+dislikes = "油断した溶接、曖昧な継ぎ目"
+backstory = "作業着姿の少女機巧士。顔の煤と手にした大金槌が識別点。\n攻撃やスキルが当たるたびに継ぎ目を穿ち、甲砕を重ねる「継ぎ目穿ち」で硬い敵の殻を剥がす。\n静かだが、金槌を振るう手つきは老练である。"
+record_note = "大金槌は戦鎚種装備と見た目一致。必殺は単体殻割り。"

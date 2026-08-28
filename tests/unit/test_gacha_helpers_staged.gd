@@ -5,7 +5,7 @@ extends GutTest
 
 func test_pool_eleven() -> void:
 	var pool: Array = DataRegistry.get_all_gacha_helper_data()
-	assert_eq(pool.size(), 11)
+	assert_eq(pool.size(), 14)
 
 
 func test_torva_still_omitted() -> void:
