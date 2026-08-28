@@ -802,6 +802,10 @@ var _pending_abyss_weather_log: bool = false
 ## 暗転中点の敵シート load／get_image を明け後へ遅延（弱機フリーズ種）。
 var _defer_combat_room_visuals: bool = false
 var _pending_swarm_enemy_ids: Array = []
+## 暗転中点の戦闘背景 load を明け後へ遅延（深層 11F 境界の Early/Late 切替）。
+var _defer_room_art_refresh: bool = false
+## 明け後 flush チェーンの世代（新遷移で古い await を無効化）。
+var _post_transition_flush_gen: int = 0
 ## 次フロア入場で適用済み・味方表示後に VFX／名ポップ／SE する応急手当の実回復量。
 var _pending_floor_choice_heal_amounts: Dictionary = {}
 ## 非戦闘入場の回復パッシブ演出（野営の調合など）中。
@@ -1185,6 +1189,8 @@ func _ready() -> void:
 	_pending_abyss_weather_log = false
 	_defer_combat_room_visuals = false
 	_pending_swarm_enemy_ids.clear()
+	_defer_room_art_refresh = false
+	_post_transition_flush_gen = 0
 	_floor_choice_active = false
 	GameState.last_run_accessory_dropped = ""
 	GameState.last_run_weapon_dropped = ""
@@ -2314,20 +2320,53 @@ func _on_room_transition_finished() -> void:
 	_room_transition_busy = false
 	_label_transition.text = ""
 	_update_run_hud()
-	## 深層 10F 境界の天候 VFX は暗転明けに適用（11F 入場フリーズ対策）。
-	_flush_pending_abyss_weather_vfx()
-	## 敵シート load／正規化も暗転明けへ（弱機の同期 I/O フリーズ対策）。
-	_flush_deferred_combat_room_visuals()
-	## 応急手当: 戦闘フロアは暗転明けに演出（入場時点は黒幕で見えない）。
-	if $DungeonController.is_combat_room() and not _pending_floor_choice_heal_amounts.is_empty():
-		_present_pending_floor_choice_heal()
 	if $DungeonController.is_combat_room() and $CombatController.is_in_combat:
 		_sync_room_bgm()
-	_flush_pending_special_combat_entrance()
 	if not $CombatController.is_in_combat and not _auto_progress_finishes:
 		if _room_handles_own_progression($DungeonController.current_room_type):
+			_begin_post_transition_flush()
 			return
 		_start_auto_progress()
+	_begin_post_transition_flush()
+
+
+func _post_transition_flush_pending() -> bool:
+	return (
+		_pending_abyss_weather_refresh
+		or _defer_room_art_refresh
+		or _defer_combat_room_visuals
+	)
+
+
+func _begin_post_transition_flush() -> void:
+	if not _post_transition_flush_pending():
+		_finish_post_transition_flush()
+		return
+	_post_transition_flush_gen += 1
+	var gen: int = _post_transition_flush_gen
+	_run_post_transition_flush_async(gen)
+
+
+func _run_post_transition_flush_async(gen: int) -> void:
+	if _pending_abyss_weather_refresh or _defer_room_art_refresh:
+		await get_tree().process_frame
+		if gen != _post_transition_flush_gen or not is_inside_tree():
+			return
+		_flush_pending_abyss_weather_vfx()
+		_flush_deferred_room_art()
+	if _defer_combat_room_visuals:
+		await get_tree().process_frame
+		if gen != _post_transition_flush_gen or not is_inside_tree():
+			return
+		_flush_deferred_combat_room_visuals()
+	_finish_post_transition_flush()
+
+
+func _finish_post_transition_flush() -> void:
+	## 応急手当: 味方スプライト表示後に演出（入場時点は黒幕で見えない）。
+	if $DungeonController.is_combat_room() and not _pending_floor_choice_heal_amounts.is_empty():
+		_present_pending_floor_choice_heal()
+	_flush_pending_special_combat_entrance()
 
 
 func _flush_pending_abyss_weather_vfx() -> void:
@@ -2356,6 +2395,13 @@ func _flush_deferred_combat_room_visuals() -> void:
 	_show_enemy_swarm(ids)
 	_update_hp_bars()
 	_show_chr_sprites(false)
+
+
+func _flush_deferred_room_art() -> void:
+	if not _defer_room_art_refresh:
+		return
+	_defer_room_art_refresh = false
+	_update_room_art()
 
 # 戦闘可読性（P3-UX-001）: ログ行に現れる補正マーカーをラン単位で集計する。
 # Result の「効いた戦闘要素」の材料。キー=ログ内マーカー / 値=表示ラベル。
@@ -4185,7 +4231,10 @@ func _end_combat_session() -> void:
 func _enter_current_room() -> void:
 	_hide_event_telop()
 	_update_room_label()
-	_update_room_art()
+	if _room_transition_busy:
+		_defer_room_art_refresh = true
+	else:
+		_update_room_art()
 	if $DungeonController.has_active_floor_blessing():
 		var kind: String = $DungeonController.floor_blessing_kind
 		var label: String = $DungeonController.floor_blessing_label(kind)
@@ -11307,7 +11356,8 @@ func _party_is_depleted_for_floor_choice() -> bool:
 ## 暗転中・階層キャプションの代わりに三択を出す。
 func _offer_floor_choice_replacing_caption(heal_mode: bool) -> void:
 	_floor_choice_active = true
-	_label_transition.text = ""
+	_label_transition.text = "分かれ道"
+	_apply_room_transition_caption_style(Enums.RoomType.COMBAT)
 	_transition_overlay.modulate.a = 1.0
 	_ensure_floor_choice_overlay()
 	if _IntroTutorialConfig.is_run($DungeonController):
