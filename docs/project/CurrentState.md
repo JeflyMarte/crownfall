@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-28（**通常モード発熱対策／統合＋main**: モバイル通常45fps・天候少量粒子・ループ tween 抑止。GUT light/settings PASS。要iOS実機）
 2026-08-28（**発熱根本対策／統合＋main**: 軽量=30fps・静止天候・idle停止・モバイル初回既定ON。GUT light/settings PASS。要iOS実機）
 2026-08-28（**機巧士ビルドL Phase A Impl**: 罠2／装炎2／破砕2（5点＋既存1）。章プール接続。GUT 1635 PASS。`130`）
 2026-08-28（**機巧士助っ人3＋パッシブ＋必殺 Impl**: トリム／ブラン／オルソ。ガチャプール14。GUT 1630 PASS。`126`§6）

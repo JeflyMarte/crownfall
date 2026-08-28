@@ -115,7 +115,7 @@ func _build() -> void:
 	body.add_child(vib_hint)
 	body.add_child(_make_check("軽量モード", _SettingsPrefs.is_light_mode(), _on_light_mode))
 	var light_hint := Label.new()
-	light_hint.text = "オンで天候・オーラ・帯・ヒット演出・紙吹雪を抑え、idle停止・30fps上限（モバイル）で発熱を下げます"
+	light_hint.text = "オンで演出最小・idle停止・30fps。オフでもモバイルは45fps・天候ループ抑止"
 	light_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiTypography.apply_caption(light_hint, COLOR_SUB)
 	body.add_child(light_hint)
