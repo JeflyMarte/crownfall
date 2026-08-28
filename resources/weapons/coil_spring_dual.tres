@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "coil_spring_dual"
+display_name = "巻取棘の双剣"
+description = "棘を巻き取るように仕掛けを仕込む双剣。一度の設置で、敵の動きに長く反応する。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_coil_spring_dual"
+base_attack = 205
+rarity = 3
+base_attack_speed = 1.12
+base_critical_rate = 0.09
+base_knockback = 0.30
+base_stagger_power = 0.20
+base_attack_range = 1.0
+weight = 0.95
+element = ""
+weapon_type = "dual_blades"
+tags = Array[String](["slash", "trap"])
+flavor_text = "仕掛けの残り火を、もう一刺し分だけ残す工房技。"

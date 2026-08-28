@@ -8115,6 +8115,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-EQ-WARHAMMER-001-6 | SSOT — `129`／`07`／`126`／`95`／`game/07`／`world/09`。COMMON `iron_warhammer` | Decision 本体 |
 | P3-EQ-WARHAMMER-001-A1 | **梯子A** — R0×5／R1×4／R2×4／破砕L1（`seam_breaker_maul`）。章プール接続 | 2026-08-27 オーナー GO |
 | P3-EQ-WARHAMMER-001-A2 | L＝甲砕中与+25%・攻撃25%甲砕。ICOは戦鎚14種専用接続済（2026-08-28 GO）。灰冠／深層／SETは後続 | 破砕テーマ最小 |
+| P3-EQ-ENGINEER-LEG-001 | **Phase A GO** — 罠2（双剣L+装飾）／装炎2（戦鎚L+装飾）／破砕2（既存戦鎚L+装飾）。`130` | 2026-08-28 オーナー GO |
 
 ## 魔晶石発掘・案A（2026-08-25 — P3-UX-CRYSTAL-EXCAVATE-001）
 
