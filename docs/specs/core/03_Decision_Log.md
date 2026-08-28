@@ -8141,4 +8141,5 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-APEX-REDEFINE-001-5 | UI＝イベントタブ常設。`route_type=apex`。寄り道オミット維持 | 役割整理 |
 | P3-DG-APEX-REDEFINE-001-6 | SSOT — `128_ApexConquestRedefine.md`／`05_Biomes §2.1` | Decision 本体 |
 | P3-DG-APEX-REDEFINE-001-7 | パイロット＝`north_reach`／`albark` | オーナー指定 |
+| P3-DG-APEX-REDEFINE-001-8 | 征討名＝**地図なき主**／ステージ＝**天望の塔**（案C・高塔・空） | オーナー 2026-08-28 |
 
