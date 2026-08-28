@@ -1267,6 +1267,9 @@ func _setup_weather() -> void:
 	if SettingsPrefs.is_light_mode():
 		_setup_weather_light_static(layer, weather)
 		return
+	if SettingsPrefs.is_mobile_platform():
+		_setup_weather_mobile_reduced(layer, weather)
+		return
 	var view: Vector2 = get_viewport_rect().size
 	match weather:
 		CombatWeather.NIGHT:
@@ -1391,6 +1394,82 @@ func _setup_weather_light_static(layer: CanvasLayer, weather: String) -> void:
 		_:
 			pass
 
+
+## モバイル通常: 静止ベール＋粒子少量。ループ tween なし（発熱対策）。
+func _setup_weather_mobile_reduced(layer: CanvasLayer, weather: String) -> void:
+	var view: Vector2 = get_viewport_rect().size
+	match weather:
+		CombatWeather.NIGHT:
+			_add_weather_veil(layer, Color(0.04, 0.06, 0.16, 0.30))
+		CombatWeather.FOG:
+			_add_weather_veil(layer, Color(0.62, 0.68, 0.64, 0.28))
+			var mist := CPUParticles2D.new()
+			mist.texture = _make_fog_wisp_texture()
+			mist.amount = 24
+			mist.lifetime = 3.6
+			mist.local_coords = false
+			mist.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+			mist.emission_rect_extents = Vector2(view.x * 0.55, view.y * 0.45)
+			mist.position = Vector2(view.x * 0.5, view.y * 0.45)
+			mist.direction = Vector2(1.0, 0.05)
+			mist.spread = 28.0
+			mist.gravity = Vector2(0.0, -6.0)
+			mist.initial_velocity_min = 8.0
+			mist.initial_velocity_max = 28.0
+			mist.scale_amount_min = 0.7
+			mist.scale_amount_max = 1.6
+			mist.modulate = Color(0.78, 0.84, 0.80, 0.55)
+			mist.emitting = true
+			layer.add_child(mist)
+		CombatWeather.RAIN:
+			_add_weather_veil(layer, Color(0.35, 0.42, 0.55, 0.14))
+			var rain := CPUParticles2D.new()
+			rain.texture = _make_raindrop_texture()
+			rain.amount = 60
+			rain.lifetime = 0.7
+			rain.local_coords = false
+			rain.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+			rain.emission_rect_extents = Vector2(view.x * 0.6, 2.0)
+			rain.position = Vector2(view.x * 0.5, -12.0)
+			rain.direction = Vector2(0.1, 1.0)
+			rain.spread = 4.0
+			rain.gravity = Vector2(20.0, 900.0)
+			rain.initial_velocity_min = 420.0
+			rain.initial_velocity_max = 540.0
+			rain.modulate = Color(0.75, 0.82, 1.0, 0.7)
+			rain.emitting = true
+			layer.add_child(rain)
+		CombatWeather.HEAT:
+			_add_weather_veil(layer, Color(0.55, 0.22, 0.08, 0.14))
+		CombatWeather.SNOW:
+			_add_weather_veil(layer, Color(0.78, 0.86, 0.95, 0.12))
+			var fall_depth: float = view.y * 0.52
+			var v_mid: float = 58.0
+			var g_y: float = 52.0
+			var disc: float = v_mid * v_mid + 2.0 * g_y * fall_depth
+			var life: float = (-v_mid + sqrt(maxf(0.0, disc))) / maxf(1.0, g_y)
+			var snow := CPUParticles2D.new()
+			snow.texture = _make_snowflake_texture()
+			snow.amount = 50
+			snow.lifetime = clampf(life * 1.08, 4.2, 8.0)
+			snow.preprocess = mini(0.35, snow.lifetime * 0.08)
+			snow.local_coords = false
+			snow.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+			snow.emission_rect_extents = Vector2(view.x * 0.58, 2.0)
+			snow.position = Vector2(view.x * 0.5, -12.0)
+			snow.direction = Vector2(0.15, 1.0)
+			snow.spread = 18.0
+			snow.gravity = Vector2(10.0, g_y)
+			snow.initial_velocity_min = 46.0
+			snow.initial_velocity_max = 70.0
+			snow.scale_amount_min = 0.85
+			snow.scale_amount_max = 1.35
+			snow.modulate = Color(0.92, 0.96, 1.0, 0.78)
+			snow.emitting = true
+			layer.add_child(snow)
+		_:
+			pass
+
 func _make_raindrop_texture() -> Texture2D:
 	var img := Image.create(2, 14, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0.8, 0.86, 1.0, 0.55))
@@ -1434,7 +1513,7 @@ func _process(delta: float) -> void:
 			_tick_relic_combat_regen(clock)
 			if $CombatController.tick_member_skill_silence(clock):
 				_update_status_icons()
-		if SettingsPrefs.is_light_mode():
+		if SettingsPrefs.mobile_throttle_idle_loops():
 			_light_cd_bar_tick += 1
 			if _light_cd_bar_tick % 2 == 0:
 				_update_party_skill_cd_bars_smooth(delta)
@@ -1719,6 +1798,8 @@ func _hide_combat_threat_banner() -> void:
 		_threat_vignette.color = Color(0, 0, 0, 0)
 
 func _start_threat_banner_pulse() -> void:
+	if SettingsPrefs.mobile_throttle_idle_loops():
+		return
 	if _threat_banner == null or not is_instance_valid(_threat_banner):
 		return
 	if _threat_banner_pulse_tween != null and is_instance_valid(_threat_banner_pulse_tween):
@@ -12738,7 +12819,7 @@ func _chr_depth_z_index(foot_y: float) -> int:
 # idle が1フレームのみの素材は SpriteFrames でフレーム送りできず静止する。
 # その場合のみ offset を上下させる「呼吸」idle をコードで付与する（HPバー等は position 基準のため非干渉）。
 func _setup_chr_idle_motion(idx: int, sprite: AnimatedSprite2D, frames: SpriteFrames) -> void:
-	if SettingsPrefs.is_light_mode():
+	if SettingsPrefs.mobile_throttle_idle_loops():
 		return
 	if idx < 0 or idx >= _chr_idle_tweens.size():
 		return
@@ -12924,7 +13005,7 @@ func _sync_shadow_stalker_floor_dim(group: Array) -> void:
 	_set_shadow_stalker_floor_dim(active)
 
 func _start_tier_frame_pulse() -> void:
-	if SettingsPrefs.is_light_mode():
+	if SettingsPrefs.mobile_throttle_idle_loops():
 		return
 	_stop_tier_frame_pulse()
 	_tier_frame_pulse_tween = create_tween().set_loops()

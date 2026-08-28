@@ -51,6 +51,8 @@ func test_apply_performance_settings_exists() -> void:
 	var src: String = FileAccess.get_file_as_string("res://scripts/settings/SettingsPrefs.gd")
 	assert_true(src.contains("apply_performance_settings"), "performance apply helper")
 	assert_true(src.contains("FPS_MOBILE_LIGHT"), "mobile light fps cap")
+	assert_eq(_SettingsPrefs.FPS_MOBILE_NORMAL, 45, "mobile normal fps cap")
+	assert_true(src.contains("mobile_throttle_idle_loops"), "mobile idle loop throttle")
 	assert_true(src.contains("Engine.max_fps"), "sets max fps")
 
 
@@ -80,6 +82,8 @@ func test_dungeon_weather_and_band_gate_light_mode() -> void:
 	var src: String = FileAccess.get_file_as_string("res://scripts/dungeon/DungeonScene.gd")
 	assert_true(src.contains("SettingsPrefs.is_light_mode()"), "DungeonScene gates light mode")
 	assert_true(src.contains("_setup_weather_light_static"), "static weather in light mode")
+	assert_true(src.contains("_setup_weather_mobile_reduced"), "reduced weather on mobile normal")
+	assert_true(src.contains("mobile_throttle_idle_loops"), "mobile idle loop throttle")
 	assert_true(src.contains("_play_combat_idle"), "idle freeze helper")
 	assert_true(src.contains("_refresh_weather()"), "settings close refreshes weather")
 	assert_true(src.contains("play_ultimate_band"), "ultimate band path present")
@@ -91,7 +95,7 @@ func test_dungeon_weather_and_band_gate_light_mode() -> void:
 	assert_true(src.contains("HitVfxPool"), "hit vfx pool wired")
 	var settings_src: String = FileAccess.get_file_as_string("res://scripts/settings/SettingsScene.gd")
 	assert_true(settings_src.contains("軽量モード"), "settings UI has light mode toggle")
-	assert_true(settings_src.contains("ヒット演出"), "settings caption mentions hit fx")
+	assert_true(settings_src.contains("45fps"), "settings caption mentions mobile normal fps")
 	var overlay_src: String = FileAccess.get_file_as_string("res://scripts/ui/InGameSettingsOverlay.gd")
 	assert_true(overlay_src.contains("軽量モード"), "in-game settings has light mode toggle")
-	assert_true(overlay_src.contains("紙吹雪"), "overlay caption mentions confetti")
+	assert_true(overlay_src.contains("45fps"), "overlay caption mentions mobile normal fps")

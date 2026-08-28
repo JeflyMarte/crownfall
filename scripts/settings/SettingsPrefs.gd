@@ -31,9 +31,9 @@ const SPEED_ID_X1: String = "x1"
 const SPEED_ID_X15: String = "x1_5"
 const SPEED_ID_X2: String = "x2"
 
-## モバイル FPS 上限（発熱対策）。軽量モードは 30、通常は 60。デスクトップは 0＝無制限。
+## モバイル FPS 上限（発熱対策）。軽量モードは 30、通常は 45。デスクトップは 0＝無制限。
 const FPS_MOBILE_LIGHT: int = 30
-const FPS_MOBILE_NORMAL: int = 60
+const FPS_MOBILE_NORMAL: int = 45
 const FPS_DESKTOP: int = 0
 
 static var _loaded: bool = false
@@ -105,6 +105,11 @@ static func _reset_defaults() -> void:
 static func is_mobile_platform() -> bool:
 	var os_name: String = OS.get_name()
 	return os_name == "iOS" or os_name == "Android"
+
+
+## モバイル共通: 常時ループ tween・隔フレーム UI 更新（軽量／通常問わず）。
+static func mobile_throttle_idle_loops() -> bool:
+	return is_mobile_platform()
 
 
 ## モバイルは FPS 上限で GPU/CPU 負荷を抑える。軽量モード時は 30fps。
