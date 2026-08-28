@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "overheat_amulet"
+display_name = "過熱管の首飾り"
+rarity = 3
+icon = ""
+accessory_type = "talisman"
+description = "熱を溜めた決め技を鋭くする首飾り。長い間隔を空けた一撃に効く。"
+hp_bonus = 200
+attack_bonus = 18
+defense_bonus = 0
+crit_rate_bonus = 0.02
+exp_gain_rate = 0.0
+gold_gain_rate = 0.0
+rare_drop_rate = 0.0
+fixed_passive_id = "eq_overheat_amulet"

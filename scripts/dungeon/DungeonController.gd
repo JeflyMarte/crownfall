@@ -2282,6 +2282,8 @@ const WEAPON_POOL: Array[String] = [
 	"consecrated_maul",
 	"iron_warhammer",
 	"seam_breaker_maul",
+	"coil_spring_dual",
+	"pyrebrand_maul",
 ]
 
 # レア度別ドロップ重み（レアほど低確率＝レア度を体感に反映）。

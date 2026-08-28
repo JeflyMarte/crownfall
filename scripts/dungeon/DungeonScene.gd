@@ -5938,7 +5938,7 @@ func _try_apply_weapon_on_hit_status(member_index: int) -> void:
 ## P3-BAL-COMBAT-AUDIT-001 案B: 条件付き追撃を枠1でも報われる帯へ。
 const CONDITIONAL_STATUS_POWER_MULT: float = 1.6
 
-func _conditional_skill_power_mult(skill_data: Resource, target_slot: int) -> float:
+func _conditional_skill_power_mult(skill_data: Resource, target_slot: int, member_idx: int = -1) -> float:
 	if skill_data == null or target_slot < 0:
 		return 1.0
 	if skill_data.tags.has("vs_bleed") and $CombatController.get_enemy_status_stacks_at(target_slot, "bleed") > 0:
@@ -5947,6 +5947,10 @@ func _conditional_skill_power_mult(skill_data: Resource, target_slot: int) -> fl
 		return CONDITIONAL_STATUS_POWER_MULT
 	if skill_data.tags.has("vs_armor_break") and $CombatController.get_enemy_status_stacks_at(target_slot, "armor_break") > 0:
 		return 1.35
+	if member_idx >= 0:
+		var long_cd_mult: float = CombatPassives.long_cd_skill_power_mult_for_member(member_idx, skill_data)
+		if long_cd_mult > 1.0:
+			return long_cd_mult
 	## 場の敵数で単体威力が伸びる（追勢斬・P3-SKILL-KIT-DIVERGE-001）。
 	if skill_data.tags.has("swarm_power"):
 		var living: int = $CombatController.get_living_enemy_indices().size()
@@ -6113,7 +6117,7 @@ func _execute_member_aoe_damage_skill(
 			))
 		)
 		skill_dmg = maxi(1, int(round(float(skill_dmg) * weapon_skill_mult)))
-		skill_dmg = maxi(1, int(round(float(skill_dmg) * _conditional_skill_power_mult(skill_data, slot))))
+		skill_dmg = maxi(1, int(round(float(skill_dmg) * _conditional_skill_power_mult(skill_data, slot, member_idx))))
 		var elem_result: Dictionary = _apply_enemy_mitigation(skill_dmg, attack_element, member_idx, slot)
 		var final_dmg: int = maxi(
 			1,
@@ -6128,7 +6132,7 @@ func _execute_member_aoe_damage_skill(
 	var crit_tag: String = "  CRITICAL!" if skill_is_crit else ""
 	var cascade_trap_log: String = ""
 	if skill_data != null and skill_data.tags.has("eng_cascade"):
-		cascade_trap_log = _place_engineer_cascade_traps(member_idx, 3, 3, 0.55)
+		cascade_trap_log = _place_engineer_cascade_traps(member_idx, 3, 3 + CombatPassives.engineer_trap_fires_add(member_idx), 0.55)
 	var log_line: String = "\n【スキル】%s: 敵全体へ計%dダメージ%s%s（%d体）" % [
 		result["display_name"], total_dmg, crit_tag, form_tag, hits.size(),
 	]
@@ -6191,11 +6195,11 @@ func _execute_engineer_trap_place(
 	var result: Dictionary = _skill_executor.execute_support_skill(
 		skill_data,
 		cd_key,
-		(_EquipmentSetBonuses.skill_cd_mult(member_idx) * CombatPassives.relic_skill_cd_mult(member_idx))
+		(_EquipmentSetBonuses.skill_cd_mult(member_idx) * CombatPassives.relic_skill_cd_mult(member_idx) * CombatPassives.trap_skill_cd_mult(member_idx))
 	)
 	if not result.get("executed", false):
 		return ""
-	var fires: int = EngineerTrapsScript.fires_for_kind(kind)
+	var fires: int = EngineerTrapsScript.fires_for_kind(kind) + CombatPassives.engineer_trap_fires_add(member_idx)
 	var power: float = EngineerTrapsScript.power_for_kind(kind)
 	if float(skill_data.power_multiplier) > 0.0:
 		power = float(skill_data.power_multiplier)
@@ -6436,7 +6440,7 @@ func _execute_member_skill(
 	else:
 		weapon_skill_mult = float(wpn_skill_mods.get("skill_power_mult", 1.0))
 	skill_dmg = maxi(1, int(round(float(skill_dmg) * float(weapon_skill_mult))))
-	skill_dmg = maxi(1, int(round(float(skill_dmg) * _conditional_skill_power_mult(skill_data, target_slot))))
+	skill_dmg = maxi(1, int(round(float(skill_dmg) * _conditional_skill_power_mult(skill_data, target_slot, member_idx))))
 	var elem_result: Dictionary = _apply_enemy_mitigation(skill_dmg, attack_element, member_idx, target_slot)
 	var final_dmg: int = maxi(
 		1,
@@ -10534,7 +10538,7 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 				applied = true
 		"place_engineer_trap":
 			var trap_kind: String = str(p.get("trap_kind", "spike"))
-			var trap_fires: int = maxi(1, int(p.get("trap_fires", 2)))
+			var trap_fires: int = maxi(1, int(p.get("trap_fires", 2)) + CombatPassives.engineer_trap_fires_add(member_idx))
 			var trap_power: float = float(p.get("trap_power", 0.35))
 			var trap_slot: int = int(ctx.get("target_slot", -1))
 			if trap_slot < 0:
