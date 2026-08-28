@@ -86,3 +86,24 @@ func test_weapon_pools_include_new_legendaries() -> void:
 	var pool: Array = stage.weapon_pool
 	assert_true(pool.has("coil_spring_dual"))
 	assert_true(pool.has("pyrebrand_maul"))
+
+
+func test_engineer_legendary_icons_exist_and_unique() -> void:
+	var ids: Array[String] = [
+		"coil_spring_dual",
+		"pyrebrand_maul",
+		"trapgear_charm",
+		"overheat_amulet",
+		"seam_focus_sigil",
+	]
+	var seen: Dictionary = {}
+	for item_id in ids:
+		var kind: String = "weapon" if item_id.ends_with("_dual") or item_id.ends_with("_maul") else "accessory"
+		var key: String = "%s:%s" % [kind, item_id]
+		var path: String = str(IconPaths.ICON_MAP.get(key, ""))
+		assert_false(path.is_empty(), item_id)
+		assert_true(FileAccess.file_exists(path), "%s missing %s" % [item_id, path])
+		assert_not_null(IconPaths.get_icon_texture(item_id, kind), item_id)
+		var md5: String = FileAccess.get_md5(path)
+		assert_false(seen.has(md5), "duplicate icon: %s" % item_id)
+		seen[md5] = item_id
