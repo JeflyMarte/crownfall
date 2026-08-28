@@ -910,6 +910,7 @@ var _dungeon_header_icon: TextureRect
 var _chr_sprites: Array[AnimatedSprite2D] = []
 # 1フレームのみの idle 素材（Ranger/Alchemist 等）向けのコード擬似 idle（呼吸）tween 保持
 var _chr_idle_tweens: Array = [null, null, null, null, null]
+var _light_cd_bar_tick: int = 0
 # メンバーごとの表示中スキル名ラベル（重なり防止のため tick 毎に置換・段組み）
 var _chr_skill_labels: Array = [[], [], [], [], []]
 # 同一メンバーが同 tick に複数スキルを発動した際、ラベルを縦にずらす間隔(px)
@@ -1140,17 +1141,17 @@ func _ready() -> void:
 		sprite.animation_finished.connect(func():
 			if sprite.visible and sprite.sprite_frames != null:
 				if sprite.animation in ["attack", "hurt"]:
-					sprite.play("idle")
+					_play_combat_idle(sprite)
 		)
 	_enemy_sprite.animation_finished.connect(func():
 		if _enemy_sprite.visible and _enemy_sprite.sprite_frames != null:
 			if _enemy_sprite.animation in ["attack", "hurt"]:
-				_enemy_sprite.play("idle")
+				_play_combat_idle(_enemy_sprite)
 	)
 	_boss_sprite.animation_finished.connect(func():
 		if _boss_sprite.visible and _boss_sprite.sprite_frames != null:
 			if _boss_sprite.animation in ["attack", "hurt"]:
-				_boss_sprite.play("idle")
+				_play_combat_idle(_boss_sprite)
 	)
 	_style_hp_bars()
 	_style_combat_ui_panels()
@@ -1259,11 +1260,13 @@ func _setup_weather() -> void:
 	var weather: String = GameState.get_weather()
 	if weather.is_empty():
 		return
-	var light: bool = SettingsPrefs.is_light_mode()
 	var layer := CanvasLayer.new()
 	layer.name = "WeatherLayer"
 	layer.layer = 3
 	add_child(layer)
+	if SettingsPrefs.is_light_mode():
+		_setup_weather_light_static(layer, weather)
+		return
 	var view: Vector2 = get_viewport_rect().size
 	match weather:
 		CombatWeather.NIGHT:
@@ -1291,7 +1294,7 @@ func _setup_weather() -> void:
 			var tw2 := layer.create_tween().set_loops()
 			tw2.tween_property(haze2, "color:a", 0.20, 3.4).set_trans(Tween.TRANS_SINE)
 			tw2.tween_property(haze2, "color:a", 0.08, 3.4).set_trans(Tween.TRANS_SINE)
-			if not light:
+			if not SettingsPrefs.is_light_mode():
 				var mist := CPUParticles2D.new()
 				mist.texture = _make_fog_wisp_texture()
 				mist.amount = 48
@@ -1311,30 +1314,22 @@ func _setup_weather() -> void:
 				mist.emitting = true
 				layer.add_child(mist)
 		CombatWeather.RAIN:
-			if light:
-				## 軽量: 雨粒パーティクル代わりに薄い青ベールのみ。
-				var rain_veil := ColorRect.new()
-				rain_veil.color = Color(0.35, 0.42, 0.55, 0.14)
-				rain_veil.set_anchors_preset(Control.PRESET_FULL_RECT)
-				rain_veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
-				layer.add_child(rain_veil)
-			else:
-				var rain := CPUParticles2D.new()
-				rain.texture = _make_raindrop_texture()
-				rain.amount = 150
-				rain.lifetime = 0.7
-				rain.local_coords = false
-				rain.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-				rain.emission_rect_extents = Vector2(view.x * 0.6, 2.0)
-				rain.position = Vector2(view.x * 0.5, -12.0)
-				rain.direction = Vector2(0.1, 1.0)
-				rain.spread = 4.0
-				rain.gravity = Vector2(20.0, 900.0)
-				rain.initial_velocity_min = 420.0
-				rain.initial_velocity_max = 540.0
-				rain.modulate = Color(0.75, 0.82, 1.0, 0.7)
-				rain.emitting = true
-				layer.add_child(rain)
+			var rain := CPUParticles2D.new()
+			rain.texture = _make_raindrop_texture()
+			rain.amount = 150
+			rain.lifetime = 0.7
+			rain.local_coords = false
+			rain.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+			rain.emission_rect_extents = Vector2(view.x * 0.6, 2.0)
+			rain.position = Vector2(view.x * 0.5, -12.0)
+			rain.direction = Vector2(0.1, 1.0)
+			rain.spread = 4.0
+			rain.gravity = Vector2(20.0, 900.0)
+			rain.initial_velocity_min = 420.0
+			rain.initial_velocity_max = 540.0
+			rain.modulate = Color(0.75, 0.82, 1.0, 0.7)
+			rain.emitting = true
+			layer.add_child(rain)
 		CombatWeather.HEAT:
 			var heat := ColorRect.new()
 			heat.color = Color(0.55, 0.22, 0.08, 0.14)
@@ -1345,39 +1340,56 @@ func _setup_weather() -> void:
 			heat_tw.tween_property(heat, "color:a", 0.20, 2.4).set_trans(Tween.TRANS_SINE)
 			heat_tw.tween_property(heat, "color:a", 0.10, 2.4).set_trans(Tween.TRANS_SINE)
 		CombatWeather.SNOW:
-			if light:
-				var snow_veil := ColorRect.new()
-				snow_veil.color = Color(0.78, 0.86, 0.95, 0.12)
-				snow_veil.set_anchors_preset(Control.PRESET_FULL_RECT)
-				snow_veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
-				layer.add_child(snow_veil)
-			else:
-				## 画面上半分くらいまで届く落下距離（旧 lifetime だと途中で消えて薄く見えた）。
-				var fall_depth: float = view.y * 0.52
-				var v_mid: float = 58.0
-				var g_y: float = 52.0
-				var disc: float = v_mid * v_mid + 2.0 * g_y * fall_depth
-				var life: float = (-v_mid + sqrt(maxf(0.0, disc))) / maxf(1.0, g_y)
-				var snow := CPUParticles2D.new()
-				snow.texture = _make_snowflake_texture()
-				snow.amount = 130
-				snow.lifetime = clampf(life * 1.08, 4.2, 8.0)
-				## preprocess はモバイルでメインスレッドを長く止め得るため軽量に抑える。
-				snow.preprocess = mini(0.35, snow.lifetime * 0.08)
-				snow.local_coords = false
-				snow.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-				snow.emission_rect_extents = Vector2(view.x * 0.58, 2.0)
-				snow.position = Vector2(view.x * 0.5, -12.0)
-				snow.direction = Vector2(0.15, 1.0)
-				snow.spread = 18.0
-				snow.gravity = Vector2(10.0, g_y)
-				snow.initial_velocity_min = 46.0
-				snow.initial_velocity_max = 70.0
-				snow.scale_amount_min = 0.85
-				snow.scale_amount_max = 1.35
-				snow.modulate = Color(0.92, 0.96, 1.0, 0.78)
-				snow.emitting = true
-				layer.add_child(snow)
+			## 画面上半分くらいまで届く落下距離（旧 lifetime だと途中で消えて薄く見えた）。
+			var fall_depth: float = view.y * 0.52
+			var v_mid: float = 58.0
+			var g_y: float = 52.0
+			var disc: float = v_mid * v_mid + 2.0 * g_y * fall_depth
+			var life: float = (-v_mid + sqrt(maxf(0.0, disc))) / maxf(1.0, g_y)
+			var snow := CPUParticles2D.new()
+			snow.texture = _make_snowflake_texture()
+			snow.amount = 130
+			snow.lifetime = clampf(life * 1.08, 4.2, 8.0)
+			## preprocess はモバイルでメインスレッドを長く止め得るため軽量に抑える。
+			snow.preprocess = mini(0.35, snow.lifetime * 0.08)
+			snow.local_coords = false
+			snow.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+			snow.emission_rect_extents = Vector2(view.x * 0.58, 2.0)
+			snow.position = Vector2(view.x * 0.5, -12.0)
+			snow.direction = Vector2(0.15, 1.0)
+			snow.spread = 18.0
+			snow.gravity = Vector2(10.0, g_y)
+			snow.initial_velocity_min = 46.0
+			snow.initial_velocity_max = 70.0
+			snow.scale_amount_min = 0.85
+			snow.scale_amount_max = 1.35
+			snow.modulate = Color(0.92, 0.96, 1.0, 0.78)
+			snow.emitting = true
+			layer.add_child(snow)
+
+func _add_weather_veil(layer: CanvasLayer, color: Color) -> void:
+	var veil := ColorRect.new()
+	veil.color = color
+	veil.set_anchors_preset(Control.PRESET_FULL_RECT)
+	veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(veil)
+
+
+## 軽量モード: 粒子・ループ tween なしの静止ベールのみ（発熱対策）。
+func _setup_weather_light_static(layer: CanvasLayer, weather: String) -> void:
+	match weather:
+		CombatWeather.NIGHT:
+			_add_weather_veil(layer, Color(0.04, 0.06, 0.16, 0.30))
+		CombatWeather.FOG:
+			_add_weather_veil(layer, Color(0.62, 0.68, 0.64, 0.28))
+		CombatWeather.RAIN:
+			_add_weather_veil(layer, Color(0.35, 0.42, 0.55, 0.14))
+		CombatWeather.HEAT:
+			_add_weather_veil(layer, Color(0.55, 0.22, 0.08, 0.14))
+		CombatWeather.SNOW:
+			_add_weather_veil(layer, Color(0.78, 0.86, 0.95, 0.12))
+		_:
+			pass
 
 func _make_raindrop_texture() -> Texture2D:
 	var img := Image.create(2, 14, false, Image.FORMAT_RGBA8)
@@ -1422,7 +1434,12 @@ func _process(delta: float) -> void:
 			_tick_relic_combat_regen(clock)
 			if $CombatController.tick_member_skill_silence(clock):
 				_update_status_icons()
-		_update_party_skill_cd_bars_smooth(delta)
+		if SettingsPrefs.is_light_mode():
+			_light_cd_bar_tick += 1
+			if _light_cd_bar_tick % 2 == 0:
+				_update_party_skill_cd_bars_smooth(delta)
+		else:
+			_update_party_skill_cd_bars_smooth(delta)
 		_update_chr_hp_bar_positions()
 
 func _set_narrative(text: String) -> void:
@@ -2211,7 +2228,7 @@ func _spawn_transition_sparkles(color: Color, amount: int = 36, at_global: Varia
 	if _transition_fx_host == null:
 		return
 	if SettingsPrefs.is_light_mode():
-		amount = mini(amount, 10)
+		return
 	var parts := CPUParticles2D.new()
 	parts.amount = amount
 	parts.lifetime = 0.65
@@ -8666,7 +8683,7 @@ func _reveal_appended_enemy_slot(slot: int) -> void:
 		spr.position = _swarm_combat_position_for_slot(i, n)
 		spr.visible = $CombatController.is_enemy_slot_alive(i)
 		if is_new_slot and spr.visible and spr.sprite_frames != null and spr.sprite_frames.has_animation("idle"):
-			spr.play("idle")
+			_play_combat_idle(spr)
 		_style_enemy_nameplate(_swarm_nameplates[i], name_dense)
 		_swarm_nameplates[i].add_theme_font_size_override("font_size", name_fs)
 		_position_swarm_overlay(i)
@@ -8724,7 +8741,7 @@ func _reveal_boss_add_slot(new_slot: int, force_reload_all: bool = false) -> voi
 			and spr.sprite_frames != null
 			and spr.sprite_frames.has_animation("idle")
 		):
-			spr.play("idle")
+			_play_combat_idle(spr)
 		_style_enemy_nameplate(_swarm_nameplates[i], true)
 		_swarm_nameplates[i].add_theme_font_size_override("font_size", name_fs)
 		_position_swarm_overlay(i)
@@ -12066,9 +12083,11 @@ func _on_menu_settings_pressed() -> void:
 
 func _on_ingame_settings_closed() -> void:
 	_apply_combat_speed(SettingsPrefs.get_combat_speed_mult())
-	## 軽量モード切替を即反映（天候パーティクル／オーラ）。
+	SettingsPrefs.apply_performance_settings()
+	## 軽量モード切替を即反映（天候パーティクル／オーラ／FPS／idle）。
 	_refresh_weather()
 	_sync_status_auras()
+	_apply_light_mode_to_visible_combat_sprites()
 
 
 func _on_menu_button_pressed() -> void:
@@ -12244,7 +12263,7 @@ func _show_enemy_sprite(enemy_id: String) -> void:
 		return
 	_enemy_sprite.sprite_frames = frames
 	_normalize_enemy_scale(_enemy_sprite, frames, enemy_id)
-	_enemy_sprite.play("idle")
+	_play_combat_idle(_enemy_sprite)
 	_enemy_sprite.visible = true
 
 # 敵セルサイズが種別で異なる（通常 96px / エリート 128px 等）ため表示高さを揃える。
@@ -12353,7 +12372,7 @@ func _on_swarm_sprite_animation_finished(slot: int) -> void:
 	if not is_instance_valid(spr) or not spr.visible or spr.sprite_frames == null:
 		return
 	if spr.animation in ["attack", "hurt"]:
-		spr.play("idle")
+		_play_combat_idle(spr)
 
 
 # 必要なスロット数を確保する。slot0 は既存ノードを流用、追加分は duplicate で生成。
@@ -12464,7 +12483,7 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 		elif _is_frostridge_solo_scale_dungeon():
 			spr.scale *= FROSTRIDGE_SOLO_DISPLAY_SCALE
 		spr.position = _swarm_combat_position_for_slot(i, n)
-		spr.play("idle")
+		_play_combat_idle(spr)
 		spr.visible = true
 	for j in range(n, _swarm_sprites.size()):
 		_swarm_sprites[j].visible = false
@@ -12592,6 +12611,39 @@ func _play_active_enemy_animation(anim: String) -> void:
 
 # ---- CHR Sprites ----
 
+## 軽量モードは idle アニメを停止（フレーム0固定）して描画負荷を下げる。
+func _play_combat_idle(sprite: AnimatedSprite2D) -> void:
+	if sprite == null or not is_instance_valid(sprite):
+		return
+	if sprite.sprite_frames == null or not sprite.sprite_frames.has_animation("idle"):
+		return
+	sprite.speed_scale = 1.0
+	sprite.play("idle")
+	if SettingsPrefs.is_light_mode():
+		sprite.pause()
+
+
+func _apply_light_mode_to_visible_combat_sprites() -> void:
+	if not SettingsPrefs.is_light_mode():
+		return
+	for i: int in _chr_sprites.size():
+		var chr_spr: AnimatedSprite2D = _chr_sprites[i]
+		if chr_spr.visible and chr_spr.animation == "idle":
+			_play_combat_idle(chr_spr)
+		if i < _chr_idle_tweens.size():
+			var tw = _chr_idle_tweens[i]
+			if tw != null and is_instance_valid(tw) and tw.is_valid():
+				tw.kill()
+			_chr_idle_tweens[i] = null
+	for spr: AnimatedSprite2D in _swarm_sprites:
+		if spr.visible and spr.animation == "idle":
+			_play_combat_idle(spr)
+	if _enemy_sprite.visible and _enemy_sprite.animation == "idle":
+		_play_combat_idle(_enemy_sprite)
+	if _boss_sprite.visible and _boss_sprite.animation == "idle":
+		_play_combat_idle(_boss_sprite)
+
+
 func _show_chr_sprites(with_entrance: bool = false) -> void:
 	# 既存の擬似 idle tween を一旦全停止（死亡/再入室時の残留防止。生存者は下で再付与）
 	for ti in _chr_idle_tweens.size():
@@ -12630,7 +12682,7 @@ func _show_chr_sprites(with_entrance: bool = false) -> void:
 		if slot < FORMATION_SLOT_RATIOS.size():
 			sprite.position = _formation_slot_position(slot)
 			sprite.z_index = _chr_depth_z_index(sprite.position.y)
-		sprite.play("idle")
+		_play_combat_idle(sprite)
 		if with_entrance:
 			var target_pos: Vector2 = sprite.position
 			var from_left: bool = slot <= 1
@@ -12686,6 +12738,8 @@ func _chr_depth_z_index(foot_y: float) -> int:
 # idle が1フレームのみの素材は SpriteFrames でフレーム送りできず静止する。
 # その場合のみ offset を上下させる「呼吸」idle をコードで付与する（HPバー等は position 基準のため非干渉）。
 func _setup_chr_idle_motion(idx: int, sprite: AnimatedSprite2D, frames: SpriteFrames) -> void:
+	if SettingsPrefs.is_light_mode():
+		return
 	if idx < 0 or idx >= _chr_idle_tweens.size():
 		return
 	var existing = _chr_idle_tweens[idx]
@@ -12870,6 +12924,8 @@ func _sync_shadow_stalker_floor_dim(group: Array) -> void:
 	_set_shadow_stalker_floor_dim(active)
 
 func _start_tier_frame_pulse() -> void:
+	if SettingsPrefs.is_light_mode():
+		return
 	_stop_tier_frame_pulse()
 	_tier_frame_pulse_tween = create_tween().set_loops()
 	_tier_frame_pulse_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
@@ -15603,7 +15659,7 @@ func _load_boss_sprite(enemy_id: String) -> bool:
 	if not enemy_id.is_empty():
 		_boss_sprite.set_meta("boss_id", enemy_id)
 	_apply_boss_sprite_transform()
-	_boss_sprite.play("idle")
+	_play_combat_idle(_boss_sprite)
 	_boss_sprite.z_index = BOSS_SPRITE_Z
 	return true
 

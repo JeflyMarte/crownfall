@@ -44,7 +44,10 @@ func test_defaults() -> void:
 	assert_true(_SettingsPrefs.show_damage_numbers())
 	assert_true(_SettingsPrefs.show_battle_log())
 	assert_true(_SettingsPrefs.is_vibration_enabled())
-	assert_false(_SettingsPrefs.is_light_mode())
+	if _SettingsPrefs.is_mobile_platform():
+		assert_true(_SettingsPrefs.is_light_mode())
+	else:
+		assert_false(_SettingsPrefs.is_light_mode())
 	assert_false(_SettingsPrefs.is_muted())
 
 

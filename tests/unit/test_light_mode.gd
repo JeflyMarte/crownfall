@@ -41,7 +41,17 @@ func _remove_settings_file() -> void:
 
 func test_light_mode_default_off() -> void:
 	_SettingsPrefs.ensure_loaded()
-	assert_false(_SettingsPrefs.is_light_mode())
+	if _SettingsPrefs.is_mobile_platform():
+		assert_true(_SettingsPrefs.is_light_mode(), "mobile first-run default is light")
+	else:
+		assert_false(_SettingsPrefs.is_light_mode())
+
+
+func test_apply_performance_settings_exists() -> void:
+	var src: String = FileAccess.get_file_as_string("res://scripts/settings/SettingsPrefs.gd")
+	assert_true(src.contains("apply_performance_settings"), "performance apply helper")
+	assert_true(src.contains("FPS_MOBILE_LIGHT"), "mobile light fps cap")
+	assert_true(src.contains("Engine.max_fps"), "sets max fps")
 
 
 func test_light_mode_skips_status_auras() -> void:
@@ -69,6 +79,8 @@ func test_light_mode_skips_apply_burst_particles() -> void:
 func test_dungeon_weather_and_band_gate_light_mode() -> void:
 	var src: String = FileAccess.get_file_as_string("res://scripts/dungeon/DungeonScene.gd")
 	assert_true(src.contains("SettingsPrefs.is_light_mode()"), "DungeonScene gates light mode")
+	assert_true(src.contains("_setup_weather_light_static"), "static weather in light mode")
+	assert_true(src.contains("_play_combat_idle"), "idle freeze helper")
 	assert_true(src.contains("_refresh_weather()"), "settings close refreshes weather")
 	assert_true(src.contains("play_ultimate_band"), "ultimate band path present")
 	assert_true(
