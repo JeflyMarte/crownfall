@@ -73,6 +73,8 @@ LEGENDARY_HAND_DRAWN_WEAPON_IDS: set[str] = {
 	"blightcord_bow",
 	"pulsekeen_edge",
 	"aegis_line_sword",
+	"coil_spring_dual",
+	"pyrebrand_maul",
 	"chronos_toki_sword",
 	"chronos_toki_dual",
 	"chronos_toki_staff",
@@ -171,6 +173,9 @@ LEGENDARY_HAND_DRAWN_ACCESSORY_IDS: set[str] = {
 	"ironvow_amulet",
 	"quicksigil_charm",
 	"dawnrally_brooch",
+	"trapgear_charm",
+	"overheat_amulet",
+	"seam_focus_sigil",
 }
 
 CANONICAL_TEMPLATES = {
