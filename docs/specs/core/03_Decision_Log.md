@@ -8114,7 +8114,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-EQ-WARHAMMER-001-5 | 旧「槌は見た目のみ」方針を置換。オルソ見た目＝戦鎚と一致 | `126` 上書き |
 | P3-EQ-WARHAMMER-001-6 | SSOT — `129`／`07`／`126`／`95`／`game/07`／`world/09`。COMMON `iron_warhammer` | Decision 本体 |
 | P3-EQ-WARHAMMER-001-A1 | **梯子A** — R0×5／R1×4／R2×4／破砕L1（`seam_breaker_maul`）。章プール接続 | 2026-08-27 オーナー GO |
-| P3-EQ-WARHAMMER-001-A2 | L＝甲砕中与+25%・攻撃25%甲砕。ICOは祝槌流用。灰冠／深層／SETは後続 | 破砕テーマ最小 |
+| P3-EQ-WARHAMMER-001-A2 | L＝甲砕中与+25%・攻撃25%甲砕。ICOは戦鎚14種専用接続済（2026-08-28 GO）。灰冠／深層／SETは後続 | 破砕テーマ最小 |
 
 ## 魔晶石発掘・案A（2026-08-25 — P3-UX-CRYSTAL-EXCAVATE-001）
 

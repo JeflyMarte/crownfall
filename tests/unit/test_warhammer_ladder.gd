@@ -56,6 +56,20 @@ func test_seam_breaker_legendary_passive() -> void:
 	assert_almost_eq(float(def.get("status_chance", 0.0)), 0.25, 0.001)
 
 
+func test_warhammer_icons_registered_and_exist() -> void:
+	var seen_md5: Dictionary = {}
+	for wid in ALL_HAMMERS:
+		var path: String = str(IconPaths.ICON_MAP.get("weapon:%s" % wid, ""))
+		assert_false(path.is_empty(), wid)
+		var local: String = path.replace("res://", "/workspace/")
+		assert_true(FileAccess.file_exists(local), "%s -> %s" % [wid, local])
+		var md5: String = FileAccess.get_md5(local)
+		if wid == "seam_breaker_maul":
+			assert_ne(md5, FileAccess.get_md5("/workspace/assets/ui/equipment/ICO_WPN_ConsecratedMaul.png"))
+		assert_false(seen_md5.has(md5), "duplicate icon bytes: %s vs %s" % [wid, seen_md5.get(md5, "")])
+		seen_md5[md5] = wid
+
+
 func test_engineer_can_equip_ladder_hammers() -> void:
 	var host: Resource = null
 	GameState.seed_all_starters_unlocked()

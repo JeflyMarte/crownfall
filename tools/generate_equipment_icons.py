@@ -41,6 +41,7 @@ SKIP_IDS = {"unidentified"}
 LEGENDARY_HAND_DRAWN_WEAPON_IDS: set[str] = {
 	"sanctified_dagger",
 	"consecrated_maul",
+	"seam_breaker_maul",
 	"silvaria_oathblade",
 	"veld_branch_staff",
 	"volgrave_thunderblade",
@@ -90,6 +91,24 @@ LEGENDARY_HAND_DRAWN_WEAPON_IDS: set[str] = {
 	"kaiwan_saltine",
 	"kaiwan_wiltes",
 	"kaiwan_relictos",
+}
+
+## 戦鎚梯子A — 手描きICO接続済（P3-EQ-WARHAMMER-001-A）。再生成で上書きしない。
+WARHAMMER_HAND_DRAWN_WEAPON_IDS: set[str] = {
+	"iron_warhammer",
+	"mire_warhammer",
+	"verdant_maul",
+	"ridge_maul",
+	"black_sand_maul",
+	"storm_maul",
+	"pyre_maul",
+	"glacier_maul",
+	"lighthouse_maul",
+	"thunderfen_maul",
+	"symbiont_maul",
+	"permafrost_maul",
+	"sanctum_tide_maul",
+	"seam_breaker_maul",
 }
 
 ## 専用生成済みレジェンド防具（テンプレ流用防止）。
@@ -162,6 +181,7 @@ CANONICAL_TEMPLATES = {
         "staff": TEMPLATE_DIR / "equipment/ICO_WPN_ApprenticeStaff.png",
         "dual_blades": TEMPLATE_DIR / "equipment/ICO_WPN_BoltKnife.png",
         "dagger": TEMPLATE_DIR / "equipment/ICO_WPN_SanctifiedDagger.png",
+        "hammer": TEMPLATE_DIR / "equipment/ICO_WPN_IronWarhammer.png",
         "default": TEMPLATE_DIR / "equipment/ICO_WPN_HeaterBlade.png",
     },
     "armor": {
@@ -662,6 +682,7 @@ def generate_equipment(categories: set[str] | None = None) -> list[tuple[str, st
             out_path = EQUIP_OUT_DIR / fname
             protected = (
                 (category == "weapon" and item_id in LEGENDARY_HAND_DRAWN_WEAPON_IDS)
+                or (category == "weapon" and item_id in WARHAMMER_HAND_DRAWN_WEAPON_IDS)
                 or (category == "armor" and item_id in LEGENDARY_HAND_DRAWN_ARMOR_IDS)
                 or (category == "accessory" and item_id in LEGENDARY_HAND_DRAWN_ACCESSORY_IDS)
             )

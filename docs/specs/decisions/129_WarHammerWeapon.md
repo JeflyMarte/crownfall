@@ -48,7 +48,7 @@
 
 **プール:** 各章 dungeon `weapon_pool` に当該梯子3本＋L。モーンに制式＋L。グローバル `WEAPON_POOL` に制式＋L。
 
-**ICO:** 当面 `ICO_WPN_ConsecratedMaul` 流用。専用アートは後続。
+**ICO:** 梯子14本＋L — **128×128 透過 PNG 接続済**（2026-08-28 GO）。`IconPaths`／`generate_equipment_icons` スキップ登録。
 
 ---
 
