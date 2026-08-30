@@ -8147,6 +8147,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-APEX-REDEFINE-001-8 | 征討名＝**地図なき主**／ステージ＝**天望の塔**（案C・高塔・空） | オーナー 2026-08-28／30 GO |
 | P3-DG-APEX-REDEFINE-001-9 | 案C接続＝20F・塔敵・境界廊BG・常設イベント枠・⑤クリア解放 | Impl 2026-08-30 |
 | P3-DG-APEX-REDEFINE-001-10 | **Hard/NM**＝降臨同型（TabsRow 自由選択・`DungeonTierConfig` 流用・進入行「天望の塔　{難度}」） | オーナー 2026-08-30 GO |
+| P3-DG-APEX-REDEFINE-001-11 | **日次／回数制限＝無し**（降臨N同型・`daily_attempt_limit=0`） | オーナー 2026-08-30 |
 
 ## 征討 Hard／Nightmare（2026-08-30 — P3-DG-APEX-TIER-001）
 
