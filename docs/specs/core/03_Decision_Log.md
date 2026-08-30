@@ -8229,5 +8229,5 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-APEX-FORGE-SET-001-3 | 品目＝武**5**（戦鎚込）＋防＋飾・炎属性 | 名拒み同型 |
 | P3-DG-APEX-FORGE-SET-001-4 | 入手＝初回1確定／再周回40%・1個上限 | 降臨セット準拠 |
 | P3-DG-APEX-FORGE-SET-001-5 | SSOT — `136_ApexForgeSlagSet.md` | Decision 本体 |
-| P3-DG-APEX-FORGE-SET-001-6 | Impl＝資源7＋持続／vs炎上フック＋専用ICO | 2026-08-30 |
+| P3-DG-APEX-FORGE-SET-001-6 | Impl＝資源7＋持続／vs炎上フック＋**専用ICO 7点**（炉熱テーマ） | 2026-08-30 |
 

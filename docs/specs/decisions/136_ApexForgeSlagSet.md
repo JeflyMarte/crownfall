@@ -1,8 +1,6 @@
 # 征討エンシェント「星炉の滓」（P3-DG-APEX-FORGE-SET-001）
 
-**Status:** Decision **承認済**（2026-08-30 — オーナー「案Aでいきましょう」）  
-**親:** `134_ApexForgeVolcano`／`128_ApexConquestRedefine`  
-**型:** `19_EventDescentSets`／`131_ApexNamerefuseSet` と同型（`Enums.Rarity.SET`・3部位加護・初回1／再周回40%・武5＋戦鎚）
+**実装:** 承認済・接続済（資源7＋加護フック＋**専用ICO 7点**・炉熱テーマ）
 
 ---
 
