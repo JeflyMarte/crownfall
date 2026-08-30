@@ -179,7 +179,7 @@ func test_pool_exclusion_and_icons() -> void:
 	for key: String in namerefuse_icon_ids:
 		var path: String = str(IconPaths.ICON_MAP.get(key, ""))
 		assert_true(path.contains("AlbarkNamerefuse"), "dedicated path for %s" % key)
-		assert_true(ResourceLoader.exists(path), path)
+		assert_true(FileAccess.file_exists(path), path)
 		assert_false(path in paths, "unique path %s" % path)
 		paths.append(path)
 		assert_gt(FileAccess.get_file_as_bytes(path).size(), 100)
