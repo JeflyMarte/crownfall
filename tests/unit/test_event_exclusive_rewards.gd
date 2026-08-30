@@ -165,3 +165,26 @@ func test_pool_exclusion_and_icons() -> void:
 	assert_false(str(IconPaths.ICON_MAP.get("accessory:albark_namerefuse_circlet", "")).is_empty())
 	assert_true(_Evt.is_event_exclusive_weapon("albark_namerefuse_hammer"))
 	assert_true(_Evt.is_event_dungeon("north_reach"))
+	## 専用ICO（流用禁止・バイト衝突防止）
+	var namerefuse_icon_ids: Array[String] = [
+		"weapon:albark_namerefuse_sword",
+		"weapon:albark_namerefuse_dual",
+		"weapon:albark_namerefuse_staff",
+		"weapon:albark_namerefuse_bow",
+		"weapon:albark_namerefuse_hammer",
+		"armor:albark_namerefuse_armor",
+		"accessory:albark_namerefuse_circlet",
+	]
+	var paths: Array[String] = []
+	for key: String in namerefuse_icon_ids:
+		var path: String = str(IconPaths.ICON_MAP.get(key, ""))
+		assert_true(path.contains("AlbarkNamerefuse"), "dedicated path for %s" % key)
+		assert_true(ResourceLoader.exists(path), path)
+		assert_false(path in paths, "unique path %s" % path)
+		paths.append(path)
+		assert_gt(FileAccess.get_file_as_bytes(path).size(), 100)
+	for i: int in range(paths.size()):
+		var ba: PackedByteArray = FileAccess.get_file_as_bytes(paths[i])
+		for j: int in range(i + 1, paths.size()):
+			var bb: PackedByteArray = FileAccess.get_file_as_bytes(paths[j])
+			assert_false(ba == bb, "unique bytes %s vs %s" % [paths[i], paths[j]])

@@ -3,7 +3,7 @@
 **Status:** Decision **承認済**（2026-08-30 — オーナー「戦鎚もありで。他はGoで」）  
 **親:** `128_ApexConquestRedefine`（征討パイロット＝地図なき主／`north_reach`／アルバーク）  
 **型:** `19_EventDescentSets` と同型（`Enums.Rarity.SET`・3部位加護・初回1／再周回40%）  
-**実装:** 本 Decision GO 後に接続（武5＋防＋飾）
+**実装:** 承認済・接続済（資源7＋加護フック＋**専用ICO 7点**）
 
 ---
 
