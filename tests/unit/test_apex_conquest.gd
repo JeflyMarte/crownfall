@@ -51,3 +51,16 @@ func test_north_reach_enemy_pool_ids() -> void:
 	assert_true("rock_bison" in data.enemy_pool)
 	assert_true("greios" in data.elite_pool)
 	assert_false("sepia_hound" in data.enemy_pool)
+
+
+func test_north_reach_dedicated_banner_and_icon() -> void:
+	const _BiomeBannerHelper := preload("res://scripts/ui/BiomeBannerHelper.gd")
+	var ban: String = _BiomeBannerHelper.resolve_path("north_reach")
+	assert_eq(ban, "res://assets/ui/dungeon/BAN_DG_NorthReach.png")
+	assert_true(FileAccess.file_exists(ban))
+	var ico: String = str(IconPaths.ICON_MAP.get("dungeon:north_reach", ""))
+	assert_eq(ico, "res://assets/dungeon/north_reach/ICO_DG_NorthReach.png")
+	assert_true(FileAccess.file_exists(ico))
+	## 境界廊流用を残さない
+	assert_false(ban.contains("ValgardBoundary"))
+	assert_false(ico.contains("ValgardBoundary"))
