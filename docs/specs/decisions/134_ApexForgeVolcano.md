@@ -3,7 +3,8 @@
 **Status:** Decision **承認済**（2026-08-30 — オーナー「Goで」／火山テーマ推奨案）  
 **親:** `128_ApexConquestRedefine`  
 **Boss 肖像:** `ART_BOSS_Forgedormient` 接続済  
-**セット装備:** 後続 Decision（本 Decision はステージ／配信のみ）
+**セット装備:** 後続 Decision（本 Decision はステージ／配信のみ）  
+**Boss 戦力:** `135_ApexForgeBoss`（降臨帯・承認済）
 
 ---
 
@@ -20,7 +21,7 @@
 | P3-DG-APEX-FORGE-001-1 | id＝`red_forge_depths`（据置） |
 | P3-DG-APEX-FORGE-001-2 | 征討名＝**星炉の寝主**／ステージ＝**星炉火口**／バナー＝**星炉の寝主　征討** |
 | P3-DG-APEX-FORGE-001-3 | 進入行＝**星炉火口　{ノーマル／ハード／ナイトメア}** |
-| P3-DG-APEX-FORGE-001-4 | Boss＝`forgedormient`（戦力再定義は後続。肖像は専用ART） |
+| P3-DG-APEX-FORGE-001-4 | Boss＝`forgedormient`（戦力は `135`。肖像は専用ART） |
 | P3-DG-APEX-FORGE-001-5 | **20F 固定**・20F＝Boss。放浪無効。日次無制限 |
 | P3-DG-APEX-FORGE-001-6 | イベント常設・TabsRow N/H/NM 自由（`is_apex_conquest_playable`） |
 | P3-DG-APEX-FORGE-001-7 | 解放＝**天望（`north_reach`）クリア後** |
@@ -59,7 +60,7 @@
 ## 2. 明示的にやらないこと（本 Decision）
 
 - 専用セット装備（後続）
-- Boss ステ再定義（後続・`132` 同型で可）
+- Boss ステ再定義（→ `135` で実施済）
 - 専用BG／BGM／戦闘ドット必須（暫定流用可）
 - `thunder_peak` の同時配信
 - クロノス／ヴァルを征討へ戻すこと

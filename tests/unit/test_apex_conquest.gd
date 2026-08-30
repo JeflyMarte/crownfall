@@ -121,6 +121,33 @@ func test_albark_descent_band_stats() -> void:
 	assert_almost_eq(float(charge.cooldown), 6.5, 0.001)
 
 
+## P3-DG-APEX-FORGE-BOSS-001 — フォージはアルバーク同帯（降臨帯）
+func test_forgedormient_descent_band_stats() -> void:
+	var forge: Resource = DataRegistry.get_enemy_data("forgedormient")
+	var albark: Resource = DataRegistry.get_enemy_data("albark")
+	var chronos: Resource = DataRegistry.get_enemy_data("chronos_wave")
+	var valgard: Resource = DataRegistry.get_enemy_data("valgard")
+	assert_not_null(forge)
+	assert_eq(int(forge.max_hp), 3900)
+	assert_eq(int(forge.attack), 248)
+	assert_eq(int(forge.defense), 236)
+	assert_almost_eq(float(forge.attack_speed), 1.45, 0.001)
+	assert_almost_eq(float(forge.critical_rate), 0.11, 0.001)
+	assert_eq(int(forge.exp_reward), 225)
+	assert_eq(int(forge.gold_reward), 330)
+	assert_eq(int(forge.max_hp), int(albark.max_hp))
+	assert_eq(int(forge.attack), int(albark.attack))
+	assert_gt(int(forge.max_hp), int(valgard.max_hp))
+	assert_lt(int(forge.max_hp), int(chronos.max_hp))
+	assert_lt(int(forge.attack), int(chronos.attack))
+	var slag: Resource = DataRegistry.get_skill_data("enemy_forgedormient_slag_breath")
+	assert_almost_eq(float(slag.power_multiplier), 0.6, 0.001)
+	var quake: Resource = DataRegistry.get_skill_data("enemy_forgedormient_furnace_quake")
+	assert_almost_eq(float(quake.power_multiplier), 2.0, 0.001)
+	assert_almost_eq(float(quake.cooldown), 9.0, 0.001)
+	assert_gte(float(quake.cast_time), 1.0)
+
+
 ## P3-DG-APEX-ENV-001 — 天候 W-A（吹雪なし）＋雑魚階帯 Lv
 func test_north_reach_weather_weights_no_snow() -> void:
 	var w: Dictionary = CombatWeather.weights_for_dungeon("north_reach")
