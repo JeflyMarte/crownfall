@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-08-30（**征討案C GO＋パイロット接続**: 地図なき主／天望の塔。20F・塔敵・境界廊BG・イベント常設・⑤クリア解放。セット装備は後続。`128`）
 2026-08-28（**通常モード発熱対策／統合＋main**: モバイル通常45fps・天候少量粒子・ループ tween 抑止。GUT light/settings PASS。要iOS実機）
 2026-08-28（**発熱根本対策／統合＋main**: 軽量=30fps・静止天候・idle停止・モバイル初回既定ON。GUT light/settings PASS。要iOS実機）
 2026-08-28（**機巧士L Phase A 専用ICO接続**: 武器2＋装飾3の128/64px透過PNG。IconPaths更新。GUT 1636 PASS。`130`）

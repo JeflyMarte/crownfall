@@ -530,7 +530,7 @@ const ICON_MAP: Dictionary = {
 	"dungeon:thunder_peak":        "res://assets/dungeon/broken_marsh/ICO_DG_BrokenMarsh.png",
 	"dungeon:blackshore_abyss":    "res://assets/dungeon/blackshore/ICO_DG_Blackshore.png",
 	"dungeon:red_forge_depths":    "res://assets/dungeon/frostridge/ICO_DG_Frostridge.png",
-	"dungeon:north_reach":         "res://assets/dungeon/frostridge/ICO_DG_Frostridge.png",
+	"dungeon:north_reach":         "res://assets/dungeon/valgard_boundary/ICO_DG_ValgardBoundary.png",
 	"relic:war_banner":             "res://assets/ui/relics/ICO_REL_WarBanner.png",
 	"relic:aegis_shard":            "res://assets/ui/relics/ICO_REL_AegisShard.png",
 	"relic:old_hourglass":          "res://assets/ui/relics/ICO_REL_OldHourglass.png",

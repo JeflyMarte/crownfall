@@ -19,9 +19,10 @@ func test_playable_enemy_set_excludes_apex_only_when_sub_omitted() -> void:
 	## 征討専用ボス（イベント降臨の chronos_wave / valgard は event のため掲載対象）。
 	for eid: String in [
 		"skarpedion", "mycolga_ancient",
-		"karna_smoke", "nereion_depths", "forgedormient", "albark",
+		"karna_smoke", "nereion_depths", "forgedormient",
 	]:
 		assert_false(playable.has(eid), "%s は征討専用のため図鑑からオミット" % eid)
+	assert_true(playable.has("albark"), "地図なき主パイロット Boss は図鑑対象")
 	assert_true(playable.has("chronos_wave"), "時環降臨ボスは event のため図鑑対象")
 	assert_true(playable.has("valgard"), "境界廊降臨ボスは event のため図鑑対象")
 

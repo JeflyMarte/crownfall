@@ -698,7 +698,7 @@ func is_dungeon_unlocked(dungeon_id: String) -> bool:
 	## デバッグフル所持: β封鎖・寄り道フラグ・直列解放を無視して選択可能にする。
 	if debug_full_unlock:
 		return true
-	if not Constants.is_playable_dungeon_route(str(data.route_type)):
+	if not Constants.is_playable_dungeon(dungeon_id, str(data.route_type)):
 		return false
 	if (
 		Constants.BETA_MOURNGATE_ONLY

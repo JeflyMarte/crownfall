@@ -8133,7 +8133,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 
 ## 征討（apex）再定義（2026-08-27 — P3-DG-APEX-REDEFINE-001）
 
-> **オーナー GO（#1〜#6）。** 常設・20F固定・降臨N・エンシェント・⑤クリア後一括・パイロット1本。**パイロット＝アルバーク／`north_reach` 確定**（2026-08-27）。セット／二つ名・Impl 未着手。
+> **オーナー GO（#1〜#6）。** 常設・20F固定・降臨N・エンシェント・⑤クリア後一括・パイロット1本。**パイロット＝アルバーク／`north_reach`**。**案C（天望の塔）GO＋接続**（2026-08-30）。セット装備は後続。
 
 | # | 決定 | 根拠 |
 |---|---|---|
@@ -8144,5 +8144,6 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-APEX-REDEFINE-001-5 | UI＝イベントタブ常設。`route_type=apex`。寄り道オミット維持 | 役割整理 |
 | P3-DG-APEX-REDEFINE-001-6 | SSOT — `128_ApexConquestRedefine.md`／`05_Biomes §2.1` | Decision 本体 |
 | P3-DG-APEX-REDEFINE-001-7 | パイロット＝`north_reach`／`albark` | オーナー指定 |
-| P3-DG-APEX-REDEFINE-001-8 | 征討名＝**地図なき主**／ステージ＝**天望の塔**（案C・高塔・空） | オーナー 2026-08-28 |
+| P3-DG-APEX-REDEFINE-001-8 | 征討名＝**地図なき主**／ステージ＝**天望の塔**（案C・高塔・空） | オーナー 2026-08-28／30 GO |
+| P3-DG-APEX-REDEFINE-001-9 | 案C接続＝20F・塔敵・境界廊BG・常設イベント枠・⑤クリア解放 | Impl 2026-08-30 |
 

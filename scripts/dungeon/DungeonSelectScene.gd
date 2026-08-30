@@ -28,6 +28,7 @@ const DUNGEON_ICON_PATHS: Dictionary = {
 	"frostwall_path": "res://assets/dungeon/frostwall_path/ICO_DG_FrostwallPath.png",
 	"chronos_mausoleum": "res://assets/dungeon/chronos_mausoleum/ICO_DG_ChronosMausoleum.png",
 	"valgard_boundary": "res://assets/dungeon/valgard_boundary/ICO_DG_ValgardBoundary.png",
+	"north_reach": "res://assets/dungeon/valgard_boundary/ICO_DG_ValgardBoundary.png",
 }
 
 const COLOR_GOLD: Color = Color(0.95, 0.84, 0.4, 1)
@@ -605,6 +606,7 @@ func _refresh_all() -> void:
 	if _expanded_biome_id.is_empty() and (
 		_uses_stage_cards(_featured_dungeon_id)
 		or _is_hourly_tier_event_dungeon(_featured_dungeon_id)
+		or _is_conquest_event_dungeon(_featured_dungeon_id)
 	):
 		_expanded_biome_id = _featured_dungeon_id
 	_sync_route_tab_to_featured()
@@ -683,7 +685,7 @@ func _sync_route_tab_to_featured() -> void:
 
 func _ensure_featured_matches_route_tab() -> void:
 	var data: Resource = DataRegistry.get_dungeon_data(_featured_dungeon_id)
-	if data != null and _route_matches_tab(str(data.route_type)) and GameState.is_dungeon_unlocked(_featured_dungeon_id):
+	if data != null and _route_matches_tab(str(data.route_type), _featured_dungeon_id) and GameState.is_dungeon_unlocked(_featured_dungeon_id):
 		return
 	var next_id: String = _first_unlocked_for_route_tab()
 	if next_id.is_empty():
@@ -695,13 +697,13 @@ func _ensure_featured_matches_route_tab() -> void:
 		GameState.current_stage_id = _selected_stage_id
 
 
-func _route_matches_tab(route_type: String) -> bool:
+func _route_matches_tab(route_type: String, dungeon_id: String = "") -> bool:
 	if _route_tab == ROUTE_TAB_MAIN:
 		return route_type == "main"
 	if _route_tab == ROUTE_TAB_SUB:
 		return route_type == "side" or route_type == "apex"
 	if _route_tab == ROUTE_TAB_EVENT:
-		return route_type == "event"
+		return route_type == "event" or Constants.is_apex_conquest_playable(dungeon_id)
 	if _route_tab == ROUTE_TAB_ABYSS:
 		return route_type == "abyss"
 	return false
@@ -734,15 +736,23 @@ func _dungeons_for_route_tab() -> Array:
 	return _sorted_dungeons("main")
 
 
-## 開催中のみ。時間帯降臨を最上、続けて難易度昇順。
+## 開催中のみ。時間帯降臨を最上、続けて難易度昇順。征討パイロットは常設で併載。
 func _sorted_open_event_dungeons() -> Array:
 	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
 	var out: Array = []
 	for data in DataRegistry.get_all_dungeon_data():
-		if data == null or str(data.route_type) != "event":
+		if data == null:
 			continue
 		var dungeon_id: String = str(data.id)
+		var route: String = str(data.route_type)
+		var is_event: bool = route == "event"
+		var is_conquest: bool = route == "apex" and Constants.is_apex_conquest_playable(dungeon_id)
+		if not is_event and not is_conquest:
+			continue
 		if not _EventDungeonSchedule.is_open_now(dungeon_id):
+			continue
+		## 未解放の征討は一覧に出さない（⑤クリア後）。
+		if is_conquest and not GameState.is_dungeon_unlocked(dungeon_id):
 			continue
 		out.append(data)
 	out.sort_custom(_compare_open_event_dungeons)
@@ -767,7 +777,11 @@ func _clamp_selected_tier() -> void:
 	if data != null and _is_hourly_tier_event_dungeon(str(data.id)):
 		GameState.current_dungeon_tier = _DungeonTierConfig.clamp_tier(GameState.current_dungeon_tier)
 		return
-	if data != null and (str(data.route_type) == "event" or str(data.route_type) == "abyss"):
+	if data != null and (
+		str(data.route_type) == "event"
+		or str(data.route_type) == "abyss"
+		or Constants.is_apex_conquest_playable(str(data.id))
+	):
 		GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
 		return
 	var tier: int = _DungeonTierConfig.clamp_tier(GameState.current_dungeon_tier)
@@ -782,7 +796,11 @@ func _refresh_tier_tabs() -> void:
 	var event_only_normal: bool = (
 		data != null
 		and not hourly_tiers
-		and (str(data.route_type) == "event" or str(data.route_type) == "abyss")
+		and (
+			str(data.route_type) == "event"
+			or str(data.route_type) == "abyss"
+			or Constants.is_apex_conquest_playable(str(data.id))
+		)
 	)
 	var buttons: Array[Button] = [_btn_tier_normal, _btn_tier_hard, _btn_tier_nightmare]
 	for tier in _DungeonTierConfig.TIER_COUNT:
@@ -1315,7 +1333,9 @@ func _refresh_featured() -> void:
 		)
 	)
 	var attempt_ok: bool = true
-	if unlocked and data != null and str(data.route_type) == "event":
+	if unlocked and data != null and (
+		str(data.route_type) == "event" or Constants.is_apex_conquest_playable(_featured_dungeon_id)
+	):
 		const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
 		if not _EventDungeonSchedule.is_open_now(_featured_dungeon_id):
 			var next_lbl: String = _EventDungeonSchedule.next_open_label(_featured_dungeon_id)
@@ -1602,6 +1622,8 @@ func _make_biome_accordion(data: Resource) -> Control:
 		stages_box.add_theme_constant_override("separation", 4)
 		if _is_hourly_tier_event_dungeon(dungeon_id):
 			stages_box.add_child(_make_hourly_tier_enter_card(dungeon_id))
+		elif _is_conquest_event_dungeon(dungeon_id):
+			stages_box.add_child(_make_conquest_enter_card(dungeon_id))
 		else:
 			for stage in DataRegistry.get_stages_for_biome(dungeon_id):
 				if stage != null:
@@ -1616,6 +1638,88 @@ func _is_hourly_tier_event_dungeon(dungeon_id: String) -> bool:
 		dungeon_id == Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID
 		or dungeon_id == Constants.VALGARD_BOUNDARY_DUNGEON_ID
 	)
+
+
+func _is_conquest_event_dungeon(dungeon_id: String) -> bool:
+	return Constants.is_apex_conquest_playable(dungeon_id)
+
+
+func _conquest_enter_label(_dungeon_id: String) -> String:
+	return "天望の塔"
+
+
+func _make_conquest_enter_card(dungeon_id: String) -> Control:
+	## 征討は常設・ノーマルのみ。進入名は塔名。
+	var open_now: bool = true
+	var enter_name: String = _conquest_enter_label(dungeon_id)
+	var tier: int = _DungeonTierConfig.TIER_NORMAL
+	var cleared: bool = GameState.is_dungeon_tier_cleared(dungeon_id, tier)
+	var selected: bool = _featured_dungeon_id == dungeon_id
+	var wrap := PanelContainer.new()
+	wrap.custom_minimum_size = Vector2(0, STAGE_CARD_MIN_SIZE.y)
+	wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	wrap.add_theme_stylebox_override(
+		"panel",
+		CombatUiFrames.panel_style(
+			CombatUiFrames.TIER_CARD_ACTIVE if selected else CombatUiFrames.TIER_CARD
+		)
+	)
+	var btn := Button.new()
+	btn.set_anchors_preset(Control.PRESET_FULL_RECT)
+	btn.flat = true
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.toggle_mode = true
+	btn.button_pressed = selected
+	var content := HBoxContainer.new()
+	content.set_anchors_preset(Control.PRESET_FULL_RECT)
+	content.offset_left = 4
+	content.offset_top = 4
+	content.offset_right = -4
+	content.offset_bottom = -4
+	content.add_theme_constant_override("separation", 6)
+	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.add_child(content)
+	var thumb := TextureRect.new()
+	thumb.custom_minimum_size = STAGE_THUMB_SIZE
+	thumb.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	thumb.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	thumb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	thumb.texture = _get_dungeon_thumb_texture(dungeon_id)
+	content.add_child(thumb)
+	var text_col := VBoxContainer.new()
+	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_col.add_theme_constant_override("separation", 1)
+	text_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content.add_child(text_col)
+	var line := RichTextLabel.new()
+	line.bbcode_enabled = true
+	line.fit_content = true
+	line.scroll_active = false
+	line.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	line.custom_minimum_size = Vector2(0, UiTypography.SIZE_BODY_SMALL + 6)
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_stage_list_rich_text(line, open_now)
+	var title_text: String = "%s　%s" % [enter_name, _DungeonTierConfig.display_name(tier)]
+	line.text = "[color=#f5e07a][b]%s[/b][/color]" % title_text
+	text_col.add_child(line)
+	var status_text: String = "CLEAR" if cleared else "挑戦可"
+	var status := Label.new()
+	status.text = status_text
+	status.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_body(status, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
+	text_col.add_child(status)
+	wrap.add_child(btn)
+	btn.pressed.connect(func() -> void:
+		_featured_dungeon_id = dungeon_id
+		GameState.current_dungeon_id = dungeon_id
+		GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
+		_selected_stage_id = ""
+		GameState.current_stage_id = ""
+		_expanded_biome_id = dungeon_id
+		_refresh_all()
+	)
+	return wrap
 
 
 func _hourly_tier_enter_label(dungeon_id: String) -> String:
@@ -1815,7 +1919,11 @@ func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: Stri
 
 
 func _is_event_dungeon(data: Resource) -> bool:
-	return data != null and str(data.route_type) == "event"
+	if data == null:
+		return false
+	if str(data.route_type) == "event":
+		return true
+	return Constants.is_apex_conquest_playable(str(data.id))
 
 
 ## タイトル Label 群を host に追加（降臨は本体＋「降臨」の2色）。

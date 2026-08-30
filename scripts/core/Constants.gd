@@ -32,6 +32,10 @@ const ROCK_STAMPEDE_DUNGEON_ID: String = "rock_stampede"
 const CHRONOS_MAUSOLEUM_DUNGEON_ID: String = "chronos_mausoleum"
 ## 境界の番　降臨／ストームクラウン境界廊（P3-DG-VALGARD-DESCENT-001）。
 const VALGARD_BOUNDARY_DUNGEON_ID: String = "valgard_boundary"
+## 征討パイロット・地図なき主／天望の塔（P3-DG-APEX-REDEFINE-001）。
+const NORTH_REACH_DUNGEON_ID: String = "north_reach"
+## イベント常設で配信する apex 征討 id（寄り道オミットは維持）。
+const APEX_CONQUEST_PLAYABLE_IDS: Array[String] = [NORTH_REACH_DUNGEON_ID]
 ## 初期5人ストーリー編成（P3-STORY-STARTER-001）。true=開始1人選択＋章進行で加入。
 const STARTER_STORY_RECRUIT: bool = true
 ## β検証用: モーンゲート 1-2/1-3/1-4 初回クリアでも未加入スターターを1人加入（本番×-5ルールに加え）。
@@ -100,6 +104,17 @@ static func is_playable_dungeon_route(route_type: String) -> bool:
 	if route_type == "abyss":
 		return ABYSS_DUNGEONS_PLAYABLE
 	return SUB_DUNGEONS_PLAYABLE
+
+
+static func is_apex_conquest_playable(dungeon_id: String) -> bool:
+	return APEX_CONQUEST_PLAYABLE_IDS.has(dungeon_id)
+
+
+## route＋征討パイロット id を見てプレイ可否を判定（P3-DG-APEX-REDEFINE-001）。
+static func is_playable_dungeon(dungeon_id: String, route_type: String) -> bool:
+	if is_apex_conquest_playable(dungeon_id):
+		return true
+	return is_playable_dungeon_route(route_type)
 
 static func is_gacha_helper_id(member_id: String) -> bool:
 	return member_id.begins_with("gacha_") or member_id.begins_with("helper_")

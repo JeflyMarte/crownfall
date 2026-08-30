@@ -114,6 +114,8 @@ static func is_open_today(dungeon_id: String) -> bool:
 		return false
 	if _force_open_for_debug():
 		return true
+	if Constants.is_apex_conquest_playable(dungeon_id):
+		return true
 	if uses_hourly_windows(dungeon_id):
 		## 時間帯イベントは「今日ある」ではなく is_open_now で判定。
 		return is_open_now(dungeon_id)
@@ -132,6 +134,9 @@ static func is_open_now(dungeon_id: String) -> bool:
 		return false
 	if _force_open_for_debug():
 		return true
+	## 征討パイロットはイベント常設（時間／曜日ゲートなし）。
+	if Constants.is_apex_conquest_playable(dungeon_id):
+		return true
 	if uses_hourly_windows(dungeon_id):
 		return _is_in_hourly_window(dungeon_id)
 	return is_open_today(dungeon_id)
@@ -148,6 +153,8 @@ static func _force_open_for_debug() -> bool:
 static func open_schedule_label(dungeon_id: String) -> String:
 	if _force_open_for_debug():
 		return "デバッグ常時開放"
+	if Constants.is_apex_conquest_playable(dungeon_id):
+		return "常設"
 	if uses_hourly_windows(dungeon_id):
 		return "毎日 0/3/6/9時〜各1時間"
 	var primary: int = primary_weekday(dungeon_id)
@@ -200,7 +207,11 @@ static func open_hourly_event_ids() -> Array[String]:
 	return out
 
 
-## 一覧ソート用: 時間帯降臨を先、続けて難易度昇順。
+## 一覧ソート用: 時間帯降臨を先、征討常設を次、続けて難易度昇順。
 static func list_sort_key(dungeon_id: String, difficulty: int) -> int:
-	var hourly_boost: int = 0 if uses_hourly_windows(dungeon_id) else 1000
-	return hourly_boost + clampi(difficulty, 0, 999)
+	var route_boost: int = 1000
+	if uses_hourly_windows(dungeon_id):
+		route_boost = 0
+	elif Constants.is_apex_conquest_playable(dungeon_id):
+		route_boost = 500
+	return route_boost + clampi(difficulty, 0, 999)

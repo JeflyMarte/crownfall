@@ -456,7 +456,7 @@ const BATTLE_BG_MAP: Dictionary = {
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/BG_Battle_BrokenMarsh.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/BG_Battle_Blackshore.png",
 	"red_forge_depths": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge.png",
-	"north_reach": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge.png",
+	"north_reach": "res://assets/dungeon/valgard_boundary/env/BG_Battle_ValgardBoundary.png",
 	## イベントDG（ダック／レイヴン共通背景）
 	"cosmic_rift": "res://assets/dungeon/event/env/BG_Battle_Event.png",
 	"crown_rookery": "res://assets/dungeon/event/env/BG_Battle_Event.png",
@@ -475,7 +475,7 @@ const BATTLE_BG_EARLY_MAP: Dictionary = {
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/BG_Battle_Mistfen_Early.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/BG_Battle_Blackshore_Early.png",
 	"red_forge_depths": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge_Early.png",
-	"north_reach": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge_Early.png",
+	"north_reach": "res://assets/dungeon/valgard_boundary/env/BG_Battle_ValgardBoundary.png",
 }
 ## フロストリッジ x-5 ボス戦専用（Hard/NM 含む）。
 const BATTLE_BG_FINAL_BOSS: String = "res://assets/dungeon/frostridge/env/BG_Battle_FinalBoss.png"

@@ -30,7 +30,7 @@ const SUB_FALLBACK: Dictionary = {
 	"mistfen_depths": "mistfen",
 	"blackshore_abyss": "blackshore",
 	"red_forge_depths": "frostridge",
-	"north_reach": "frostridge",
+	"north_reach": "valgard_boundary",
 	"abyss_mourngate": "mourngate",
 	"abyss_whisperwood": "whisperwood",
 	"abyss_mistfen": "mistfen",
