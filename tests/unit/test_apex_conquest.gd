@@ -53,6 +53,28 @@ func test_north_reach_enemy_pool_ids() -> void:
 	assert_false("sepia_hound" in data.enemy_pool)
 
 
+## P3-DG-APEX-BOSS-001 — アルバークは降臨帯（ヴァル超え・クロノス未満）
+func test_albark_descent_band_stats() -> void:
+	var albark: Resource = DataRegistry.get_enemy_data("albark")
+	var chronos: Resource = DataRegistry.get_enemy_data("chronos_wave")
+	var valgard: Resource = DataRegistry.get_enemy_data("valgard")
+	assert_not_null(albark)
+	assert_eq(int(albark.max_hp), 3900)
+	assert_eq(int(albark.attack), 248)
+	assert_eq(int(albark.defense), 236)
+	assert_almost_eq(float(albark.attack_speed), 1.45, 0.001)
+	assert_almost_eq(float(albark.critical_rate), 0.11, 0.001)
+	assert_eq(int(albark.exp_reward), 225)
+	assert_eq(int(albark.gold_reward), 330)
+	assert_gt(int(albark.max_hp), int(valgard.max_hp))
+	assert_lt(int(albark.max_hp), int(chronos.max_hp))
+	assert_lt(int(albark.attack), int(chronos.attack))
+	var silence: Resource = DataRegistry.get_skill_data("enemy_albark_white_silence")
+	assert_almost_eq(float(silence.power_multiplier), 0.6, 0.001)
+	var charge: Resource = DataRegistry.get_skill_data("enemy_albark_mapless_charge")
+	assert_almost_eq(float(charge.cooldown), 6.5, 0.001)
+
+
 func test_north_reach_dedicated_banner_and_icon() -> void:
 	const _BiomeBannerHelper := preload("res://scripts/ui/BiomeBannerHelper.gd")
 	var ban: String = _BiomeBannerHelper.resolve_path("north_reach")

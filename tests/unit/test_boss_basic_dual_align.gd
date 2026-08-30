@@ -81,8 +81,9 @@ func test_all_bosses_have_dual_basic_attacks() -> void:
 
 
 ## P3-BAL-GRANVEL-B-LATER-001: グランヴェル以降メイン梯子の即時全体 ×0.6。
+## P3-DG-APEX-BOSS-001: アルバーク白静寂も時環共鳴同型 ×0.6。
 const _LATER_MAIN_INSTANT_AOE_06 := [
-	"granvel", "moldgar", "nereion", "eldion", "chronos_wave",
+	"granvel", "moldgar", "nereion", "eldion", "chronos_wave", "albark",
 ]
 
 
@@ -149,7 +150,7 @@ func test_boss_atk_scaled_with_serdion_ratio() -> void:
 		"karna_smoke": 203,
 		"nereion_depths": 242,
 		"forgedormient": 251,
-		"albark": 271,
+		"albark": 248,
 	}
 	for boss_id: String in expect.keys():
 		var boss: Resource = DataRegistry.get_enemy_data(boss_id)

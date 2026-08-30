@@ -8174,3 +8174,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-APEX-SET-001-6 | Impl＝資源7＋`EquipmentSetBonuses`／付与率・敵バフ持続フック | 2026-08-30 |
 | P3-DG-APEX-SET-001-7 | 専用ICO 7点（128px透過）接続・流用解除 | 2026-08-30 |
 
+## 征討 Boss アルバーク降臨帯（2026-08-30 — P3-DG-APEX-BOSS-001）
+
+> **オーナー GO**（案B・推奨A＋白静寂0.60）。ヴァル超え・クロノス未満。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-APEX-BOSS-001-1 | ステ — HP3900 / ATK248 / DEF236 / ASPD1.45 / 会心0.11 / EXP225 / Gold330 | 降臨帯再定義 |
+| P3-DG-APEX-BOSS-001-2 | 白静寂 ×0.60／地図なき突進 CD6.5。キット・Hex・フェーズ骨格据置 | 時王／ヴァル同型 |
+| P3-DG-APEX-BOSS-001-3 | クロノス＝アルバーク超え維持（`13`） | 役割梯子 |
+| P3-DG-APEX-BOSS-001-4 | SSOT — `132_ApexAlbarkBoss.md` | Decision 本体 |
+
