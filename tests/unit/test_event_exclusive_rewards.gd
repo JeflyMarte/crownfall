@@ -27,6 +27,11 @@ func test_set_resources_and_rarity() -> void:
 	assert_eq(int(DataRegistry.get_weapon_data("chronos_toki_sword").rarity), Enums.Rarity.SET)
 	assert_eq(int(DataRegistry.get_armor_data("valgard_antique_armor").rarity), Enums.Rarity.SET)
 	assert_eq(int(DataRegistry.get_weapon_data("albark_namerefuse_hammer").rarity), Enums.Rarity.SET)
+	assert_not_null(DataRegistry.get_weapon_data("forge_slag_sword"))
+	assert_not_null(DataRegistry.get_weapon_data("forge_slag_hammer"))
+	assert_not_null(DataRegistry.get_armor_data("forge_slag_armor"))
+	assert_not_null(DataRegistry.get_accessory_data("forge_slag_seal"))
+	assert_eq(int(DataRegistry.get_weapon_data("forge_slag_hammer").rarity), Enums.Rarity.SET)
 	assert_eq(CodexContentHelper.rarity_label(Enums.Rarity.SET), "エンシェントレア")
 
 
@@ -147,6 +152,36 @@ func test_namerefuse_set_activation_and_bonus() -> void:
 	assert_eq(pieces, 1)
 
 
+func test_forge_slag_set_activation_and_bonus() -> void:
+	assert_eq(_Sets.set_id_for_dungeon("red_forge_depths"), _Sets.SET_FORGE_SLAG)
+	assert_eq(_Evt.source_label("red_forge_depths"), "星炉火口")
+	assert_eq(_Sets.all_piece_ids(_Sets.SET_FORGE_SLAG).size(), 7)
+	assert_gt(GameState.party_members.size(), 0)
+	var member: Resource = GameState.party_members[0]
+	assert_true(_Evt._grant_weapon("forge_slag_sword"))
+	member.equipped_weapon = GameState.inventory[GameState.inventory.size() - 1]
+	assert_true(_Evt._grant_armor("forge_slag_armor"))
+	member.equipped_armor = GameState.armor_inventory[GameState.armor_inventory.size() - 1]
+	assert_true(_Evt._grant_accessory("forge_slag_seal"))
+	member.equipped_accessory = GameState.accessory_inventory[GameState.accessory_inventory.size() - 1]
+	assert_eq(_Sets.active_set_id_for_member(member), _Sets.SET_FORGE_SLAG)
+	assert_almost_eq(_Sets.ignite_duration_mult(0), 1.30, 0.001)
+	assert_almost_eq(_Sets.party_ignite_duration_mult(), 1.30, 0.001)
+	assert_almost_eq(_Sets.outgoing_vs_ignite_mult(0), 1.12, 0.001)
+	var ui_def: Dictionary = _Sets.passive_ui_def_for_member(member)
+	assert_eq(str(ui_def.get("display_name", "")), "星炉の加護")
+	var granted: Dictionary = _Evt.apply_boss_loot("red_forge_depths", _DungeonTierConfig.TIER_NORMAL)
+	var pieces: int = 0
+	if not str(granted.get("weapon_id", "")).is_empty():
+		pieces += 1
+		assert_eq(_Sets.set_id_of_weapon(str(granted.get("weapon_id", ""))), _Sets.SET_FORGE_SLAG)
+	if not str(granted.get("armor_id", "")).is_empty():
+		pieces += 1
+	if not str(granted.get("accessory_id", "")).is_empty():
+		pieces += 1
+	assert_eq(pieces, 1)
+
+
 func test_pool_exclusion_and_icons() -> void:
 	assert_true(_Evt.is_event_exclusive_weapon("chronos_toki_sword"))
 	assert_true(_Evt.is_event_exclusive_armor("chronos_toki_armor"))
@@ -165,6 +200,8 @@ func test_pool_exclusion_and_icons() -> void:
 	assert_false(str(IconPaths.ICON_MAP.get("accessory:albark_namerefuse_circlet", "")).is_empty())
 	assert_true(_Evt.is_event_exclusive_weapon("albark_namerefuse_hammer"))
 	assert_true(_Evt.is_event_dungeon("north_reach"))
+	assert_true(_Evt.is_event_dungeon("red_forge_depths"))
+	assert_true(_Evt.is_event_exclusive_weapon("forge_slag_hammer"))
 	## 専用ICO（流用禁止・バイト衝突防止）
 	var namerefuse_icon_ids: Array[String] = [
 		"weapon:albark_namerefuse_sword",
@@ -188,3 +225,25 @@ func test_pool_exclusion_and_icons() -> void:
 		for j: int in range(i + 1, paths.size()):
 			var bb: PackedByteArray = FileAccess.get_file_as_bytes(paths[j])
 			assert_false(ba == bb, "unique bytes %s vs %s" % [paths[i], paths[j]])
+	var forge_icon_ids: Array[String] = [
+		"weapon:forge_slag_sword",
+		"weapon:forge_slag_dual",
+		"weapon:forge_slag_staff",
+		"weapon:forge_slag_bow",
+		"weapon:forge_slag_hammer",
+		"armor:forge_slag_armor",
+		"accessory:forge_slag_seal",
+	]
+	var forge_paths: Array[String] = []
+	for key: String in forge_icon_ids:
+		var path: String = str(IconPaths.ICON_MAP.get(key, ""))
+		assert_true(path.contains("ForgeSlag"), "dedicated path for %s" % key)
+		assert_true(FileAccess.file_exists(path), path)
+		assert_false(path in forge_paths, "unique path %s" % path)
+		forge_paths.append(path)
+		assert_gt(FileAccess.get_file_as_bytes(path).size(), 100)
+	for i: int in range(forge_paths.size()):
+		var ba: PackedByteArray = FileAccess.get_file_as_bytes(forge_paths[i])
+		for j: int in range(i + 1, forge_paths.size()):
+			var bb: PackedByteArray = FileAccess.get_file_as_bytes(forge_paths[j])
+			assert_false(ba == bb, "unique bytes %s vs %s" % [forge_paths[i], forge_paths[j]])

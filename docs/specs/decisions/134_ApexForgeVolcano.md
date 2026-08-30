@@ -3,7 +3,7 @@
 **Status:** Decision **承認済**（2026-08-30 — オーナー「Goで」／火山テーマ推奨案）  
 **親:** `128_ApexConquestRedefine`  
 **Boss 肖像:** `ART_BOSS_Forgedormient` 接続済  
-**セット装備:** 後続 Decision（本 Decision はステージ／配信のみ）  
+**セット装備:** `136_ApexForgeSlagSet`（星炉の滓・承認済）  
 **Boss 戦力:** `135_ApexForgeBoss`（降臨帯・承認済）
 
 ---
@@ -59,7 +59,7 @@
 
 ## 2. 明示的にやらないこと（本 Decision）
 
-- 専用セット装備（後続）
+- 専用セット装備（→ `136` で実施済）
 - Boss ステ再定義（→ `135` で実施済）
 - 専用BG／BGM／戦闘ドット必須（暫定流用可）
 - `thunder_peak` の同時配信

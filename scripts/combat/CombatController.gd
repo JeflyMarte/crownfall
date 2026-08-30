@@ -1229,6 +1229,16 @@ func apply_status(
 					base_ticks = int(effect.duration_ticks)
 				if base_ticks > 0:
 					duration_override = maxi(1, int(round(float(base_ticks) * buff_mult)))
+		## 星炉の滓: 炎上持続延長（P3-DG-APEX-FORGE-SET-001）。
+		elif effect_id == "ignite":
+			var ign_mult: float = _EquipmentSetBonuses.party_ignite_duration_mult()
+			if ign_mult > 1.001:
+				var ign_effect: Resource = DataRegistry.get_status_effect(effect_id)
+				var ign_base: int = duration_override
+				if ign_base < 0 and ign_effect != null:
+					ign_base = int(ign_effect.duration_ticks)
+				if ign_base > 0:
+					duration_override = maxi(1, int(round(float(ign_base) * ign_mult)))
 	return _status_resolver.apply_status(unit_id, effect_id, stacks, source_attack, duration_override)
 
 
@@ -1463,6 +1473,9 @@ func get_member_outgoing_damage_multiplier(
 			mult *= mark_focus
 		if not present_statuses.is_empty():
 			mult *= CombatPassives.outgoing_vs_status_mult_for_member(member_index, present_statuses)
+		## 星炉の滓: 炎上中与ダメ（P3-DG-APEX-FORGE-SET-001）。
+		if present_statuses.has("ignite"):
+			mult *= _EquipmentSetBonuses.outgoing_vs_ignite_mult(member_index)
 		if enemy_slot_has_buff(target_slot):
 			mult *= CombatPassives.outgoing_vs_buff_mult_for_member(member_index)
 	var boss_mult: float = CombatPassives.weapon_outgoing_vs_boss_mult(member_index)

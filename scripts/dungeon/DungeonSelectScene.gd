@@ -160,9 +160,9 @@ const DROP_PREVIEW: Dictionary = {
 		["accessory", "nereion_song_talisman"],
 	],
 	"red_forge_depths": [
-		["weapon", "eldion_frostbrand"],
-		["armor", "dragon_scale_aegis"],
-		["accessory", "eldion_heart_talisman"],
+		["weapon", "forge_slag_sword"],
+		["armor", "forge_slag_armor"],
+		["accessory", "forge_slag_seal"],
 	],
 	"north_reach": [
 		["weapon", "albark_namerefuse_sword"],

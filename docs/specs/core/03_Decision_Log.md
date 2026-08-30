@@ -8218,3 +8218,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-APEX-FORGE-BOSS-001-3 | クロノス超えしない（`13`） | 役割梯子 |
 | P3-DG-APEX-FORGE-BOSS-001-4 | SSOT — `135_ApexForgeBoss.md` | Decision 本体 |
 
+## 征討セット 星炉の滓（2026-08-30 — P3-DG-APEX-FORGE-SET-001）
+
+> **オーナー GO**（案A・炎上持続）。名拒み＝付与／星炉＝炎上持続。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-APEX-FORGE-SET-001-1 | セット＝**星炉の滓**（`forge_slag`） | コンセプト A |
+| P3-DG-APEX-FORGE-SET-001-2 | 加護＝炎上持続 **×1.30**／炎上中与ダメ **×1.12** | 役割分離 |
+| P3-DG-APEX-FORGE-SET-001-3 | 品目＝武**5**（戦鎚込）＋防＋飾・炎属性 | 名拒み同型 |
+| P3-DG-APEX-FORGE-SET-001-4 | 入手＝初回1確定／再周回40%・1個上限 | 降臨セット準拠 |
+| P3-DG-APEX-FORGE-SET-001-5 | SSOT — `136_ApexForgeSlagSet.md` | Decision 本体 |
+| P3-DG-APEX-FORGE-SET-001-6 | Impl＝資源7＋持続／vs炎上フック＋専用ICO | 2026-08-30 |
+

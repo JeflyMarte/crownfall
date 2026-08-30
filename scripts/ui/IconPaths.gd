@@ -64,6 +64,12 @@ const ICON_MAP: Dictionary = {
 	"weapon:albark_namerefuse_staff": "res://assets/ui/equipment/ICO_WPN_AlbarkNamerefuseStaff.png",
 	"weapon:albark_namerefuse_bow": "res://assets/ui/equipment/ICO_WPN_AlbarkNamerefuseBow.png",
 	"weapon:albark_namerefuse_hammer": "res://assets/ui/equipment/ICO_WPN_AlbarkNamerefuseHammer.png",
+	## 星炉の滓 — 専用ICO（P3-DG-APEX-FORGE-SET-001）
+	"weapon:forge_slag_sword": "res://assets/ui/equipment/ICO_WPN_ForgeSlagSword.png",
+	"weapon:forge_slag_dual": "res://assets/ui/equipment/ICO_WPN_ForgeSlagDual.png",
+	"weapon:forge_slag_staff": "res://assets/ui/equipment/ICO_WPN_ForgeSlagStaff.png",
+	"weapon:forge_slag_bow": "res://assets/ui/equipment/ICO_WPN_ForgeSlagBow.png",
+	"weapon:forge_slag_hammer": "res://assets/ui/equipment/ICO_WPN_ForgeSlagHammer.png",
 	"weapon:burial_crown_greatsword": "res://assets/ui/equipment/ICO_WPN_BurialCrownGreatsword.png",
 	## 神話弓／杖／双剣 — 固有アート前は既存Lアイコン流用（P3-EQ-MYTHIC-WPN-TYPES-001-7）
 	"weapon:pilgrim_bow_lumen": "res://assets/ui/equipment/ICO_WPN_PilgrimBowLumen.png",
@@ -189,6 +195,7 @@ const ICON_MAP: Dictionary = {
 	"weapon:stormroot_staff":             "res://assets/ui/equipment/ICO_WPN_FenLanternStaff.png",
 	"armor:chronos_toki_armor":    "res://assets/ui/equipment/ICO_ARM_ChronosTokiArmor.png",
 	"armor:albark_namerefuse_armor": "res://assets/ui/equipment/ICO_ARM_AlbarkNamerefuseArmor.png",
+	"armor:forge_slag_armor": "res://assets/ui/equipment/ICO_ARM_ForgeSlagArmor.png",
 	"armor:valgard_antique_armor": "res://assets/ui/equipment/ICO_ARM_ValgardAntiqueArmor.png",
 	# 灰冠の九 限定防具（P3-GACHA-EQ-KAIWAN-003）
 	"armor:kaiwan_primehide":      "res://assets/ui/equipment/ICO_ARM_KaiwanPrimehide.png",
@@ -272,6 +279,7 @@ const ICON_MAP: Dictionary = {
 	"accessory:mourngate_royal_seal": "res://assets/ui/equipment/ICO_ACC_MourngateRoyalSeal.png",
 	"accessory:chronos_toki_orb": "res://assets/ui/equipment/ICO_ACC_ChronosTokiOrb.png",
 	"accessory:albark_namerefuse_circlet": "res://assets/ui/equipment/ICO_ACC_AlbarkNamerefuseCirclet.png",
+	"accessory:forge_slag_seal": "res://assets/ui/equipment/ICO_ACC_ForgeSlagSeal.png",
 	"accessory:valgard_antique_amulet": "res://assets/ui/equipment/ICO_ACC_ValgardAntiqueAmulet.png",
 	# 灰冠の九 限定装飾（P3-GACHA-EQ-KAIWAN-003）
 	"accessory:kaiwan_initio":     "res://assets/ui/equipment/ICO_ACC_KaiwanInitio.png",
