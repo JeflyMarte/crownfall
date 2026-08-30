@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "albark_namerefuse_circlet"
+display_name = "名拒みの冠環"
+rarity = 5
+icon = ""
+description = "名を拒む者が戴いた冠の欠片。"
+hp_bonus = 40
+attack_bonus = 8
+defense_bonus = 8
+crit_rate_bonus = 0.03
+exp_gain_rate = 0.0
+gold_gain_rate = 0.0
+rare_drop_rate = 0.0
+fixed_passive_id = ""
+set_id = "albark_namerefuse"

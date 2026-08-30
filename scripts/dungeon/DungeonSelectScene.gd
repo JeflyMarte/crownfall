@@ -165,9 +165,9 @@ const DROP_PREVIEW: Dictionary = {
 		["accessory", "eldion_heart_talisman"],
 	],
 	"north_reach": [
-		["weapon", "umbra_terminus_staff"],
-		["armor", "aurora_vestment"],
-		["accessory", "eldion_heart_talisman"],
+		["weapon", "albark_namerefuse_sword"],
+		["armor", "albark_namerefuse_armor"],
+		["accessory", "albark_namerefuse_circlet"],
 	],
 }
 

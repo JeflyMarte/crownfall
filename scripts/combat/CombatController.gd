@@ -1219,6 +1219,16 @@ func apply_status(
 			return false
 		if effect_id == "stun" and enemy_cc_tier_at(slot) == "boss":
 			duration_override = BalanceConfig.CC_STUN_DURATION_TICKS_BOSS
+		## 名拒みの冠: 敵への有益バフのみ持続短縮（デバフ・CC は対象外）。
+		if _StatusResolver.is_beneficial_status(effect_id):
+			var buff_mult: float = _EquipmentSetBonuses.party_enemy_buff_duration_mult()
+			if buff_mult < 0.999:
+				var effect: Resource = DataRegistry.get_status_effect(effect_id)
+				var base_ticks: int = duration_override
+				if base_ticks < 0 and effect != null:
+					base_ticks = int(effect.duration_ticks)
+				if base_ticks > 0:
+					duration_override = maxi(1, int(round(float(base_ticks) * buff_mult)))
 	return _status_resolver.apply_status(unit_id, effect_id, stacks, source_attack, duration_override)
 
 

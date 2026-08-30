@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "albark_namerefuse_hammer"
+display_name = "名拒みの戦鎚"
+description = "天望の塔のセット武器。名を拒む戦鎚。"
+fixed_skill_id = ""
+fixed_passive_id = ""
+base_attack = 118
+rarity = 5
+base_attack_speed = 0.8
+base_critical_rate = 0.04
+base_knockback = 0.85
+base_stagger_power = 0.55
+base_attack_range = 1.15
+weight = 1.3
+element = "ice"
+weapon_type = "hammer"
+base_element_power = 1000
+tags = Array[String](["blunt", "ice"])
+flavor_text = "征討セット装備。武器・防具・装飾を揃えると加護が発動する。"
+set_id = "albark_namerefuse"

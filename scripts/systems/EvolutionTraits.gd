@@ -186,6 +186,8 @@ static func member_status_chance_mult(member_index: int) -> float:
 			mult *= 1.10
 	if str(member.job_id) == "beast_tamer" and _member_has_trait(member, "evo_lord_predator"):
 		mult *= 1.15
+	## 征討エンシェント「名拒みの冠」等（P3-DG-APEX-SET-001）。
+	mult *= EquipmentSetBonuses.status_chance_mult(member_index)
 	return mult
 
 static func party_weapon_drop_mult() -> float:

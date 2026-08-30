@@ -148,7 +148,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `tickets/` | **`TicketIds`**／**`TicketInventory`**／**`TicketSystem`**（無料ガチャ・**封蔵開封券**・LB★2/3/4） |
 
 | `equipment/MythicLoot.gd` | 神話ドロップ SSOT（**P3-EQ-MYTHIC-001**） |
-| `equipment/EquipmentSetBonuses.gd` | 降臨セット加護・3部位判定・パッシブタブ用 `passive_ui_def_for_member`（**P3-DG-EVENT-SET-001**） |
+| `equipment/EquipmentSetBonuses.gd` | 降臨／征討セット加護・3部位判定・パッシブタブ用 `passive_ui_def_for_member`（**P3-DG-EVENT-SET-001**／**P3-DG-APEX-SET-001** 名拒み） |
 | `guild/` | **`GuildScene.gd`**（P3-D052 ジョブ認定・**P3-UI2-024** polish。βは `JOB_EVOLUTION_PLAYABLE=false` でオミット案内のみ／P3-JOB-EVO-OMIT-001） |
 | `crafting/` | **`CraftHelper.gd`**（`can_craft` / `get_craftable_recipes` — P3-D141／入手解放・`last_run_craft_unlocks` — P3-CRAFT-DISCOVER-001 / P3-UX-RESULT-CRAFT-UNLOCK-001） |
 | `codex/` | **`CatalogHelper.gd`**（歴史／断片は `resources/codex/*.json` bake 優先・`tools/bake_codex_bible.py`）／**`GuideCatalog.gd`**／**`CharacterCodexProfiles.gd`**（初期5人物録）／**`CodexRichText.gd`**, **`CodexScene.gd`**（タブ＝敵／装備／歴史／**世界観**／**キャラ**／手引き。実績は `CODEX_ACHIEVE_PLAYABLE` でオミット可） |

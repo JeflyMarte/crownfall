@@ -58,6 +58,12 @@ const ICON_MAP: Dictionary = {
 	"weapon:valgard_antique_dual": "res://assets/ui/equipment/ICO_WPN_ValgardAntiqueDual.png",
 	"weapon:valgard_antique_rod":  "res://assets/ui/equipment/ICO_WPN_ValgardAntiqueRod.png",
 	"weapon:valgard_antique_arrow": "res://assets/ui/equipment/ICO_WPN_ValgardAntiqueArrow.png",
+	## 名拒みの冠 — 専用アート前は氷／戦鎚系を流用（P3-DG-APEX-SET-001）
+	"weapon:albark_namerefuse_sword": "res://assets/ui/equipment/ICO_WPN_EldionFrostbrand.png",
+	"weapon:albark_namerefuse_dual": "res://assets/ui/equipment/ICO_WPN_FrostclawBlades.png",
+	"weapon:albark_namerefuse_staff": "res://assets/ui/equipment/ICO_WPN_GlacierStaff.png",
+	"weapon:albark_namerefuse_bow": "res://assets/ui/equipment/ICO_WPN_RimeBow.png",
+	"weapon:albark_namerefuse_hammer": "res://assets/ui/equipment/ICO_WPN_PermafrostMaul.png",
 	"weapon:burial_crown_greatsword": "res://assets/ui/equipment/ICO_WPN_BurialCrownGreatsword.png",
 	## 神話弓／杖／双剣 — 固有アート前は既存Lアイコン流用（P3-EQ-MYTHIC-WPN-TYPES-001-7）
 	"weapon:pilgrim_bow_lumen": "res://assets/ui/equipment/ICO_WPN_PilgrimBowLumen.png",
@@ -182,6 +188,7 @@ const ICON_MAP: Dictionary = {
 	"weapon:pyrebranch_staff":            "res://assets/ui/equipment/ICO_WPN_WillowEmberStaff.png",
 	"weapon:stormroot_staff":             "res://assets/ui/equipment/ICO_WPN_FenLanternStaff.png",
 	"armor:chronos_toki_armor":    "res://assets/ui/equipment/ICO_ARM_ChronosTokiArmor.png",
+	"armor:albark_namerefuse_armor": "res://assets/ui/equipment/ICO_ARM_GlacierPlate.png",
 	"armor:valgard_antique_armor": "res://assets/ui/equipment/ICO_ARM_ValgardAntiqueArmor.png",
 	# 灰冠の九 限定防具（P3-GACHA-EQ-KAIWAN-003）
 	"armor:kaiwan_primehide":      "res://assets/ui/equipment/ICO_ARM_KaiwanPrimehide.png",
@@ -264,6 +271,7 @@ const ICON_MAP: Dictionary = {
 	"accessory:mourngate_sigil":   "res://assets/ui/equipment/ICO_ACC_Generic_Seal.png",
 	"accessory:mourngate_royal_seal": "res://assets/ui/equipment/ICO_ACC_MourngateRoyalSeal.png",
 	"accessory:chronos_toki_orb": "res://assets/ui/equipment/ICO_ACC_ChronosTokiOrb.png",
+	"accessory:albark_namerefuse_circlet": "res://assets/ui/equipment/ICO_ACC_FrostridgeBoundarySignet.png",
 	"accessory:valgard_antique_amulet": "res://assets/ui/equipment/ICO_ACC_ValgardAntiqueAmulet.png",
 	# 灰冠の九 限定装飾（P3-GACHA-EQ-KAIWAN-003）
 	"accessory:kaiwan_initio":     "res://assets/ui/equipment/ICO_ACC_KaiwanInitio.png",
