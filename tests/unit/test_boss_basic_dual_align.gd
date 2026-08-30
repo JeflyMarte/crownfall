@@ -81,9 +81,8 @@ func test_all_bosses_have_dual_basic_attacks() -> void:
 
 
 ## P3-BAL-GRANVEL-B-LATER-001: グランヴェル以降メイン梯子の即時全体 ×0.6。
-## P3-DG-APEX-BOSS-001: アルバーク白静寂も時環共鳴同型 ×0.6。
 const _LATER_MAIN_INSTANT_AOE_06 := [
-	"granvel", "moldgar", "nereion", "eldion", "chronos_wave", "albark",
+	"granvel", "moldgar", "nereion", "eldion", "chronos_wave",
 ]
 
 
@@ -97,6 +96,9 @@ func test_instant_pressure_aoe_power() -> void:
 		## エルディオン吐息はソロ圧力で ×1.15。
 		if boss_id == "eldion":
 			expect_power = 1.15
+		## P3-DG-APEX-BOSS-001: アルバーク白静寂＝時環共鳴同型 ×0.60（F1重みはヴァル同型据置）。
+		if boss_id == "albark":
+			expect_power = 0.6
 		assert_almost_eq(float(skill.power_multiplier), expect_power, 0.001, sid)
 		assert_lte(float(skill.cast_time), 0.0, sid)
 
