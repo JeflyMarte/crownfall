@@ -28,7 +28,7 @@ const DUNGEON_ICON_PATHS: Dictionary = {
 	"frostwall_path": "res://assets/dungeon/frostwall_path/ICO_DG_FrostwallPath.png",
 	"chronos_mausoleum": "res://assets/dungeon/chronos_mausoleum/ICO_DG_ChronosMausoleum.png",
 	"valgard_boundary": "res://assets/dungeon/valgard_boundary/ICO_DG_ValgardBoundary.png",
-	"north_reach": "res://assets/dungeon/valgard_boundary/ICO_DG_ValgardBoundary.png",
+	"north_reach": "res://assets/dungeon/north_reach/ICO_DG_NorthReach.png",
 }
 
 const COLOR_GOLD: Color = Color(0.95, 0.84, 0.4, 1)

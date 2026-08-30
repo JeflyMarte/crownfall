@@ -16,6 +16,7 @@ const PATHS: Dictionary = {
 	"rock_stampede": "res://assets/ui/dungeon/BAN_DG_RockStampede.png",
 	"chronos_mausoleum": "res://assets/ui/dungeon/BAN_DG_ChronosMausoleum.png",
 	"valgard_boundary": "res://assets/ui/dungeon/BAN_DG_ValgardBoundary.png",
+	"north_reach": "res://assets/ui/dungeon/BAN_DG_NorthReach.png",
 }
 
 ## 専用バナーが無いサブ／奈落は親 Biome を流用。
@@ -30,7 +31,6 @@ const SUB_FALLBACK: Dictionary = {
 	"mistfen_depths": "mistfen",
 	"blackshore_abyss": "blackshore",
 	"red_forge_depths": "frostridge",
-	"north_reach": "valgard_boundary",
 	"abyss_mourngate": "mourngate",
 	"abyss_whisperwood": "whisperwood",
 	"abyss_mistfen": "mistfen",
