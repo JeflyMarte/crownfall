@@ -16,6 +16,7 @@ const _POOL_KEEP: Array[String] = [
 	"rock_stampede",
 	"valgard_boundary",
 	"north_reach",
+	"red_forge_depths",
 ]
 
 
