@@ -466,7 +466,7 @@ const ICON_MAP: Dictionary = {
 	"enemy_turn:karna_smoke": "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_Moldgar.png",
 	"enemy:nereion_depths":        "res://assets/codex/enemies/ART_BOSS_Nereion.png",
 	"enemy_turn:nereion_depths": "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_Nereion.png",
-	"enemy:forgedormient":         "res://assets/codex/enemies/ART_BOSS_Eldion.png",
+	"enemy:forgedormient":         "res://assets/codex/enemies/ART_BOSS_Forgedormient.png",
 	"enemy_turn:forgedormient": "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_Eldion.png",
 	"enemy:albark":                "res://assets/codex/enemies/ART_BOSS_Eldion.png",
 	"enemy_turn:albark": "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_Eldion.png",

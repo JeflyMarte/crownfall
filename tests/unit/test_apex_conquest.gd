@@ -46,6 +46,14 @@ func test_other_apex_still_omitted() -> void:
 	assert_false(GameState.is_dungeon_unlocked("blackshore_abyss"))
 
 
+func test_forgedormient_codex_art_dedicated() -> void:
+	var path: String = str(IconPaths.ICON_MAP.get("enemy:forgedormient", ""))
+	assert_eq(path, "res://assets/codex/enemies/ART_BOSS_Forgedormient.png")
+	assert_true(FileAccess.file_exists(path))
+	## エルディオン流用を残さない
+	assert_false(path.contains("Eldion"))
+
+
 func test_north_reach_enemy_pool_ids() -> void:
 	var data: Resource = DataRegistry.get_dungeon_data(Constants.NORTH_REACH_DUNGEON_ID)
 	assert_true("rock_bison" in data.enemy_pool)
