@@ -214,7 +214,7 @@ alwaysApply: false
 | キャラのスキル説明が開発メモっぽい | キット設計メモ（「〇〇へ譲る」／担当）や UI の `CD；`／`tick`／英語状態ID | 説明は効果の平易語のみ。一覧は「再使用○秒」／持続は「しばらく続く」。状態名は日本語表示名 |
 | イベント／無限の仕組みが伝わらない | タブだけあって説明導線なし。解放もバナーのみ | `DungeonRouteGuideOverlay`（？ボタン＋降臨／無限の初回P分け）。再表示は preview |
 | 征討だけ Hard/NM が選べない／進入がノーマル固定 | apex を「イベント強制 Normal」や別 Normal 専用カードにしていた | 時王／境界廊／征討は `_is_event_free_tier_dungeon`（TabsRow 自由＋進入行1つ）。`route_type=event` の曜日枠だけ Normal 強制 |
-| 征討で吹雪だらけ／雑魚が全階Lv58 | `north_reach` をフロスト天候 alias＋固定 `enemy_level` | 専用天候重み（吹雪0）＋`ApexConquestConfig` 階帯Lv（`133`） |
+| 征討で吹雪だらけ／雑魚が全階Lv58 | `north_reach` をフロスト天候 alias＋固定 `enemy_level` | 専用天候重み（吹雪0）＋`ApexConquestConfig` 階帯Lv（`133`）。星炉は炎天寄せ（`134`） |
 | Noto 本文が薄い／キャラ切替 ◀▶ が消える | wght不足・DelaGothic・過小 font | → `ui-layout.mdc` 職名・本文タイポ |
 | CHR 放射色が顔まで染まる／焼き込み枠残存 | modulate・枠焼込 | → **`asset-import.mdc`**（recolor／strip ツール） |
 | 調査開始ダイアログの「調査開始」が見切れる | Window タイトルバー高不足／実機でタイトルが上端クリップ | タイトルは空にして本文先頭へ。`panel` content_margin＋`popup_centered` 最小サイズ |
