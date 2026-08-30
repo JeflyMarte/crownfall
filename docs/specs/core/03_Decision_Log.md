@@ -8140,12 +8140,25 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-APEX-REDEFINE-001-1 | 征討＝**固定長20F**（深層＝無限と分離） | オーナー #1 |
 | P3-DG-APEX-REDEFINE-001-2 | 降臨＝時間帯短編据置／征討＝常設長編・**別エンシェントセット** | オーナー #2/#4 |
 | P3-DG-APEX-REDEFINE-001-3 | **パイロット1本のみ**。クロノス／ヴァルは降臨据置 | オーナー #3 |
-| P3-DG-APEX-REDEFINE-001-4 | 難度＝**降臨N**。解放＝**メイン5 N 全クリア後一括** | オーナー #5/#6 |
+| P3-DG-APEX-REDEFINE-001-4 | 難度起点＝降臨N。解放＝**メイン5 N 全クリア後一括** | オーナー #5/#6 |
 | P3-DG-APEX-REDEFINE-001-5 | UI＝イベントタブ常設。`route_type=apex`。寄り道オミット維持 | 役割整理 |
 | P3-DG-APEX-REDEFINE-001-6 | SSOT — `128_ApexConquestRedefine.md`／`05_Biomes §2.1` | Decision 本体 |
 | P3-DG-APEX-REDEFINE-001-7 | パイロット＝`north_reach`／`albark` | オーナー指定 |
 | P3-DG-APEX-REDEFINE-001-8 | 征討名＝**地図なき主**／ステージ＝**天望の塔**（案C・高塔・空） | オーナー 2026-08-28／30 GO |
 | P3-DG-APEX-REDEFINE-001-9 | 案C接続＝20F・塔敵・境界廊BG・常設イベント枠・⑤クリア解放 | Impl 2026-08-30 |
+| P3-DG-APEX-REDEFINE-001-10 | **Hard/NM**＝降臨同型（TabsRow 自由選択・`DungeonTierConfig` 流用・進入行「天望の塔　{難度}」） | オーナー 2026-08-30 GO |
+
+## 征討 Hard／Nightmare（2026-08-30 — P3-DG-APEX-TIER-001）
+
+> **オーナー GO** — ハードとナイトメアも他の降臨ダンジョンのように生成する。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-APEX-TIER-001-1 | 征討パイロット（`north_reach`）も **N/H/NM** を TabsRow で選択可 | 降臨 UX 統一 |
+| P3-DG-APEX-TIER-001-2 | **キャンペーン解放条件なし**（時王／境界廊と同じ） | 降臨同型 |
+| P3-DG-APEX-TIER-001-3 | 敵Lv・報酬倍率は既存 `DungeonTierConfig` | 専用表を増やさない |
+| P3-DG-APEX-TIER-001-4 | 進入行1つ＝**天望の塔　{選択難度}** | P3-UX-DESCENT-TIER-TABS-001 |
+| P3-DG-APEX-TIER-001-5 | SSOT — `128` 001-5／進入行を上書き | Decision 同期 |
 
 ## 征討エンシェント「名拒みの冠」（2026-08-30 — P3-DG-APEX-SET-001）
 

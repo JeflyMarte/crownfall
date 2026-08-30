@@ -605,8 +605,7 @@ func _refresh_all() -> void:
 	_featured_dungeon_id = _resolve_featured_dungeon_id()
 	if _expanded_biome_id.is_empty() and (
 		_uses_stage_cards(_featured_dungeon_id)
-		or _is_hourly_tier_event_dungeon(_featured_dungeon_id)
-		or _is_conquest_event_dungeon(_featured_dungeon_id)
+		or _is_event_free_tier_dungeon(_featured_dungeon_id)
 	):
 		_expanded_biome_id = _featured_dungeon_id
 	_sync_route_tab_to_featured()
@@ -773,14 +772,13 @@ func _clamp_selected_tier() -> void:
 	if dungeon_id.is_empty():
 		return
 	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
-	## 降臨イベント（時王の霊廟／境界廊）は N/H/NM すべて選択可。
-	if data != null and _is_hourly_tier_event_dungeon(str(data.id)):
+	## 降臨／征討（TabsRow N/H/NM 自由選択）はキャンペーン条件なし。
+	if data != null and _is_event_free_tier_dungeon(str(data.id)):
 		GameState.current_dungeon_tier = _DungeonTierConfig.clamp_tier(GameState.current_dungeon_tier)
 		return
 	if data != null and (
 		str(data.route_type) == "event"
 		or str(data.route_type) == "abyss"
-		or Constants.is_apex_conquest_playable(str(data.id))
 	):
 		GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
 		return
@@ -792,20 +790,19 @@ func _clamp_selected_tier() -> void:
 func _refresh_tier_tabs() -> void:
 	var dungeon_id: String = _featured_dungeon_id
 	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
-	var hourly_tiers: bool = data != null and _is_hourly_tier_event_dungeon(str(data.id))
+	var free_tiers: bool = data != null and _is_event_free_tier_dungeon(str(data.id))
 	var event_only_normal: bool = (
 		data != null
-		and not hourly_tiers
+		and not free_tiers
 		and (
 			str(data.route_type) == "event"
 			or str(data.route_type) == "abyss"
-			or Constants.is_apex_conquest_playable(str(data.id))
 		)
 	)
 	var buttons: Array[Button] = [_btn_tier_normal, _btn_tier_hard, _btn_tier_nightmare]
 	for tier in _DungeonTierConfig.TIER_COUNT:
 		var btn: Button = buttons[tier]
-		var unlocked: bool = true if hourly_tiers else (
+		var unlocked: bool = true if free_tiers else (
 			tier == _DungeonTierConfig.TIER_NORMAL
 			if event_only_normal
 			else GameState.is_dungeon_tier_unlocked(dungeon_id, tier)
@@ -871,8 +868,8 @@ func _apply_tier_tab(btn: Button, selected: bool, unlocked: bool) -> void:
 
 func _on_tier_pressed(tier: int) -> void:
 	var dungeon_id: String = _featured_dungeon_id
-	var hourly_tiers: bool = _is_hourly_tier_event_dungeon(dungeon_id)
-	if not hourly_tiers and not GameState.is_dungeon_tier_unlocked(dungeon_id, tier):
+	var free_tiers: bool = _is_event_free_tier_dungeon(dungeon_id)
+	if not free_tiers and not GameState.is_dungeon_tier_unlocked(dungeon_id, tier):
 		return
 	GameState.current_dungeon_tier = _DungeonTierConfig.clamp_tier(tier)
 	_refresh_tier_tabs()
@@ -1351,7 +1348,7 @@ func _refresh_featured() -> void:
 		_label_featured_discovery.text += " · %s" % _EventDungeonSchedule.open_schedule_label(
 			_featured_dungeon_id
 		)
-		if _is_hourly_tier_event_dungeon(str(data.id)):
+		if _is_event_free_tier_dungeon(str(data.id)):
 			_btn_featured_select.text = "選択して出発"
 			_btn_featured_select.disabled = false
 			## 難度は上部 TabsRow（N/H/NM）。進入行／Featured とも同じ tier を使う。
@@ -1620,10 +1617,8 @@ func _make_biome_accordion(data: Resource) -> Control:
 		var stages_box := VBoxContainer.new()
 		stages_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		stages_box.add_theme_constant_override("separation", 4)
-		if _is_hourly_tier_event_dungeon(dungeon_id):
-			stages_box.add_child(_make_hourly_tier_enter_card(dungeon_id))
-		elif _is_conquest_event_dungeon(dungeon_id):
-			stages_box.add_child(_make_conquest_enter_card(dungeon_id))
+		if _is_event_free_tier_dungeon(dungeon_id):
+			stages_box.add_child(_make_event_free_tier_enter_card(dungeon_id))
 		else:
 			for stage in DataRegistry.get_stages_for_biome(dungeon_id):
 				if stage != null:
@@ -1632,107 +1627,29 @@ func _make_biome_accordion(data: Resource) -> Control:
 	return outer
 
 
-## 時間帯降臨イベント — TabsRow の難度に連動する進入行（縦3行は廃止）。
-func _is_hourly_tier_event_dungeon(dungeon_id: String) -> bool:
+## 降臨／征討 — TabsRow の難度に連動する進入行（縦3行は廃止）。
+## N/H/NM はキャンペーン条件なしで選択可（時王／境界廊／天望の塔）。
+func _is_event_free_tier_dungeon(dungeon_id: String) -> bool:
 	return (
 		dungeon_id == Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID
 		or dungeon_id == Constants.VALGARD_BOUNDARY_DUNGEON_ID
+		or Constants.is_apex_conquest_playable(dungeon_id)
 	)
 
 
-func _is_conquest_event_dungeon(dungeon_id: String) -> bool:
-	return Constants.is_apex_conquest_playable(dungeon_id)
-
-
-func _conquest_enter_label(_dungeon_id: String) -> String:
-	return "天望の塔"
-
-
-func _make_conquest_enter_card(dungeon_id: String) -> Control:
-	## 征討は常設・ノーマルのみ。進入名は塔名。
-	var open_now: bool = true
-	var enter_name: String = _conquest_enter_label(dungeon_id)
-	var tier: int = _DungeonTierConfig.TIER_NORMAL
-	var cleared: bool = GameState.is_dungeon_tier_cleared(dungeon_id, tier)
-	var selected: bool = _featured_dungeon_id == dungeon_id
-	var wrap := PanelContainer.new()
-	wrap.custom_minimum_size = Vector2(0, STAGE_CARD_MIN_SIZE.y)
-	wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	wrap.add_theme_stylebox_override(
-		"panel",
-		CombatUiFrames.panel_style(
-			CombatUiFrames.TIER_CARD_ACTIVE if selected else CombatUiFrames.TIER_CARD
-		)
-	)
-	var btn := Button.new()
-	btn.set_anchors_preset(Control.PRESET_FULL_RECT)
-	btn.flat = true
-	btn.focus_mode = Control.FOCUS_NONE
-	btn.toggle_mode = true
-	btn.button_pressed = selected
-	var content := HBoxContainer.new()
-	content.set_anchors_preset(Control.PRESET_FULL_RECT)
-	content.offset_left = 4
-	content.offset_top = 4
-	content.offset_right = -4
-	content.offset_bottom = -4
-	content.add_theme_constant_override("separation", 6)
-	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	btn.add_child(content)
-	var thumb := TextureRect.new()
-	thumb.custom_minimum_size = STAGE_THUMB_SIZE
-	thumb.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	thumb.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	thumb.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	thumb.texture = _get_dungeon_thumb_texture(dungeon_id)
-	content.add_child(thumb)
-	var text_col := VBoxContainer.new()
-	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	text_col.add_theme_constant_override("separation", 1)
-	text_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	content.add_child(text_col)
-	var line := RichTextLabel.new()
-	line.bbcode_enabled = true
-	line.fit_content = true
-	line.scroll_active = false
-	line.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
-	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	line.custom_minimum_size = Vector2(0, UiTypography.SIZE_BODY_SMALL + 6)
-	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_apply_stage_list_rich_text(line, open_now)
-	var title_text: String = "%s　%s" % [enter_name, _DungeonTierConfig.display_name(tier)]
-	line.text = "[color=#f5e07a][b]%s[/b][/color]" % title_text
-	text_col.add_child(line)
-	var status_text: String = "CLEAR" if cleared else "挑戦可"
-	var status := Label.new()
-	status.text = status_text
-	status.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	UiTypography.apply_body(status, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
-	text_col.add_child(status)
-	wrap.add_child(btn)
-	btn.pressed.connect(func() -> void:
-		_featured_dungeon_id = dungeon_id
-		GameState.current_dungeon_id = dungeon_id
-		GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
-		_selected_stage_id = ""
-		GameState.current_stage_id = ""
-		_expanded_biome_id = dungeon_id
-		_refresh_all()
-	)
-	return wrap
-
-
-func _hourly_tier_enter_label(dungeon_id: String) -> String:
+func _event_free_tier_enter_label(dungeon_id: String) -> String:
 	if dungeon_id == Constants.VALGARD_BOUNDARY_DUNGEON_ID:
 		return "ストームクラウン境界廊"
+	if Constants.is_apex_conquest_playable(dungeon_id):
+		return "天望の塔"
 	return "時王の霊廟"
 
 
-func _make_hourly_tier_enter_card(dungeon_id: String) -> Control:
+func _make_event_free_tier_enter_card(dungeon_id: String) -> Control:
 	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
 	var open_now: bool = _EventDungeonSchedule.is_open_now(dungeon_id)
 	var next_label: String = _EventDungeonSchedule.next_open_label(dungeon_id)
-	var enter_name: String = _hourly_tier_enter_label(dungeon_id)
+	var enter_name: String = _event_free_tier_enter_label(dungeon_id)
 	var tier: int = _DungeonTierConfig.clamp_tier(GameState.current_dungeon_tier)
 	var cleared: bool = GameState.is_dungeon_tier_cleared(dungeon_id, tier)
 	var selected: bool = _featured_dungeon_id == dungeon_id
@@ -1809,7 +1726,7 @@ func _make_hourly_tier_enter_card(dungeon_id: String) -> Control:
 		status_col.add_child(status)
 		content.add_child(status_col)
 	if open_now:
-		_bind_scroll_list_tap(btn, _on_hourly_tier_enter_pressed.bind(dungeon_id))
+		_bind_scroll_list_tap(btn, _on_event_free_tier_enter_pressed.bind(dungeon_id))
 	else:
 		btn.mouse_filter = Control.MOUSE_FILTER_PASS
 	UiTypography.apply_button(btn, selected and open_now)
@@ -1817,7 +1734,7 @@ func _make_hourly_tier_enter_card(dungeon_id: String) -> Control:
 	return wrap
 
 
-func _on_hourly_tier_enter_pressed(dungeon_id: String) -> void:
+func _on_event_free_tier_enter_pressed(dungeon_id: String) -> void:
 	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
 	if not _EventDungeonSchedule.is_open_now(dungeon_id):
 		return

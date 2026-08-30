@@ -64,3 +64,53 @@ func test_north_reach_dedicated_banner_and_icon() -> void:
 	## 境界廊流用を残さない
 	assert_false(ban.contains("ValgardBoundary"))
 	assert_false(ico.contains("ValgardBoundary"))
+
+
+## P3-DG-APEX-TIER-001 — 征討も降臨同型で N/H/NM 自由選択
+func test_north_reach_free_hard_nightmare_tiers() -> void:
+	const _DungeonTierConfig := preload("res://scripts/dungeon/DungeonTierConfig.gd")
+	GameState.debug_full_unlock = true
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
+	var packed: PackedScene = load("res://scenes/dungeon/DungeonSelectScene.tscn")
+	assert_not_null(packed)
+	var scene: Control = packed.instantiate()
+	add_child_autofree(scene)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	## 征討 Featured 相当へ寄せる（イベント枠・常設）
+	scene.set("_featured_dungeon_id", "north_reach")
+	scene.set("_expanded_biome_id", "north_reach")
+	scene.call("_clamp_selected_tier")
+	scene.call("_refresh_tier_tabs")
+	var btn_hard: Button = scene.get_node("MainColumn/TabsRow/ButtonHard") as Button
+	var btn_nm: Button = scene.get_node("MainColumn/TabsRow/ButtonNightmare") as Button
+	assert_not_null(btn_hard)
+	assert_not_null(btn_nm)
+	assert_false(btn_hard.disabled, "征討 Hard はキャンペーン条件なしで選択可")
+	assert_false(btn_nm.disabled, "征討 NM はキャンペーン条件なしで選択可")
+	scene.call("_on_tier_pressed", _DungeonTierConfig.TIER_HARD)
+	assert_eq(GameState.current_dungeon_tier, _DungeonTierConfig.TIER_HARD)
+	scene.call("_on_tier_pressed", _DungeonTierConfig.TIER_NIGHTMARE)
+	assert_eq(GameState.current_dungeon_tier, _DungeonTierConfig.TIER_NIGHTMARE)
+	## 進入行ラベルは選択難度を反映
+	var card: Control = scene.call("_make_event_free_tier_enter_card", "north_reach") as Control
+	assert_not_null(card)
+	var rich: RichTextLabel = _find_rich_label(card)
+	assert_not_null(rich)
+	assert_true(str(rich.text).contains("天望の塔"))
+	assert_true(str(rich.text).contains("ナイトメア"))
+	## 時王も同経路（回帰）
+	assert_true(bool(scene.call("_is_event_free_tier_dungeon", "chronos_mausoleum")))
+	assert_true(bool(scene.call("_is_event_free_tier_dungeon", "valgard_boundary")))
+	assert_true(bool(scene.call("_is_event_free_tier_dungeon", "north_reach")))
+	assert_false(bool(scene.call("_is_event_free_tier_dungeon", "golden_nest")))
+
+
+func _find_rich_label(node: Node) -> RichTextLabel:
+	if node is RichTextLabel:
+		return node as RichTextLabel
+	for child in node.get_children():
+		var found: RichTextLabel = _find_rich_label(child)
+		if found != null:
+			return found
+	return null
