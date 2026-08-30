@@ -75,6 +75,49 @@ func test_albark_descent_band_stats() -> void:
 	assert_almost_eq(float(charge.cooldown), 6.5, 0.001)
 
 
+## P3-DG-APEX-ENV-001 — 天候 W-A（吹雪なし）＋雑魚階帯 Lv
+func test_north_reach_weather_weights_no_snow() -> void:
+	var w: Dictionary = CombatWeather.weights_for_dungeon("north_reach")
+	assert_eq(int(w.get(CombatWeather.CLEAR, -1)), 55)
+	assert_eq(int(w.get(CombatWeather.FOG, -1)), 25)
+	assert_eq(int(w.get(CombatWeather.RAIN, -1)), 10)
+	assert_eq(int(w.get(CombatWeather.NIGHT, -1)), 10)
+	assert_eq(int(w.get(CombatWeather.HEAT, -1)), 0)
+	assert_eq(int(w.get(CombatWeather.SNOW, -1)), 0)
+	## フロスト alias ではない
+	assert_eq(CombatWeather.weather_biome_key("north_reach"), "")
+	var frost: Dictionary = CombatWeather.weights_for_dungeon("frostridge")
+	assert_gt(int(frost.get(CombatWeather.SNOW, 0)), 0)
+
+
+func test_north_reach_trash_enemy_level_bands() -> void:
+	const _Apex := preload("res://scripts/dungeon/ApexConquestConfig.gd")
+	const _DungeonTierConfig := preload("res://scripts/dungeon/DungeonTierConfig.gd")
+	assert_eq(_Apex.enemy_level_for_floor(1), 50)
+	assert_eq(_Apex.enemy_level_for_floor(7), 50)
+	assert_eq(_Apex.enemy_level_for_floor(8), 54)
+	assert_eq(_Apex.enemy_level_for_floor(14), 54)
+	assert_eq(_Apex.enemy_level_for_floor(15), 58)
+	assert_eq(_Apex.enemy_level_for_floor(19), 58)
+	GameState.debug_full_unlock = true
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.start_dungeon("north_reach")
+	assert_eq(dc.get_display_floor_current(), 1)
+	assert_eq(dc.get_enemy_level(), 50)
+	dc.current_room_index = 7
+	assert_eq(dc.get_display_floor_current(), 8)
+	assert_eq(dc.get_enemy_level(), 54)
+	dc.current_room_index = 14
+	assert_eq(dc.get_display_floor_current(), 15)
+	assert_eq(dc.get_enemy_level(), 58)
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_HARD
+	var h_bonus: int = _DungeonTierConfig.enemy_level_bonus(_DungeonTierConfig.TIER_HARD)
+	assert_eq(dc.get_enemy_level(), 58 + h_bonus)
+
+
 func test_north_reach_dedicated_banner_and_icon() -> void:
 	const _BiomeBannerHelper := preload("res://scripts/ui/BiomeBannerHelper.gd")
 	var ban: String = _BiomeBannerHelper.resolve_path("north_reach")

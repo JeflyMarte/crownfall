@@ -1453,6 +1453,15 @@ func get_enemy_level() -> int:
 			_AbyssDungeonConfig.enemy_level_for_floor(get_display_floor_current())
 			+ EventSystem.get_enemy_level_bonus()
 		)
+	## 征討は階帯表（P3-DG-APEX-ENV-001）。リソース enemy_level は使わない。
+	var dungeon_id: String = ""
+	if current_dungeon_data != null:
+		dungeon_id = str(current_dungeon_data.id)
+	if Constants.is_apex_conquest_playable(dungeon_id):
+		const _ApexConquestConfig := preload("res://scripts/dungeon/ApexConquestConfig.gd")
+		var apex_base: int = _ApexConquestConfig.enemy_level_for_floor(get_display_floor_current())
+		var apex_tier: int = _DungeonTierConfig.enemy_level_bonus(GameState.current_dungeon_tier)
+		return apex_base + apex_tier + EventSystem.get_enemy_level_bonus()
 	var base: int = 1
 	if current_stage_data != null:
 		base = maxi(1, int(current_stage_data.enemy_level))

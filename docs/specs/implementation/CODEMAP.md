@@ -30,7 +30,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | EventSystem | `scripts/autoload/EventSystem.gd`（**P3-EVT-FIELD-001** 30分スロット・重み付き野外速報・`EventWeekRotation` SSOT） |
 | GachaSystem | `scripts/autoload/GachaSystem.gd` |
 
-**危険度ティア（P3-DG-TIER / P3-BAL-NM-CAP99-001）:** `DungeonTierConfig.gd` — Hard/NM はメイン5キャンペーン周回帯。解放=ノーマル全クリア／ハード全クリア。敵／推奨Lvボーナス= `75−n_end` / `99−n_end`（終端推奨≈75／99）。UI=`DungeonSelectScene` TabsRow。**降臨／征討**（時王・境界廊・天望の塔）はキャンペーン条件なしで N/H/NM 自由選択（`P3-UX-DESCENT-TIER-TABS-001`／`P3-DG-APEX-TIER-001`）。  
+**危険度ティア（P3-DG-TIER / P3-BAL-NM-CAP99-001）:** `DungeonTierConfig.gd` — Hard/NM はメイン5キャンペーン周回帯。解放=ノーマル全クリア／ハード全クリア。敵／推奨Lvボーナス= `75−n_end` / `99−n_end`（終端推奨≈75／99）。UI=`DungeonSelectScene` TabsRow。**降臨／征討**（時王・境界廊・天望の塔）はキャンペーン条件なしで N/H/NM 自由選択（`P3-UX-DESCENT-TIER-TABS-001`／`P3-DG-APEX-TIER-001`）。征討雑魚Lvは階帯表（`ApexConquestConfig`／`133`）。  
 **降臨群れ（P3-BAL-DESCENT-SWARM-001）:** 時間帯降臨は N でも群れ率0.72・頭数2〜4（`DESCENT_EVENT_SWARM_*`）。
 **ボス開幕オーラ（P3-BAL-BOSS-AURA-A-001）:** 入場時 `boss_*_hex` 状態を味方全員へ。BOSS速度は人数係数、ATK×1.22、hex CD6。
 **ティア遭遇圧（P3-BAL-TIER-ENC-A-001）:** 群れ率 H×1.35／NM×1.75。NMエリート=双エリート薄護衛 or 単＋護衛2〜3。本編ボス単体。無限ボス編成=`AbyssDungeonConfig.boss_pack_kind`（33群／66エリート／99+抽選）。  

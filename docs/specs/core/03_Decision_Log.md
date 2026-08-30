@@ -8186,3 +8186,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-APEX-BOSS-001-3 | クロノス＝アルバーク超え維持（`13`） | 役割梯子 |
 | P3-DG-APEX-BOSS-001-4 | SSOT — `132_ApexAlbarkBoss.md` | Decision 本体 |
 
+## 征討天候・雑魚Lv帯（2026-08-30 — P3-DG-APEX-ENV-001）
+
+> **オーナー GO**（推奨＝天候 W-A＋雑魚 50/54/58）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-APEX-ENV-001-1 | 天候 — 晴れ55／霧25／雨10／夜10／炎天0／吹雪0。run 固定 | 案C・吹雪禁止 |
+| P3-DG-APEX-ENV-001-2 | 雑魚Lv — 1〜7=50／8〜14=54／15〜19=58。H/NM はティア加算のみ | 20F 段階上昇 |
+| P3-DG-APEX-ENV-001-3 | SSOT — `133_ApexWeatherTrashLevels.md` | Decision 本体 |
+
