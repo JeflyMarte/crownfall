@@ -8196,3 +8196,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-APEX-ENV-001-2 | 雑魚Lv — 1〜7=50／8〜14=54／15〜19=58。H/NM はティア加算のみ | 20F 段階上昇 |
 | P3-DG-APEX-ENV-001-3 | SSOT — `133_ApexWeatherTrashLevels.md` | Decision 本体 |
 
+## 征討2・星炉火口（2026-08-30 — P3-DG-APEX-FORGE-001）
+
+> **オーナー GO**（火山テーマ推奨案）。天望クリア後解放。セット装備は後続。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-APEX-FORGE-001-1 | 征討名＝**星炉の寝主**／ステージ＝**星炉火口**／20F・常設 N/H/NM | 火山＝星炉 |
+| P3-DG-APEX-FORGE-001-2 | 解放＝天望クリア後。天候＝炎天寄せ・吹雪0。雑魚Lv＝50/54/58 | 梯子＋環境 |
+| P3-DG-APEX-FORGE-001-3 | 敵＝岩／熱／竜種既存。Boss＝`forgedormient`（戦力再定義は後続） | プール整理 |
+| P3-DG-APEX-FORGE-001-4 | SSOT — `134_ApexForgeVolcano.md` | Decision 本体 |
+

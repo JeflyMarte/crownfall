@@ -5,23 +5,33 @@
 [resource]
 script = ExtResource("1")
 id = "red_forge_depths"
-display_name = "星炉廃坑レッドフォージ・デプス"
-difficulty = 5
-recommended_level = 48
-enemy_level = 47
+display_name = "星炉の寝主　征討"
+difficulty = 7
+recommended_level = 60
+enemy_level = 58
 room_count = 8
-floor_count = 9
-enemy_pool = Array[String](["frost_claw_raptor", "vergaron", "storm_joe"])
+floor_count = 20
+enemy_pool = Array[String](["rock_bison", "iron_horn", "moss_shell", "storm_joe", "crown_raven", "greios", "oldrex"])
 boss_id = "forgedormient"
 drop_table_id = "red_forge_depths_drops"
 discovery_unlocks = {"hidden_room": 0.3, "special_event": 0.6, "hidden_boss": 1.0}
-elite_pool = Array[String]([])
+elite_pool = Array[String](["greios", "oldrex", "rock_bison"])
 favored_element = "ice"
 route_type = "apex"
-event_room_weight = 25
-min_event_rooms = 1
-weapon_pool = Array[String](["ridge_cleaver", "frostclaw_blades", "snowline_longbow", "cairn_staff", "glacier_greatsword", "rime_bow", "aurora_staff", "shadow_fang_saw", "permafrost_edge", "white_needle", "eldion_frostbrand", "umbra_terminus_staff", "eldion_spine", "eldion_claw", "frostspire_bow"])
+event_room_weight = 15
+min_event_rooms = 0
+room_weight_overrides = {
+"combat": 40,
+"elite": 28,
+"heal": 8,
+"lore": 8,
+"treasure": 10,
+"trap": 12
+}
+weapon_pool = Array[String](["ridge_cleaver", "frostclaw_blades", "snowline_longbow", "cairn_staff", "glacier_greatsword", "rime_bow", "aurora_staff", "shadow_fang_saw", "permafrost_edge", "white_needle", "eldion_frostbrand", "umbra_terminus_staff", "eldion_spine", "eldion_claw", "rime_fang_blades", "umbra_needle", "frostspire_bow", "regicide_longbow"])
 armor_pool = Array[String](["furline_garb", "glacier_plate", "snowdrift_cloak", "dragon_scale_aegis", "aurora_vestment", "drove_wool_coat"])
 accessory_pool = Array[String](["ice_crystal_ring", "frost_fang_charm", "eldion_heart_talisman", "mitten_pin", "rimecrown_seal"])
-unlock_after_dungeon_id = "frostridge"
-flavor_text = "レッドフォージ星炉の廃坑深部。炉心の残熱に寝主が居座り、\n星炉の廃坑で、炉壁そのものが寝息を吐く。"
+unlock_after_dungeon_id = "north_reach"
+daily_attempt_limit = 0
+disable_wandering = true
+flavor_text = "東の星炉火口。外輪の灰を越え、炉喉を降りると熔けた寝床に、星炉の寝主がいる。"

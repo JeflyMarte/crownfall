@@ -1,8 +1,8 @@
 class_name ApexConquestConfig
 extends RefCounted
 
-## 征討（apex）パイロット共通設定 — P3-DG-APEX-ENV-001。
-## 天候重みは CombatWeather。ここは階帯の雑魚敵Lvのみ。
+## 征討（apex）共通 — 雑魚階帯Lv（P3-DG-APEX-ENV-001／P3-DG-APEX-FORGE-001）。
+## 天候重みは CombatWeather。
 
 
 ## 表示階 → ノーマル敵Lv（Hard/NM は呼び出し側でティア加算）。

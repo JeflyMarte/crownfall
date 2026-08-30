@@ -4,7 +4,7 @@ extends RefCounted
 ## 天候（環境変化・P3-D101 / P3-WEATHER-W1-A-001 / P3-WEATHER-BIOME-BIAS-001）。
 ## 本編: run 開始時に1つ抽選し DG 中は不変。
 ## 深層（無限）: 10F チャンク先頭で再抽選（親 Biome 重み）。
-## 征討 north_reach: 専用重み（吹雪0・晴れ/霧寄り）／run 固定（P3-DG-APEX-ENV-001）。
+## 征討 north_reach／red_forge_depths: 専用重み／run 固定（P3-DG-APEX-ENV-001／FORGE-001）。
 ## 効果は戦闘の中央フックに相乗りする:
 ##   属性補正（attack_element 別の与ダメ倍率）/ 全体の与ダメ・被ダメ倍率
 ## 数値・属性 id は ElementResolver(thunder/fire/ice/dark/holy 等) に準拠する。
@@ -73,11 +73,10 @@ const _BIOME_WEIGHTS: Dictionary = {
 }
 
 ## メイン以外で親 Biome に寄せる id（深層・同系統寄り道）。イベント専用は載せない。
-## north_reach は征討専用重み（P3-DG-APEX-ENV-001）— フロスト alias しない。
+## north_reach／red_forge_depths は征討専用重み — フロスト alias しない。
 const _BIOME_ALIAS: Dictionary = {
 	"mistfen_depths": "mistfen",
 	"frostwall_path": "frostridge",
-	"red_forge_depths": "frostridge",
 	"westbay_flats": "blackshore",
 	"broken_marsh": "mistfen",
 	"green_hollow": "mistfen",
@@ -92,6 +91,14 @@ const _DUNGEON_WEIGHTS: Dictionary = {
 		RAIN: 10,
 		NIGHT: 10,
 		HEAT: 0,
+		SNOW: 0,
+	},
+	"red_forge_depths": {
+		CLEAR: 30,
+		FOG: 15,
+		RAIN: 5,
+		NIGHT: 10,
+		HEAT: 40,
 		SNOW: 0,
 	},
 }

@@ -455,7 +455,7 @@ const BATTLE_BG_MAP: Dictionary = {
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/BG_Battle_Mistfen.png",
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/BG_Battle_BrokenMarsh.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/BG_Battle_Blackshore.png",
-	"red_forge_depths": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge.png",
+	"red_forge_depths": "res://assets/dungeon/broken_marsh/env/BG_Battle_BrokenMarsh.png",
 	"north_reach": "res://assets/dungeon/valgard_boundary/env/BG_Battle_ValgardBoundary.png",
 	## イベントDG（ダック／レイヴン共通背景）
 	"cosmic_rift": "res://assets/dungeon/event/env/BG_Battle_Event.png",
@@ -474,7 +474,7 @@ const BATTLE_BG_EARLY_MAP: Dictionary = {
 	"red_ridge_mine": "res://assets/dungeon/whisperwood/env/BG_Battle_Whisperwood_Early.png",
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/BG_Battle_Mistfen_Early.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/BG_Battle_Blackshore_Early.png",
-	"red_forge_depths": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge_Early.png",
+	"red_forge_depths": "res://assets/dungeon/broken_marsh/env/BG_Battle_BrokenMarsh.png",
 	"north_reach": "res://assets/dungeon/valgard_boundary/env/BG_Battle_ValgardBoundary.png",
 }
 ## フロストリッジ x-5 ボス戦専用（Hard/NM 含む）。
@@ -504,7 +504,7 @@ const TREASURE_CLOSED_OBJ_MAP: Dictionary = {
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/OBJ_TreasureChest_Closed.png",
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/OBJ_TreasureChest_Closed.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/OBJ_TreasureChest_Closed.png",
-	"red_forge_depths": "res://assets/dungeon/frostridge/env/OBJ_TreasureChest_Closed.png",
+	"red_forge_depths": "res://assets/dungeon/broken_marsh/env/OBJ_TreasureChest_Closed.png",
 	"north_reach": "res://assets/dungeon/frostridge/env/OBJ_TreasureChest_Closed.png",
 }
 const EXIT_OBJ_MAP: Dictionary = {
@@ -524,7 +524,7 @@ const EXIT_OBJ_MAP: Dictionary = {
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/OBJ_ExitGate_Mistfen.png",
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/OBJ_ExitGate_BrokenMarsh.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/OBJ_ExitGate_Blackshore.png",
-	"red_forge_depths": "res://assets/dungeon/frostridge/env/OBJ_ExitGate_Frostridge.png",
+	"red_forge_depths": "res://assets/dungeon/broken_marsh/env/OBJ_ExitGate_BrokenMarsh.png",
 	"north_reach": "res://assets/dungeon/frostridge/env/OBJ_ExitGate_Frostridge.png",
 }
 const FLOOR_TILE_MAP: Dictionary = {
@@ -544,7 +544,7 @@ const FLOOR_TILE_MAP: Dictionary = {
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/TILE_Floor.png",
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/TILE_Floor.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/TILE_Floor.png",
-	"red_forge_depths": "res://assets/dungeon/frostridge/env/TILE_Floor.png",
+	"red_forge_depths": "res://assets/dungeon/broken_marsh/env/TILE_Floor.png",
 	"north_reach": "res://assets/dungeon/frostridge/env/TILE_Floor.png",
 }
 const _FLOOR_ROOM_TYPES: Array[int] = [

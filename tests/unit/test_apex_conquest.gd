@@ -19,8 +19,10 @@ func test_north_reach_conquest_data() -> void:
 
 func test_apex_conquest_playable_helpers() -> void:
 	assert_true(Constants.is_apex_conquest_playable("north_reach"))
+	assert_true(Constants.is_apex_conquest_playable("red_forge_depths"))
 	assert_false(Constants.is_apex_conquest_playable("thunder_peak"))
 	assert_true(Constants.is_playable_dungeon("north_reach", "apex"))
+	assert_true(Constants.is_playable_dungeon("red_forge_depths", "apex"))
 	assert_false(Constants.is_playable_dungeon("thunder_peak", "apex"))
 	assert_eq(Constants.is_playable_dungeon_route("apex"), Constants.SUB_DUNGEONS_PLAYABLE)
 
@@ -30,12 +32,18 @@ func test_conquest_always_open_and_unlock() -> void:
 	const _DungeonTierConfig := preload("res://scripts/dungeon/DungeonTierConfig.gd")
 	assert_true(_Schedule.is_open_now("north_reach"))
 	assert_eq(_Schedule.open_schedule_label("north_reach"), "常設")
+	assert_true(_Schedule.is_open_now("red_forge_depths"))
+	assert_eq(_Schedule.open_schedule_label("red_forge_depths"), "常設")
 	GameState.debug_full_unlock = false
 	GameState.dungeon_progress.clear()
 	GameState.stage_progress.clear()
 	assert_false(GameState.is_dungeon_unlocked("north_reach"))
+	assert_false(GameState.is_dungeon_unlocked("red_forge_depths"))
 	GameState.mark_stage_cleared("frostridge_5_5", _DungeonTierConfig.TIER_NORMAL)
 	assert_true(GameState.is_dungeon_unlocked("north_reach"))
+	assert_false(GameState.is_dungeon_unlocked("red_forge_depths"), "天望クリア前は星炉ロック")
+	GameState.mark_dungeon_cleared("north_reach")
+	assert_true(GameState.is_dungeon_unlocked("red_forge_depths"))
 
 
 func test_other_apex_still_omitted() -> void:
@@ -44,6 +52,36 @@ func test_other_apex_still_omitted() -> void:
 	GameState.stage_progress.clear()
 	assert_false(GameState.is_dungeon_unlocked("thunder_peak"))
 	assert_false(GameState.is_dungeon_unlocked("blackshore_abyss"))
+
+
+## P3-DG-APEX-FORGE-001 — 星炉火口
+func test_red_forge_conquest_volcano_data() -> void:
+	var data: Resource = DataRegistry.get_dungeon_data(Constants.RED_FORGE_DEPTHS_DUNGEON_ID)
+	assert_not_null(data)
+	assert_eq(str(data.route_type), "apex")
+	assert_eq(int(data.floor_count), 20)
+	assert_eq(str(data.boss_id), "forgedormient")
+	assert_eq(str(data.display_name), "星炉の寝主　征討")
+	assert_eq(str(data.favored_element), "ice")
+	assert_true(bool(data.disable_wandering))
+	assert_eq(str(data.unlock_after_dungeon_id), "north_reach")
+	assert_eq(int(data.daily_attempt_limit), 0)
+	assert_true("rock_bison" in data.enemy_pool)
+	assert_true("oldrex" in data.enemy_pool)
+	assert_true("greios" in data.elite_pool)
+	assert_false("frost_claw_raptor" in data.enemy_pool)
+	assert_false("sepia_hound" in data.enemy_pool)
+
+
+func test_red_forge_weather_heat_bias_no_snow() -> void:
+	var w: Dictionary = CombatWeather.weights_for_dungeon("red_forge_depths")
+	assert_eq(int(w.get(CombatWeather.CLEAR, -1)), 30)
+	assert_eq(int(w.get(CombatWeather.FOG, -1)), 15)
+	assert_eq(int(w.get(CombatWeather.RAIN, -1)), 5)
+	assert_eq(int(w.get(CombatWeather.NIGHT, -1)), 10)
+	assert_eq(int(w.get(CombatWeather.HEAT, -1)), 40)
+	assert_eq(int(w.get(CombatWeather.SNOW, -1)), 0)
+	assert_eq(CombatWeather.weather_biome_key("red_forge_depths"), "")
 
 
 func test_forgedormient_codex_art_dedicated() -> void:

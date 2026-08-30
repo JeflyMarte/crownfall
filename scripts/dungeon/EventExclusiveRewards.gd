@@ -80,6 +80,8 @@ static func source_label(dungeon_id: String) -> String:
 			return "ストームクラウン境界廊"
 		"north_reach":
 			return "天望の塔"
+		"red_forge_depths":
+			return "星炉火口"
 		_:
 			return ""
 

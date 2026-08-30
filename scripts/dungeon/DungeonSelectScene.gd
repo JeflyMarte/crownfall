@@ -1640,8 +1640,12 @@ func _is_event_free_tier_dungeon(dungeon_id: String) -> bool:
 func _event_free_tier_enter_label(dungeon_id: String) -> String:
 	if dungeon_id == Constants.VALGARD_BOUNDARY_DUNGEON_ID:
 		return "ストームクラウン境界廊"
-	if Constants.is_apex_conquest_playable(dungeon_id):
+	if dungeon_id == Constants.NORTH_REACH_DUNGEON_ID:
 		return "天望の塔"
+	if dungeon_id == Constants.RED_FORGE_DEPTHS_DUNGEON_ID:
+		return "星炉火口"
+	if Constants.is_apex_conquest_playable(dungeon_id):
+		return "征討"
 	return "時王の霊廟"
 
 
