@@ -121,11 +121,23 @@ func test_beast_tamer_pet_skills_resolve_base() -> void:
 func test_make_unique_icon_uses_individual_texture_for_ultimates() -> void:
 	var ultimate_ids: Array[String] = [
 		"ouga_retsudan", "titan_roar", "grand_elixir", "dead_eye", "beast_dominion",
+		"eng_full_arm_cascade", "eng_blaze_overload", "eng_armor_gekigeki", "eng_overclock",
 	]
 	for skill_id in ultimate_ids:
 		var icon: Control = _SkillIconHelper.make_unique_icon(skill_id, Vector2(96, 96))
 		assert_not_null(icon, skill_id)
 		assert_true(icon is TextureRect, skill_id)
+
+
+func test_engineer_kit_skills_have_unique_icons() -> void:
+	var kit_ids: Array[String] = [
+		"eng_spike_trap", "eng_drill_pierce", "eng_snare_trap", "eng_charge_shot",
+		"eng_break_trap", "eng_scrap_burst", "eng_burn_trap",
+	]
+	for skill_id in kit_ids:
+		assert_false(_SkillIconHelper.resolve_base_id(skill_id).is_empty(), skill_id)
+		var icon: Control = _SkillIconHelper.make_unique_icon(skill_id, Vector2(64, 64))
+		assert_not_null(icon, skill_id)
 
 
 func test_make_ultimate_icon_prefers_individual_art() -> void:
