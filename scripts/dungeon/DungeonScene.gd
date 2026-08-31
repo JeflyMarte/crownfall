@@ -746,6 +746,8 @@ const EngineerTrapsScript: Script = preload("res://scripts/combat/EngineerTraps.
 const CombatVfxManagerScript: Script = preload("res://scripts/combat/CombatVfxManager.gd")
 const CombatBandVfxScript: Script = preload("res://scripts/combat/CombatBandVfx.gd")
 const HitVfxPoolScript: Script = preload("res://scripts/combat/HitVfxPool.gd")
+const DamageNumberPoolScript: Script = preload("res://scripts/combat/DamageNumberPool.gd")
+const TextureBodyBoundsCacheScript: Script = preload("res://scripts/combat/TextureBodyBoundsCache.gd")
 const _StatusEffectLinkHelper = preload("res://scripts/ui/StatusEffectLinkHelper.gd")
 const _SkillEffectOneLineHelper = preload("res://scripts/ui/SkillEffectOneLineHelper.gd")
 const _CombatMemberInspectHelper = preload("res://scripts/ui/CombatMemberInspectHelper.gd")
@@ -781,6 +783,8 @@ var _skill_executor: RefCounted = SkillExecutorScript.new()
 var _engineer_traps: RefCounted = EngineerTrapsScript.new()
 var _combat_vfx: RefCounted = CombatVfxManagerScript.new()
 var _hit_vfx_pool: RefCounted = HitVfxPoolScript.new()
+var _damage_number_pool: RefCounted = DamageNumberPoolScript.new()
+var _tex_body_bounds_cache: RefCounted = TextureBodyBoundsCacheScript.new()
 var _is_paused: bool = false
 var _combat_speed_mult: float = SPEED_MULT_NORMAL
 var _fast_run_enabled: bool = false
@@ -1866,6 +1870,8 @@ func _stop_party_card_pulse(member_idx: int) -> void:
 		_party_card_roots[member_idx].modulate = Color.WHITE
 
 func _start_party_card_critical_pulse(member_idx: int) -> void:
+	if SettingsPrefs.mobile_throttle_idle_loops():
+		return
 	if member_idx < 0 or member_idx >= _party_card_roots.size():
 		return
 	if member_idx < _party_card_pulse_tweens.size():
@@ -9657,6 +9663,7 @@ func _finalize_combat_cleared() -> void:
 	$CombatController.end_combat()
 	_combat_vfx.clear_all()
 	_hit_vfx_pool.clear()
+	_damage_number_pool.clear()
 	_clear_all_member_skill_labels()
 	_update_status_labels()
 	_clear_turn_order_ui()
@@ -9688,6 +9695,7 @@ func _finalize_combat_fled() -> void:
 	$CombatController.end_combat()
 	_combat_vfx.clear_all()
 	_hit_vfx_pool.clear()
+	_damage_number_pool.clear()
 	_clear_all_member_skill_labels()
 	_update_status_labels()
 	_clear_turn_order_ui()
@@ -12368,17 +12376,12 @@ func _normalize_enemy_scale(sprite: AnimatedSprite2D, frames: SpriteFrames, enem
 	var tex: Texture2D = frames.get_frame_texture("idle", 0)
 	if tex == null:
 		return
-	var frame_h: float = tex.get_height()
+	var bounds: Dictionary = _tex_body_bounds_cache.bounds_for(tex)
+	var frame_h: float = float(bounds.get("frame_h", 0.0))
 	if frame_h <= 0.0:
 		return
-	var body_h: float = frame_h
-	var top_inset: float = 0.0
-	var img: Image = tex.get_image()
-	if img != null:
-		var used: Rect2i = img.get_used_rect()
-		if used.size.y > 0:
-			body_h = float(used.size.y)
-			top_inset = float(used.position.y)
+	var body_h: float = float(bounds.get("body_h", frame_h))
+	var top_inset: float = float(bounds.get("top_inset", 0.0))
 	var s: float = clampf(ENEMY_BODY_TARGET_PX / body_h, 0.05, 20.0)
 	var mult: float = float(ENEMY_BODY_SCALE_MULT.get(enemy_id, 1.0))
 	if not ENEMY_BODY_SCALE_MULT.has(enemy_id) \
@@ -13087,6 +13090,12 @@ func _set_skill_cd_ready_pulse(bar: ProgressBar, ready: bool) -> void:
 	var key: int = bar.get_instance_id()
 	var existing = _skill_cd_ready_pulse.get(key)
 	if not ready:
+		if existing != null and is_instance_valid(existing):
+			existing.kill()
+		_skill_cd_ready_pulse.erase(key)
+		bar.modulate = Color.WHITE
+		return
+	if SettingsPrefs.mobile_throttle_idle_loops():
 		if existing != null and is_instance_valid(existing):
 			existing.kill()
 		_skill_cd_ready_pulse.erase(key)
@@ -13883,24 +13892,16 @@ func _normalize_chr_scale(
 	var tex: Texture2D = frames.get_frame_texture("idle", 0)
 	if tex == null:
 		return
-	var frame_w: float = tex.get_width()
-	var frame_h: float = tex.get_height()
+	var bounds: Dictionary = _tex_body_bounds_cache.bounds_for(tex)
+	var frame_w: float = float(bounds.get("frame_w", 0.0))
+	var frame_h: float = float(bounds.get("frame_h", 0.0))
 	if frame_h <= 0.0:
 		return
-	var body_w: float = frame_w
-	var body_h: float = frame_h
-	var body_cx: float = frame_w / 2.0
-	var body_bottom: float = frame_h
-	var top_inset: float = 0.0
-	var img: Image = tex.get_image()
-	if img != null:
-		var used: Rect2i = img.get_used_rect()
-		if used.size.y > 0:
-			body_w = float(used.size.x)
-			body_h = float(used.size.y)
-			body_cx = float(used.position.x) + body_w * 0.5
-			body_bottom = float(used.position.y + used.size.y)
-			top_inset = float(used.position.y)
+	var body_w: float = float(bounds.get("body_w", frame_w))
+	var body_h: float = float(bounds.get("body_h", frame_h))
+	var body_cx: float = float(bounds.get("body_cx", frame_w * 0.5))
+	var body_bottom: float = float(bounds.get("body_bottom", frame_h))
+	var top_inset: float = float(bounds.get("top_inset", 0.0))
 	var body_max: float = maxf(body_w, body_h)
 	var s: float = clampf(body_target_px / body_max, 0.05, 20.0)
 	sprite.scale = Vector2(s, s)
@@ -14151,7 +14152,7 @@ func _spawn_damage_number(
 		_trigger_combat_impact_feedback(is_crit, parsed_damage)
 	if not SettingsPrefs.show_damage_numbers():
 		return
-	var lbl := Label.new()
+	var lbl: Label = _damage_number_pool.acquire() as Label
 	lbl.text = text
 	# ゲームらしい打撃感: 重厚ゴシック体＋太い黒縁＋ドロップシャドウ
 	var af: Font = UiTypography.impact_font()
@@ -14164,7 +14165,6 @@ func _spawn_damage_number(
 	lbl.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.55))
 	lbl.add_theme_constant_override("shadow_offset_x", 3)
 	lbl.add_theme_constant_override("shadow_offset_y", 4)
-	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_damage_numbers_layer.add_child(lbl)
 	## 実サイズで中央寄せ（「毒を付与！」等の長文テロップ対応）。
 	var min_sz: Vector2 = lbl.get_minimum_size()
@@ -14186,7 +14186,14 @@ func _spawn_damage_number(
 	var fade_dur: float = 0.58 if font_size_override > 0 else 0.5
 	tw.tween_property(lbl, "position:y", lbl.position.y + rise, rise_dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.parallel().tween_property(lbl, "modulate:a", 0.0, fade_dur).set_delay(0.22)
-	tw.chain().tween_callback(lbl.queue_free)
+	tw.chain().tween_callback(_release_damage_number.bind(lbl))
+	lbl.set_meta(&"_cf_dmg_tween", tw)
+
+
+func _release_damage_number(lbl: Label) -> void:
+	if lbl == null or not is_instance_valid(lbl):
+		return
+	_damage_number_pool.release(lbl)
 
 func _ultimate_presentation_speed_mult() -> float:
 	if _combat_speed_mult > 0.0:
@@ -14879,8 +14886,7 @@ func _clear_all_member_skill_labels() -> void:
 		_clear_member_skill_labels(i)
 
 func _clear_damage_numbers_layer() -> void:
-	for child in _damage_numbers_layer.get_children():
-		child.queue_free()
+	_damage_number_pool.release_layer_children(_damage_numbers_layer)
 
 func _rainbow_bbcode_text(plain: String, hue_phase: float) -> String:
 	var parts: PackedStringArray = []
@@ -15814,24 +15820,16 @@ func _normalize_boss_scale(sprite: AnimatedSprite2D, frames: SpriteFrames, boss_
 	var tex: Texture2D = frames.get_frame_texture("idle", 0)
 	if tex == null:
 		return
-	var frame_w: float = tex.get_width()
-	var frame_h: float = tex.get_height()
+	var bounds: Dictionary = _tex_body_bounds_cache.bounds_for(tex)
+	var frame_w: float = float(bounds.get("frame_w", 0.0))
+	var frame_h: float = float(bounds.get("frame_h", 0.0))
 	if frame_h <= 0.0:
 		return
-	var body_w: float = frame_w
-	var body_h: float = frame_h
-	var body_cx: float = frame_w / 2.0
-	var body_bottom: float = frame_h
-	var top_inset: float = 0.0
-	var img: Image = tex.get_image()
-	if img != null:
-		var used: Rect2i = img.get_used_rect()
-		if used.size.y > 0:
-			body_w = float(used.size.x)
-			body_h = float(used.size.y)
-			body_cx = float(used.position.x) + body_w * 0.5
-			body_bottom = float(used.position.y + used.size.y)
-			top_inset = float(used.position.y)
+	var body_w: float = float(bounds.get("body_w", frame_w))
+	var body_h: float = float(bounds.get("body_h", frame_h))
+	var body_cx: float = float(bounds.get("body_cx", frame_w * 0.5))
+	var body_bottom: float = float(bounds.get("body_bottom", frame_h))
+	var top_inset: float = float(bounds.get("top_inset", 0.0))
 	var body_max: float = maxf(body_w, body_h)
 	var s: float = clampf(BOSS_BODY_TARGET_PX / body_max, 0.05, 20.0)
 	var mult: float = float(BOSS_BODY_SCALE_MULT.get(boss_id, 1.0))
