@@ -1,8 +1,8 @@
 [gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/dungeon/DungeonScene.gd" id="1"]
-[ext_resource type="Script" uid="uid://d1r8tsefd223" path="res://scripts/dungeon/DungeonController.gd" id="2"]
-[ext_resource type="Script" uid="uid://cglo6yatfgg20" path="res://scripts/combat/CombatController.gd" id="3"]
+[ext_resource type="Script" uid="uid://b6jnb58fiqe20" path="res://scripts/dungeon/DungeonController.gd" id="2"]
+[ext_resource type="Script" uid="uid://dl123pund5qv" path="res://scripts/combat/CombatController.gd" id="3"]
 [ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="4"]
 
 [node name="DungeonScene" type="Control"]
