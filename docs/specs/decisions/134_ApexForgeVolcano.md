@@ -5,7 +5,8 @@
 **Boss 肖像:** `ART_BOSS_Forgedormient` 接続済  
 **セット装備:** `136_ApexForgeSlagSet`（星炉の滓・承認済）  
 **Boss 戦力:** `135_ApexForgeBoss`（降臨帯・承認済）  
-**戦闘BG:** Early／Late／Boss 専用3枚接続済（BrokenMarsh 流用解除・2026-08-31）
+**戦闘BG:** Early／Late／Boss 専用3枚接続済（BrokenMarsh 流用解除・2026-08-31）  
+**DG ICO／BAN:** 専用接続済（フロストリッジ流用解除・2026-08-31）
 
 ---
 
@@ -30,6 +31,7 @@
 | P3-DG-APEX-FORGE-001-9 | 雑魚Lv帯＝天望同型 50／54／58（`ApexConquestConfig`） |
 | P3-DG-APEX-FORGE-001-10 | 敵プール＝火山／熱／岩の既存種のみ（下表） |
 | P3-DG-APEX-FORGE-001-11 | 戦闘BG＝Motif B（火山＋鍛冶廃墟）。**Early F1〜14／Late F15〜19／Boss 部屋専用** |
+| P3-DG-APEX-FORGE-001-12 | DG ICO＝`ICO_DG_RedForge`（512）／BAN＝`BAN_DG_RedForge`（1408×232） |
 
 ### 階帯
 

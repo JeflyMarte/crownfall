@@ -228,6 +228,21 @@ func test_north_reach_dedicated_banner_and_icon() -> void:
 	assert_false(ico.contains("ValgardBoundary"))
 
 
+## P3-DG-APEX-FORGE-ICO-001 — 星炉 DG ICO／BAN 専用（フロストリッジ流用解除）
+func test_red_forge_dedicated_banner_and_icon() -> void:
+	const _BiomeBannerHelper := preload("res://scripts/ui/BiomeBannerHelper.gd")
+	var ban: String = _BiomeBannerHelper.resolve_path("red_forge_depths")
+	assert_eq(ban, "res://assets/ui/dungeon/BAN_DG_RedForge.png")
+	assert_true(FileAccess.file_exists(ban))
+	var ico: String = str(IconPaths.ICON_MAP.get("dungeon:red_forge_depths", ""))
+	assert_eq(ico, "res://assets/dungeon/red_forge_depths/ICO_DG_RedForge.png")
+	assert_true(FileAccess.file_exists(ico))
+	assert_false(ban.contains("Frostridge"))
+	assert_false(ico.contains("Frostridge"))
+	assert_false(ban.contains("BrokenMarsh"))
+	assert_false(ico.contains("BrokenMarsh"))
+
+
 ## P3-DG-APEX-TIER-001 — 征討も降臨同型で N/H/NM 自由選択
 func test_north_reach_free_hard_nightmare_tiers() -> void:
 	const _DungeonTierConfig := preload("res://scripts/dungeon/DungeonTierConfig.gd")

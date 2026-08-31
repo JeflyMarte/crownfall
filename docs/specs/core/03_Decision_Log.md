@@ -8207,6 +8207,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-APEX-FORGE-001-3 | 敵＝岩／熱／竜種既存。Boss＝`forgedormient`（戦力再定義は後続） | プール整理 |
 | P3-DG-APEX-FORGE-001-4 | SSOT — `134_ApexForgeVolcano.md` | Decision 本体 |
 | P3-DG-APEX-FORGE-001-5 | 戦闘BG専用3枚（Early/Late/Boss）・BrokenMarsh流用解除 | Motif B・2026-08-31 |
+| P3-DG-APEX-FORGE-001-6 | DG ICO／BAN 専用・フロストリッジ流用解除 | 天望同型・2026-08-31 |
 
 ## 征討 Boss フォージ降臨帯（2026-08-30 — P3-DG-APEX-FORGE-BOSS-001）
 
