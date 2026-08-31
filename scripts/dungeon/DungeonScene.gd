@@ -6221,7 +6221,12 @@ func _execute_member_aoe_damage_skill(
 	var crit_tag: String = "  CRITICAL!" if skill_is_crit else ""
 	var cascade_trap_log: String = ""
 	if skill_data != null and skill_data.tags.has("eng_cascade"):
-		cascade_trap_log = _place_engineer_cascade_traps(member_idx, 3, 3 + CombatPassives.engineer_trap_fires_add(member_idx), 0.55)
+		cascade_trap_log = _place_engineer_cascade_traps(
+			member_idx,
+			3,
+			3 + CombatPassives.engineer_trap_fires_add(member_idx),
+			EngineerTrapsScript.power_for_kind("spike")
+		)
 	var log_line: String = "\n【スキル】%s: 敵全体へ計%dダメージ%s%s（%d体）" % [
 		result["display_name"], total_dmg, crit_tag, form_tag, hits.size(),
 	]
@@ -6424,12 +6429,16 @@ func _fire_engineer_traps_on_enemy(slot: int) -> void:
 	var status_chance: float = float(fired.get("status_chance", 0.0))
 	var fires_left: int = int(fired.get("fires_left", 0))
 	var dmg: int = 0
+	var vs_armor_break: bool = false
 	if power > 0.0:
 		var base_damage: int = 1
 		if placer_idx >= 0:
 			var base_info: Dictionary = _calc_attack_base(placer_idx)
 			base_damage = maxi(1, int(base_info.get("base_damage", 1)))
-		var raw: int = maxi(1, int(round(float(base_damage) * power)))
+		var ab_stacks: int = $CombatController.get_enemy_status_stacks_at(slot, "armor_break")
+		vs_armor_break = ab_stacks > 0
+		var power_mult: float = EngineerTrapsScript.fire_power_mult_vs_status(vs_armor_break)
+		var raw: int = maxi(1, int(round(float(base_damage) * power * power_mult)))
 		var enemy_data: Resource = $CombatController.get_enemy_data_at(slot)
 		raw = _apply_enemy_defense(raw, enemy_data)
 		dmg = maxi(
@@ -6467,7 +6476,8 @@ func _fire_engineer_traps_on_enemy(slot: int) -> void:
 				_party_applied_enemy_status(placer_idx, slot, status_id)
 	var kind_label: String = _engineer_trap_kind_label(kind)
 	if dmg > 0:
-		_append_log("[仕掛け・%s] %dダメージ（残%d）" % [kind_label, dmg, fires_left])
+		var ab_tag: String = "・甲砕" if vs_armor_break else ""
+		_append_log("[仕掛け・%s%s] %dダメージ（残%d）" % [kind_label, ab_tag, dmg, fires_left])
 	else:
 		_append_log("[仕掛け・%s] 発動（残%d）" % [kind_label, fires_left])
 	_update_hp_bars()

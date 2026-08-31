@@ -5,6 +5,8 @@ extends RefCounted
 ## kind: "spike" | "snare" | "break"
 
 const PARTY_CAP: int = 3
+## 甲砕中の敵への仕掛け作動ダメージ倍率（P3-JOB-ENGINEER-BAL-001・職固有）
+const VS_ARMOR_BREAK_MULT: float = 1.15
 
 ## slot -> { kind, fires_left, placer_idx, power, status_id, status_chance }
 var _traps: Dictionary = {}
@@ -122,13 +124,18 @@ static func fires_for_kind(kind: String) -> int:
 static func power_for_kind(kind: String) -> float:
 	match kind:
 		"spike":
-			return 0.55
+			return 0.65
 		"snare":
 			return 0.25
 		"break":
 			return 0.50
 		_:
 			return 0.0
+
+
+## 甲砕中なら作動威力に乗算する倍率（非甲砕は 1.0）。
+static func fire_power_mult_vs_status(has_armor_break: bool) -> float:
+	return VS_ARMOR_BREAK_MULT if has_armor_break else 1.0
 
 
 static func status_for_kind(kind: String) -> Dictionary:
