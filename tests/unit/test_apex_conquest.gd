@@ -116,6 +116,22 @@ func test_forgedormient_codex_art_dedicated() -> void:
 	assert_false(path.contains("Eldion"))
 
 
+## P3-DG-APEX-FORGE-ICO-002 — フォージ戦闘ICO（ターン＋スキル2）・エルディオン流用解除
+func test_forgedormient_combat_icons_dedicated() -> void:
+	const TURN := "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_Forgedormient.png"
+	const SLAG := "res://assets/ui/skills/ICO_SKILL_EnemyForgedormientSlagBreath.png"
+	const QUAKE := "res://assets/ui/skills/ICO_SKILL_EnemyForgedormientFurnaceQuake.png"
+	assert_eq(str(IconPaths.ICON_MAP.get("enemy_turn:forgedormient", "")), TURN)
+	assert_eq(str(IconPaths.ICON_MAP.get("skill:enemy_forgedormient_slag_breath", "")), SLAG)
+	assert_eq(str(IconPaths.ICON_MAP.get("skill:enemy_forgedormient_furnace_quake", "")), QUAKE)
+	assert_true(FileAccess.file_exists(TURN))
+	assert_true(FileAccess.file_exists(SLAG))
+	assert_true(FileAccess.file_exists(QUAKE))
+	assert_false(TURN.contains("Eldion"))
+	assert_false(SLAG.contains("Eldion"))
+	assert_false(QUAKE.contains("Eldion"))
+
+
 func test_north_reach_enemy_pool_ids() -> void:
 	var data: Resource = DataRegistry.get_dungeon_data(Constants.NORTH_REACH_DUNGEON_ID)
 	assert_true("rock_bison" in data.enemy_pool)
