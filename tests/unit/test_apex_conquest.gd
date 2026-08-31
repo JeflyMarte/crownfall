@@ -161,6 +161,26 @@ func test_albark_descent_band_stats() -> void:
 	assert_almost_eq(float(charge.cooldown), 6.5, 0.001)
 
 
+## P3-DG-APEX-ALBARK-ICO-001 — アルバーク図鑑／戦闘ICO専用（エルディオン流用解除）
+func test_albark_combat_icons_dedicated() -> void:
+	const ART := "res://assets/codex/enemies/ART_BOSS_Albark.png"
+	const TURN := "res://assets/ui/combat/enemy_icons/ICO_ENM_Turn_Albark.png"
+	const SILENCE := "res://assets/ui/skills/ICO_SKILL_EnemyAlbarkWhiteSilence.png"
+	const CHARGE := "res://assets/ui/skills/ICO_SKILL_EnemyAlbarkMaplessCharge.png"
+	assert_eq(str(IconPaths.ICON_MAP.get("enemy:albark", "")), ART)
+	assert_eq(str(IconPaths.ICON_MAP.get("enemy_turn:albark", "")), TURN)
+	assert_eq(str(IconPaths.ICON_MAP.get("skill:enemy_albark_white_silence", "")), SILENCE)
+	assert_eq(str(IconPaths.ICON_MAP.get("skill:enemy_albark_mapless_charge", "")), CHARGE)
+	assert_true(FileAccess.file_exists(ART))
+	assert_true(FileAccess.file_exists(TURN))
+	assert_true(FileAccess.file_exists(SILENCE))
+	assert_true(FileAccess.file_exists(CHARGE))
+	assert_false(ART.contains("Eldion"))
+	assert_false(TURN.contains("Eldion"))
+	assert_false(SILENCE.contains("Eldion"))
+	assert_false(CHARGE.contains("Eldion"))
+
+
 ## P3-DG-APEX-FORGE-BOSS-001 — フォージはアルバーク同帯（降臨帯）
 func test_forgedormient_descent_band_stats() -> void:
 	var forge: Resource = DataRegistry.get_enemy_data("forgedormient")

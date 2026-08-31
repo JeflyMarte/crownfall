@@ -3,7 +3,8 @@
 **Status:** Decision **承認済**（2026-08-30 — オーナー「Goで」／案B・推奨A＋白静寂0.60）  
 **親:** `128_ApexConquestRedefine`  
 **維持:** `13_ChronosWaveDragon`「クロノス＝アルバーク超え」  
-**参照帯:** `15_ValgardGolem`／`14_ChronosDescent`（現行 `valgard`／`chronos_wave` データ）
+**参照帯:** `15_ValgardGolem`／`14_ChronosDescent`（現行 `valgard`／`chronos_wave` データ）  
+**戦闘ICO／図鑑:** ART＋ターン＋白静寂／地図なき突進 専用接続済（エルディオン流用解除・2026-08-31）
 
 ---
 
