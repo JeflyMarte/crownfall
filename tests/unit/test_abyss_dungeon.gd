@@ -171,17 +171,39 @@ func test_start_abyss_stage_keeps_endless_and_run_name() -> void:
 	assert_gt(dc.room_sequence.size(), 10)
 	assert_eq(GameState.get_stage_progress_label("abyss_mourngate"), "")
 	assert_eq(dc.get_display_floor_text(), "11F/??")
-	assert_true(dc.last_abyss_weather_rerolled, "11F で天候再抽選")
+	assert_false(dc.last_abyss_weather_rerolled, "無限は天候再抽選しない")
+	assert_eq(str(GameState.get_weather()), "", "無限は天候なし")
+
+
+func test_abyss_weather_disabled_for_freeze_prevention() -> void:
+	## 案A: 開始も 11F 境界も天候なし。VFX 再生成スパイクを消す。
+	assert_true(_AbyssDungeonConfig.WEATHER_DISABLED)
+	GameState.mark_dungeon_cleared("mourngate")
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	dc.start_stage("abyss_mourngate_1_1")
+	assert_eq(str(GameState.get_weather()), "")
+	for _i: int in range(9):
+		dc.advance_room()
+		assert_false(dc.last_abyss_weather_rerolled)
+		assert_eq(str(GameState.get_weather()), "")
+	dc.advance_room()
+	assert_eq(dc.get_display_floor_current(), 11)
+	assert_false(dc.last_abyss_weather_rerolled)
+	assert_false(dc.last_abyss_weather_changed)
+	assert_eq(str(GameState.get_weather()), "")
 
 
 func test_abyss_weather_stable_within_10f_block() -> void:
-	## フロア途中（2〜10F）では天候 id を触らない。再抽選は 11F 境界のみ。
+	## 互換: 天候オフ時は常に空。チャンク内でも再抽選フラグは立たない。
 	GameState.mark_dungeon_cleared("mourngate")
 	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
 	var dc: Node = dc_script.new()
 	add_child_autofree(dc)
 	dc.start_stage("abyss_mourngate_1_1")
 	var weather0: String = str(GameState.get_weather())
+	assert_eq(weather0, "")
 	for _i: int in range(9):
 		dc.advance_room()
 		assert_false(dc.last_abyss_weather_rerolled, "チャンク内で再抽選しない")
@@ -190,7 +212,7 @@ func test_abyss_weather_stable_within_10f_block() -> void:
 	assert_eq(dc.get_display_floor_current(), 10)
 	dc.advance_room()
 	assert_eq(dc.get_display_floor_current(), 11)
-	assert_true(dc.last_abyss_weather_rerolled, "11F で再抽選実行")
+	assert_false(dc.last_abyss_weather_rerolled, "11F でも再抽選しない（天候オフ）")
 
 
 func test_main_run_weather_never_rerolls_on_advance() -> void:

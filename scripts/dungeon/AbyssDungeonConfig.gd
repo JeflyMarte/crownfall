@@ -6,6 +6,8 @@ extends RefCounted
 
 const ROUTE_TYPE: String = "abyss"
 const CHUNK_FLOORS: int = 10
+## 無限は天候なし（VFX／10F再抽選スパイク防止・オーナーGO案A）。
+const WEATHER_DISABLED: bool = true
 ## 合成ティア境界（P3-BAL-ABYSS-BOSS-TIER-ALIGN-001）。
 ## ボス階が帯の「最後」になるよう 1F ずらす: 33=N／66=H／99=NM。
 const FLOOR_HARD_START: int = 34

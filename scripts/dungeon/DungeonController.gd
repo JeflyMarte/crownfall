@@ -643,6 +643,10 @@ func should_show_shadow_stalker_omen() -> bool:
 func _roll_run_weather() -> String:
 	if _IntroTutorialConfig.is_run(self):
 		return ""
+	## 無限は天候なし（VFX／10F再抽選スパイク防止・オーナーGO案A）。
+	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
+	if _is_abyss_run() and _AbyssDungeonConfig.WEATHER_DISABLED:
+		return ""
 	var forced: String = EventSystem.forced_weather_id()
 	if not forced.is_empty():
 		return CombatWeather.normalize(forced)
@@ -1130,11 +1134,17 @@ func _extend_abyss_chunk() -> void:
 	ensure_floor_choice_offer_slots()
 
 
-## 深層のみ: 10F チャンク先頭で天候を再抽選（本編は run 開始1回のまま・P3-D101）。
+## 深層のみ: かつては 10F チャンク先頭で天候再抽選していた。
+## フリーズ防止のため無限は天候なし（再抽選しない）。本編は run 開始1回のまま・P3-D101。
 ## 戻り値は境界で再抽選を実行したか。id 変化は last_abyss_weather_changed。
 func _maybe_reroll_abyss_block_weather() -> bool:
 	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
 	if not _is_abyss_run():
+		return false
+	if _AbyssDungeonConfig.WEATHER_DISABLED:
+		if not str(GameState.get_weather()).is_empty():
+			GameState.set_weather("")
+		last_abyss_weather_changed = false
 		return false
 	var floor_n: int = get_display_floor_current()
 	if floor_n <= 1 or not _AbyssDungeonConfig.is_block_start_floor(floor_n):
