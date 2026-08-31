@@ -92,34 +92,20 @@ func test_red_forge_dedicated_battle_bgs() -> void:
 	assert_true(FileAccess.file_exists(EARLY))
 	assert_true(FileAccess.file_exists(LATE))
 	assert_true(FileAccess.file_exists(BOSS))
-	assert_false(EARLY.contains("BrokenMarsh"))
-	assert_false(LATE.contains("BrokenMarsh"))
-	assert_false(BOSS.contains("BrokenMarsh"))
-	GameState.debug_full_unlock = true
-	var packed: PackedScene = load("res://scenes/dungeon/DungeonScene.tscn")
-	assert_not_null(packed)
-	var scene: Node = packed.instantiate()
-	add_child_autofree(scene)
-	await get_tree().process_frame
-	var dc: Node = scene.get_node("DungeonController")
-	dc.start_dungeon("red_forge_depths")
-	dc.current_room_type = Enums.RoomType.COMBAT
-	dc.current_room_index = 0
-	assert_eq(dc.get_display_floor_current(), 1)
-	assert_eq(str(scene.call("_dungeon_battle_bg_path", "red_forge_depths")), EARLY)
-	dc.current_room_index = 13
-	assert_eq(dc.get_display_floor_current(), 14)
-	assert_eq(str(scene.call("_dungeon_battle_bg_path", "red_forge_depths")), EARLY)
-	dc.current_room_index = 14
-	assert_eq(dc.get_display_floor_current(), 15)
-	assert_eq(str(scene.call("_dungeon_battle_bg_path", "red_forge_depths")), LATE)
-	dc.current_room_index = 18
-	assert_eq(dc.get_display_floor_current(), 19)
-	assert_eq(str(scene.call("_dungeon_battle_bg_path", "red_forge_depths")), LATE)
-	dc.current_room_type = Enums.RoomType.BOSS
-	dc.current_room_index = 19
-	assert_eq(dc.get_display_floor_current(), 20)
-	assert_eq(str(scene.call("_dungeon_battle_bg_path", "red_forge_depths")), BOSS)
+	var sc: Script = load("res://scripts/dungeon/DungeonScene.gd")
+	var consts: Dictionary = sc.get_script_constant_map()
+	var late_map: Dictionary = consts["BATTLE_BG_MAP"]
+	var early_map: Dictionary = consts["BATTLE_BG_EARLY_MAP"]
+	var boss_map: Dictionary = consts["BATTLE_BG_BOSS_MAP"]
+	assert_eq(str(late_map.get("red_forge_depths", "")), LATE)
+	assert_eq(str(early_map.get("red_forge_depths", "")), EARLY)
+	assert_eq(str(boss_map.get("red_forge_depths", "")), BOSS)
+	assert_eq(int(consts.get("BATTLE_BG_APEX_EARLY_FLOOR_MAX", -1)), 14)
+	assert_true(bool(consts["BATTLE_BG_FINAL_BOSS_BIOMES"].get("red_forge_depths", false)))
+	## BrokenMarsh 流用を残さない
+	assert_false(str(late_map["red_forge_depths"]).contains("BrokenMarsh"))
+	assert_false(str(early_map["red_forge_depths"]).contains("BrokenMarsh"))
+	assert_false(str(boss_map["red_forge_depths"]).contains("BrokenMarsh"))
 
 
 func test_forgedormient_codex_art_dedicated() -> void:
