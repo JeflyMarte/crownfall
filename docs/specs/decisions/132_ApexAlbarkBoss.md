@@ -57,6 +57,7 @@
 | `resources/enemies/albark.tres` | ステ更新 |
 | `resources/skills/enemy_albark_white_silence.tres` | ×0.60 |
 | `resources/skills/enemy_albark_mapless_charge.tres` | CD 6.5 |
+| `IconPaths` | `ART_BOSS_Albark`／`ICO_ENM_Turn_Albark`／WhiteSilence／MaplessCharge |
 | GUT | ATK／即時全体×0.60 期待値更新 |
 
 ---

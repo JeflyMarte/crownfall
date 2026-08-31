@@ -8185,6 +8185,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-APEX-BOSS-001-2 | 白静寂 ×0.60／地図なき突進 CD6.5。キット・Hex・フェーズ骨格据置 | 時王／ヴァル同型 |
 | P3-DG-APEX-BOSS-001-3 | クロノス＝アルバーク超え維持（`13`） | 役割梯子 |
 | P3-DG-APEX-BOSS-001-4 | SSOT — `132_ApexAlbarkBoss.md` | Decision 本体 |
+| P3-DG-APEX-BOSS-001-5 | 図鑑ART＋ターン＋白静寂／地図なき突進 ICO 専用（エルディオン流用解除） | 2026-08-31 |
 
 ## 征討天候・雑魚Lv帯（2026-08-30 — P3-DG-APEX-ENV-001）
 
