@@ -137,7 +137,13 @@ func test_namerefuse_set_activation_and_bonus() -> void:
 	assert_eq(_Sets.status_chance_mult(0), 1.25)
 	assert_eq(_Sets.enemy_buff_duration_mult(0), 0.75)
 	assert_eq(_Sets.party_enemy_buff_duration_mult(), 0.75)
-	assert_eq(EvolutionTraits.effective_status_chance(0, 0.40), 0.50)
+	## 3部位加護×1.25 × 単品武器×1.10 × 単品装飾×1.06（P3-EQ-ANCIENT-POWER-D-001）。
+	assert_almost_eq(
+		EvolutionTraits.effective_status_chance(0, 0.40),
+		0.40 * 1.25 * 1.10 * 1.06,
+		0.001
+	)
+
 	var ui_def: Dictionary = _Sets.passive_ui_def_for_member(member)
 	assert_eq(str(ui_def.get("display_name", "")), "名拒みの加護")
 	var granted: Dictionary = _Evt.apply_boss_loot("north_reach", _DungeonTierConfig.TIER_NORMAL)

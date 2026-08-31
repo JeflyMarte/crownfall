@@ -123,11 +123,8 @@ func test_passive_def_values() -> void:
 	assert_almost_eq(float(CombatPassives.get_def("eq_set_forge_acc").get("outgoing_vs_status_mult", 1.0)), 1.05, 0.001)
 
 
-func after_each() -> void:
-	GameState.party_members = []
-
-
 func test_namerefuse_status_chance_stacks_with_equipment() -> void:
+	var prev_party: Array = GameState.party_members.duplicate()
 	var member: Resource = load("res://scripts/domain/Adventurer.gd").new()
 	member.id = "ancient_nr"
 	member.job_id = "swordsman"
@@ -138,9 +135,11 @@ func test_namerefuse_status_chance_stacks_with_equipment() -> void:
 	## 加護なし（1〜2部位）＋単品武器1.10×装飾1.06。
 	var mult: float = EvolutionTraits.member_status_chance_mult(0)
 	assert_almost_eq(mult, 1.10 * 1.06, 0.001)
+	GameState.party_members = prev_party
 
 
 func test_chronos_skill_cd_from_weapon_and_acc() -> void:
+	var prev_party: Array = GameState.party_members.duplicate()
 	var member: Resource = load("res://scripts/domain/Adventurer.gd").new()
 	member.id = "ancient_ch"
 	member.job_id = "swordsman"
@@ -149,3 +148,4 @@ func test_chronos_skill_cd_from_weapon_and_acc() -> void:
 	GameState.party_members = [member]
 	var mult: float = CombatPassives.relic_skill_cd_mult(0)
 	assert_almost_eq(mult, 0.94 * 0.97, 0.001)
+	GameState.party_members = prev_party
