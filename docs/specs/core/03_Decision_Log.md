@@ -8219,6 +8219,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-APEX-FORGE-BOSS-001-2 | スラグ吐息 ×0.60。炉床震動（全体×2・詠唱・CD9）据置。キット・Hex・フェーズ骨格据置 | 時環／白静寂同型＋キット維持 |
 | P3-DG-APEX-FORGE-BOSS-001-3 | クロノス超えしない（`13`） | 役割梯子 |
 | P3-DG-APEX-FORGE-BOSS-001-4 | SSOT — `135_ApexForgeBoss.md` | Decision 本体 |
+| P3-DG-APEX-FORGE-BOSS-001-5 | 戦闘ICO＝ターン＋スラグ吐息／炉床震動専用（エルディオン流用解除） | 2026-08-31 |
 
 ## 征討セット 星炉の滓（2026-08-30 — P3-DG-APEX-FORGE-SET-001）
 

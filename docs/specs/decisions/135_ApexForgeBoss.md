@@ -2,7 +2,8 @@
 
 **Status:** Decision **承認済**（2026-08-30 — オーナー「Aで」／`132` 同型）  
 **親:** `134_ApexForgeVolcano`／`128_ApexConquestRedefine`  
-**帯参照:** `132_ApexAlbarkBoss`（アルバークと同帯）／`15_ValgardGolem`／`14_ChronosDescent`
+**帯参照:** `132_ApexAlbarkBoss`（アルバークと同帯）／`15_ValgardGolem`／`14_ChronosDescent`  
+**戦闘ICO:** ターン＋スラグ吐息／炉床震動 専用接続済（エルディオン流用解除・2026-08-31）
 
 ---
 
@@ -55,6 +56,7 @@
 |---|---|
 | `resources/enemies/forgedormient.tres` | ステ更新 |
 | `resources/skills/enemy_forgedormient_slag_breath.tres` | ×0.60 |
+| `IconPaths` | `ICO_ENM_Turn_Forgedormient`／`ICO_SKILL_EnemyForgedormientSlagBreath`／`FurnaceQuake` |
 | GUT | ATK／即時全体×0.60 期待値更新 |
 
 ---
