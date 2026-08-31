@@ -74,7 +74,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
       - `BattleLogContent`（VBoxContainer）— ログ RTL を動的追加（`_append_log`）。一時停止シートは `_battle_log_lines`＋`find_child("SheetContent")`
   - `NarrativePanel`（PanelContainer）— 非戦闘時のみ表示（P3-UI2-012）
     - `LabelNarrative` — `_set_narrative()`。高さ 200、font 18 + outline
-- `BattlefieldArea/RoomTileBg` — `BATTLE_BG_MAP` 背景（royal_ruins v3 / graveyard v2）
+- `BattlefieldArea/RoomTileBg` — `BATTLE_BG_MAP`／`BATTLE_BG_EARLY_MAP`／`BATTLE_BG_BOSS_MAP`（征討 `red_forge_depths`＝専用 Early/Late/Boss）
 - `BattlefieldArea/CombatTierFrame` — エリート/中ボス/ボス戦闘枠（P3-UI2-014）
 - `HpBarChr0〜2` / `HpBarEnemy` — 頭上 HP（ルート直下、スプライト position に追従: P3-UI2-005）
 - `ChrSprite0〜2`（110,700 / 250,660 / 390,620, scale=5）/ `EnemySprite`（540,480, scale=4）/ `BossSprite`（500,420, scale=4）/ `HitVfxSprite`（540,480）/ `HealVfxSprite`（250,660） — P3-UI2-008

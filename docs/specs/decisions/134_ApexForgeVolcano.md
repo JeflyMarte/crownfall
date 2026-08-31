@@ -4,7 +4,8 @@
 **親:** `128_ApexConquestRedefine`  
 **Boss 肖像:** `ART_BOSS_Forgedormient` 接続済  
 **セット装備:** `136_ApexForgeSlagSet`（星炉の滓・承認済）  
-**Boss 戦力:** `135_ApexForgeBoss`（降臨帯・承認済）
+**Boss 戦力:** `135_ApexForgeBoss`（降臨帯・承認済）  
+**戦闘BG:** Early／Late／Boss 専用3枚接続済（BrokenMarsh 流用解除・2026-08-31）
 
 ---
 
@@ -28,6 +29,7 @@
 | P3-DG-APEX-FORGE-001-8 | 有利属性＝**氷**。天候＝炎天寄せ・吹雪0・run固定 |
 | P3-DG-APEX-FORGE-001-9 | 雑魚Lv帯＝天望同型 50／54／58（`ApexConquestConfig`） |
 | P3-DG-APEX-FORGE-001-10 | 敵プール＝火山／熱／岩の既存種のみ（下表） |
+| P3-DG-APEX-FORGE-001-11 | 戦闘BG＝Motif B（火山＋鍛冶廃墟）。**Early F1〜14／Late F15〜19／Boss 部屋専用** |
 
 ### 階帯
 
@@ -57,11 +59,24 @@
 
 ---
 
+### 戦闘BG（実装ピン）
+
+| 帯 | アセット |
+|---|---|
+| Early（F1〜14） | `assets/dungeon/red_forge_depths/env/BG_Battle_RedForge_Early.png` |
+| Late（F15〜19） | `assets/dungeon/red_forge_depths/env/BG_Battle_RedForge.png` |
+| Boss（Boss部屋） | `assets/dungeon/red_forge_depths/env/BG_Battle_RedForge_Boss.png` |
+
+配線: `DungeonScene` の `BATTLE_BG_*`／征討は階数で Early・Late、Boss 部屋は `BATTLE_BG_BOSS_MAP`。
+
+---
+
 ## 2. 明示的にやらないこと（本 Decision）
 
 - 専用セット装備（→ `136` で実施済）
 - Boss ステ再定義（→ `135` で実施済）
-- 専用BG／BGM／戦闘ドット必須（暫定流用可）
+- 専用戦闘BG（→ 001-11 で実施済。BrokenMarsh 流用解除）
+- 専用BGM／戦闘ドット必須（暫定流用可）
 - `thunder_peak` の同時配信
 - クロノス／ヴァルを征討へ戻すこと
 

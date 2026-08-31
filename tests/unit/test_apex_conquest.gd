@@ -84,6 +84,44 @@ func test_red_forge_weather_heat_bias_no_snow() -> void:
 	assert_eq(CombatWeather.weather_biome_key("red_forge_depths"), "")
 
 
+## P3-DG-APEX-FORGE-BG-001 — 星炉専用戦闘BG（Early/Late/Boss）・BrokenMarsh流用解除
+func test_red_forge_dedicated_battle_bgs() -> void:
+	const EARLY := "res://assets/dungeon/red_forge_depths/env/BG_Battle_RedForge_Early.png"
+	const LATE := "res://assets/dungeon/red_forge_depths/env/BG_Battle_RedForge.png"
+	const BOSS := "res://assets/dungeon/red_forge_depths/env/BG_Battle_RedForge_Boss.png"
+	assert_true(FileAccess.file_exists(EARLY))
+	assert_true(FileAccess.file_exists(LATE))
+	assert_true(FileAccess.file_exists(BOSS))
+	assert_false(EARLY.contains("BrokenMarsh"))
+	assert_false(LATE.contains("BrokenMarsh"))
+	assert_false(BOSS.contains("BrokenMarsh"))
+	GameState.debug_full_unlock = true
+	var packed: PackedScene = load("res://scenes/dungeon/DungeonScene.tscn")
+	assert_not_null(packed)
+	var scene: Node = packed.instantiate()
+	add_child_autofree(scene)
+	await get_tree().process_frame
+	var dc: Node = scene.get_node("DungeonController")
+	dc.start_dungeon("red_forge_depths")
+	dc.current_room_type = Enums.RoomType.COMBAT
+	dc.current_room_index = 0
+	assert_eq(dc.get_display_floor_current(), 1)
+	assert_eq(str(scene.call("_dungeon_battle_bg_path", "red_forge_depths")), EARLY)
+	dc.current_room_index = 13
+	assert_eq(dc.get_display_floor_current(), 14)
+	assert_eq(str(scene.call("_dungeon_battle_bg_path", "red_forge_depths")), EARLY)
+	dc.current_room_index = 14
+	assert_eq(dc.get_display_floor_current(), 15)
+	assert_eq(str(scene.call("_dungeon_battle_bg_path", "red_forge_depths")), LATE)
+	dc.current_room_index = 18
+	assert_eq(dc.get_display_floor_current(), 19)
+	assert_eq(str(scene.call("_dungeon_battle_bg_path", "red_forge_depths")), LATE)
+	dc.current_room_type = Enums.RoomType.BOSS
+	dc.current_room_index = 19
+	assert_eq(dc.get_display_floor_current(), 20)
+	assert_eq(str(scene.call("_dungeon_battle_bg_path", "red_forge_depths")), BOSS)
+
+
 func test_forgedormient_codex_art_dedicated() -> void:
 	var path: String = str(IconPaths.ICON_MAP.get("enemy:forgedormient", ""))
 	assert_eq(path, "res://assets/codex/enemies/ART_BOSS_Forgedormient.png")
