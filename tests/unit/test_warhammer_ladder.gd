@@ -58,14 +58,18 @@ func test_seam_breaker_legendary_passive() -> void:
 
 func test_warhammer_icons_registered_and_exist() -> void:
 	var seen_md5: Dictionary = {}
+	var consecrated_path: String = ProjectSettings.globalize_path(
+		"res://assets/ui/equipment/ICO_WPN_ConsecratedMaul.png"
+	)
 	for wid in ALL_HAMMERS:
 		var path: String = str(IconPaths.ICON_MAP.get("weapon:%s" % wid, ""))
 		assert_false(path.is_empty(), wid)
-		var local: String = path.replace("res://", "/workspace/")
+		var local: String = ProjectSettings.globalize_path(path)
 		assert_true(FileAccess.file_exists(local), "%s -> %s" % [wid, local])
 		var md5: String = FileAccess.get_md5(local)
+		assert_false(md5.is_empty(), "%s md5 empty" % wid)
 		if wid == "seam_breaker_maul":
-			assert_ne(md5, FileAccess.get_md5("/workspace/assets/ui/equipment/ICO_WPN_ConsecratedMaul.png"))
+			assert_ne(md5, FileAccess.get_md5(consecrated_path))
 		assert_false(seen_md5.has(md5), "duplicate icon bytes: %s vs %s" % [wid, seen_md5.get(md5, "")])
 		seen_md5[md5] = wid
 
