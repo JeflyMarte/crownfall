@@ -32,6 +32,49 @@ func test_engineer_helper_tres_wired() -> void:
 	assert_eq(int(ortho.rarity), 2)
 
 
+func test_engineer_helper_dots_wired() -> void:
+	for helper_id: String in ["helper_q", "helper_r", "helper_s"]:
+		var helper: Resource = DataRegistry.get_gacha_helper_data(helper_id)
+		assert_not_null(helper, helper_id)
+		var sprite_path: String = str(helper.sprite_resource_path)
+		assert_false(sprite_path.is_empty(), helper_id)
+		assert_true(ResourceLoader.exists(sprite_path), sprite_path)
+		var frames: SpriteFrames = load(sprite_path) as SpriteFrames
+		assert_not_null(frames, helper_id)
+		assert_true(frames.has_animation("idle"), helper_id)
+
+
+func test_engineer_helper_portraits_wired() -> void:
+	for helper_id: String in ["helper_q", "helper_r", "helper_s"]:
+		var helper: Resource = DataRegistry.get_gacha_helper_data(helper_id)
+		assert_not_null(helper, helper_id)
+		var portrait_path: String = str(helper.portrait_resource_path)
+		assert_false(portrait_path.is_empty(), helper_id)
+		assert_true(ResourceLoader.exists(portrait_path), portrait_path)
+		var tex: Texture2D = load(portrait_path) as Texture2D
+		assert_not_null(tex, helper_id)
+		assert_gt(tex.get_width(), 0, helper_id)
+		assert_gt(tex.get_height(), 0, helper_id)
+
+
+func test_engineer_helpers_have_portrait_art() -> void:
+	for helper_id: String in ["helper_q", "helper_r", "helper_s"]:
+		var helper: Resource = DataRegistry.get_gacha_helper_data(helper_id)
+		assert_not_null(helper, helper_id)
+		var path: String = str(helper.portrait_resource_path)
+		assert_true(FileAccess.file_exists(path), path)
+		var tex: Texture2D = load(path) as Texture2D
+		assert_not_null(tex, helper_id)
+		assert_eq(tex.get_width(), 512, helper_id)
+		assert_eq(tex.get_height(), 512, helper_id)
+
+
+func test_engineer_job_chr_icon_wired() -> void:
+	var path: String = str(IconPaths.ICON_MAP.get("chr:engineer", ""))
+	assert_eq(path, "res://assets/ui/chr_icons/ICO_CHR_Trim.png")
+	assert_true(FileAccess.file_exists(path), path)
+
+
 func test_engineer_passive_defs_exist() -> void:
 	var opener: Dictionary = CombatPassives.get_def("eng_trap_opener")
 	assert_eq(str(opener.get("effect", "")), "place_engineer_trap")

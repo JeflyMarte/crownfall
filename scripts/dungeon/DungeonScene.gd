@@ -275,6 +275,8 @@ const BOSS_ENEMY_SPRITE_MAP: Dictionary = {
 	"eldion": "res://resources/animation/BOSS_Eldion.tres",
 	"chronos_wave": "res://resources/animation/BOSS_ChronosWave.tres",
 	"valgard": "res://resources/animation/BOSS_Valgard.tres",
+	"albark": "res://resources/animation/BOSS_Albark.tres",
+	"forgedormient": "res://resources/animation/BOSS_Forgedormient.tres",
 	"big_cosmic_duck": "res://resources/animation/ENM_BigCosmicDuck.tres",
 }
 ## 体格正規化後の見た目倍率（1.0=標準）。ドットが他雑魚より大きく／小さく見える種を補正。
@@ -393,12 +395,12 @@ const BOSS_SPRITE_MAP_BY_TIER: Dictionary = {
 		2: "res://resources/animation/BOSS_Eldion_Nightmare.tres",
 	},
 	"red_forge_depths": {
-		1: "res://resources/animation/BOSS_Eldion_Hard.tres",
-		2: "res://resources/animation/BOSS_Eldion_Nightmare.tres",
+		1: "res://resources/animation/BOSS_Forgedormient.tres",
+		2: "res://resources/animation/BOSS_Forgedormient.tres",
 	},
 	"north_reach": {
-		1: "res://resources/animation/BOSS_Eldion_Hard.tres",
-		2: "res://resources/animation/BOSS_Eldion_Nightmare.tres",
+		1: "res://resources/animation/BOSS_Albark.tres",
+		2: "res://resources/animation/BOSS_Albark.tres",
 	},
 	"abyss_frostridge": {
 		1: "res://resources/animation/BOSS_Eldion_Hard.tres",
@@ -426,8 +428,8 @@ const BOSS_SPRITE_MAP: Dictionary = {
 	"mistfen_depths": "res://resources/animation/BOSS_Moldgar.tres",
 	"thunder_peak": "res://resources/animation/BOSS_Moldgar.tres",
 	"blackshore_abyss": "res://resources/animation/BOSS_Nereion.tres",
-	"red_forge_depths": "res://resources/animation/BOSS_Eldion.tres",
-	"north_reach": "res://resources/animation/BOSS_Eldion.tres",
+	"red_forge_depths": "res://resources/animation/BOSS_Forgedormient.tres",
+	"north_reach": "res://resources/animation/BOSS_Albark.tres",
 }
 const CHR_SPRITE_MAP: Dictionary = {
 	"swordsman": "res://resources/animation/CHR_Swordsman.tres",
@@ -435,8 +437,8 @@ const CHR_SPRITE_MAP: Dictionary = {
 	"alchemist": "res://resources/animation/CHR_Alchemist.tres",
 	"vanguard": "res://resources/animation/CHR_Vanguard.tres",
 	"beast_tamer": "res://resources/animation/CHR_BeastTamer.tres",
-	## 機巧士は専用ドット未着手のためレンジャーを仮流用（P3-JOB-ENGINEER-001）
-	"engineer": "res://resources/animation/CHR_Ranger.tres",
+	## 機巧士プレイヤー職の暫定ドット（専用 CHR 未分離時はトリム流用）
+	"engineer": "res://resources/animation/CHR_Helper_q.tres",
 }
 const BATTLE_BG_MAP: Dictionary = {
 	"mourngate": "res://assets/dungeon/mourngate/env/BG_Battle_Mourngate.png",

@@ -22,6 +22,7 @@ from pathlib import Path
 from PIL import Image
 
 DOWNLOADS = Path.home() / "Downloads"
+DOWNLOADS_VER2 = DOWNLOADS / "アップデートVer2"
 ROOT = Path(__file__).resolve().parents[1]
 OUT_ROOT = ROOT / "assets" / "characters"
 ANIM_ROOT = ROOT / "resources" / "animation"
@@ -44,6 +45,9 @@ HELPER_MAP = {
 	"ボルグ": ("helper_n", "CHR_Helper_n"),
 	"ネリ": ("helper_o", "CHR_Helper_o"),
 	"ホダカ": ("helper_p", "CHR_Helper_p"),
+	"トリム": ("helper_q", "CHR_Helper_q"),
+	"ブラン": ("helper_r", "CHR_Helper_r"),
+	"オルソ": ("helper_s", "CHR_Helper_s"),
 }
 
 ## 戦闘 idle(=walk) の FPS。既定 8。カクつきやすい個体は上げる。
@@ -64,21 +68,31 @@ def nfc(s: str) -> str:
 	return unicodedata.normalize("NFC", s)
 
 
+def find_helper_zip(folder_name: str) -> Path | None:
+	for base in (DOWNLOADS, DOWNLOADS_VER2):
+		if not base.is_dir():
+			continue
+		for zpath in base.glob("*.zip"):
+			if nfc(zpath.stem) == folder_name:
+				return zpath
+	return None
+
+
 def extract_zips(only: set[str] | None = None) -> Path:
 	if WORK.exists():
 		shutil.rmtree(WORK)
 	WORK.mkdir(parents=True)
-	for zpath in sorted(DOWNLOADS.glob("*.zip")):
-		name = nfc(zpath.stem)
-		if name not in HELPER_MAP:
+	for folder_name in HELPER_MAP:
+		if only is not None and folder_name not in only:
 			continue
-		if only is not None and name not in only:
+		zpath = find_helper_zip(folder_name)
+		if zpath is None:
 			continue
-		dest = WORK / name
+		dest = WORK / folder_name
 		dest.mkdir(parents=True, exist_ok=True)
 		with zipfile.ZipFile(zpath) as zf:
 			zf.extractall(dest)
-		print(f"extracted {name}")
+		print(f"extracted {folder_name} from {zpath.parent.name}")
 	return WORK
 
 
@@ -132,51 +146,13 @@ def fit_square(im: Image.Image, size: int = TARGET) -> Image.Image:
 	return square.resize((size, size), Image.Resampling.NEAREST)
 
 
-def write_import(png_path: Path, folder_id: str) -> None:
-	rel = f"{folder_id}/{png_path.name}"
-	uid_body = "".join(c for c in f"{folder_id}_{png_path.stem}" if c.isalnum())[:18]
-	imp = png_path.with_suffix(png_path.suffix + ".import")
-	imp.write_text(
-		f"""[remap]
-
-importer="texture"
-type="CompressedTexture2D"
-uid="uid://{uid_body}"
-path="res://.godot/imported/{png_path.name}-{uid_body}.ctex"
-metadata={{
-"vram_texture": false
-}}
-
-[deps]
-
-source_file="res://assets/characters/{rel}"
-dest_files=["res://.godot/imported/{png_path.name}-{uid_body}.ctex"]
-
-[params]
-
-compress/mode=0
-compress/high_quality=false
-compress/lossy_quality=0.7
-compress/hdr_compression=1
-compress/normal_map=0
-compress/channel_pack=0
-mipmaps/generate=false
-mipmaps/limit=-1
-roughness/mode=0
-roughness/src_normal=""
-process/fix_transparent=false
-process/hdr_as_srgb=false
-process/hdr_clamp_exposure=false
-process/size_limit=0
-detect_3d/compress_to=1
-""",
-		encoding="utf-8",
-	)
-
-
-def export_anim(src: Path, folder_id: str, anim_key: str) -> list[str]:
+def export_anim(src: Path, folder_id: str, anim_key: str, file_key: str = "") -> list[str]:
+	file_key = file_key if file_key else anim_key
 	anim_dir = find_anim_dir(src, anim_key)
 	if anim_dir is None:
+		if anim_key == "death":
+			print(f"  {folder_id}/death: fallback to hurt")
+			return export_anim(src, folder_id, "hurt", "death")
 		raise FileNotFoundError(f"{folder_id}: missing anim {anim_key}")
 	direction = pick_direction(anim_dir, anim_key)
 	frames = sorted(direction.glob("frame_*.png"))
@@ -184,19 +160,18 @@ def export_anim(src: Path, folder_id: str, anim_key: str) -> list[str]:
 		raise FileNotFoundError(f"{folder_id}/{anim_key}: no frames in {direction}")
 	out_dir = OUT_ROOT / folder_id
 	out_dir.mkdir(parents=True, exist_ok=True)
-	for old in out_dir.glob(f"{anim_key}_*.png"):
+	for old in out_dir.glob(f"{file_key}_*.png"):
 		old.unlink()
-	for old in out_dir.glob(f"{anim_key}_*.png.import"):
+	for old in out_dir.glob(f"{file_key}_*.png.import"):
 		old.unlink()
 	written: list[str] = []
 	for i, fp in enumerate(frames):
 		im = fit_square(Image.open(fp))
-		name = f"{anim_key}_{i}.png"
+		name = f"{file_key}_{i}.png"
 		out = out_dir / name
 		im.save(out)
-		write_import(out, folder_id)
 		written.append(name)
-	print(f"  {folder_id}/{anim_key}: {len(written)} from {direction.name}")
+	print(f"  {folder_id}/{file_key}: {len(written)} from {direction.name}")
 	return written
 
 

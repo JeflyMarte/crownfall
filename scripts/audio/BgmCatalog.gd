@@ -13,6 +13,10 @@ const ID_WHISPERWOOD: String = "whisperwood"
 const ID_MISTFEN: String = "mistfen"
 const ID_BLACKSHORE: String = "blackshore"
 const ID_FROSTRIDGE: String = "frostridge"
+const ID_NORTH_REACH: String = "north_reach"
+const ID_NORTH_REACH_BOSS: String = "north_reach_boss"
+const ID_RED_FORGE_DEPTHS: String = "red_forge_depths"
+const ID_RED_FORGE_DEPTHS_BOSS: String = "red_forge_depths_boss"
 const ID_BATTLE: String = "battle"
 const ID_SHADOW_HUNT: String = "shadow_hunt"
 const ID_EVENT_DUNGEON: String = "event_dungeon"
@@ -42,6 +46,10 @@ const PATHS: Dictionary = {
 	ID_MISTFEN: DIR + "mistfen.mp3",
 	ID_BLACKSHORE: DIR + "blackshore.mp3",
 	ID_FROSTRIDGE: DIR + "frostridge.mp3",
+	ID_NORTH_REACH: DIR + "north_reach.mp3",
+	ID_NORTH_REACH_BOSS: DIR + "north_reach_boss.mp3",
+	ID_RED_FORGE_DEPTHS: DIR + "red_forge_depths.mp3",
+	ID_RED_FORGE_DEPTHS_BOSS: DIR + "red_forge_depths_boss.mp3",
 	ID_BATTLE: DIR + "battle.mp3",
 	ID_SHADOW_HUNT: DIR + "shadow_hunt.mp3",
 	ID_EVENT_DUNGEON: DIR + "event_dungeon.mp3",
@@ -68,6 +76,10 @@ const LOOP_IDS: Dictionary = {
 	ID_MISTFEN: true,
 	ID_BLACKSHORE: true,
 	ID_FROSTRIDGE: true,
+	ID_NORTH_REACH: true,
+	ID_NORTH_REACH_BOSS: true,
+	ID_RED_FORGE_DEPTHS: true,
+	ID_RED_FORGE_DEPTHS_BOSS: true,
 	ID_BATTLE: true,
 	ID_SHADOW_HUNT: true,
 	ID_EVENT_DUNGEON: true,
@@ -101,8 +113,8 @@ const BATTLE_BY_DUNGEON: Dictionary = {
 	"blackshore_abyss": ID_BLACKSHORE,
 	"frostridge": ID_FROSTRIDGE,
 	"frostwall_path": ID_FROSTRIDGE,
-	"north_reach": ID_FROSTRIDGE,
-	"red_forge_depths": ID_FROSTRIDGE,
+	"north_reach": ID_NORTH_REACH,
+	"red_forge_depths": ID_RED_FORGE_DEPTHS,
 	"shadow_hunt": ID_SHADOW_HUNT,
 	"cosmic_rift": ID_EVENT_DUNGEON,
 	"crown_rookery": ID_EVENT_DUNGEON,
@@ -116,12 +128,16 @@ const BATTLE_BY_DUNGEON: Dictionary = {
 const EXPLORE_BY_DUNGEON: Dictionary = {
 	"chronos_mausoleum": ID_CHRONOS_MAUSOLEUM,
 	"valgard_boundary": ID_VALGARD_BOUNDARY,
+	"north_reach": ID_NORTH_REACH,
+	"red_forge_depths": ID_RED_FORGE_DEPTHS,
 }
 
 ## ボス曲のダンジョン別上書き（未登録は boss。FINAL_BOSS_DUNGEONS は final_boss）。
 const BOSS_BY_DUNGEON: Dictionary = {
 	"chronos_mausoleum": ID_CHRONOS_WAVE,
 	"valgard_boundary": ID_VALGARD,
+	"north_reach": ID_NORTH_REACH_BOSS,
+	"red_forge_depths": ID_RED_FORGE_DEPTHS_BOSS,
 }
 
 ## ラスボス曲を使うダンジョン（フロストリッジ本編＝エルディオン）。
