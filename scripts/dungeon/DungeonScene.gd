@@ -1243,7 +1243,7 @@ func _ready() -> void:
 	_begin_dungeon_dive_intro()
 
 # 天候の可視化（P3-D101）。HUD ラベル併記＋procedural オーバーレイ（新規アセット無し）。
-## 深層は 10F ごとに再抽選するため、差し替え時は旧レイヤを外す。
+## 深層は天候なし（P3-D101-7）。差し替え時は旧レイヤを外す。
 ## ループ tween は WeatherLayer に紐づけ（Scene 直下 create_tween だと差し替え後に解放済みを追い続け得る）。
 func _refresh_weather() -> void:
 	_teardown_weather_layer()

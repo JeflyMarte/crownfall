@@ -53,7 +53,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | ResultScene | `scenes/result/ResultScene.tscn` | `scripts/result/ResultScene.gd` |
 | AppraisalScene | `scenes/appraisal/AppraisalScene.tscn` | `scripts/appraisal/AppraisalScene.gd` |
 | EquipmentScene | `scenes/equipment/EquipmentScene.tscn` | `scripts/equipment/EquipmentScene.gd`（**P3-UX-EQUIP-SCROLL-PERF-001** スクロール軽量化／**P3-UX-CHR-STAT-PAGES-001** ステ3ページ／**P3-UX-CHR-EFFECT-PAGES-001** 装備効果3ページ／**P3-UX-EQUIP-MAX-FILTER-001** MAXありフィルタ） |
-| EquipmentCatalogScene | `scenes/equipment/EquipmentCatalogScene.tscn` | `scripts/equipment/EquipmentCatalogScene.gd`（**P3-EQ-INV-CAP-001** 所持 `n/200件`／**P3-UX-EQUIP-LOCK-001** 長押しロック） |
+| EquipmentCatalogScene | `scenes/equipment/EquipmentCatalogScene.tscn` | `scripts/equipment/EquipmentCatalogScene.gd`（**P3-EQ-INV-CAP-001** 所持 `n/1000件`／**P3-UX-EQUIP-LOCK-001** 長押しロック） |
 | BlacksmithScene | `scenes/blacksmith/BlacksmithScene.tscn` | `scripts/blacksmith/BlacksmithScene.gd` |
 | CodexScene | `scenes/codex/CodexScene.tscn` | `scripts/codex/CodexScene.gd` |
 | GachaScene | `scenes/gacha/GachaScene.tscn` | `scripts/gacha/GachaScene.gd`（**P3-UI-GACHA** モック chrome・Reveal・DetailOverlay・招き／封蔵部屋ガイド） |

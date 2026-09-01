@@ -9,19 +9,19 @@ func before_each() -> void:
 	GameState.mark_equipped_item_owner_cache_dirty()
 
 
-func test_cap_constant_is_400() -> void:
-	assert_eq(Constants.MAX_EQUIPMENT_INVENTORY, 400)
+func test_cap_constant_is_1000() -> void:
+	assert_eq(Constants.MAX_EQUIPMENT_INVENTORY, 1000)
 
 
 func test_count_label_format() -> void:
-	assert_eq(GameState.equipment_inventory_count_label(), "0/400件")
+	assert_eq(GameState.equipment_inventory_count_label(), "0/1000件")
 	var w: Resource = WeaponInstance.new()
 	w.instance_id = "cap_w_1"
 	w.weapon_id = "iron_sword"
 	w.is_appraised = true
 	assert_true(GameState.try_add_weapon_instance(w))
 	assert_eq(GameState.equipment_inventory_count(), 1)
-	assert_eq(GameState.equipment_inventory_count_label(), "1/400件")
+	assert_eq(GameState.equipment_inventory_count_label(), "1/1000件")
 
 
 func test_blocks_at_cap() -> void:
@@ -31,14 +31,14 @@ func test_blocks_at_cap() -> void:
 		w.weapon_id = "iron_sword"
 		w.is_appraised = true
 		assert_true(GameState.try_add_weapon_instance(w), "fill %d" % i)
-	assert_eq(GameState.equipment_inventory_count(), 400)
+	assert_eq(GameState.equipment_inventory_count(), Constants.MAX_EQUIPMENT_INVENTORY)
 	assert_false(GameState.can_add_equipment())
 	var extra: Resource = WeaponInstance.new()
 	extra.instance_id = "cap_extra"
 	extra.weapon_id = "iron_sword"
 	extra.is_appraised = true
 	assert_false(GameState.try_add_weapon_instance(extra))
-	assert_eq(GameState.inventory.size(), 400)
+	assert_eq(GameState.inventory.size(), Constants.MAX_EQUIPMENT_INVENTORY)
 
 
 func test_ignore_cap_for_debug_path() -> void:
@@ -51,7 +51,7 @@ func test_ignore_cap_for_debug_path() -> void:
 	over.instance_id = "cap_over"
 	over.weapon_id = "iron_sword"
 	assert_true(GameState.try_add_weapon_instance(over, true))
-	assert_eq(GameState.equipment_inventory_count(), 401)
+	assert_eq(GameState.equipment_inventory_count(), Constants.MAX_EQUIPMENT_INVENTORY + 1)
 
 
 func test_equipped_owner_cache_after_controller_equip() -> void:

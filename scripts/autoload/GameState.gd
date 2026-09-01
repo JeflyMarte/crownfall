@@ -1381,7 +1381,7 @@ func can_add_equipment(count: int = 1, ignore_cap: bool = false) -> bool:
 	return equipment_inventory_count() + count <= Constants.MAX_EQUIPMENT_INVENTORY
 
 
-## 装備袋表示用（例: 10/400件）。
+## 装備袋表示用（例: 10/1000件）。
 func equipment_inventory_count_label() -> String:
 	return "%d/%d件" % [equipment_inventory_count(), Constants.MAX_EQUIPMENT_INVENTORY]
 

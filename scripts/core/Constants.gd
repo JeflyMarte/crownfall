@@ -37,10 +37,10 @@ const NORTH_REACH_DUNGEON_ID: String = "north_reach"
 ## 征討2・星炉の寝主／星炉火口（P3-DG-APEX-FORGE-001）。
 const RED_FORGE_DEPTHS_DUNGEON_ID: String = "red_forge_depths"
 ## イベント常設で配信する apex 征討 id（寄り道オミットは維持）。
-const APEX_CONQUEST_PLAYABLE_IDS: Array[String] = [
-	NORTH_REACH_DUNGEON_ID,
-	RED_FORGE_DEPTHS_DUNGEON_ID,
-]
+## 第1弾 UX パッチでは `[]` にして非表示（データ残置）。第2弾で id を戻す。
+const APEX_CONQUEST_PLAYABLE_IDS: Array[String] = []
+## 魔晶石発掘を拠点から出す（P3-UX-CRYSTAL-EXCAVATE-001）。第1弾 UX パッチでは false。
+const CRYSTAL_EXCAVATE_PLAYABLE: bool = false
 ## 初期5人ストーリー編成（P3-STORY-STARTER-001）。true=開始1人選択＋章進行で加入。
 const STARTER_STORY_RECRUIT: bool = true
 ## β検証用: モーンゲート 1-2/1-3/1-4 初回クリアでも未加入スターターを1人加入（本番×-5ルールに加え）。
@@ -74,7 +74,7 @@ const MAX_EQUIPPED_PASSIVES: int = 1
 ## 1キャラが装備できるレリック数（解放型パッシブ・P3-RELIC-PASSIVE）。
 const MAX_EQUIPPED_RELIC_PASSIVES: int = 1
 ## 装備袋の所持上限（武+防+飾の合算。レリックは解放型で別枠 — P3-EQ-INV-CAP-001）。
-const MAX_EQUIPMENT_INVENTORY: int = 400
+const MAX_EQUIPMENT_INVENTORY: int = 1000
 ## 必殺技スロットの既定スキル id（P3-D085）。ジョブ未指定時に使用。
 const DEFAULT_ULTIMATE_SKILL_ID: String = "ultimate_strike"
 
@@ -126,6 +126,9 @@ static func is_gacha_helper_id(member_id: String) -> bool:
 
 static func are_gacha_helpers_playable() -> bool:
 	return GACHA_HELPERS_PLAYABLE
+
+static func is_crystal_excavate_playable() -> bool:
+	return CRYSTAL_EXCAVATE_PLAYABLE
 
 static func is_pet_id(member_id: String) -> bool:
 	return member_id.begins_with("pet_")

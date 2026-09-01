@@ -643,6 +643,8 @@ func should_show_shadow_stalker_omen() -> bool:
 func _roll_run_weather() -> String:
 	if _IntroTutorialConfig.is_run(self):
 		return ""
+	if _is_abyss_run():
+		return ""
 	var forced: String = EventSystem.forced_weather_id()
 	if not forced.is_empty():
 		return CombatWeather.normalize(forced)
@@ -1131,19 +1133,11 @@ func _extend_abyss_chunk() -> void:
 
 
 ## 深層のみ: 10F チャンク先頭で天候を再抽選（本編は run 開始1回のまま・P3-D101）。
-## 戻り値は境界で再抽選を実行したか。id 変化は last_abyss_weather_changed。
+## 戻り値は境界で再抽選を実行したか。深層（P3-D101-7）は常に false。
 func _maybe_reroll_abyss_block_weather() -> bool:
-	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
 	if not _is_abyss_run():
 		return false
-	var floor_n: int = get_display_floor_current()
-	if floor_n <= 1 or not _AbyssDungeonConfig.is_block_start_floor(floor_n):
-		return false
-	var prev: String = CombatWeather.normalize(GameState.get_weather())
-	var next: String = CombatWeather.normalize(_roll_run_weather())
-	GameState.set_weather(next)
-	last_abyss_weather_changed = prev != next
-	return true
+	return false
 
 
 ## 33F ごと（表示階）を BOSS 部屋に差し替え。敵は親 Biome ボス。

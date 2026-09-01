@@ -3,7 +3,7 @@ extends RefCounted
 
 ## 天候（環境変化・P3-D101 / P3-WEATHER-W1-A-001 / P3-WEATHER-BIOME-BIAS-001）。
 ## 本編: run 開始時に1つ抽選し DG 中は不変。
-## 深層（無限）: 10F チャンク先頭で再抽選（親 Biome 重み）。
+## 深層（無限）: **天候なし**（抽選・VFX・戦闘補正すべてオフ — P3-D101-7）。
 ## 征討 north_reach／red_forge_depths: 専用重み／run 固定（P3-DG-APEX-ENV-001／FORGE-001）。
 ## 効果は戦闘の中央フックに相乗りする:
 ##   属性補正（attack_element 別の与ダメ倍率）/ 全体の与ダメ・被ダメ倍率

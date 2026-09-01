@@ -64,7 +64,8 @@ func _ready() -> void:
 	AudioManager.play_bgm("hub")
 	_decorate_panels()
 	_setup_field_survey_banner()
-	_setup_excavate_entry()
+	if Constants.is_crystal_excavate_playable():
+		_setup_excavate_entry()
 	_setup_nina_nav()
 	_build_left_menu()
 	DailyMissionSystem.missions_updated.connect(_refresh_daily_missions)
