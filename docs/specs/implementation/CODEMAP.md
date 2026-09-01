@@ -58,7 +58,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | CodexScene | `scenes/codex/CodexScene.tscn` | `scripts/codex/CodexScene.gd` |
 | GachaScene | `scenes/gacha/GachaScene.tscn` | `scripts/gacha/GachaScene.gd`（**P3-UI-GACHA** モック chrome・Reveal・DetailOverlay・招き／封蔵部屋ガイド） |
 | EventScene | `scenes/event/EventScene.tscn` | `scripts/event/EventScene.gd`（**P3-EVT-FIELD-001** ギルド情報誌／いまの野外詳細） |
-| CrystalExcavateSelectScene / Combat / Result | `scenes/excavate/*.tscn` | `scripts/excavate/CrystalExcavate*.gd` + **`CrystalExcavateSystem.gd`**（**P3-UX-CRYSTAL-EXCAVATE-001** 日次魔晶石発掘） |
+| CrystalExcavateSelectScene / Combat / Result | `scenes/excavate/*.tscn` | `scripts/excavate/CrystalExcavate*.gd` + **`CrystalExcavateSystem.gd`** + **`CrystalExcavateBgHelper.gd`**（**P3-UX-CRYSTAL-EXCAVATE-001** 日次魔晶石発掘。BG=`UI_BG_CrystalExcavate*.png`） |
 | ShowcaseScene | `scenes/showcase/ShowcaseScene.tscn` | `scripts/showcase/ShowcaseScene.gd`（**P3-SHOWCASE-001** 展示室２背景・装備4枠（レリック含む）・ステ下スキル名＋効果。スタッフ名札＝`キャラ(ビルド)`） |
 | ShowcaseCatalog | — | `scripts/showcase/ShowcaseCatalog.gd`（スタッフ理想ビルド5枠・読取専用） |
 | SurveyScene | `scenes/survey/SurveyScene.tscn` | `scripts/survey/SurveyScene.gd`（**P3-HUB-SURVEY-001** 調査室。スタッフ＝`SurveyStaff`。ノノカは **P3-SURVEY-NONOKA-JOIN-001** で③クリア後合流） |

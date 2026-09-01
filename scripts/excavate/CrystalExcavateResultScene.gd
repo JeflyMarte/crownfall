@@ -4,11 +4,13 @@ extends Control
 
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const _Excavate := preload("res://scripts/excavate/CrystalExcavateSystem.gd")
+const _BgHelper := preload("res://scripts/excavate/CrystalExcavateBgHelper.gd")
 
 @onready var _main: VBoxContainer = $MainVBox
 
 
 func _ready() -> void:
+	_BgHelper.ensure_background(self, _BgHelper.BG_RESULT)
 	_Excavate.ensure_refreshed()
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.NONE)
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)

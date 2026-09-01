@@ -5,6 +5,7 @@ extends Control
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const _Excavate := preload("res://scripts/excavate/CrystalExcavateSystem.gd")
 const _DamageHelper := preload("res://scripts/excavate/CrystalExcavateDamageHelper.gd")
+const _BgHelper := preload("res://scripts/excavate/CrystalExcavateBgHelper.gd")
 
 @onready var _content: VBoxContainer = $MainScroll/MainVBox/ContentHost
 
@@ -18,6 +19,7 @@ var _skill_rows: Array[Dictionary] = []
 
 
 func _ready() -> void:
+	_BgHelper.ensure_background(self, _BgHelper.BG_SELECT)
 	_Excavate.ensure_refreshed()
 	if _Excavate.is_used_today():
 		SceneRouter.change_scene(_Excavate.RESULT_SCENE)
