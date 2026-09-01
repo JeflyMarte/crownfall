@@ -376,8 +376,8 @@ func _build_character_entries() -> Array:
 	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
 	for pet_id: String in ["pet_jack", "pet_ash", "pet_ink"]:
 		entries.append(_build_pet_entry(pet_id, _PetSystem.owns_pet(pet_id)))
-	## 排出プール助っ人（所持時開示。`_omitted` は昇格まで非掲載）。
-	for helper: Resource in DataRegistry.get_all_gacha_helper_data():
+	## 排出プール助っ人（所持時開示。`_omitted`／`GACHA_HELPER_OMITTED_IDS` は未所持なら非掲載）。
+	for helper: Resource in DataRegistry.get_gacha_pool_helper_data():
 		if helper == null:
 			continue
 		var hid: String = str(helper.id)

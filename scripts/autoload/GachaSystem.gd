@@ -93,7 +93,7 @@ func _refund_pull_cost(paid_with_ticket: bool) -> void:
 func _get_pool() -> Array:
 	if not Constants.are_gacha_helpers_playable():
 		return []
-	return DataRegistry.get_all_gacha_helper_data()
+	return DataRegistry.get_gacha_pool_helper_data()
 
 func _select_helper(pool: Array) -> Resource:
 	return _pick_by_rarity(pool)

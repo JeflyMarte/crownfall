@@ -436,7 +436,7 @@ static func _sync_featured_equip_rarity_badge(
 static func sorted_helpers() -> Array:
 	if not Constants.are_gacha_helpers_playable():
 		return []
-	var helpers: Array = DataRegistry.get_all_gacha_helper_data()
+	var helpers: Array = DataRegistry.get_gacha_pool_helper_data()
 	helpers.sort_custom(func(a, b): return int(a.rarity) > int(b.rarity))
 	return helpers
 

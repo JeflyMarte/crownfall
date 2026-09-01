@@ -76,7 +76,7 @@ static func _unlock_all_starters_and_helpers() -> void:
 	GameState.owned_helpers.clear()
 	if not Constants.are_gacha_helpers_playable():
 		return
-	for helper in DataRegistry.get_all_gacha_helper_data():
+	for helper in DataRegistry.get_gacha_pool_helper_data():
 		if helper == null:
 			continue
 		var hid: String = str(helper.id)
@@ -89,6 +89,17 @@ static func _unlock_all_starters_and_helpers() -> void:
 		var adv: Resource = GachaSystem.create_adventurer_from_helper(helper)
 		GameState.add_roster_member(adv)
 		GameState._grant_member_starting_weapon(adv)
+	for staged_id: String in Constants.GACHA_HELPER_OMITTED_IDS:
+		var staged: Resource = DataRegistry.get_gacha_helper_data(staged_id)
+		if staged == null:
+			continue
+		GameState.owned_helpers[staged_id] = DEBUG_HELPER_OWNED_COUNT
+		var staged_member_id: String = "gacha_" + staged_id
+		if GameState.find_roster_member_by_id(staged_member_id) != null:
+			continue
+		var staged_adv: Resource = GachaSystem.create_adventurer_from_helper(staged)
+		GameState.add_roster_member(staged_adv)
+		GameState._grant_member_starting_weapon(staged_adv)
 	# 編成は先頭 ACTIVE_PARTY_SIZE（スターター優先のまま）
 	GameState.party_members.clear()
 	for i in mini(GameState.ACTIVE_PARTY_SIZE, GameState.roster.size()):

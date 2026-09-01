@@ -48,6 +48,8 @@ const STARTER_STORY_RECRUIT: bool = true
 const STARTER_RECRUIT_BETA_EXTRA: bool = false
 ## ガチャ助っ人をプレイ対象に含める（P3-CHR-OMIT-001 / P3-GACHA-ENABLE-001）。false=招待状ロック・ロスターから除外（データ残置）。
 const GACHA_HELPERS_PLAYABLE: bool = true
+## 第2弾までガチャプール・UI 非表示（データ残置。`get_gacha_helper_data` は可 — P3-JOB-ENGINEER-001 staged）。
+const GACHA_HELPER_OMITTED_IDS: Array[String] = ["helper_q", "helper_r", "helper_s"]
 ## サブステージ（1-1 等）分割を有効化（P3-DG-STG-001 / P3-DG-STG-ENABLE）。
 ## 2026-07-20 一旦オミット → 2026-07-21 実機で単体DGが常時ボス化し序盤出現が崩れたため再有効化。
 const SUB_STAGES_PLAYABLE: bool = true
@@ -126,6 +128,11 @@ static func is_gacha_helper_id(member_id: String) -> bool:
 
 static func are_gacha_helpers_playable() -> bool:
 	return GACHA_HELPERS_PLAYABLE
+
+static func is_gacha_helper_in_pool(helper_id: String) -> bool:
+	if helper_id.is_empty():
+		return false
+	return not GACHA_HELPER_OMITTED_IDS.has(helper_id)
 
 static func is_crystal_excavate_playable() -> bool:
 	return CRYSTAL_EXCAVATE_PLAYABLE

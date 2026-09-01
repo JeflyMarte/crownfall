@@ -106,6 +106,17 @@ func get_all_gacha_helper_data() -> Array:
 	## 直下の .tres のみ（`_omitted/` はプール外）
 	return _load_all_resources(Constants.RESOURCE_GACHA_HELPERS_PATH)
 
+
+## 抽選・ガチャ UI 用（`GACHA_HELPER_OMITTED_IDS` を除外）。
+func get_gacha_pool_helper_data() -> Array:
+	var out: Array = []
+	for helper: Resource in get_all_gacha_helper_data():
+		if helper == null:
+			continue
+		if Constants.is_gacha_helper_in_pool(str(helper.id)):
+			out.append(helper)
+	return out
+
 func get_ticket_data(ticket_id: String) -> Resource:
 	if ticket_id.is_empty():
 		return null

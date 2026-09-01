@@ -47,7 +47,7 @@ const CRYSTAL_EXCAVATE_PLAYABLE: bool = false
 | `APEX_CONQUEST_PLAYABLE_IDS` | `[]` | 天望＋星炉 id | 寄り道オミットは維持 |
 | `CRYSTAL_EXCAVATE_PLAYABLE` | `false` | `true` | — |
 | `GACHA_HELPERS_PLAYABLE` | **`true` 維持** | `true` | false にするとガチャ全体が消える |
-| 機巧士アセット | 第2弾まで `eebc2461` をビルドに含めない **または** 同梱可（プールに出ないよう第2弾まで） | 同梱 | フラグだけでは3人を個別 OFF 不可 |
+| `GACHA_HELPER_OMITTED_IDS` | **`helper_q/r/s`** | `[]` | 機巧士3をプール・UI から除外（データ残置） |
 
 ---
 
