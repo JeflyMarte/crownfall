@@ -455,8 +455,8 @@ const BATTLE_BG_MAP: Dictionary = {
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/BG_Battle_Mistfen.png",
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/BG_Battle_BrokenMarsh.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/BG_Battle_Blackshore.png",
-	"red_forge_depths": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge.png",
-	"north_reach": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge.png",
+	"red_forge_depths": "res://assets/dungeon/red_forge_depths/env/BG_Battle_RedForge.png",
+	"north_reach": "res://assets/dungeon/valgard_boundary/env/BG_Battle_ValgardBoundary.png",
 	## イベントDG（ダック／レイヴン共通背景）
 	"cosmic_rift": "res://assets/dungeon/event/env/BG_Battle_Event.png",
 	"crown_rookery": "res://assets/dungeon/event/env/BG_Battle_Event.png",
@@ -474,12 +474,18 @@ const BATTLE_BG_EARLY_MAP: Dictionary = {
 	"red_ridge_mine": "res://assets/dungeon/whisperwood/env/BG_Battle_Whisperwood_Early.png",
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/BG_Battle_Mistfen_Early.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/BG_Battle_Blackshore_Early.png",
-	"red_forge_depths": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge_Early.png",
-	"north_reach": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge_Early.png",
+	"red_forge_depths": "res://assets/dungeon/red_forge_depths/env/BG_Battle_RedForge_Early.png",
+	"north_reach": "res://assets/dungeon/valgard_boundary/env/BG_Battle_ValgardBoundary.png",
 }
-## フロストリッジ x-5 ボス戦専用（Hard/NM 含む）。
+## フロストリッジ x-5 ボス戦専用（Hard/NM 含む）。未マップ Biome のフォールバック。
 const BATTLE_BG_FINAL_BOSS: String = "res://assets/dungeon/frostridge/env/BG_Battle_FinalBoss.png"
-## ラスボス背景を使う本編 Biome（親 ID）。
+## Biome ごとのボス戦専用BG（征討含む）。
+const BATTLE_BG_BOSS_MAP: Dictionary = {
+	"frostridge": "res://assets/dungeon/frostridge/env/BG_Battle_FinalBoss.png",
+	"north_reach": "res://assets/dungeon/frostridge/env/BG_Battle_FinalBoss.png",
+	"red_forge_depths": "res://assets/dungeon/red_forge_depths/env/BG_Battle_RedForge_Boss.png",
+}
+## ラスボス背景を使う本編／征討 Biome（親 ID）。
 const BATTLE_BG_FINAL_BOSS_BIOMES: Dictionary = {
 	"frostridge": true,
 	"north_reach": true,
@@ -487,6 +493,8 @@ const BATTLE_BG_FINAL_BOSS_BIOMES: Dictionary = {
 }
 const BATTLE_BG_EARLY_CHAPTER_MAX: int = 3
 const BATTLE_BG_FINAL_BOSS_CHAPTER: int = 5
+## 征討 Early＝外輪〜火口壁（F1〜14）。Late＝炉喉（F15〜19）。Boss＝F20。
+const BATTLE_BG_APEX_EARLY_FLOOR_MAX: int = 14
 const TREASURE_CLOSED_OBJ_MAP: Dictionary = {
 	"mourngate": "res://assets/dungeon/mourngate/env/OBJ_TreasureChest_Closed.png",
 	"astoria_ruins": "res://assets/dungeon/astoria_ruins/env/OBJ_TreasureChest_Closed.png",
@@ -504,7 +512,7 @@ const TREASURE_CLOSED_OBJ_MAP: Dictionary = {
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/OBJ_TreasureChest_Closed.png",
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/OBJ_TreasureChest_Closed.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/OBJ_TreasureChest_Closed.png",
-	"red_forge_depths": "res://assets/dungeon/frostridge/env/OBJ_TreasureChest_Closed.png",
+	"red_forge_depths": "res://assets/dungeon/broken_marsh/env/OBJ_TreasureChest_Closed.png",
 	"north_reach": "res://assets/dungeon/frostridge/env/OBJ_TreasureChest_Closed.png",
 }
 const EXIT_OBJ_MAP: Dictionary = {
@@ -524,7 +532,7 @@ const EXIT_OBJ_MAP: Dictionary = {
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/OBJ_ExitGate_Mistfen.png",
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/OBJ_ExitGate_BrokenMarsh.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/OBJ_ExitGate_Blackshore.png",
-	"red_forge_depths": "res://assets/dungeon/frostridge/env/OBJ_ExitGate_Frostridge.png",
+	"red_forge_depths": "res://assets/dungeon/broken_marsh/env/OBJ_ExitGate_BrokenMarsh.png",
 	"north_reach": "res://assets/dungeon/frostridge/env/OBJ_ExitGate_Frostridge.png",
 }
 const FLOOR_TILE_MAP: Dictionary = {
@@ -544,7 +552,7 @@ const FLOOR_TILE_MAP: Dictionary = {
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/TILE_Floor.png",
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/TILE_Floor.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/TILE_Floor.png",
-	"red_forge_depths": "res://assets/dungeon/frostridge/env/TILE_Floor.png",
+	"red_forge_depths": "res://assets/dungeon/broken_marsh/env/TILE_Floor.png",
 	"north_reach": "res://assets/dungeon/frostridge/env/TILE_Floor.png",
 }
 const _FLOOR_ROOM_TYPES: Array[int] = [
@@ -585,6 +593,10 @@ const STATUS_ICON_DEF: Dictionary = {
 	"mire_toxin": {"abbrev": "瘴", "color": Color(0.35, 0.7, 0.28)},
 	"heal_block": {"abbrev": "封", "color": Color(0.72, 0.18, 0.42)},
 	"regen": {"abbrev": "再", "color": Color(0.35, 0.85, 0.45)},
+	## 機巧士仕掛け（敵頭上マーク）
+	"eng_trap_spike": {"abbrev": "棘", "color": Color(0.75, 0.65, 0.35)},
+	"eng_trap_snare": {"abbrev": "絡", "color": Color(0.4, 0.7, 0.9)},
+	"eng_trap_break": {"abbrev": "穿", "color": Color(0.85, 0.55, 0.25)},
 	## 敵スキル沈黙（StatusEffect ではなく戦闘ローカル）。頭上❌と併用。
 	"skill_silence": {"abbrev": "❌", "color": Color(0.75, 0.12, 0.18)},
 }
@@ -798,6 +810,10 @@ var _pending_abyss_weather_log: bool = false
 ## 暗転中点の敵シート load／get_image を明け後へ遅延（弱機フリーズ種）。
 var _defer_combat_room_visuals: bool = false
 var _pending_swarm_enemy_ids: Array = []
+## 暗転中点の戦闘背景 load を明け後へ遅延（深層 11F 境界の Early/Late 切替）。
+var _defer_room_art_refresh: bool = false
+## 明け後 flush チェーンの世代（新遷移で古い await を無効化）。
+var _post_transition_flush_gen: int = 0
 ## 次フロア入場で適用済み・味方表示後に VFX／名ポップ／SE する応急手当の実回復量。
 var _pending_floor_choice_heal_amounts: Dictionary = {}
 ## 非戦闘入場の回復パッシブ演出（野営の調合など）中。
@@ -902,6 +918,7 @@ var _dungeon_header_icon: TextureRect
 var _chr_sprites: Array[AnimatedSprite2D] = []
 # 1フレームのみの idle 素材（Ranger/Alchemist 等）向けのコード擬似 idle（呼吸）tween 保持
 var _chr_idle_tweens: Array = [null, null, null, null, null]
+var _light_cd_bar_tick: int = 0
 # メンバーごとの表示中スキル名ラベル（重なり防止のため tick 毎に置換・段組み）
 var _chr_skill_labels: Array = [[], [], [], [], []]
 # 同一メンバーが同 tick に複数スキルを発動した際、ラベルを縦にずらす間隔(px)
@@ -1132,17 +1149,17 @@ func _ready() -> void:
 		sprite.animation_finished.connect(func():
 			if sprite.visible and sprite.sprite_frames != null:
 				if sprite.animation in ["attack", "hurt"]:
-					sprite.play("idle")
+					_play_combat_idle(sprite)
 		)
 	_enemy_sprite.animation_finished.connect(func():
 		if _enemy_sprite.visible and _enemy_sprite.sprite_frames != null:
 			if _enemy_sprite.animation in ["attack", "hurt"]:
-				_enemy_sprite.play("idle")
+				_play_combat_idle(_enemy_sprite)
 	)
 	_boss_sprite.animation_finished.connect(func():
 		if _boss_sprite.visible and _boss_sprite.sprite_frames != null:
 			if _boss_sprite.animation in ["attack", "hurt"]:
-				_boss_sprite.play("idle")
+				_play_combat_idle(_boss_sprite)
 	)
 	_style_hp_bars()
 	_style_combat_ui_panels()
@@ -1181,6 +1198,8 @@ func _ready() -> void:
 	_pending_abyss_weather_log = false
 	_defer_combat_room_visuals = false
 	_pending_swarm_enemy_ids.clear()
+	_defer_room_art_refresh = false
+	_post_transition_flush_gen = 0
 	_floor_choice_active = false
 	GameState.last_run_accessory_dropped = ""
 	GameState.last_run_weapon_dropped = ""
@@ -1249,11 +1268,16 @@ func _setup_weather() -> void:
 	var weather: String = GameState.get_weather()
 	if weather.is_empty():
 		return
-	var light: bool = SettingsPrefs.is_light_mode()
 	var layer := CanvasLayer.new()
 	layer.name = "WeatherLayer"
 	layer.layer = 3
 	add_child(layer)
+	if SettingsPrefs.is_light_mode():
+		_setup_weather_light_static(layer, weather)
+		return
+	if SettingsPrefs.is_mobile_platform():
+		_setup_weather_mobile_reduced(layer, weather)
+		return
 	var view: Vector2 = get_viewport_rect().size
 	match weather:
 		CombatWeather.NIGHT:
@@ -1281,7 +1305,7 @@ func _setup_weather() -> void:
 			var tw2 := layer.create_tween().set_loops()
 			tw2.tween_property(haze2, "color:a", 0.20, 3.4).set_trans(Tween.TRANS_SINE)
 			tw2.tween_property(haze2, "color:a", 0.08, 3.4).set_trans(Tween.TRANS_SINE)
-			if not light:
+			if not SettingsPrefs.is_light_mode():
 				var mist := CPUParticles2D.new()
 				mist.texture = _make_fog_wisp_texture()
 				mist.amount = 48
@@ -1301,30 +1325,22 @@ func _setup_weather() -> void:
 				mist.emitting = true
 				layer.add_child(mist)
 		CombatWeather.RAIN:
-			if light:
-				## 軽量: 雨粒パーティクル代わりに薄い青ベールのみ。
-				var rain_veil := ColorRect.new()
-				rain_veil.color = Color(0.35, 0.42, 0.55, 0.14)
-				rain_veil.set_anchors_preset(Control.PRESET_FULL_RECT)
-				rain_veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
-				layer.add_child(rain_veil)
-			else:
-				var rain := CPUParticles2D.new()
-				rain.texture = _make_raindrop_texture()
-				rain.amount = 150
-				rain.lifetime = 0.7
-				rain.local_coords = false
-				rain.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-				rain.emission_rect_extents = Vector2(view.x * 0.6, 2.0)
-				rain.position = Vector2(view.x * 0.5, -12.0)
-				rain.direction = Vector2(0.1, 1.0)
-				rain.spread = 4.0
-				rain.gravity = Vector2(20.0, 900.0)
-				rain.initial_velocity_min = 420.0
-				rain.initial_velocity_max = 540.0
-				rain.modulate = Color(0.75, 0.82, 1.0, 0.7)
-				rain.emitting = true
-				layer.add_child(rain)
+			var rain := CPUParticles2D.new()
+			rain.texture = _make_raindrop_texture()
+			rain.amount = 150
+			rain.lifetime = 0.7
+			rain.local_coords = false
+			rain.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+			rain.emission_rect_extents = Vector2(view.x * 0.6, 2.0)
+			rain.position = Vector2(view.x * 0.5, -12.0)
+			rain.direction = Vector2(0.1, 1.0)
+			rain.spread = 4.0
+			rain.gravity = Vector2(20.0, 900.0)
+			rain.initial_velocity_min = 420.0
+			rain.initial_velocity_max = 540.0
+			rain.modulate = Color(0.75, 0.82, 1.0, 0.7)
+			rain.emitting = true
+			layer.add_child(rain)
 		CombatWeather.HEAT:
 			var heat := ColorRect.new()
 			heat.color = Color(0.55, 0.22, 0.08, 0.14)
@@ -1335,39 +1351,132 @@ func _setup_weather() -> void:
 			heat_tw.tween_property(heat, "color:a", 0.20, 2.4).set_trans(Tween.TRANS_SINE)
 			heat_tw.tween_property(heat, "color:a", 0.10, 2.4).set_trans(Tween.TRANS_SINE)
 		CombatWeather.SNOW:
-			if light:
-				var snow_veil := ColorRect.new()
-				snow_veil.color = Color(0.78, 0.86, 0.95, 0.12)
-				snow_veil.set_anchors_preset(Control.PRESET_FULL_RECT)
-				snow_veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
-				layer.add_child(snow_veil)
-			else:
-				## 画面上半分くらいまで届く落下距離（旧 lifetime だと途中で消えて薄く見えた）。
-				var fall_depth: float = view.y * 0.52
-				var v_mid: float = 58.0
-				var g_y: float = 52.0
-				var disc: float = v_mid * v_mid + 2.0 * g_y * fall_depth
-				var life: float = (-v_mid + sqrt(maxf(0.0, disc))) / maxf(1.0, g_y)
-				var snow := CPUParticles2D.new()
-				snow.texture = _make_snowflake_texture()
-				snow.amount = 130
-				snow.lifetime = clampf(life * 1.08, 4.2, 8.0)
-				## preprocess はモバイルでメインスレッドを長く止め得るため軽量に抑える。
-				snow.preprocess = mini(0.35, snow.lifetime * 0.08)
-				snow.local_coords = false
-				snow.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-				snow.emission_rect_extents = Vector2(view.x * 0.58, 2.0)
-				snow.position = Vector2(view.x * 0.5, -12.0)
-				snow.direction = Vector2(0.15, 1.0)
-				snow.spread = 18.0
-				snow.gravity = Vector2(10.0, g_y)
-				snow.initial_velocity_min = 46.0
-				snow.initial_velocity_max = 70.0
-				snow.scale_amount_min = 0.85
-				snow.scale_amount_max = 1.35
-				snow.modulate = Color(0.92, 0.96, 1.0, 0.78)
-				snow.emitting = true
-				layer.add_child(snow)
+			## 画面上半分くらいまで届く落下距離（旧 lifetime だと途中で消えて薄く見えた）。
+			var fall_depth: float = view.y * 0.52
+			var v_mid: float = 58.0
+			var g_y: float = 52.0
+			var disc: float = v_mid * v_mid + 2.0 * g_y * fall_depth
+			var life: float = (-v_mid + sqrt(maxf(0.0, disc))) / maxf(1.0, g_y)
+			var snow := CPUParticles2D.new()
+			snow.texture = _make_snowflake_texture()
+			snow.amount = 130
+			snow.lifetime = clampf(life * 1.08, 4.2, 8.0)
+			## preprocess はモバイルでメインスレッドを長く止め得るため軽量に抑える。
+			snow.preprocess = mini(0.35, snow.lifetime * 0.08)
+			snow.local_coords = false
+			snow.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+			snow.emission_rect_extents = Vector2(view.x * 0.58, 2.0)
+			snow.position = Vector2(view.x * 0.5, -12.0)
+			snow.direction = Vector2(0.15, 1.0)
+			snow.spread = 18.0
+			snow.gravity = Vector2(10.0, g_y)
+			snow.initial_velocity_min = 46.0
+			snow.initial_velocity_max = 70.0
+			snow.scale_amount_min = 0.85
+			snow.scale_amount_max = 1.35
+			snow.modulate = Color(0.92, 0.96, 1.0, 0.78)
+			snow.emitting = true
+			layer.add_child(snow)
+
+func _add_weather_veil(layer: CanvasLayer, color: Color) -> void:
+	var veil := ColorRect.new()
+	veil.color = color
+	veil.set_anchors_preset(Control.PRESET_FULL_RECT)
+	veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(veil)
+
+
+## 軽量モード: 粒子・ループ tween なしの静止ベールのみ（発熱対策）。
+func _setup_weather_light_static(layer: CanvasLayer, weather: String) -> void:
+	match weather:
+		CombatWeather.NIGHT:
+			_add_weather_veil(layer, Color(0.04, 0.06, 0.16, 0.30))
+		CombatWeather.FOG:
+			_add_weather_veil(layer, Color(0.62, 0.68, 0.64, 0.28))
+		CombatWeather.RAIN:
+			_add_weather_veil(layer, Color(0.35, 0.42, 0.55, 0.14))
+		CombatWeather.HEAT:
+			_add_weather_veil(layer, Color(0.55, 0.22, 0.08, 0.14))
+		CombatWeather.SNOW:
+			_add_weather_veil(layer, Color(0.78, 0.86, 0.95, 0.12))
+		_:
+			pass
+
+
+## モバイル通常: 静止ベール＋粒子少量。ループ tween なし（発熱対策）。
+func _setup_weather_mobile_reduced(layer: CanvasLayer, weather: String) -> void:
+	var view: Vector2 = get_viewport_rect().size
+	match weather:
+		CombatWeather.NIGHT:
+			_add_weather_veil(layer, Color(0.04, 0.06, 0.16, 0.30))
+		CombatWeather.FOG:
+			_add_weather_veil(layer, Color(0.62, 0.68, 0.64, 0.28))
+			var mist := CPUParticles2D.new()
+			mist.texture = _make_fog_wisp_texture()
+			mist.amount = 24
+			mist.lifetime = 3.6
+			mist.local_coords = false
+			mist.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+			mist.emission_rect_extents = Vector2(view.x * 0.55, view.y * 0.45)
+			mist.position = Vector2(view.x * 0.5, view.y * 0.45)
+			mist.direction = Vector2(1.0, 0.05)
+			mist.spread = 28.0
+			mist.gravity = Vector2(0.0, -6.0)
+			mist.initial_velocity_min = 8.0
+			mist.initial_velocity_max = 28.0
+			mist.scale_amount_min = 0.7
+			mist.scale_amount_max = 1.6
+			mist.modulate = Color(0.78, 0.84, 0.80, 0.55)
+			mist.emitting = true
+			layer.add_child(mist)
+		CombatWeather.RAIN:
+			_add_weather_veil(layer, Color(0.35, 0.42, 0.55, 0.14))
+			var rain := CPUParticles2D.new()
+			rain.texture = _make_raindrop_texture()
+			rain.amount = 60
+			rain.lifetime = 0.7
+			rain.local_coords = false
+			rain.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+			rain.emission_rect_extents = Vector2(view.x * 0.6, 2.0)
+			rain.position = Vector2(view.x * 0.5, -12.0)
+			rain.direction = Vector2(0.1, 1.0)
+			rain.spread = 4.0
+			rain.gravity = Vector2(20.0, 900.0)
+			rain.initial_velocity_min = 420.0
+			rain.initial_velocity_max = 540.0
+			rain.modulate = Color(0.75, 0.82, 1.0, 0.7)
+			rain.emitting = true
+			layer.add_child(rain)
+		CombatWeather.HEAT:
+			_add_weather_veil(layer, Color(0.55, 0.22, 0.08, 0.14))
+		CombatWeather.SNOW:
+			_add_weather_veil(layer, Color(0.78, 0.86, 0.95, 0.12))
+			var fall_depth: float = view.y * 0.52
+			var v_mid: float = 58.0
+			var g_y: float = 52.0
+			var disc: float = v_mid * v_mid + 2.0 * g_y * fall_depth
+			var life: float = (-v_mid + sqrt(maxf(0.0, disc))) / maxf(1.0, g_y)
+			var snow := CPUParticles2D.new()
+			snow.texture = _make_snowflake_texture()
+			snow.amount = 50
+			snow.lifetime = clampf(life * 1.08, 4.2, 8.0)
+			snow.preprocess = mini(0.35, snow.lifetime * 0.08)
+			snow.local_coords = false
+			snow.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+			snow.emission_rect_extents = Vector2(view.x * 0.58, 2.0)
+			snow.position = Vector2(view.x * 0.5, -12.0)
+			snow.direction = Vector2(0.15, 1.0)
+			snow.spread = 18.0
+			snow.gravity = Vector2(10.0, g_y)
+			snow.initial_velocity_min = 46.0
+			snow.initial_velocity_max = 70.0
+			snow.scale_amount_min = 0.85
+			snow.scale_amount_max = 1.35
+			snow.modulate = Color(0.92, 0.96, 1.0, 0.78)
+			snow.emitting = true
+			layer.add_child(snow)
+		_:
+			pass
 
 func _make_raindrop_texture() -> Texture2D:
 	var img := Image.create(2, 14, false, Image.FORMAT_RGBA8)
@@ -1412,7 +1521,12 @@ func _process(delta: float) -> void:
 			_tick_relic_combat_regen(clock)
 			if $CombatController.tick_member_skill_silence(clock):
 				_update_status_icons()
-		_update_party_skill_cd_bars_smooth(delta)
+		if SettingsPrefs.mobile_throttle_idle_loops():
+			_light_cd_bar_tick += 1
+			if _light_cd_bar_tick % 2 == 0:
+				_update_party_skill_cd_bars_smooth(delta)
+		else:
+			_update_party_skill_cd_bars_smooth(delta)
 		_update_chr_hp_bar_positions()
 
 func _set_narrative(text: String) -> void:
@@ -1692,6 +1806,8 @@ func _hide_combat_threat_banner() -> void:
 		_threat_vignette.color = Color(0, 0, 0, 0)
 
 func _start_threat_banner_pulse() -> void:
+	if SettingsPrefs.mobile_throttle_idle_loops():
+		return
 	if _threat_banner == null or not is_instance_valid(_threat_banner):
 		return
 	if _threat_banner_pulse_tween != null and is_instance_valid(_threat_banner_pulse_tween):
@@ -2201,7 +2317,7 @@ func _spawn_transition_sparkles(color: Color, amount: int = 36, at_global: Varia
 	if _transition_fx_host == null:
 		return
 	if SettingsPrefs.is_light_mode():
-		amount = mini(amount, 10)
+		return
 	var parts := CPUParticles2D.new()
 	parts.amount = amount
 	parts.lifetime = 0.65
@@ -2310,20 +2426,53 @@ func _on_room_transition_finished() -> void:
 	_room_transition_busy = false
 	_label_transition.text = ""
 	_update_run_hud()
-	## 深層 10F 境界の天候 VFX は暗転明けに適用（11F 入場フリーズ対策）。
-	_flush_pending_abyss_weather_vfx()
-	## 敵シート load／正規化も暗転明けへ（弱機の同期 I/O フリーズ対策）。
-	_flush_deferred_combat_room_visuals()
-	## 応急手当: 戦闘フロアは暗転明けに演出（入場時点は黒幕で見えない）。
-	if $DungeonController.is_combat_room() and not _pending_floor_choice_heal_amounts.is_empty():
-		_present_pending_floor_choice_heal()
 	if $DungeonController.is_combat_room() and $CombatController.is_in_combat:
 		_sync_room_bgm()
-	_flush_pending_special_combat_entrance()
 	if not $CombatController.is_in_combat and not _auto_progress_finishes:
 		if _room_handles_own_progression($DungeonController.current_room_type):
+			_begin_post_transition_flush()
 			return
 		_start_auto_progress()
+	_begin_post_transition_flush()
+
+
+func _post_transition_flush_pending() -> bool:
+	return (
+		_pending_abyss_weather_refresh
+		or _defer_room_art_refresh
+		or _defer_combat_room_visuals
+	)
+
+
+func _begin_post_transition_flush() -> void:
+	if not _post_transition_flush_pending():
+		_finish_post_transition_flush()
+		return
+	_post_transition_flush_gen += 1
+	var gen: int = _post_transition_flush_gen
+	_run_post_transition_flush_async(gen)
+
+
+func _run_post_transition_flush_async(gen: int) -> void:
+	if _pending_abyss_weather_refresh or _defer_room_art_refresh:
+		await get_tree().process_frame
+		if gen != _post_transition_flush_gen or not is_inside_tree():
+			return
+		_flush_pending_abyss_weather_vfx()
+		_flush_deferred_room_art()
+	if _defer_combat_room_visuals:
+		await get_tree().process_frame
+		if gen != _post_transition_flush_gen or not is_inside_tree():
+			return
+		_flush_deferred_combat_room_visuals()
+	_finish_post_transition_flush()
+
+
+func _finish_post_transition_flush() -> void:
+	## 応急手当: 味方スプライト表示後に演出（入場時点は黒幕で見えない）。
+	if $DungeonController.is_combat_room() and not _pending_floor_choice_heal_amounts.is_empty():
+		_present_pending_floor_choice_heal()
+	_flush_pending_special_combat_entrance()
 
 
 func _flush_pending_abyss_weather_vfx() -> void:
@@ -2352,6 +2501,13 @@ func _flush_deferred_combat_room_visuals() -> void:
 	_show_enemy_swarm(ids)
 	_update_hp_bars()
 	_show_chr_sprites(false)
+
+
+func _flush_deferred_room_art() -> void:
+	if not _defer_room_art_refresh:
+		return
+	_defer_room_art_refresh = false
+	_update_room_art()
 
 # 戦闘可読性（P3-UX-001）: ログ行に現れる補正マーカーをラン単位で集計する。
 # Result の「効いた戦闘要素」の材料。キー=ログ内マーカー / 値=表示ラベル。
@@ -3120,6 +3276,43 @@ func _populate_status_icon_row(row: HBoxContainer, statuses: Array) -> void:
 	for entry: Dictionary in statuses:
 		row.add_child(_build_status_icon(entry))
 
+
+## 敵頭上用: 状態異常一覧に機巧士仕掛け印を先頭へ足す（stacks＝残発）。
+func _enemy_status_list_with_traps(slot: int) -> Array:
+	var statuses: Array = $CombatController.get_enemy_status_list_at(slot).duplicate()
+	var trap_entry: Dictionary = _engineer_trap_status_entry(slot)
+	if not trap_entry.is_empty():
+		statuses.push_front(trap_entry)
+	return statuses
+
+
+func _engineer_trap_status_entry(slot: int) -> Dictionary:
+	if slot < 0 or not _engineer_traps.has_trap(slot):
+		return {}
+	var t: Dictionary = _engineer_traps.get_trap(slot)
+	var kind: String = str(t.get("kind", ""))
+	if kind.is_empty():
+		return {}
+	var fires: int = int(t.get("fires_left", 0))
+	if fires <= 0:
+		return {}
+	var effect_id: String = "eng_trap_%s" % kind
+	var display: String = _engineer_trap_kind_label(kind)
+	match kind:
+		"spike":
+			display = "スパイクトラップ"
+		"snare":
+			display = "スネアトラップ"
+		"break":
+			display = "ブレイクトラップ"
+	return {
+		"effect_id": effect_id,
+		"display_name": display,
+		"stacks": fires,
+		"remaining_ticks": 0,
+	}
+
+
 func _set_status_row_above_sprite(
 	row: HBoxContainer,
 	sprite: AnimatedSprite2D,
@@ -3202,7 +3395,7 @@ func _update_status_icons() -> void:
 			_set_status_row_above_sprite(
 				boss_row,
 				_boss_sprite,
-				$CombatController.get_enemy_status_list_at(boss_slot),
+				_enemy_status_list_with_traps(boss_slot),
 				-1,
 				boss_slot
 			)
@@ -3218,7 +3411,7 @@ func _update_status_icons() -> void:
 			_set_status_row_above_sprite(
 				row,
 				_swarm_sprites[slot],
-				$CombatController.get_enemy_status_list_at(slot),
+				_enemy_status_list_with_traps(slot),
 				-1,
 				slot
 			)
@@ -3234,7 +3427,7 @@ func _update_status_icons() -> void:
 			_set_status_row_above_sprite(
 				row,
 				_swarm_sprites[slot],
-				$CombatController.get_enemy_status_list_at(slot),
+				_enemy_status_list_with_traps(slot),
 				-1,
 				slot
 			)
@@ -4144,7 +4337,10 @@ func _end_combat_session() -> void:
 func _enter_current_room() -> void:
 	_hide_event_telop()
 	_update_room_label()
-	_update_room_art()
+	if _room_transition_busy:
+		_defer_room_art_refresh = true
+	else:
+		_update_room_art()
 	if $DungeonController.has_active_floor_blessing():
 		var kind: String = $DungeonController.floor_blessing_kind
 		var label: String = $DungeonController.floor_blessing_label(kind)
@@ -5831,13 +6027,19 @@ func _try_apply_weapon_on_hit_status(member_index: int) -> void:
 ## P3-BAL-COMBAT-AUDIT-001 案B: 条件付き追撃を枠1でも報われる帯へ。
 const CONDITIONAL_STATUS_POWER_MULT: float = 1.6
 
-func _conditional_skill_power_mult(skill_data: Resource, target_slot: int) -> float:
+func _conditional_skill_power_mult(skill_data: Resource, target_slot: int, member_idx: int = -1) -> float:
 	if skill_data == null or target_slot < 0:
 		return 1.0
 	if skill_data.tags.has("vs_bleed") and $CombatController.get_enemy_status_stacks_at(target_slot, "bleed") > 0:
 		return CONDITIONAL_STATUS_POWER_MULT
 	if skill_data.tags.has("vs_mark") and $CombatController.get_enemy_status_stacks_at(target_slot, "mark") > 0:
 		return CONDITIONAL_STATUS_POWER_MULT
+	if skill_data.tags.has("vs_armor_break") and $CombatController.get_enemy_status_stacks_at(target_slot, "armor_break") > 0:
+		return 1.35
+	if member_idx >= 0:
+		var long_cd_mult: float = CombatPassives.long_cd_skill_power_mult_for_member(member_idx, skill_data)
+		if long_cd_mult > 1.0:
+			return long_cd_mult
 	## 場の敵数で単体威力が伸びる（追勢斬・P3-SKILL-KIT-DIVERGE-001）。
 	if skill_data.tags.has("swarm_power"):
 		var living: int = $CombatController.get_living_enemy_indices().size()
@@ -6004,7 +6206,7 @@ func _execute_member_aoe_damage_skill(
 			))
 		)
 		skill_dmg = maxi(1, int(round(float(skill_dmg) * weapon_skill_mult)))
-		skill_dmg = maxi(1, int(round(float(skill_dmg) * _conditional_skill_power_mult(skill_data, slot))))
+		skill_dmg = maxi(1, int(round(float(skill_dmg) * _conditional_skill_power_mult(skill_data, slot, member_idx))))
 		var elem_result: Dictionary = _apply_enemy_mitigation(skill_dmg, attack_element, member_idx, slot)
 		var final_dmg: int = maxi(
 			1,
@@ -6017,9 +6219,14 @@ func _execute_member_aoe_damage_skill(
 		total_dmg += final_dmg
 	var skill_is_crit: bool = result.get("is_critical", false)
 	var crit_tag: String = "  CRITICAL!" if skill_is_crit else ""
+	var cascade_trap_log: String = ""
+	if skill_data != null and skill_data.tags.has("eng_cascade"):
+		cascade_trap_log = _place_engineer_cascade_traps(member_idx, 3, 3 + CombatPassives.engineer_trap_fires_add(member_idx), 0.55)
 	var log_line: String = "\n【スキル】%s: 敵全体へ計%dダメージ%s%s（%d体）" % [
 		result["display_name"], total_dmg, crit_tag, form_tag, hits.size(),
 	]
+	if not cascade_trap_log.is_empty():
+		log_line += cascade_trap_log
 	if cast_index == 0:
 		_clear_member_skill_labels(member_idx)
 	## 必殺の全体攻撃はカットイン経路（単体必殺と同尺）。
@@ -6077,11 +6284,11 @@ func _execute_engineer_trap_place(
 	var result: Dictionary = _skill_executor.execute_support_skill(
 		skill_data,
 		cd_key,
-		(_EquipmentSetBonuses.skill_cd_mult(member_idx) * CombatPassives.relic_skill_cd_mult(member_idx))
+		(_EquipmentSetBonuses.skill_cd_mult(member_idx) * CombatPassives.relic_skill_cd_mult(member_idx) * CombatPassives.trap_skill_cd_mult(member_idx))
 	)
 	if not result.get("executed", false):
 		return ""
-	var fires: int = EngineerTrapsScript.fires_for_kind(kind)
+	var fires: int = EngineerTrapsScript.fires_for_kind(kind) + CombatPassives.engineer_trap_fires_add(member_idx)
 	var power: float = EngineerTrapsScript.power_for_kind(kind)
 	if float(skill_data.power_multiplier) > 0.0:
 		power = float(skill_data.power_multiplier)
@@ -6109,6 +6316,7 @@ func _execute_engineer_trap_place(
 			""
 		)
 	var kind_label: String = _engineer_trap_kind_label(kind)
+	_update_status_icons()
 	return "\n【スキル】%s: %sを仕掛けた（残%d）" % [
 		result["display_name"], kind_label, fires,
 	]
@@ -6124,7 +6332,68 @@ func _pick_engineer_trap_target(member_idx: int) -> int:
 		var slot: int = int(slot_v)
 		if $CombatController.is_enemy_slot_alive(slot) and not _engineer_traps.has_trap(slot):
 			return slot
-	return primary
+	if primary >= 0 and $CombatController.is_enemy_slot_alive(primary):
+		return primary
+	if not living.is_empty():
+		return int(living[0])
+	return -1
+
+
+## カスケード必殺など：印なし優先で最大 max_count 体。
+func _pick_engineer_multi_trap_targets(member_idx: int, max_count: int) -> Array[int]:
+	var out: Array[int] = []
+	if max_count <= 0:
+		return out
+	var living: Array = $CombatController.get_living_enemy_indices()
+	for slot_v: Variant in living:
+		var slot: int = int(slot_v)
+		if not $CombatController.is_enemy_slot_alive(slot):
+			continue
+		if _engineer_traps.has_trap(slot):
+			continue
+		out.append(slot)
+		if out.size() >= max_count:
+			return out
+	var primary: int = $CombatController.get_member_target_slot(member_idx)
+	if primary >= 0 and $CombatController.is_enemy_slot_alive(primary) and not out.has(primary):
+		out.append(primary)
+	for slot_v: Variant in living:
+		var slot: int = int(slot_v)
+		if out.has(slot):
+			continue
+		out.append(slot)
+		if out.size() >= max_count:
+			break
+	return out
+
+
+func _place_engineer_cascade_traps(
+	member_idx: int,
+	max_count: int,
+	fires: int,
+	power: float
+) -> String:
+	var slots: Array[int] = _pick_engineer_multi_trap_targets(member_idx, max_count)
+	if slots.is_empty():
+		return ""
+	var placed: int = 0
+	var status_info: Dictionary = EngineerTrapsScript.status_for_kind("spike")
+	for slot: int in slots:
+		var place_result: Dictionary = _engineer_traps.place(
+			slot,
+			"spike",
+			member_idx,
+			fires,
+			power,
+			str(status_info.get("id", "")),
+			float(status_info.get("chance", 0.0))
+		)
+		if place_result.get("ok", false):
+			placed += 1
+	if placed <= 0:
+		return ""
+	_update_status_icons()
+	return "\n【必殺】スパイクの仕掛けを%d体に付けた" % placed
 
 
 func _engineer_trap_kind_label(kind: String) -> String:
@@ -6196,13 +6465,13 @@ func _fire_engineer_traps_on_enemy(slot: int) -> void:
 		if $CombatController.apply_status_to_enemy_slot(slot, status_id, 1, src_atk):
 			if placer_idx >= 0:
 				_party_applied_enemy_status(placer_idx, slot, status_id)
-			_update_status_icons()
 	var kind_label: String = _engineer_trap_kind_label(kind)
 	if dmg > 0:
 		_append_log("[仕掛け・%s] %dダメージ（残%d）" % [kind_label, dmg, fires_left])
 	else:
 		_append_log("[仕掛け・%s] 発動（残%d）" % [kind_label, fires_left])
 	_update_hp_bars()
+	_update_status_icons()
 	if $CombatController.get_enemy_hp_at(slot) <= 0:
 		var killer: int = -1
 		if placer_idx >= 0 and $CombatController.is_member_alive(placer_idx):
@@ -6260,7 +6529,7 @@ func _execute_member_skill(
 	else:
 		weapon_skill_mult = float(wpn_skill_mods.get("skill_power_mult", 1.0))
 	skill_dmg = maxi(1, int(round(float(skill_dmg) * float(weapon_skill_mult))))
-	skill_dmg = maxi(1, int(round(float(skill_dmg) * _conditional_skill_power_mult(skill_data, target_slot))))
+	skill_dmg = maxi(1, int(round(float(skill_dmg) * _conditional_skill_power_mult(skill_data, target_slot, member_idx))))
 	var elem_result: Dictionary = _apply_enemy_mitigation(skill_dmg, attack_element, member_idx, target_slot)
 	var final_dmg: int = maxi(
 		1,
@@ -7195,6 +7464,15 @@ func _deal_member_damage_to_enemy(
 				"is_critical": is_critical,
 			}
 		)
+		if not is_basic:
+			_fire_member_passives(
+				member_idx, "on_skill_hit", {
+					"damage": damage,
+					"target_slot": target_slot,
+					"skill_id": sid,
+					"is_critical": is_critical,
+				}
+			)
 		if is_basic:
 			_apply_enemy_traits_after_basic_hit(member_idx, target_slot)
 		var tide_burst: int = _AbyssWeaponEffects.after_attack_hit(member_idx, target_slot, damage)
@@ -8498,7 +8776,7 @@ func _reveal_appended_enemy_slot(slot: int) -> void:
 		spr.position = _swarm_combat_position_for_slot(i, n)
 		spr.visible = $CombatController.is_enemy_slot_alive(i)
 		if is_new_slot and spr.visible and spr.sprite_frames != null and spr.sprite_frames.has_animation("idle"):
-			spr.play("idle")
+			_play_combat_idle(spr)
 		_style_enemy_nameplate(_swarm_nameplates[i], name_dense)
 		_swarm_nameplates[i].add_theme_font_size_override("font_size", name_fs)
 		_position_swarm_overlay(i)
@@ -8556,7 +8834,7 @@ func _reveal_boss_add_slot(new_slot: int, force_reload_all: bool = false) -> voi
 			and spr.sprite_frames != null
 			and spr.sprite_frames.has_animation("idle")
 		):
-			spr.play("idle")
+			_play_combat_idle(spr)
 		_style_enemy_nameplate(_swarm_nameplates[i], true)
 		_swarm_nameplates[i].add_theme_font_size_override("font_size", name_fs)
 		_position_swarm_overlay(i)
@@ -9951,7 +10229,12 @@ func _get_member_ultimate_skill(member_idx: int) -> Resource:
 	if GameState.is_pet_combatant(member_idx) or Constants.is_pet_id(str(member.id)):
 		return null
 	var ult_id: String = Constants.DEFAULT_ULTIMATE_SKILL_ID
-	if not str(member.job_id).is_empty():
+	var adv_id: String = str(member.id)
+	if adv_id.begins_with("gacha_"):
+		var helper: Resource = DataRegistry.get_gacha_helper_data(adv_id.trim_prefix("gacha_"))
+		if helper != null and "ultimate_skill_id" in helper and not str(helper.ultimate_skill_id).is_empty():
+			ult_id = str(helper.ultimate_skill_id)
+	if ult_id == Constants.DEFAULT_ULTIMATE_SKILL_ID and not str(member.job_id).is_empty():
 		var job: Resource = DataRegistry.get_job_data(member.job_id)
 		if job != null and "ultimate_skill_id" in job and not str(job.ultimate_skill_id).is_empty():
 			ult_id = str(job.ultimate_skill_id)
@@ -10113,6 +10396,17 @@ func _fire_member_passives(member_idx: int, trigger: String, ctx: Dictionary = {
 				_passive_attack_hits[member_idx] = hits
 				if hits % every_n != 0:
 					continue
+		if trigger == "on_skill_hit":
+			var min_cd: float = float(p.get("min_skill_cooldown", 0.0))
+			if min_cd > 0.0:
+				var skill_id: String = str(ctx.get("skill_id", ""))
+				var skill_cd: float = float(ctx.get("skill_cooldown", 0.0))
+				if skill_cd <= 0.0 and not skill_id.is_empty():
+					var skill_data: Resource = DataRegistry.get_skill_data(skill_id)
+					if skill_data != null:
+						skill_cd = float(skill_data.cooldown)
+				if skill_cd < min_cd:
+					continue
 		if _try_fire_passive(member_idx, p, ctx):
 			return
 
@@ -10175,6 +10469,17 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			var sid: String = str(p.get("status_id", ""))
 			if sid.is_empty():
 				return false
+			var target_kind_apply: String = str(p.get("target", "self"))
+			if bool(p.get("armor_break_stack", false)) and sid == "armor_break" and target_kind_apply == "enemy":
+				var stack_slot: int = int(ctx.get("target_slot", -1))
+				if stack_slot < 0:
+					stack_slot = $CombatController.get_member_target_slot(member_idx)
+				if (
+					stack_slot >= 0
+					and $CombatController.is_enemy_slot_alive(stack_slot)
+					and $CombatController.get_enemy_status_stacks_at(stack_slot, "armor_break") > 0
+				):
+					sid = "armor_break_light"
 			var source_atk: int = _dot_source_attack_for_member(member_idx, ctx)
 			var target_kind: String = str(p.get("target", "self"))
 			if target_kind == "party":
@@ -10320,6 +10625,31 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			if charges > 0:
 				CombatPassives.grant_combat_counter_charges(member_idx, charges)
 				applied = true
+		"place_engineer_trap":
+			var trap_kind: String = str(p.get("trap_kind", "spike"))
+			var trap_fires: int = maxi(1, int(p.get("trap_fires", 2)) + CombatPassives.engineer_trap_fires_add(member_idx))
+			var trap_power: float = float(p.get("trap_power", 0.35))
+			var trap_slot: int = int(ctx.get("target_slot", -1))
+			if trap_slot < 0:
+				trap_slot = $CombatController.get_member_target_slot(member_idx)
+			if trap_slot < 0:
+				var living_trap: Array = $CombatController.get_living_enemy_indices()
+				if not living_trap.is_empty():
+					trap_slot = int(living_trap[0])
+			if trap_slot >= 0 and $CombatController.is_enemy_slot_alive(trap_slot):
+				var trap_status: Dictionary = EngineerTrapsScript.status_for_kind(trap_kind)
+				var trap_result: Dictionary = _engineer_traps.place(
+					trap_slot,
+					trap_kind,
+					member_idx,
+					trap_fires,
+					trap_power,
+					str(trap_status.get("id", "")),
+					float(trap_status.get("chance", 0.0))
+				)
+				if trap_result.get("ok", false):
+					applied = true
+					_update_status_icons()
 		"chance_cast_equipped_skill":
 			if _passive_skill_echo_depth > 0:
 				return false
@@ -11265,7 +11595,8 @@ func _party_is_depleted_for_floor_choice() -> bool:
 ## 暗転中・階層キャプションの代わりに三択を出す。
 func _offer_floor_choice_replacing_caption(heal_mode: bool) -> void:
 	_floor_choice_active = true
-	_label_transition.text = ""
+	_label_transition.text = "分かれ道"
+	_apply_room_transition_caption_style(Enums.RoomType.COMBAT)
 	_transition_overlay.modulate.a = 1.0
 	_ensure_floor_choice_overlay()
 	if _IntroTutorialConfig.is_run($DungeonController):
@@ -11845,9 +12176,11 @@ func _on_menu_settings_pressed() -> void:
 
 func _on_ingame_settings_closed() -> void:
 	_apply_combat_speed(SettingsPrefs.get_combat_speed_mult())
-	## 軽量モード切替を即反映（天候パーティクル／オーラ）。
+	SettingsPrefs.apply_performance_settings()
+	## 軽量モード切替を即反映（天候パーティクル／オーラ／FPS／idle）。
 	_refresh_weather()
 	_sync_status_auras()
+	_apply_light_mode_to_visible_combat_sprites()
 
 
 func _on_menu_button_pressed() -> void:
@@ -12023,7 +12356,7 @@ func _show_enemy_sprite(enemy_id: String) -> void:
 		return
 	_enemy_sprite.sprite_frames = frames
 	_normalize_enemy_scale(_enemy_sprite, frames, enemy_id)
-	_enemy_sprite.play("idle")
+	_play_combat_idle(_enemy_sprite)
 	_enemy_sprite.visible = true
 
 # 敵セルサイズが種別で異なる（通常 96px / エリート 128px 等）ため表示高さを揃える。
@@ -12132,7 +12465,7 @@ func _on_swarm_sprite_animation_finished(slot: int) -> void:
 	if not is_instance_valid(spr) or not spr.visible or spr.sprite_frames == null:
 		return
 	if spr.animation in ["attack", "hurt"]:
-		spr.play("idle")
+		_play_combat_idle(spr)
 
 
 # 必要なスロット数を確保する。slot0 は既存ノードを流用、追加分は duplicate で生成。
@@ -12243,7 +12576,7 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 		elif _is_frostridge_solo_scale_dungeon():
 			spr.scale *= FROSTRIDGE_SOLO_DISPLAY_SCALE
 		spr.position = _swarm_combat_position_for_slot(i, n)
-		spr.play("idle")
+		_play_combat_idle(spr)
 		spr.visible = true
 	for j in range(n, _swarm_sprites.size()):
 		_swarm_sprites[j].visible = false
@@ -12371,6 +12704,39 @@ func _play_active_enemy_animation(anim: String) -> void:
 
 # ---- CHR Sprites ----
 
+## 軽量モードは idle アニメを停止（フレーム0固定）して描画負荷を下げる。
+func _play_combat_idle(sprite: AnimatedSprite2D) -> void:
+	if sprite == null or not is_instance_valid(sprite):
+		return
+	if sprite.sprite_frames == null or not sprite.sprite_frames.has_animation("idle"):
+		return
+	sprite.speed_scale = 1.0
+	sprite.play("idle")
+	if SettingsPrefs.is_light_mode():
+		sprite.pause()
+
+
+func _apply_light_mode_to_visible_combat_sprites() -> void:
+	if not SettingsPrefs.is_light_mode():
+		return
+	for i: int in _chr_sprites.size():
+		var chr_spr: AnimatedSprite2D = _chr_sprites[i]
+		if chr_spr.visible and chr_spr.animation == "idle":
+			_play_combat_idle(chr_spr)
+		if i < _chr_idle_tweens.size():
+			var tw = _chr_idle_tweens[i]
+			if tw != null and is_instance_valid(tw) and tw.is_valid():
+				tw.kill()
+			_chr_idle_tweens[i] = null
+	for spr: AnimatedSprite2D in _swarm_sprites:
+		if spr.visible and spr.animation == "idle":
+			_play_combat_idle(spr)
+	if _enemy_sprite.visible and _enemy_sprite.animation == "idle":
+		_play_combat_idle(_enemy_sprite)
+	if _boss_sprite.visible and _boss_sprite.animation == "idle":
+		_play_combat_idle(_boss_sprite)
+
+
 func _show_chr_sprites(with_entrance: bool = false) -> void:
 	# 既存の擬似 idle tween を一旦全停止（死亡/再入室時の残留防止。生存者は下で再付与）
 	for ti in _chr_idle_tweens.size():
@@ -12409,7 +12775,7 @@ func _show_chr_sprites(with_entrance: bool = false) -> void:
 		if slot < FORMATION_SLOT_RATIOS.size():
 			sprite.position = _formation_slot_position(slot)
 			sprite.z_index = _chr_depth_z_index(sprite.position.y)
-		sprite.play("idle")
+		_play_combat_idle(sprite)
 		if with_entrance:
 			var target_pos: Vector2 = sprite.position
 			var from_left: bool = slot <= 1
@@ -12465,6 +12831,8 @@ func _chr_depth_z_index(foot_y: float) -> int:
 # idle が1フレームのみの素材は SpriteFrames でフレーム送りできず静止する。
 # その場合のみ offset を上下させる「呼吸」idle をコードで付与する（HPバー等は position 基準のため非干渉）。
 func _setup_chr_idle_motion(idx: int, sprite: AnimatedSprite2D, frames: SpriteFrames) -> void:
+	if SettingsPrefs.mobile_throttle_idle_loops():
+		return
 	if idx < 0 or idx >= _chr_idle_tweens.size():
 		return
 	var existing = _chr_idle_tweens[idx]
@@ -12649,6 +13017,8 @@ func _sync_shadow_stalker_floor_dim(group: Array) -> void:
 	_set_shadow_stalker_floor_dim(active)
 
 func _start_tier_frame_pulse() -> void:
+	if SettingsPrefs.mobile_throttle_idle_loops():
+		return
 	_stop_tier_frame_pulse()
 	_tier_frame_pulse_tween = create_tween().set_loops()
 	_tier_frame_pulse_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
@@ -15382,7 +15752,7 @@ func _load_boss_sprite(enemy_id: String) -> bool:
 	if not enemy_id.is_empty():
 		_boss_sprite.set_meta("boss_id", enemy_id)
 	_apply_boss_sprite_transform()
-	_boss_sprite.play("idle")
+	_play_combat_idle(_boss_sprite)
 	_boss_sprite.z_index = BOSS_SPRITE_Z
 	return true
 
@@ -15505,13 +15875,14 @@ func _dungeon_battle_bg_path(dungeon_id: String) -> String:
 	var fallback_id: String = Constants.MOURNGATE_DUNGEON_ID
 	var lookup_id: String = _dungeon_battle_bg_lookup_id(dungeon_id)
 	var late_path: String = str(BATTLE_BG_MAP.get(lookup_id, BATTLE_BG_MAP[fallback_id]))
-	## ⑤ x-5 ボス戦のみラスボス専用背景（Hard/NM 含む）。
+	## ボス戦専用背景（本編 x-5／征討 Boss 部屋）。
 	if (
 		$DungeonController.current_room_type == Enums.RoomType.BOSS
 		and _uses_final_boss_battle_bg(lookup_id)
 	):
-		if ResourceLoader.exists(BATTLE_BG_FINAL_BOSS) or FileAccess.file_exists(BATTLE_BG_FINAL_BOSS):
-			return BATTLE_BG_FINAL_BOSS
+		var boss_path: String = str(BATTLE_BG_BOSS_MAP.get(lookup_id, BATTLE_BG_FINAL_BOSS))
+		if ResourceLoader.exists(boss_path) or FileAccess.file_exists(boss_path):
+			return boss_path
 	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
 	## 深層: 親 Biome の Early/Late を 10F ごとに入替（1–10=1、11–20=2…）。
 	if _AbyssDungeonConfig.is_abyss_dungeon_id(dungeon_id):
@@ -15523,6 +15894,17 @@ func _dungeon_battle_bg_path(dungeon_id: String) -> String:
 				and (ResourceLoader.exists(abyss_early) or FileAccess.file_exists(abyss_early))
 			):
 				return abyss_early
+		return late_path
+	## 征討: 章ではなく表示階で Early/Late（F1〜14 / F15〜19）。
+	if Constants.is_apex_conquest_playable(lookup_id):
+		var apex_floor: int = $DungeonController.get_display_floor_current()
+		if apex_floor <= BATTLE_BG_APEX_EARLY_FLOOR_MAX:
+			var apex_early: String = str(BATTLE_BG_EARLY_MAP.get(lookup_id, ""))
+			if (
+				not apex_early.is_empty()
+				and (ResourceLoader.exists(apex_early) or FileAccess.file_exists(apex_early))
+			):
+				return apex_early
 		return late_path
 	var chapter: int = 0
 	if $DungeonController.current_stage_data != null:
@@ -15540,6 +15922,9 @@ func _dungeon_battle_bg_path(dungeon_id: String) -> String:
 func _uses_final_boss_battle_bg(dungeon_id: String) -> bool:
 	if not bool(BATTLE_BG_FINAL_BOSS_BIOMES.get(dungeon_id, false)):
 		return false
+	## 征討は単一20Fランのため Boss 部屋なら専用BG（章5条件なし）。
+	if Constants.is_apex_conquest_playable(dungeon_id):
+		return true
 	if $DungeonController.current_stage_data == null:
 		return false
 	return int($DungeonController.current_stage_data.chapter_index) == BATTLE_BG_FINAL_BOSS_CHAPTER

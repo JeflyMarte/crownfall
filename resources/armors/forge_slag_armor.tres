@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ArmorData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+armor_id = "forge_slag_armor"
+display_name = "星炉の滓鎧"
+description = "炉滓の熱を織った鎧。3部位で星炉の加護。"
+base_defense = 92
+base_hp_bonus = 150
+base_resistance = 0.0
+resist_elements = Array[String]([])
+weight = 1.0
+rarity = 5
+fixed_passive_id = ""
+set_id = "forge_slag"

@@ -6,7 +6,7 @@ extends RefCounted
 ## 基本5職ロスターはキャラ固有パッシブを優先、それ以外はジョブフォールバック。
 ##
 ## trigger: "on_combat_start" | "on_combat_end" | "on_action_start" | "on_hit_taken" | "on_ally_death" |
-##   "on_attack" | "on_kill" | "on_noncombat_enter"
+##   "on_attack" | "on_skill_hit" | "on_kill" | "on_noncombat_enter"
 ## condition: "always" | "self_hp_below"（value=HP割合）| "ally_hp_below"（味方誰かHP割合）
 ## effect: "apply_status" | "heal" | "bonus_damage" | "counter_attack" | "grant_next_attack_mult" |
 ##   "refund_ct" | "grant_party_incoming_mult" | "grant_self_evasion" | "grant_counter_charges" |
@@ -23,7 +23,8 @@ extends RefCounted
 ##   pet_outgoing_mult / pet_defense_mult / pet_max_hp_mult / pet_revive_on_combat_end_chance /
 ##   pet_heal_on_action_max_hp_fraction / threat_base_add /
 ##   redirect_rear_hit_chance / lifesteal_ratio / combat_regen_* / treasure_room_weight_add /
-##   skill_cd_mult / heal_received_mult / heal_skill_spill_damage_fraction /
+##   skill_cd_mult / trap_skill_cd_mult / engineer_trap_fires_add /
+##   long_cd_skill_power_mult / long_cd_skill_min_cooldown / outgoing_vs_status_max_mult /
 ##   heal_skill_spill_damage_add / incoming_crit_rate_add / crit_damage_add
 ## weather_bonus（P3-EQ-WEATHER-LEG-001）: weather_id → element_outgoing_mult / outgoing_mult / crit_rate_add / refund_ct_fraction
 ## effect 追加: "chance_cast_equipped_skill"（攻撃後に装備スキルを確率発動）
@@ -245,6 +246,44 @@ const _DEFS: Dictionary = {
 		"condition": "always",
 		"effect": "counter_attack",
 		"cooldown": 3.5,
+	},
+	## 機巧士ガチャ助っ人（P3-JOB-ENGINEER-001 §6.1）
+	"eng_trap_opener": {
+		"display_name": "先置きの棘",
+		"description": "戦闘開始時、敵1体に弱いスパイクの仕掛けを付ける（残発2）。",
+		"trigger": "on_combat_start",
+		"condition": "always",
+		"effect": "place_engineer_trap",
+		"trap_kind": "spike",
+		"trap_fires": 2,
+		"trap_power": 0.35,
+		"target": "enemy",
+		"cooldown": 0.0,
+	},
+	"eng_brand_afterheat": {
+		"display_name": "装炎の余熱",
+		"description": "クール12秒以上のスキルが当たったとき、相手を炎上させる。",
+		"trigger": "on_skill_hit",
+		"condition": "always",
+		"effect": "apply_status",
+		"status_id": "ignite",
+		"status_chance": 1.0,
+		"target": "enemy",
+		"min_skill_cooldown": 12.0,
+		"cooldown": 0.0,
+	},
+	"eng_seam_pierce": {
+		"display_name": "継ぎ目穿ち",
+		"description": "攻撃やスキルが当たったとき、3回に1回甲砕を付与する。甲砕中はさらに防御が下がる。",
+		"trigger": "on_attack",
+		"condition": "always",
+		"effect": "apply_status",
+		"status_id": "armor_break",
+		"status_chance": 1.0,
+		"target": "enemy",
+		"every_n": 3,
+		"armor_break_stack": true,
+		"cooldown": 0.0,
 	},
 	"neri_waterfowl_call": {
 		"display_name": "水鳥の指揮",
@@ -1027,6 +1066,56 @@ const _DEFS: Dictionary = {
 		"counter_charges": 1,
 		"cooldown": 0.0,
 	},
+	## 機巧士・戦鎚テーマL（P3-EQ-WARHAMMER-001-A）
+	"eq_wpn_seam_breaker_maul": {
+		"display_name": "継ぎ目穿ちの戦鎚",
+		"category": "weapon",
+		"description": "甲砕中の敵へ与ダメ +25%。攻撃時25%で甲砕を付与（機巧士・破砕）。",
+		"outgoing_vs_status_mult": 1.25,
+		"outgoing_vs_status_ids": ["armor_break"],
+		"trigger": "on_attack",
+		"condition": "always",
+		"effect": "apply_status",
+		"status_id": "armor_break",
+		"target": "enemy",
+		"status_chance": 0.25,
+		"cooldown": 0.0,
+	},
+	## 機巧士ビルドL Phase A（P3-EQ-ENGINEER-LEG-001 / `130`）
+	"eq_wpn_coil_spring_dual": {
+		"display_name": "巻取棘の双剣",
+		"category": "weapon",
+		"description": "仕掛けを設置したとき、残発回数が1回増える（機巧士・罠）。",
+		"engineer_trap_fires_add": 1,
+	},
+	"eq_wpn_pyrebrand_maul": {
+		"display_name": "焦熱刻印の戦鎚",
+		"category": "weapon",
+		"description": "炎上中の敵へ与ダメ +20%（機巧士・装炎）。",
+		"outgoing_vs_status_mult": 1.20,
+		"outgoing_vs_status_ids": ["ignite"],
+	},
+	"eq_trapgear_charm": {
+		"display_name": "罠綱の護符",
+		"category": "accessory",
+		"description": "罠スキル（スパイク／スネア／ブレイク）のクールダウンが12%短縮される。",
+		"trap_skill_cd_mult": 0.88,
+	},
+	"eq_overheat_amulet": {
+		"display_name": "過熱管の首飾り",
+		"category": "accessory",
+		"description": "クール12秒以上のスキル威力が15%上昇する（機巧士・装炎）。",
+		"long_cd_skill_power_mult": 1.15,
+		"long_cd_skill_min_cooldown": 12.0,
+	},
+	"eq_seam_focus_sigil": {
+		"display_name": "継ぎ目狙いの印環",
+		"category": "accessory",
+		"description": "甲砕中の敵へ与ダメ +15%。戦鎚L等と併用時は装備合算+35%まで。",
+		"outgoing_vs_status_mult": 1.15,
+		"outgoing_vs_status_ids": ["armor_break"],
+		"outgoing_vs_status_max_mult": 1.35,
+	},
 	# ---- 灰冠の九（P3-GACHA-EQ-KAIWAN／S2・F2・W1） ----
 	"eq_wpn_kaiwan_silent": {
 		"display_name": "裂鍵の刺し",
@@ -1664,6 +1753,76 @@ static func outgoing_vs_status_mult_for_member(member_index: int, present_status
 			if not matched:
 				continue
 		mult *= float(raw_def["outgoing_vs_status_mult"])
+	var cap_mult: float = _outgoing_vs_status_cap_for_member(member_index, present_status_ids)
+	if cap_mult > 0.0:
+		mult = minf(mult, cap_mult)
+	return mult
+
+
+static func _outgoing_vs_status_cap_for_member(member_index: int, present_status_ids: Array) -> float:
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return 0.0
+	var cap: float = 0.0
+	var member: Resource = GameState.party_members[member_index]
+	for raw_def: Variant in for_member(member):
+		if raw_def is not Dictionary:
+			continue
+		if not raw_def.has("outgoing_vs_status_max_mult"):
+			continue
+		var filter_ids: Array = raw_def.get("outgoing_vs_status_ids", [])
+		if filter_ids.is_empty():
+			continue
+		var matched: bool = false
+		for sid: Variant in filter_ids:
+			if present_status_ids.has(str(sid)):
+				matched = true
+				break
+		if not matched:
+			continue
+		cap = maxf(cap, float(raw_def["outgoing_vs_status_max_mult"]))
+	return cap
+
+
+static func engineer_trap_fires_add(member_index: int) -> int:
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return 0
+	var add: int = 0
+	var member: Resource = GameState.party_members[member_index]
+	for raw_def: Variant in for_member(member):
+		if raw_def is not Dictionary:
+			continue
+		if raw_def.has("engineer_trap_fires_add"):
+			add += int(raw_def["engineer_trap_fires_add"])
+	return maxi(0, add)
+
+
+static func trap_skill_cd_mult(member_index: int) -> float:
+	if member_index < 0 or member_index >= GameState.party_members.size():
+		return 1.0
+	var mult: float = 1.0
+	var member: Resource = GameState.party_members[member_index]
+	for raw_def: Variant in for_member(member):
+		if raw_def is not Dictionary:
+			continue
+		if raw_def.has("trap_skill_cd_mult"):
+			mult *= float(raw_def["trap_skill_cd_mult"])
+	return maxf(0.05, mult)
+
+
+static func long_cd_skill_power_mult_for_member(member_index: int, skill_data: Resource) -> float:
+	if member_index < 0 or member_index >= GameState.party_members.size() or skill_data == null:
+		return 1.0
+	var mult: float = 1.0
+	var base_cd: float = float(skill_data.cooldown)
+	var member: Resource = GameState.party_members[member_index]
+	for raw_def: Variant in for_member(member):
+		if raw_def is not Dictionary:
+			continue
+		var min_cd: float = float(raw_def.get("long_cd_skill_min_cooldown", 0.0))
+		if min_cd <= 0.0 or base_cd < min_cd:
+			continue
+		if raw_def.has("long_cd_skill_power_mult"):
+			mult *= float(raw_def["long_cd_skill_power_mult"])
 	return mult
 
 

@@ -32,6 +32,11 @@ const SPEED_ID_X1: String = "x1"
 const SPEED_ID_X15: String = "x1_5"
 const SPEED_ID_X2: String = "x2"
 
+## モバイル FPS 上限（発熱対策）。軽量モードは 30、通常は 45。デスクトップは 0＝無制限。
+const FPS_MOBILE_LIGHT: int = 30
+const FPS_MOBILE_NORMAL: int = 45
+const FPS_DESKTOP: int = 0
+
 static var _loaded: bool = false
 static var _master: float = 1.0
 static var _bgm: float = 1.0
@@ -41,7 +46,8 @@ static var _combat_speed_id: String = SPEED_ID_X1
 static var _show_damage_numbers: bool = true
 static var _show_battle_log: bool = true
 static var _vibration_enabled: bool = true
-## 軽量モード: 天候パーティクル・状態オーラ・帯VFX・ヒットスプライト・紙吹雪等を抑える（既定オフ＝見た目据置）。
+## 軽量モード: 天候パーティクル・状態オーラ・帯VFX・ヒットスプライト・紙吹雪等を抑える。
+## モバイル初回は既定 ON（発熱クレーム対策）。既存 settings.cfg は尊重。
 static var _light_mode: bool = false
 ## ダンジョン拾得の◇◆を自動分解（既定オフ。所持済みは対象外）。
 static var _auto_dismantle_common_rare: bool = false
@@ -53,6 +59,7 @@ static func ensure_loaded() -> void:
 	load_from_disk()
 	ensure_audio_buses()
 	apply_audio()
+	apply_performance_settings()
 	_loaded = true
 
 
@@ -97,8 +104,26 @@ static func _reset_defaults() -> void:
 	_show_damage_numbers = true
 	_show_battle_log = true
 	_vibration_enabled = true
-	_light_mode = false
+	_light_mode = is_mobile_platform()
 	_auto_dismantle_common_rare = false
+
+
+static func is_mobile_platform() -> bool:
+	var os_name: String = OS.get_name()
+	return os_name == "iOS" or os_name == "Android"
+
+
+## モバイル共通: 常時ループ tween・隔フレーム UI 更新（軽量／通常問わず）。
+static func mobile_throttle_idle_loops() -> bool:
+	return is_mobile_platform()
+
+
+## モバイルは FPS 上限で GPU/CPU 負荷を抑える。軽量モード時は 30fps。
+static func apply_performance_settings() -> void:
+	if is_mobile_platform():
+		Engine.max_fps = FPS_MOBILE_LIGHT if _light_mode else FPS_MOBILE_NORMAL
+	else:
+		Engine.max_fps = FPS_DESKTOP
 
 
 static func ensure_audio_buses() -> void:
@@ -247,6 +272,7 @@ static func is_light_mode() -> bool:
 static func set_light_mode(v: bool) -> void:
 	ensure_loaded()
 	_light_mode = v
+	apply_performance_settings()
 	save_to_disk()
 
 

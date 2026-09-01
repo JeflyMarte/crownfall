@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "eng_armor_gekigeki"
+display_name = "穿甲の極撃"
+description = "敵1体を割り、甲砕を必ず付与する。すでに甲砕中なら大きく痛める。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 2.4
+cooldown = 30.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ultimate", "melee", "vs_armor_break"])
+element = ""
+apply_status_id = "armor_break"
+apply_status_chance = 1.0
+slot_type = "ultimate"
+range_type = "melee"

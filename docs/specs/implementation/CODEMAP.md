@@ -30,7 +30,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | EventSystem | `scripts/autoload/EventSystem.gd`（**P3-EVT-FIELD-001** 30分スロット・重み付き野外速報・`EventWeekRotation` SSOT） |
 | GachaSystem | `scripts/autoload/GachaSystem.gd` |
 
-**危険度ティア（P3-DG-TIER / P3-BAL-NM-CAP99-001）:** `DungeonTierConfig.gd` — Hard/NM はメイン5キャンペーン周回帯。解放=ノーマル全クリア／ハード全クリア。敵／推奨Lvボーナス= `75−n_end` / `99−n_end`（終端推奨≈75／99）。UI=`DungeonSelectScene` TabsRow。  
+**危険度ティア（P3-DG-TIER / P3-BAL-NM-CAP99-001）:** `DungeonTierConfig.gd` — Hard/NM はメイン5キャンペーン周回帯。解放=ノーマル全クリア／ハード全クリア。敵／推奨Lvボーナス= `75−n_end` / `99−n_end`（終端推奨≈75／99）。UI=`DungeonSelectScene` TabsRow。**降臨／征討**（時王・境界廊・天望の塔）はキャンペーン条件なしで N/H/NM 自由選択（`P3-UX-DESCENT-TIER-TABS-001`／`P3-DG-APEX-TIER-001`）。征討雑魚Lvは階帯表（`ApexConquestConfig`／`133`）。  
 **降臨群れ（P3-BAL-DESCENT-SWARM-001）:** 時間帯降臨は N でも群れ率0.72・頭数2〜4（`DESCENT_EVENT_SWARM_*`）。
 **ボス開幕オーラ（P3-BAL-BOSS-AURA-A-001）:** 入場時 `boss_*_hex` 状態を味方全員へ。BOSS速度は人数係数、ATK×1.22、hex CD6。
 **ティア遭遇圧（P3-BAL-TIER-ENC-A-001）:** 群れ率 H×1.35／NM×1.75。NMエリート=双エリート薄護衛 or 単＋護衛2〜3。本編ボス単体。無限ボス編成=`AbyssDungeonConfig.boss_pack_kind`（33群／66エリート／99+抽選）。  
@@ -58,6 +58,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | CodexScene | `scenes/codex/CodexScene.tscn` | `scripts/codex/CodexScene.gd` |
 | GachaScene | `scenes/gacha/GachaScene.tscn` | `scripts/gacha/GachaScene.gd`（**P3-UI-GACHA** モック chrome・Reveal・DetailOverlay・招き／封蔵部屋ガイド） |
 | EventScene | `scenes/event/EventScene.tscn` | `scripts/event/EventScene.gd`（**P3-EVT-FIELD-001** ギルド情報誌／いまの野外詳細） |
+| CrystalExcavateSelectScene / Combat / Result | `scenes/excavate/*.tscn` | `scripts/excavate/CrystalExcavate*.gd` + **`CrystalExcavateSystem.gd`** + **`CrystalExcavateBgHelper.gd`**（**P3-UX-CRYSTAL-EXCAVATE-001** 日次魔晶石発掘。BG=`UI_BG_CrystalExcavate*.png`） |
 | ShowcaseScene | `scenes/showcase/ShowcaseScene.tscn` | `scripts/showcase/ShowcaseScene.gd`（**P3-SHOWCASE-001** 展示室２背景・装備4枠（レリック含む）・ステ下スキル名＋効果。スタッフ名札＝`キャラ(ビルド)`） |
 | ShowcaseCatalog | — | `scripts/showcase/ShowcaseCatalog.gd`（スタッフ理想ビルド5枠・読取専用） |
 | SurveyScene | `scenes/survey/SurveyScene.tscn` | `scripts/survey/SurveyScene.gd`（**P3-HUB-SURVEY-001** 調査室。スタッフ＝`SurveyStaff`。ノノカは **P3-SURVEY-NONOKA-JOIN-001** で③クリア後合流） |
@@ -74,7 +75,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
       - `BattleLogContent`（VBoxContainer）— ログ RTL を動的追加（`_append_log`）。一時停止シートは `_battle_log_lines`＋`find_child("SheetContent")`
   - `NarrativePanel`（PanelContainer）— 非戦闘時のみ表示（P3-UI2-012）
     - `LabelNarrative` — `_set_narrative()`。高さ 200、font 18 + outline
-- `BattlefieldArea/RoomTileBg` — `BATTLE_BG_MAP` 背景（royal_ruins v3 / graveyard v2）
+- `BattlefieldArea/RoomTileBg` — `BATTLE_BG_MAP`／`BATTLE_BG_EARLY_MAP`／`BATTLE_BG_BOSS_MAP`（征討 `red_forge_depths`＝専用 Early/Late/Boss）
 - `BattlefieldArea/CombatTierFrame` — エリート/中ボス/ボス戦闘枠（P3-UI2-014）
 - `HpBarChr0〜2` / `HpBarEnemy` — 頭上 HP（ルート直下、スプライト position に追従: P3-UI2-005）
 - `ChrSprite0〜2`（110,700 / 250,660 / 390,620, scale=5）/ `EnemySprite`（540,480, scale=4）/ `BossSprite`（500,420, scale=4）/ `HitVfxSprite`（540,480）/ `HealVfxSprite`（250,660） — P3-UI2-008
@@ -88,7 +89,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 - 状態異常アイコン: ルート直下 HBox（敵 + Chr0〜2 + 群れ行）— HP バー上に追従（P3-UI2-013 / P3-D110 群れ行）。`StatusResolver.get_active_status_list()`
 
 **BaseScene ノード（P3-UI-Base-A / 003_01 Phase A）:**
-- `HubView` — 城背景・`TopBar`（**指揮官カード** P3-CMD-001 + **SP進捗バー** P3-CMD-RANK-REWARD-001 + Gold/魔晶石）・`LeftMenuPanel`（調査室はオミット）・**NinaNavPanel**（**P3-UI-NINA-NAV-001** 右上顔＋吹き出し・10秒／タップ。吹き出し下に調査室ショートカット）・**FieldSurveyBanner**（**P3-EVT-FIELD-001** ギルド情報誌・30分スロット・タップで EventScene）＋右上クリック誘導ロゴ（拡縮点滅・タップ可）・`CurrencyStrip`・`DailyMissionPanel`（ジャンルアイコン）。初回のみ **HubSimpleGuideOverlay**（P3-UI-HUB-GUIDE-001）
+- `HubView` — 城背景・`TopBar`（**指揮官カード** P3-CMD-001 + **SP進捗バー** P3-CMD-RANK-REWARD-001 + Gold/魔晶石）・`LeftMenuPanel`（調査室はオミット）・**NinaNavPanel**（**P3-UI-NINA-NAV-001** 右上顔＋吹き出し・10秒／タップ。吹き出し下に調査室ショートカット）・**FieldSurveyBanner**（**P3-EVT-FIELD-001** ギルド情報誌・30分スロット・タップで EventScene）＋右上クリック誘導ロゴ（拡縮点滅・タップ可）・**ExcavateEntryPanel**（**P3-UX-CRYSTAL-EXCAVATE-001** 日課直上・日次1回）・`CurrencyStrip`・`DailyMissionPanel`（ジャンルアイコン）。初回のみ **HubSimpleGuideOverlay**（P3-UI-HUB-GUIDE-001）
 - `DungeonSelectScene` — ルートタブ（メイン／イベント／無限）。**DungeonRouteGuideOverlay**（P3-DG-ROUTE-GUIDE-001: イベント／降臨／無限の手引きボタン＋初回P分け）
 - 同オーバーレイで拠点部屋ガイド（**P3-HUB-ROOM-GUIDE-001**: 調査室／招き／封蔵／展示室・初回＋「？」。SSOT `decisions/34_HubRoomGuides.md`）
 - `MenuGridView` — 003_02 系 3×3 メニュー（下ナビ「メニュー」で切替）
@@ -148,7 +149,7 @@ Phase 3-B-M2 — Status/Element **完了**。UI-2+ **Closeout**。**Combat Syste
 | `tickets/` | **`TicketIds`**／**`TicketInventory`**／**`TicketSystem`**（無料ガチャ・**封蔵開封券**・LB★2/3/4） |
 
 | `equipment/MythicLoot.gd` | 神話ドロップ SSOT（**P3-EQ-MYTHIC-001**） |
-| `equipment/EquipmentSetBonuses.gd` | 降臨セット加護・3部位判定・パッシブタブ用 `passive_ui_def_for_member`（**P3-DG-EVENT-SET-001**） |
+| `equipment/EquipmentSetBonuses.gd` | 降臨／征討セット加護・3部位判定・パッシブタブ用 `passive_ui_def_for_member`（**P3-DG-EVENT-SET-001**／**P3-DG-APEX-SET-001** 名拒み／**P3-DG-APEX-FORGE-SET-001** 星炉の滓） |
 | `guild/` | **`GuildScene.gd`**（P3-D052 ジョブ認定・**P3-UI2-024** polish。βは `JOB_EVOLUTION_PLAYABLE=false` でオミット案内のみ／P3-JOB-EVO-OMIT-001） |
 | `crafting/` | **`CraftHelper.gd`**（`can_craft` / `get_craftable_recipes` — P3-D141／入手解放・`last_run_craft_unlocks` — P3-CRAFT-DISCOVER-001 / P3-UX-RESULT-CRAFT-UNLOCK-001） |
 | `codex/` | **`CatalogHelper.gd`**（歴史／断片は `resources/codex/*.json` bake 優先・`tools/bake_codex_bible.py`）／**`GuideCatalog.gd`**／**`CharacterCodexProfiles.gd`**（初期5人物録）／**`CodexRichText.gd`**, **`CodexScene.gd`**（タブ＝敵／装備／歴史／**世界観**／**キャラ**／手引き。実績は `CODEX_ACHIEVE_PLAYABLE` でオミット可） |
@@ -220,10 +221,10 @@ Task 明示指示がない限り作成しない:
 | 防具 | `resources/armors/` — **57**（＋ペット／ヒーラービルドL2・**P3-EQ-PET-HEAL-BUILD-001**） |
 | 装飾品 | `resources/accessories/` — **55**（＋クラシックL飾4・**P3-EQ-CLASSIC-L-ACC-001**） |
 | ビルドL | `equipment/BuildLegendaryLoot.gd` — 防7＋飾5＋杖1（x-5追加1点。通常／封蔵除外） |
-| 敵 | `resources/enemies/`（`EnemyData.basic_attack_name`＝通常攻撃頭上名・**P3-UX-ENEMY-BASIC-NAME-001**）— メイン（①〜⑤・P3-ENEMY-002 拡充）+ 征討／降臨 Boss（chronos_wave→`chronos_mausoleum` / valgard→`valgard_boundary` / skarpedion / mycolga_ancient / karna_smoke / nereion_depths / forgedormient / albark）+ 遍在希少種4（P3-WANDER-002/004: cosmic_duck / crown_raven / golden_scarab / shadow_stalker）+ **ビッグコズミックダック**（裂け目ボス＋Hard+放浪昇格／裂け目COMBAT 1〜2・P3-ENEMY-BIG-COSMIC-DUCK-001/002）+ ロックバイソン（P3-BAL-ROCK-BISON-WANDER-001: 放浪1.5%・岩角／境界廊のみ pool・素材率1.75） |
-| ダンジョン | `resources/dungeons/` — **28本**: メイン5 + 寄り道5 + 征討8 + イベント5 + **深層5**（`abyss_*`／**P3-DG-ABYSS-001**）。`route_type`: main/side/apex/event/abyss。イベントは日次挑戦枠（DGごと）。**章データがある Biome は route 不問でバナー下にサブ章**（P3-DG-EVENT-STG-001）。イベントは各1章。深層は無限階・親Biomeクリアで解放。深層限定レジェンド武器5（`abyss_veinblade` 等／**P3-DG-ABYSS-001-C**） |
+| 敵 | `resources/enemies/`（`EnemyData.basic_attack_name`＝通常攻撃頭上名・**P3-UX-ENEMY-BASIC-NAME-001**）— メイン（①〜⑤・P3-ENEMY-002 拡充）+ 征討／降臨 Boss（chronos_wave→`chronos_mausoleum` / valgard→`valgard_boundary` / skarpedion / mycolga_ancient / karna_smoke / nereion_depths / **forgedormient＝征討星炉火口・降臨帯 `135`** / **albark＝征討天望の塔・降臨帯 `132`**）+ 遍在希少種4（P3-WANDER-002/004: cosmic_duck / crown_raven / golden_scarab / shadow_stalker）+ **ビッグコズミックダック**（裂け目ボス＋Hard+放浪昇格／裂け目COMBAT 1〜2・P3-ENEMY-BIG-COSMIC-DUCK-001/002）+ ロックバイソン（P3-BAL-ROCK-BISON-WANDER-001: 放浪1.5%・岩角／境界廊のみ pool・素材率1.75） |
+| ダンジョン | `resources/dungeons/` — **28本**: メイン5 + 寄り道5 + 征討8 + イベント5 + **深層5**（`abyss_*`／**P3-DG-ABYSS-001**）。`route_type`: main/side/apex/event/abyss。イベントは日次挑戦枠（DGごと）。**章データがある Biome は route 不問でバナー下にサブ章**（P3-DG-EVENT-STG-001）。イベントは各1章。深層は無限階・親Biomeクリアで解放。深層限定レジェンド武器5（`abyss_veinblade` 等／**P3-DG-ABYSS-001-C**）。**征討配信中**: `north_reach`（天望）／`red_forge_depths`（星炉火口・`134`） |
 | スキル | `resources/skills/` — プレイヤー約50+（基本5職×習得7 + 必殺5 + 属性/敵/ボス）。代表: slash_attack, guard_strike, aimed_shot, hex_bolt, mend, empower + P3-SKILL-002〜006 新規。SW Lv30=`battle_spirit`（自己鼓舞・`49_SwordsmanSelfBuff`）。BT Lv15=`beast_vet_care`（ドレイン攻撃・`drain`タグ）／RG Lv15=`camp_draught`（全体薄回復・`43_BtRgSupportHeal`／`83_BtRgKitTune`）。敵エリート第2技: `enemy_mist_talon` / `enemy_mirror_glare` / `enemy_greios_wing_lance` / `enemy_claw_rake` / `enemy_nightfen_siphon` / `enemy_ink_lash` / `enemy_anchor_sweep`（P3-BAL-ENEMY-SKILL-CA-001 Phase C）。**トリッキー**=heal/flee/explode＋`incoming_*_mult`（`35_EnemyTrickySkills.md` Phase1〜3済） |
-| ジョブ | `resources/jobs/` — **6職**（基本5＋`engineer` 機巧士／**P3-JOB-ENGINEER-001**）。各 **`skill_unlocks` 7本**（テーマキット）。機巧士は仕掛けトークン `combat/EngineerTraps.gd`（敵行動発火） |
+| ジョブ | `resources/jobs/` — **6職**（基本5＋`engineer` 機巧士／**P3-JOB-ENGINEER-001**）。各 **`skill_unlocks` 7本**（テーマキット）。機巧士は仕掛けトークン `combat/EngineerTraps.gd`（敵行動発火）。武器許可＝**戦鎚・双剣**（`129`／`hammer`） |
 | 状態異常 | `resources/status/` — bleed, poison, stun, chill, ignite, shock, slow, curse, guard, empower, enrage, **fear**, **vulnerable**, **armor_break**（P3-D107）, **mark**（P3-D120） |
 | 素材 | `resources/materials/` — relic_shard, elite_relic_shard, ancient_bone（炉研ぎ用3種のみ） |
 | Affix | `resources/affixes/` — 7 サンプル + **AffixRoller** |

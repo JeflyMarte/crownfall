@@ -5,6 +5,8 @@ extends RefCounted
 
 const SET_CHRONOS_TOKI: String = "chronos_toki"
 const SET_VALGARD_ANTIQUE: String = "valgard_antique"
+const SET_ALBARK_NAMEREFUSE: String = "albark_namerefuse"
+const SET_FORGE_SLAG: String = "forge_slag"
 
 const WEAPONS_BY_SET: Dictionary = {
 	SET_CHRONOS_TOKI: [
@@ -19,21 +21,41 @@ const WEAPONS_BY_SET: Dictionary = {
 		"valgard_antique_rod",
 		"valgard_antique_arrow",
 	],
+	SET_ALBARK_NAMEREFUSE: [
+		"albark_namerefuse_sword",
+		"albark_namerefuse_dual",
+		"albark_namerefuse_staff",
+		"albark_namerefuse_bow",
+		"albark_namerefuse_hammer",
+	],
+	SET_FORGE_SLAG: [
+		"forge_slag_sword",
+		"forge_slag_dual",
+		"forge_slag_staff",
+		"forge_slag_bow",
+		"forge_slag_hammer",
+	],
 }
 
 const ARMOR_BY_SET: Dictionary = {
 	SET_CHRONOS_TOKI: "chronos_toki_armor",
 	SET_VALGARD_ANTIQUE: "valgard_antique_armor",
+	SET_ALBARK_NAMEREFUSE: "albark_namerefuse_armor",
+	SET_FORGE_SLAG: "forge_slag_armor",
 }
 
 const ACCESSORY_BY_SET: Dictionary = {
 	SET_CHRONOS_TOKI: "chronos_toki_orb",
 	SET_VALGARD_ANTIQUE: "valgard_antique_amulet",
+	SET_ALBARK_NAMEREFUSE: "albark_namerefuse_circlet",
+	SET_FORGE_SLAG: "forge_slag_seal",
 }
 
 const DUNGEON_SET: Dictionary = {
 	"chronos_mausoleum": SET_CHRONOS_TOKI,
 	"valgard_boundary": SET_VALGARD_ANTIQUE,
+	"north_reach": SET_ALBARK_NAMEREFUSE,
+	"red_forge_depths": SET_FORGE_SLAG,
 }
 
 const BONUS: Dictionary = {
@@ -50,6 +72,18 @@ const BONUS: Dictionary = {
 		"hp_mult": 1.12,
 		"outgoing_mult": 1.12,
 		"incoming_mult": 0.89,
+	},
+	SET_ALBARK_NAMEREFUSE: {
+		"display_name": "名拒みの加護",
+		"description": "デバフ付与+25%／敵バフ持続−25%",
+		"status_chance_mult": 1.25,
+		"enemy_buff_duration_mult": 0.75,
+	},
+	SET_FORGE_SLAG: {
+		"display_name": "星炉の加護",
+		"description": "炎上持続+30%／炎上中与ダメ+12%",
+		"ignite_duration_mult": 1.30,
+		"outgoing_vs_ignite_mult": 1.12,
 	},
 }
 
@@ -175,6 +209,44 @@ static func outgoing_mult(member_index: int) -> float:
 
 static func incoming_mult(member_index: int) -> float:
 	return float(bonus_for_member_index(member_index).get("incoming_mult", 1.0))
+
+
+static func status_chance_mult(member_index: int) -> float:
+	return float(bonus_for_member_index(member_index).get("status_chance_mult", 1.0))
+
+
+static func enemy_buff_duration_mult(member_index: int) -> float:
+	return float(bonus_for_member_index(member_index).get("enemy_buff_duration_mult", 1.0))
+
+
+## 編成内に名拒み等の敵バフ短縮セットがいれば最小倍率（なければ 1.0）。
+static func party_enemy_buff_duration_mult() -> float:
+	var best: float = 1.0
+	var combatants: Array = GameState.get_combatants()
+	for i: int in range(combatants.size()):
+		var m: float = enemy_buff_duration_mult(i)
+		if m < best:
+			best = m
+	return best
+
+
+static func ignite_duration_mult(member_index: int) -> float:
+	return float(bonus_for_member_index(member_index).get("ignite_duration_mult", 1.0))
+
+
+## 編成内に星炉の滓がいれば最大の炎上持続倍率（なければ 1.0）。
+static func party_ignite_duration_mult() -> float:
+	var best: float = 1.0
+	var combatants: Array = GameState.get_combatants()
+	for i: int in range(combatants.size()):
+		var m: float = ignite_duration_mult(i)
+		if m > best:
+			best = m
+	return best
+
+
+static func outgoing_vs_ignite_mult(member_index: int) -> float:
+	return float(bonus_for_member_index(member_index).get("outgoing_vs_ignite_mult", 1.0))
 
 
 static func display_name(set_id: String) -> String:

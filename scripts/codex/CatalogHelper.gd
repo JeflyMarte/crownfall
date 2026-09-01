@@ -53,7 +53,7 @@ static func playable_enemy_id_set() -> Dictionary:
 	for data in DataRegistry.get_all_dungeon_data():
 		if data == null:
 			continue
-		if not Constants.is_playable_dungeon_route(str(data.route_type)):
+		if not Constants.is_playable_dungeon(str(data.id), str(data.route_type)):
 			continue
 		for eid in data.enemy_pool:
 			var s: String = str(eid)

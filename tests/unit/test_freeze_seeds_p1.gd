@@ -30,7 +30,10 @@ func test_dungeon_defers_combat_visuals_api_exists() -> void:
 	var src: String = FileAccess.get_file_as_string("res://scripts/dungeon/DungeonScene.gd")
 	assert_true(src.contains("_flush_deferred_combat_room_visuals"), "flush helper present")
 	assert_true(src.contains("_defer_combat_room_visuals"), "defer flag present")
+	assert_true(src.contains("_flush_deferred_room_art"), "room art flush helper present")
+	assert_true(src.contains("_defer_room_art_refresh"), "room art defer flag present")
+	assert_true(src.contains("_begin_post_transition_flush"), "split flush pipeline present")
 	assert_true(
-		src.contains("_flush_deferred_combat_room_visuals()"),
-		"finished path calls flush"
+		src.contains("_run_post_transition_flush_async"),
+		"async split flush present"
 	)

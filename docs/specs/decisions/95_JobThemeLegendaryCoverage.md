@@ -26,7 +26,7 @@
 | ヴァンガード | 剣・杖 |
 | アルケミスト | 杖・双刃 |
 | ビーストテイマー | 杖・弓 |
-| 機巧士 | 双剣・弓 |
+| 機巧士 | 戦鎚・双剣 |
 
 ---
 
@@ -46,6 +46,24 @@
 | `veld_branch_staff` | 杖 | VG○ | VG味方バフ | 開幕味方鼓舞 |
 | `consecrated_maul` | 剣 | SW○ | SW一撃 | 初撃×1.45 |
 | `aegis_line_sword` | 剣 | VG○ | VGカウンター | 開幕反撃+1、反撃ダメ+30%（脅威も軽く残す） |
+
+### 機巧士・戦鎚L（2026-08-27 — `129` 梯子A／新規最小）
+
+新武器種のため転用ではなく **最小新規1本**（方針§1-4の例外。追加テーマLは後続）。
+
+| ID | 種別 | テーマ | 効果概要 |
+|---|---|---|---|
+| `seam_breaker_maul` | 戦鎚 | EN破砕 | 甲砕中与+25%。攻撃25%で甲砕 |
+
+### 機巧士・Phase A L（2026-08-28 — `130` オーナー GO）
+
+| ID | 種別 | テーマ | 効果概要 |
+|---|---|---|---|
+| `coil_spring_dual` | 双剣 | EN罠 | 仕掛け残発+1 |
+| `trapgear_charm` | 飾 | EN罠 | 罠スキルCD×0.88 |
+| `pyrebrand_maul` | 戦鎚 | EN装炎 | 炎上中与+20% |
+| `overheat_amulet` | 飾 | EN装炎 | CD≥12s技能×1.15 |
+| `seam_focus_sigil` | 飾 | EN破砕 | 甲砕中与+15%（装備合算上限1.35） |
 
 既存のビルドL（`pulse_amulet`／`flurry_light_mail`／`cover_aegis_cloak`／`blade_dance_ring`／`hexweave_robe`／`blightcord_bow` 等）と合わせて、不足だったテーマを **各2点以上** にする。
 

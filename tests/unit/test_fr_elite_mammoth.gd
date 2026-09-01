@@ -17,10 +17,12 @@ func test_glacier_warden_is_frost_elite() -> void:
 	assert_true(data.skill_ids.has("enemy_crystal_trampling"))
 	assert_gte(float(data.skill_weights.get("enemy_crystal_trampling", 0.0)), 3.4)
 	assert_gte(float(data.skill_use_chance), 0.49)
-	for did in ["frostridge", "abyss_frostridge", "north_reach"]:
+	for did in ["frostridge", "abyss_frostridge"]:
 		var dg: Resource = DataRegistry.get_dungeon_data(did)
 		assert_true(dg.elite_pool.has("glacier_warden"), did)
 		assert_false(dg.enemy_pool.has("glacier_warden"), did)
+	var nr: Resource = DataRegistry.get_dungeon_data("north_reach")
+	assert_false(nr.elite_pool.has("glacier_warden"), "天望の塔にマンモスは出さない")
 	assert_false(CatalogHelper.playable_enemy_id_set().has("polar_tricera"))
 	assert_true(CatalogHelper.playable_enemy_id_set().has("glacier_warden"))
 

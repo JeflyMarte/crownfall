@@ -173,6 +173,9 @@ func test_origin_note_matches_passive_role() -> void:
 		"helper_n": "カウンター",
 		"helper_o": "ペット",
 		"helper_p": "ピーキー",
+		"helper_q": "罠",
+		"helper_r": "装炎",
+		"helper_s": "破砕",
 	}
 	for helper in DataRegistry.get_all_gacha_helper_data():
 		if helper == null:

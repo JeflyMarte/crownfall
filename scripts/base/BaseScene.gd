@@ -13,6 +13,7 @@ const _ChapterClearNinaLines := preload("res://scripts/ui/ChapterClearNinaLines.
 const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
 const _HubDebugMenuOverlay := preload("res://scripts/debug/HubDebugMenuOverlay.gd")
 const _DebugAccess := preload("res://scripts/debug/DebugAccess.gd")
+const _CrystalExcavateSystem := preload("res://scripts/excavate/CrystalExcavateSystem.gd")
 
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
@@ -25,6 +26,8 @@ const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
 const COMMANDER_SCENE: String = "res://scenes/commander/CommanderScene.tscn"
 const SETTINGS_SCENE: String = "res://scenes/settings/SettingsScene.tscn"
 const EVENT_SCENE: String = "res://scenes/event/EventScene.tscn"
+const EXCAVATE_SELECT_SCENE: String = "res://scenes/excavate/CrystalExcavateSelectScene.tscn"
+const EXCAVATE_RESULT_SCENE: String = "res://scenes/excavate/CrystalExcavateResultScene.tscn"
 const _GOLD_ICON_PATH: String = "res://assets/ui/batch2/ICO_Gold.png"
 ## 拠点左上の等級アイコン。枠 content_margin を詰めて本体を大きく見せる。
 const RANK_PORTRAIT_PX: float = 60.0
@@ -49,6 +52,7 @@ const PLAYER_CARD_MIN_SIZE: Vector2 = Vector2(196, 72)
 var _field_survey_banner: PanelContainer
 var _field_survey_click_hint: TextureRect
 var _field_survey_click_hint_tween: Tween
+var _excavate_entry_panel: PanelContainer
 var _gift_badge: PanelContainer
 var _nina_nav: Control
 var _rank_sp_bar: ProgressBar
@@ -60,6 +64,7 @@ func _ready() -> void:
 	AudioManager.play_bgm("hub")
 	_decorate_panels()
 	_setup_field_survey_banner()
+	_setup_excavate_entry()
 	_setup_nina_nav()
 	_build_left_menu()
 	DailyMissionSystem.missions_updated.connect(_refresh_daily_missions)
@@ -74,6 +79,7 @@ func _ready() -> void:
 	_refresh_daily_missions()
 	_apply_typography()
 	_refresh_field_survey_banner()
+	_refresh_excavate_entry()
 	_refresh_nina_nav()
 	GameState.base_initial_view = "hub"
 	_player_card.gui_input.connect(_on_player_card_gui_input)
@@ -664,6 +670,83 @@ func _on_field_survey_banner_input(event: InputEvent) -> void:
 			if ResourceLoader.exists(EVENT_SCENE):
 				SceneRouter.change_scene(EVENT_SCENE)
 
+
+func _setup_excavate_entry() -> void:
+	_excavate_entry_panel = PanelContainer.new()
+	_excavate_entry_panel.name = "ExcavateEntryPanel"
+	_excavate_entry_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	_excavate_entry_panel.add_theme_stylebox_override(
+		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
+	)
+	var row := HBoxContainer.new()
+	row.set_anchors_preset(Control.PRESET_FULL_RECT)
+	row.offset_left = 10.0
+	row.offset_top = 4.0
+	row.offset_right = -10.0
+	row.offset_bottom = -4.0
+	row.add_theme_constant_override("separation", 8)
+	_excavate_entry_panel.add_child(row)
+	var icon := TextureRect.new()
+	icon.custom_minimum_size = Vector2(28, 28)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.texture = CurrencyHelper.get_icon_texture()
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(icon)
+	var title := Label.new()
+	title.name = "LabelExcavateTitle"
+	title.text = "魔晶石発掘"
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(title)
+	UiTypography.apply_body(title, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	var status := Label.new()
+	status.name = "LabelExcavateStatus"
+	status.text = "残り1回"
+	row.add_child(status)
+	UiTypography.apply_caption(status, UiTypography.COLOR_SUB)
+	var btn := Button.new()
+	btn.name = "ButtonExcavateGo"
+	btn.text = "移動"
+	btn.pressed.connect(_on_excavate_entry_pressed)
+	row.add_child(btn)
+	UiTypography.apply_menu_button(btn)
+	_excavate_entry_panel.gui_input.connect(_on_excavate_entry_gui_input)
+	$HubView.add_child(_excavate_entry_panel)
+	_refresh_excavate_entry()
+
+
+func _refresh_excavate_entry() -> void:
+	if _excavate_entry_panel == null:
+		return
+	_CrystalExcavateSystem.ensure_refreshed()
+	var row: HBoxContainer = _excavate_entry_panel.get_child(0) as HBoxContainer
+	if row == null:
+		return
+	var status: Label = row.get_node_or_null("LabelExcavateStatus") as Label
+	var btn: Button = row.get_node_or_null("ButtonExcavateGo") as Button
+	var used: bool = _CrystalExcavateSystem.is_used_today()
+	if status != null:
+		status.text = _CrystalExcavateSystem.entry_status_label()
+	if btn != null:
+		btn.text = "結果" if used else "移動"
+
+
+func _on_excavate_entry_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event as InputEventMouseButton
+		if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+			_on_excavate_entry_pressed()
+			accept_event()
+
+
+func _on_excavate_entry_pressed() -> void:
+	_CrystalExcavateSystem.ensure_refreshed()
+	if _CrystalExcavateSystem.is_used_today():
+		SceneRouter.change_scene(EXCAVATE_RESULT_SCENE)
+	else:
+		SceneRouter.change_scene(EXCAVATE_SELECT_SCENE)
+
+
 func _apply_typography() -> void:
 	## 隊長名は本文フォント（可読優先）。装飾見出しだと誤読・溢れやすい。
 	UiTypography.apply_body(_label_player_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
@@ -948,6 +1031,7 @@ func _on_hub_tick() -> void:
 	EventSystem.ensure_active()
 	_SurveySystem.ensure_party_restored_if_awaiting_claim()
 	_refresh_field_survey_banner()
+	_refresh_excavate_entry()
 
 func _make_daily_row(index: int, entry: Dictionary) -> VBoxContainer:
 	var wrap := VBoxContainer.new()

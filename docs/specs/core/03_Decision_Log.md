@@ -8068,7 +8068,7 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 
 ## 第6職 機巧士（2026-08-25 — P3-JOB-ENGINEER-001）
 
-> **オーナー GO（推奨値＋スキルキット）。** B案＝敵行動反応の仕掛け。テーマ＝罠／装炎／破砕。スキル7確定。**コード接続済**（2026-08-25）。キャラ3／専用ドット／L装備は後続。アップデート枠・β即投入なし。
+> **オーナー GO（推奨値＋スキルキット）。** B案＝敵行動反応の仕掛け。テーマ＝罠／装炎／破砕。スキル7確定。**コード接続済**（2026-08-25）。**キャラ3＋パッシブ GO**（2026-08-26・コード未）。専用ドット／L装備は後続。アップデート枠・β即投入なし。
 
 | # | 決定 | 根拠 |
 |---|---|---|
@@ -8082,6 +8082,40 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-JOB-ENGINEER-001-8 | SSOT — `126`／`93`／`94` §2.6／`07`／`game/06`／`world/09` | Decision 本体 |
 
 （2026-08-22 草案の設置／起爆／機巧適性・連動・マルチトラップ案は本決定で置換）
+
+### 機巧士キャラ3＋パッシブ（2026-08-26 — オーナー GO）
+
+> 名前・見た目方針・パッシブ平易説明を確定。**ガチャ助っ人**（BASE外）。コードは後続。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-JOB-ENGINEER-001-C1 | 罠＝**トリム**／装炎＝**ブラン**／破砕＝**オルソ** | 1キャラ1テーマ（93） |
+| P3-JOB-ENGINEER-001-C2 | パッシブ＝先置きの棘／装炎の余熱／継ぎ目穿ち | 開幕印・長CD炎上・甲砕特化。平与ダメ%禁止 |
+| P3-JOB-ENGINEER-001-C3 | 加入＝ガチャ助っ人。BASE_ROSTER に足さない | 開始5人据置 |
+| P3-JOB-ENGINEER-001-C4 | SSOT — `126` §6.1／`93` 表 | Decision 本体 |
+| P3-JOB-ENGINEER-001-C5 | 見た目・レア＝ブラン★4ガスマスク／オルソ★2作業着少女＋大金槌（見た目）／トリム★3メガネ髭小太り | 2026-08-27 オーナー GO。旧シルエット案を置換 |
+| P3-JOB-ENGINEER-001-C6 | ~~オルソの槌はビジュアルのみ~~ → **戦鎚種追加で置換**（`129`） | 2026-08-27 戦鎚 GO |
+| P3-JOB-ENGINEER-001-M1 | 仕掛け頭上マーク3種（棘／輪／ドリル）GO・ステータス行表示 | 視認性。残発＝stacks |
+| P3-JOB-ENGINEER-001-U1 | キャラ別必殺＝フルアーム・カスケード／ブレイズ・オーバーロード／穿甲の極撃 | テーマ一致。機巧士のみ例外 |
+| P3-JOB-ENGINEER-001-U2 | プレイヤー文面は「作動」優先（仕様の発火＝作動） | わかりやすさ |
+| P3-JOB-ENGINEER-001-U3 | SSOT — `126` §6.3。職 `eng_overclock` はフォールバック残置可 | Impl 時 |
+| P3-JOB-ENGINEER-001-U4 | トリム必殺＝**全体薄いダメ＋スパイク一斉設置**（最大3）。旧「既存印の一斉即作動」は不採用 | オーナー差し替えGO。強さ・説明が明快 |
+
+## 戦鎚武器種（2026-08-27 — P3-EQ-WARHAMMER-001）
+
+> **オーナー GO。** 表示＝戦鎚／`hammer`。特性＝破砕（低攻速・高一発・近接やや長め・甲砕寄り）。機巧士＝戦鎚・双剣（弓外す）。他職は当面解放しない。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-WARHAMMER-001-1 | 表示名 **戦鎚**／`weapon_type=hammer` | オーナー指定 |
+| P3-EQ-WARHAMMER-001-2 | 特性＝破砕（推奨①）。COMMON 目安 ASPD0.80／range1.15／KB0.85 | 推奨案 GO |
+| P3-EQ-WARHAMMER-001-3 | 機巧士許可＝`hammer`＋`dual_blades`。弓は外す | オーナー指定 |
+| P3-EQ-WARHAMMER-001-4 | 他職は当面不可。`consecrated_maul` は sword 据置 | 波及抑制 |
+| P3-EQ-WARHAMMER-001-5 | 旧「槌は見た目のみ」方針を置換。オルソ見た目＝戦鎚と一致 | `126` 上書き |
+| P3-EQ-WARHAMMER-001-6 | SSOT — `129`／`07`／`126`／`95`／`game/07`／`world/09`。COMMON `iron_warhammer` | Decision 本体 |
+| P3-EQ-WARHAMMER-001-A1 | **梯子A** — R0×5／R1×4／R2×4／破砕L1（`seam_breaker_maul`）。章プール接続 | 2026-08-27 オーナー GO |
+| P3-EQ-WARHAMMER-001-A2 | L＝甲砕中与+25%・攻撃25%甲砕。ICOは戦鎚14種専用接続済（2026-08-28 GO）。灰冠／深層／SETは後続 | 破砕テーマ最小 |
+| P3-EQ-ENGINEER-LEG-001 | **Phase A GO** — 罠2（双剣L+装飾）／装炎2（戦鎚L+装飾）／破砕2（既存戦鎚L+装飾）。`130` | 2026-08-28 オーナー GO |
 
 ## 魔晶石発掘・案A（2026-08-25 — P3-UX-CRYSTAL-EXCAVATE-001）
 
@@ -8097,7 +8131,6 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-CRYSTAL-EXCAVATE-001-6 | **フロー**＝キャラ＋スキル選択→発掘→対石ダメ表示→結果 | オーナー体験像 |
 | P3-UX-CRYSTAL-EXCAVATE-001-7 | SSOT — `127_CrystalExcavate.md` | Decision 本体 |
 
-
 ## ◇◆自動分解設定（2026-08-26 — P3-UX-AUTO-DISMANTLE-001）
 > **オーナー GO** — 設定でオンにするとダンジョン拾得のノーマル／レアのみ自動分解。所持済みは対象外。
 
@@ -8107,4 +8140,108 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-UX-AUTO-DISMANTLE-001-2 | **対象** — ダンジョン拾得の◇◆のみ。Epic以上・所持済み・装備中・ロックは対象外 | オーナー指示 |
 | P3-UX-AUTO-DISMANTLE-001-3 | **経路** — `_spawn_*`／イベント専用付与の直後に `maybe_auto_dismantle_dungeon_drop` | 拾得時のみ |
 | P3-UX-AUTO-DISMANTLE-001-4 | **結果** — 入手装備一覧に「自動分解」注記。素材は通常のラン素材差分へ | 可視化 |
+
+## 征討（apex）再定義（2026-08-27 — P3-DG-APEX-REDEFINE-001）
+
+> **オーナー GO（#1〜#6）。** 常設・20F固定・降臨N・エンシェント・⑤クリア後一括・パイロット1本。**パイロット＝アルバーク／`north_reach`**。**案C（天望の塔）GO＋接続**（2026-08-30）。セット装備は後続。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-APEX-REDEFINE-001-1 | 征討＝**固定長20F**（深層＝無限と分離） | オーナー #1 |
+| P3-DG-APEX-REDEFINE-001-2 | 降臨＝時間帯短編据置／征討＝常設長編・**別エンシェントセット** | オーナー #2/#4 |
+| P3-DG-APEX-REDEFINE-001-3 | **パイロット1本のみ**。クロノス／ヴァルは降臨据置 | オーナー #3 |
+| P3-DG-APEX-REDEFINE-001-4 | 難度起点＝降臨N。解放＝**メイン5 N 全クリア後一括** | オーナー #5/#6 |
+| P3-DG-APEX-REDEFINE-001-5 | UI＝イベントタブ常設。`route_type=apex`。寄り道オミット維持 | 役割整理 |
+| P3-DG-APEX-REDEFINE-001-6 | SSOT — `128_ApexConquestRedefine.md`／`05_Biomes §2.1` | Decision 本体 |
+| P3-DG-APEX-REDEFINE-001-7 | パイロット＝`north_reach`／`albark` | オーナー指定 |
+| P3-DG-APEX-REDEFINE-001-8 | 征討名＝**地図なき主**／ステージ＝**天望の塔**（案C・高塔・空） | オーナー 2026-08-28／30 GO |
+| P3-DG-APEX-REDEFINE-001-9 | 案C接続＝20F・塔敵・境界廊BG・常設イベント枠・⑤クリア解放 | Impl 2026-08-30 |
+| P3-DG-APEX-REDEFINE-001-10 | **Hard/NM**＝降臨同型（TabsRow 自由選択・`DungeonTierConfig` 流用・進入行「天望の塔　{難度}」） | オーナー 2026-08-30 GO |
+| P3-DG-APEX-REDEFINE-001-11 | **日次／回数制限＝無し**（降臨N同型・`daily_attempt_limit=0`） | オーナー 2026-08-30 |
+
+## 征討 Hard／Nightmare（2026-08-30 — P3-DG-APEX-TIER-001）
+
+> **オーナー GO** — ハードとナイトメアも他の降臨ダンジョンのように生成する。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-APEX-TIER-001-1 | 征討パイロット（`north_reach`）も **N/H/NM** を TabsRow で選択可 | 降臨 UX 統一 |
+| P3-DG-APEX-TIER-001-2 | **キャンペーン解放条件なし**（時王／境界廊と同じ） | 降臨同型 |
+| P3-DG-APEX-TIER-001-3 | 敵Lv・報酬倍率は既存 `DungeonTierConfig` | 専用表を増やさない |
+| P3-DG-APEX-TIER-001-4 | 進入行1つ＝**天望の塔　{選択難度}** | P3-UX-DESCENT-TIER-TABS-001 |
+| P3-DG-APEX-TIER-001-5 | SSOT — `128` 001-5／進入行を上書き | Decision 同期 |
+
+## 征討エンシェント「名拒みの冠」（2026-08-30 — P3-DG-APEX-SET-001）
+
+> **承認済**（オーナー「戦鎚もありで。他はGoで」）。制御・妨害枠。時環＝テンポ／アンティーク＝総合と分離。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-APEX-SET-001-1 | セット＝**名拒みの冠**（`albark_namerefuse`） | コンセプト C |
+| P3-DG-APEX-SET-001-2 | 加護＝デバフ付与 **×1.25**／敵バフ持続 **×0.75** | 制御特化・実装しやすい2軸 |
+| P3-DG-APEX-SET-001-3 | 品目＝武**5**（剣・双・杖・弓・**戦鎚**）＋防＋飾 | オーナー戦鎚 GO |
+| P3-DG-APEX-SET-001-4 | 入手＝初回1確定／再周回40%・1個上限 | 降臨セット準拠 |
+| P3-DG-APEX-SET-001-5 | SSOT — `131_ApexNamerefuseSet.md` | Decision 本体 |
+| P3-DG-APEX-SET-001-6 | Impl＝資源7＋`EquipmentSetBonuses`／付与率・敵バフ持続フック | 2026-08-30 |
+| P3-DG-APEX-SET-001-7 | 専用ICO 7点（128px透過）接続・流用解除 | 2026-08-30 |
+
+## 征討 Boss アルバーク降臨帯（2026-08-30 — P3-DG-APEX-BOSS-001）
+
+> **オーナー GO**（案B・推奨A＋白静寂0.60）。ヴァル超え・クロノス未満。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-APEX-BOSS-001-1 | ステ — HP3900 / ATK248 / DEF236 / ASPD1.45 / 会心0.11 / EXP225 / Gold330 | 降臨帯再定義 |
+| P3-DG-APEX-BOSS-001-2 | 白静寂 ×0.60／地図なき突進 CD6.5。キット・Hex・フェーズ骨格据置 | 時王／ヴァル同型 |
+| P3-DG-APEX-BOSS-001-3 | クロノス＝アルバーク超え維持（`13`） | 役割梯子 |
+| P3-DG-APEX-BOSS-001-4 | SSOT — `132_ApexAlbarkBoss.md` | Decision 本体 |
+| P3-DG-APEX-BOSS-001-5 | 図鑑ART＋ターン＋白静寂／地図なき突進 ICO 専用（エルディオン流用解除） | 2026-08-31 |
+
+## 征討天候・雑魚Lv帯（2026-08-30 — P3-DG-APEX-ENV-001）
+
+> **オーナー GO**（推奨＝天候 W-A＋雑魚 50/54/58）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-APEX-ENV-001-1 | 天候 — 晴れ55／霧25／雨10／夜10／炎天0／吹雪0。run 固定 | 案C・吹雪禁止 |
+| P3-DG-APEX-ENV-001-2 | 雑魚Lv — 1〜7=50／8〜14=54／15〜19=58。H/NM はティア加算のみ | 20F 段階上昇 |
+| P3-DG-APEX-ENV-001-3 | SSOT — `133_ApexWeatherTrashLevels.md` | Decision 本体 |
+
+## 征討2・星炉火口（2026-08-30 — P3-DG-APEX-FORGE-001）
+
+> **オーナー GO**（火山テーマ推奨案）。天望クリア後解放。セット装備は後続。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-APEX-FORGE-001-1 | 征討名＝**星炉の寝主**／ステージ＝**星炉火口**／20F・常設 N/H/NM | 火山＝星炉 |
+| P3-DG-APEX-FORGE-001-2 | 解放＝天望クリア後。天候＝炎天寄せ・吹雪0。雑魚Lv＝50/54/58 | 梯子＋環境 |
+| P3-DG-APEX-FORGE-001-3 | 敵＝岩／熱／竜種既存。Boss＝`forgedormient`（戦力再定義は後続） | プール整理 |
+| P3-DG-APEX-FORGE-001-4 | SSOT — `134_ApexForgeVolcano.md` | Decision 本体 |
+| P3-DG-APEX-FORGE-001-5 | 戦闘BG専用3枚（Early/Late/Boss）・BrokenMarsh流用解除 | Motif B・2026-08-31 |
+| P3-DG-APEX-FORGE-001-6 | DG ICO／BAN 専用・フロストリッジ流用解除 | 天望同型・2026-08-31 |
+
+## 征討 Boss フォージ降臨帯（2026-08-30 — P3-DG-APEX-FORGE-BOSS-001）
+
+> **オーナー GO**（案A・`132` 同型）。アルバークと同帯。ヴァル超え・クロノス未満。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-APEX-FORGE-BOSS-001-1 | ステ — HP3900 / ATK248 / DEF236 / ASPD1.45 / 会心0.11 / EXP225 / Gold330 | アルバーク同帯 |
+| P3-DG-APEX-FORGE-BOSS-001-2 | スラグ吐息 ×0.60。炉床震動（全体×2・詠唱・CD9）据置。キット・Hex・フェーズ骨格据置 | 時環／白静寂同型＋キット維持 |
+| P3-DG-APEX-FORGE-BOSS-001-3 | クロノス超えしない（`13`） | 役割梯子 |
+| P3-DG-APEX-FORGE-BOSS-001-4 | SSOT — `135_ApexForgeBoss.md` | Decision 本体 |
+| P3-DG-APEX-FORGE-BOSS-001-5 | 戦闘ICO＝ターン＋スラグ吐息／炉床震動専用（エルディオン流用解除） | 2026-08-31 |
+
+## 征討セット 星炉の滓（2026-08-30 — P3-DG-APEX-FORGE-SET-001）
+
+> **オーナー GO**（案A・炎上持続）。名拒み＝付与／星炉＝炎上持続。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-APEX-FORGE-SET-001-1 | セット＝**星炉の滓**（`forge_slag`） | コンセプト A |
+| P3-DG-APEX-FORGE-SET-001-2 | 加護＝炎上持続 **×1.30**／炎上中与ダメ **×1.12** | 役割分離 |
+| P3-DG-APEX-FORGE-SET-001-3 | 品目＝武**5**（戦鎚込）＋防＋飾・炎属性 | 名拒み同型 |
+| P3-DG-APEX-FORGE-SET-001-4 | 入手＝初回1確定／再周回40%・1個上限 | 降臨セット準拠 |
+| P3-DG-APEX-FORGE-SET-001-5 | SSOT — `136_ApexForgeSlagSet.md` | Decision 本体 |
+| P3-DG-APEX-FORGE-SET-001-6 | Impl＝資源7＋持続／vs炎上フック＋**専用ICO 7点**（炉熱テーマ） | 2026-08-30 |
 

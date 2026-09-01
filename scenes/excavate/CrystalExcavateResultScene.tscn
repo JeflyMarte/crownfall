@@ -1,0 +1,67 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/excavate/CrystalExcavateResultScene.gd" id="1"]
+[ext_resource type="Theme" path="res://assets/ui/production_theme.tres" id="2"]
+
+[sub_resource type="StyleBoxFlat" id="SB_Header"]
+bg_color = Color(0, 0, 0, 0)
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+
+[node name="CrystalExcavateResultScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2")
+script = ExtResource("1")
+
+[node name="Header" type="PanelContainer" parent="."]
+z_index = 10
+layout_mode = 1
+anchor_right = 1.0
+offset_bottom = 46.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("SB_Header")
+
+[node name="HeaderRow" type="HBoxContainer" parent="Header"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ButtonBack" type="Button" parent="Header/HeaderRow"]
+layout_mode = 2
+text = "←"
+
+[node name="LabelTitle" type="Label" parent="Header/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "発掘結果"
+horizontal_alignment = 1
+
+[node name="MainVBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 72.0
+offset_right = -24.0
+offset_bottom = -96.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="BottomNav" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -84.0
+grow_horizontal = 2
+
+[node name="NavRow" type="HBoxContainer" parent="BottomNav"]
+layout_mode = 2

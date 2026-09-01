@@ -103,7 +103,7 @@
 | 行動順敵アイコンに紫板を PNG 焼込 | 焼込禁止。枠は常に `CombatUiFrames`（焼込枠前提で UI 枠を外すと縁なし／薄く見える）。差替後 `.godot/imported` の `ICO_ENM_Turn_*` を消して再インポート |
 | 状態異常レジェンドに半透明 Panel | `StyleBoxEmpty`（アイコン＋文言のみ） |
 | 戦闘ログ最上行が見切れる | `BATTLE_LOG_LINE_HEIGHT` と上余白を本文サイズに同期 |
-| 無限 11F で暗転のまま固まる | 暗転中点で天候 VFX 再生成（Scene 直下ループ tween／雪 preprocess） | 天候 id は advance で即。VFX は `_flush_pending_abyss_weather_vfx`（暗転明け）。tween は WeatherLayer＋即 `free` |
+| 無限 11F で暗転のまま固まる | 暗転中点で天候 VFX 再生成（Scene 直下ループ tween／雪 preprocess）。**再発**: 明け後 1 フレームに VFX＋敵 load＋Late 背景 load | 天候 id は advance で即。`_begin_post_transition_flush` で天候+背景→敵を 2 フレーム分割。暗転中の背景は `_defer_room_art_refresh` |
 
 ---
 

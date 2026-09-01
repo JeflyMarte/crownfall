@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "eng_full_arm_cascade"
+display_name = "フルアーム・カスケード"
+description = "生存敵全体に薄い一撃を放ち、あわせてスパイクの仕掛けを最大3体に付ける。"
+skill_type = "player"
+target_type = "all_enemies"
+power_multiplier = 0.70
+cooldown = 30.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ultimate", "eng_cascade", "trap_spike"])
+element = ""
+slot_type = "ultimate"
+range_type = "long"

@@ -67,9 +67,15 @@ func test_greios_wing_lance_targets_back() -> void:
 
 
 func test_frost_pools_include_mammoth_elite() -> void:
-	for did in ["frostridge", "abyss_frostridge", "north_reach"]:
+	for did in ["frostridge", "abyss_frostridge"]:
 		var dg: Resource = DataRegistry.get_dungeon_data(did)
 		assert_not_null(dg, did)
 		assert_true(dg.elite_pool.has("glacier_warden"), did)
 		assert_true(dg.elite_pool.has("greios"), did)
 		assert_false(dg.elite_pool.has("polar_tricera"), did)
+	## 征討 north_reach は天望の塔プール（マンモスなし・greios あり）。
+	var nr: Resource = DataRegistry.get_dungeon_data("north_reach")
+	assert_not_null(nr)
+	assert_false(nr.elite_pool.has("glacier_warden"))
+	assert_true(nr.elite_pool.has("greios"))
+	assert_false(nr.elite_pool.has("polar_tricera"))

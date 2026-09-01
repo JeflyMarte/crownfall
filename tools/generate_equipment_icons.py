@@ -41,6 +41,7 @@ SKIP_IDS = {"unidentified"}
 LEGENDARY_HAND_DRAWN_WEAPON_IDS: set[str] = {
 	"sanctified_dagger",
 	"consecrated_maul",
+	"seam_breaker_maul",
 	"silvaria_oathblade",
 	"veld_branch_staff",
 	"volgrave_thunderblade",
@@ -72,6 +73,8 @@ LEGENDARY_HAND_DRAWN_WEAPON_IDS: set[str] = {
 	"blightcord_bow",
 	"pulsekeen_edge",
 	"aegis_line_sword",
+	"coil_spring_dual",
+	"pyrebrand_maul",
 	"chronos_toki_sword",
 	"chronos_toki_dual",
 	"chronos_toki_staff",
@@ -80,6 +83,16 @@ LEGENDARY_HAND_DRAWN_WEAPON_IDS: set[str] = {
 	"valgard_antique_dual",
 	"valgard_antique_rod",
 	"valgard_antique_arrow",
+	"albark_namerefuse_sword",
+	"albark_namerefuse_dual",
+	"albark_namerefuse_staff",
+	"albark_namerefuse_bow",
+	"albark_namerefuse_hammer",
+	"forge_slag_sword",
+	"forge_slag_dual",
+	"forge_slag_staff",
+	"forge_slag_bow",
+	"forge_slag_hammer",
 	# 灰冠の九（手描きAI初版・再生成スキップ）
 	"kaiwan_crosslit",
 	"kaiwan_vendict",
@@ -92,6 +105,24 @@ LEGENDARY_HAND_DRAWN_WEAPON_IDS: set[str] = {
 	"kaiwan_relictos",
 }
 
+## 戦鎚梯子A — 手描きICO接続済（P3-EQ-WARHAMMER-001-A）。再生成で上書きしない。
+WARHAMMER_HAND_DRAWN_WEAPON_IDS: set[str] = {
+	"iron_warhammer",
+	"mire_warhammer",
+	"verdant_maul",
+	"ridge_maul",
+	"black_sand_maul",
+	"storm_maul",
+	"pyre_maul",
+	"glacier_maul",
+	"lighthouse_maul",
+	"thunderfen_maul",
+	"symbiont_maul",
+	"permafrost_maul",
+	"sanctum_tide_maul",
+	"seam_breaker_maul",
+}
+
 ## 専用生成済みレジェンド防具（テンプレ流用防止）。
 LEGENDARY_HAND_DRAWN_ARMOR_IDS: set[str] = {
 	"serdion_ward_plate",
@@ -102,6 +133,8 @@ LEGENDARY_HAND_DRAWN_ARMOR_IDS: set[str] = {
 	"immortal_cenotaph_plate",
 	"chronos_toki_armor",
 	"valgard_antique_armor",
+	"albark_namerefuse_armor",
+	"forge_slag_armor",
 	"kaiwan_primehide",
 	"kaiwan_bloodmail",
 	"kaiwan_voidrobe",
@@ -132,6 +165,8 @@ LEGENDARY_HAND_DRAWN_ACCESSORY_IDS: set[str] = {
 	"council_hegemony_seal",
 	"chronos_toki_orb",
 	"valgard_antique_amulet",
+	"albark_namerefuse_circlet",
+	"forge_slag_seal",
 	"kaiwan_initio",
 	"kaiwan_venomband",
 	"kaiwan_unlock",
@@ -152,6 +187,9 @@ LEGENDARY_HAND_DRAWN_ACCESSORY_IDS: set[str] = {
 	"ironvow_amulet",
 	"quicksigil_charm",
 	"dawnrally_brooch",
+	"trapgear_charm",
+	"overheat_amulet",
+	"seam_focus_sigil",
 }
 
 CANONICAL_TEMPLATES = {
@@ -162,6 +200,7 @@ CANONICAL_TEMPLATES = {
         "staff": TEMPLATE_DIR / "equipment/ICO_WPN_ApprenticeStaff.png",
         "dual_blades": TEMPLATE_DIR / "equipment/ICO_WPN_BoltKnife.png",
         "dagger": TEMPLATE_DIR / "equipment/ICO_WPN_SanctifiedDagger.png",
+        "hammer": TEMPLATE_DIR / "equipment/ICO_WPN_IronWarhammer.png",
         "default": TEMPLATE_DIR / "equipment/ICO_WPN_HeaterBlade.png",
     },
     "armor": {
@@ -662,6 +701,7 @@ def generate_equipment(categories: set[str] | None = None) -> list[tuple[str, st
             out_path = EQUIP_OUT_DIR / fname
             protected = (
                 (category == "weapon" and item_id in LEGENDARY_HAND_DRAWN_WEAPON_IDS)
+                or (category == "weapon" and item_id in WARHAMMER_HAND_DRAWN_WEAPON_IDS)
                 or (category == "armor" and item_id in LEGENDARY_HAND_DRAWN_ARMOR_IDS)
                 or (category == "accessory" and item_id in LEGENDARY_HAND_DRAWN_ACCESSORY_IDS)
             )

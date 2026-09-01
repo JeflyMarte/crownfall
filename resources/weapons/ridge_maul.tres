@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ridge_maul"
+display_name = "氷稜の戦鎚"
+description = "氷裂の稜線で採れた鈍塊を据えた戦鎚。凍った岩を砕く響きが、硬い装甲にも届く。"
+fixed_skill_id = ""
+base_attack = 405
+rarity = 0
+base_attack_speed = 0.8
+base_critical_rate = 0.04
+base_knockback = 0.85
+base_stagger_power = 0.55
+base_attack_range = 1.15
+weight = 1.3
+element = ""
+weapon_type = "hammer"
+tags = Array[String](["blunt"])

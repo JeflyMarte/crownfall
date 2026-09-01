@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "seam_breaker_maul"
+display_name = "継ぎ目穿ちの戦鎚"
+description = "機巧士が装甲の継ぎ目だけを狙うよう調整した戦鎚。甲砕の入った敵へ追い打ちし、殻をさらに開く。"
+fixed_skill_id = ""
+fixed_passive_id = "eq_wpn_seam_breaker_maul"
+base_attack = 290
+rarity = 3
+base_attack_speed = 0.8
+base_critical_rate = 0.07
+base_knockback = 0.85
+base_stagger_power = 0.55
+base_attack_range = 1.15
+weight = 1.3
+element = ""
+weapon_type = "hammer"
+tags = Array[String](["blunt"])
+flavor_text = "継ぎ目を知る者だけが、殻を静かに割る。"

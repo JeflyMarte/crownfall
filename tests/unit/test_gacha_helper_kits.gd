@@ -61,6 +61,8 @@ func test_helper_tres_passive_wired() -> void:
 	assert_eq(str(DataRegistry.get_gacha_helper_data("helper_m").passive_id), "sian_silent_line")
 	assert_eq(str(DataRegistry.get_gacha_helper_data("helper_n").passive_id), "borg_gate_voice")
 	assert_eq(str(DataRegistry.get_gacha_helper_data("helper_o").passive_id), "neri_waterfowl_call")
+	assert_eq(str(DataRegistry.get_gacha_helper_data("helper_q").passive_id), "eng_trap_opener")
+	assert_eq(str(DataRegistry.get_gacha_helper_data("helper_r").ultimate_skill_id), "eng_blaze_overload")
 
 
 func test_helper_p_personal_bonus() -> void:

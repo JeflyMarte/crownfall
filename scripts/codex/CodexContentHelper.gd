@@ -10,6 +10,7 @@ const WEAPON_TYPE_NAMES: Dictionary = {
 	"staff": "杖",
 	"dual_blades": "双刃",
 	"dagger": "短刃",
+	"hammer": "戦鎚",
 }
 
 const ELEMENT_NAMES: Dictionary = {

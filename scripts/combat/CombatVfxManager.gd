@@ -131,6 +131,13 @@ static func weapon_hit_style(weapon_type: String) -> Dictionary:
 				"rotation_deg": -18.0,
 				"tint": Color.WHITE,
 			}
+		"hammer":
+			## 鈍器の打ち込み — 縦長・暖色寄り
+			return {
+				"scale": Vector2(0.78, 1.35),
+				"rotation_deg": 8.0,
+				"tint": Color(1.0, 0.88, 0.72),
+			}
 		_:
 			## sword / 空 → 横長の斬撃感
 			return {

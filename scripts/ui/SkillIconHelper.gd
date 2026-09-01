@@ -129,6 +129,9 @@ const SKILL_TO_BASE: Dictionary = {
 	"eng_scrap_burst": "bow",
 	"eng_burn_trap": "bow",
 	"eng_overclock": "ultimate",
+	"eng_full_arm_cascade": "ultimate",
+	"eng_blaze_overload": "ultimate",
+	"eng_armor_gekigeki": "ultimate",
 }
 
 

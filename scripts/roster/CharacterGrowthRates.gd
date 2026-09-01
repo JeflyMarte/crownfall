@@ -24,6 +24,9 @@ const GROWTH_BY_ADVENTURER_ID: Dictionary = {
 	"gacha_helper_n": {"hp": 1.05, "attack": 0.95, "defense": 1.10}, ## ボルグ
 	"gacha_helper_o": {"hp": 0.95, "attack": 0.85, "defense": 0.95}, ## ネリ
 	"gacha_helper_p": {"hp": 0.90, "attack": 1.25, "defense": 0.85}, ## 火鷹
+	"gacha_helper_q": {"hp": 1.00, "attack": 1.05, "defense": 0.95}, ## トリム
+	"gacha_helper_r": {"hp": 0.85, "attack": 1.15, "defense": 0.90}, ## ブラン
+	"gacha_helper_s": {"hp": 0.95, "attack": 1.10, "defense": 0.90}, ## オルソ
 }
 
 ## helper_id（gacha_ なし）からも引けるようにする。
@@ -39,6 +42,9 @@ const GROWTH_BY_HELPER_ID: Dictionary = {
 	"helper_n": "gacha_helper_n",
 	"helper_o": "gacha_helper_o",
 	"helper_p": "gacha_helper_p",
+	"helper_q": "gacha_helper_q",
+	"helper_r": "gacha_helper_r",
+	"helper_s": "gacha_helper_s",
 }
 
 

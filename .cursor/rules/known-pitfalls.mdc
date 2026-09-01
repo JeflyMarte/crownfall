@@ -14,7 +14,7 @@ alwaysApply: false
 
 | 症状 | 原因 | 再発防止 |
 |---|---|---|
-| 無限ダンジョン 11F/?? でフリーズ（iOS・複数端末必発） | 10F境界で暗転中点に天候 VFX 再生成（Scene 直下のループ tween＋雪 preprocess）が集中し遷移完了まで届かない | 天候 id は advance で即反映。VFX は遷移完了後 `_flush_pending_abyss_weather_vfx`。tween は WeatherLayer に紐づけ＋即 `free`。雪 preprocess は軽量 |
+| 無限ダンジョン 11F/?? でフリーズ（iOS・複数端末必発） | 10F境界で暗転中点に天候 VFX 再生成（Scene 直下のループ tween＋雪 preprocess）が集中し遷移完了まで届かない。**再発**: 明け後 1 フレームに天候 VFX＋敵 load＋Late 背景 load が重なる | 天候 id は advance で即。VFX／背景／敵は `_begin_post_transition_flush` で **2 フレーム分割**（天候+背景→敵）。暗転中は `_defer_room_art_refresh`。tween は WeatherLayer＋即 `free` |
 | 調査で招待券が「いつの間にか」増える | 完全調査の抽選付与が受取ポップに載らず、解放通知のみ／非表示 | 受取時は `claim_cycle` がチケット等をマージしてポップ表示。通知は二重防止でオフ |
 | セーブキー欠落で設定が戻る（探索方針等） | GameState フィールドだけ追加し SaveManager に未載 | セーブキーは **GameState＋SaveManager 同コミット**（`current_exploration_policy` 同様） |
 | クリア後も同じ章に再入場する | `current_stage_id` がクリア済みのまま。`resolve` は明示選択を尊重 | クリア時 `advance_current_stage_past_cleared`。UI デフォルトは `preferred_default_stage_for_biome`。再プレイはカード明示 |
@@ -138,6 +138,7 @@ alwaysApply: false
 | 混成群れで図鑑登録が1体だけ／防具装飾が未登録 | `_register_discoveries_for_room` が `current_enemy_data` のみ。`DiscoveryRegistry` に armor/accessory 無し | 群れ全スロット＋召集時も登録。装備は weapon/armor/accessory を EventBus＋register |
 | 戦闘速度が ×0.75 のまま／設定と不一致 | `SPEED_MULT_NORMAL=0.75` と設定の不一致 | ×1／×1.5／×2 の3択に統一。旧 ×0.75 は ×1 へ |
 | レジェンド武器が落ちても気づかない | 通常装備と同じ小アイコンのみで SE／テロップ無し | ★以上は `legendary_drop` SE＋フラッシュ＋テロップ＋大きめアイコン（P3-EQ-LEG-DROP-001） |
+| 新レジェンド武器で GUT `test_all_legendary_weapon_icons_unique_bytes` FAIL | `IconPaths` が既存Lと同一PNGを流用（バイト衝突） | Lは **専用PNG必須**（仮でも別ファイル）。COMMON/RARE/EPICの仮流用は可（例: 戦鎚梯子→祝槌ICO、`seam_breaker_maul`のみ別） |
 | キャラ画面のスクロールが重い／効かない・実機で落ちる | 入れ子 Scroll＋セル毎 new＋内側 enable | → `ui-layout.mdc` ScrollTouch。所持は非 Scroll。StyleBox／Idle キャッシュ |
 | パッシブタブが重い／スクロール不能 | rebuild 後未再適用＋STOP RTL がドラッグ奪取 | → `ui-layout.mdc` ScrollTouch（リンク RTL のみ `_cf_keep_mouse_stop`） |
 | キャラ／装備一覧でセル上スクロールが効かない | 長押し用 `gui_input` で press 時に `accept_event()` → 親 Scroll がドラッグ開始できない | セルは `accept_event` しない（PASS＋gui_input で短タップ／長押し）。スクロールは親に任せる |
@@ -150,7 +151,7 @@ alwaysApply: false
 | 状態異常オーラ付与で一瞬固まる | `CPUParticles2D.preprocess = lifetime` が主スレッドで重い | preprocess を短くキャップ（雪 VFX と同型） |
 | 初潜り／初リザルトが長い | `DungeonScene`／`ResultScene` が hub warmup 外 | `SceneRouter.hub_warmup_paths` に追加＋選択画面でも threaded request |
 | 編成空／特典コードの AcceptDialog で入力不能 | Window 排他が ScrollTouch 実機で入力を食う | Control オーバーレイへ（鍛冶錬成素材と同型） |
-| 弱機で探索中に発熱／重い（レビュー） | 天候粒子・状態オーラ・帯VFX が常時負荷 | 設定「軽量モード」（既定オフ）。オンで粒子／オーラ／帯／ボス瓦礫／ヒットスプライト／紙吹雪を抑止。探索中切替は設定閉じで天候再適用 |
+| 弱機で探索中に発熱／重い（レビュー） | 天候粒子・状態オーラ・帯VFX・idleアニメ・ループ tween・FPS無制限が積み上がる | 軽量=30fps＋静止天候・idle停止・VFX抑止。**モバイル通常=45fps**＋`_setup_weather_mobile_reduced`＋`mobile_throttle_idle_loops`（呼吸/tier/脅威 pulse・CD隔フレーム） |
 | 連撃・AoE でヒットVFXが重い | 命中ごとに `AnimatedSprite2D.new`＋`queue_free` | `HitVfxPool` で再利用＋SpriteFrames キャッシュ。戦闘終了で `clear` |
 | UI アイコンが原寸〜1254²のまま | 表示は 64〜280px なのに Lossless 原寸を戦闘／拠点で保持 | 敵行動順≤256／CHR・助っ人肖像≤512（`tools/downscale_ui_icons_a.gd`）。Desktop 取込後も再実行 |
 | アイコン差替後 GUT が ctex null | `.godot/imported` を消したまま `--import` せずテスト | 差替後は `godot4 --headless --import` で再生成してから GUT |
@@ -214,6 +215,8 @@ alwaysApply: false
 | スキル詳細に「属性: dark」等の英語 | `EquipmentScene` が element id をそのまま表示 | `ElementResolver.get_display_name`（炎/氷/雷/闇/聖）を使う |
 | キャラのスキル説明が開発メモっぽい | キット設計メモ（「〇〇へ譲る」／担当）や UI の `CD；`／`tick`／英語状態ID | 説明は効果の平易語のみ。一覧は「再使用○秒」／持続は「しばらく続く」。状態名は日本語表示名 |
 | イベント／無限の仕組みが伝わらない | タブだけあって説明導線なし。解放もバナーのみ | `DungeonRouteGuideOverlay`（？ボタン＋降臨／無限の初回P分け）。再表示は preview |
+| 征討だけ Hard/NM が選べない／進入がノーマル固定 | apex を「イベント強制 Normal」や別 Normal 専用カードにしていた | 時王／境界廊／征討は `_is_event_free_tier_dungeon`（TabsRow 自由＋進入行1つ）。`route_type=event` の曜日枠だけ Normal 強制 |
+| 征討で吹雪だらけ／雑魚が全階Lv58 | `north_reach` をフロスト天候 alias＋固定 `enemy_level` | 専用天候重み（吹雪0）＋`ApexConquestConfig` 階帯Lv（`133`）。星炉は炎天寄せ（`134`） |
 | Noto 本文が薄い／キャラ切替 ◀▶ が消える | wght不足・DelaGothic・過小 font | → `ui-layout.mdc` 職名・本文タイポ |
 | CHR 放射色が顔まで染まる／焼き込み枠残存 | modulate・枠焼込 | → **`asset-import.mdc`**（recolor／strip ツール） |
 | 調査開始ダイアログの「調査開始」が見切れる | Window タイトルバー高不足／実機でタイトルが上端クリップ | タイトルは空にして本文先頭へ。`panel` content_margin＋`popup_centered` 最小サイズ |

@@ -41,9 +41,21 @@ func test_allowed_types_match_job_data() -> void:
 	assert_true("sword" in _JobCalc.allowed_weapon_types("vanguard"))
 	assert_false("dual_blades" in _JobCalc.allowed_weapon_types("vanguard"))
 	assert_true("dual_blades" in _JobCalc.allowed_weapon_types("engineer"))
-	assert_true("bow" in _JobCalc.allowed_weapon_types("engineer"))
+	assert_true("hammer" in _JobCalc.allowed_weapon_types("engineer"))
+	assert_false("bow" in _JobCalc.allowed_weapon_types("engineer"))
 	assert_false("staff" in _JobCalc.allowed_weapon_types("engineer"))
 	assert_false("sword" in _JobCalc.allowed_weapon_types("engineer"))
+
+
+func test_engineer_can_equip_hammer_not_bow() -> void:
+	var host: Resource = _find_job_member("swordsman")
+	assert_not_null(host)
+	var saved_job: String = str(host.job_id)
+	host.job_id = "engineer"
+	assert_true(_JobCalc.can_equip_weapon(host, _make_weapon("iron_warhammer")))
+	assert_false(_JobCalc.can_equip_weapon(host, _make_weapon("hunting_bow")))
+	assert_true(_JobCalc.can_equip_weapon(host, _make_weapon("ash_twin_blades")))
+	host.job_id = saved_job
 
 
 func test_ranger_can_equip_sword_family() -> void:

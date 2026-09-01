@@ -96,6 +96,12 @@ func test_instant_pressure_aoe_power() -> void:
 		## エルディオン吐息はソロ圧力で ×1.15。
 		if boss_id == "eldion":
 			expect_power = 1.15
+		## P3-DG-APEX-BOSS-001: アルバーク白静寂＝時環共鳴同型 ×0.60（F1重みはヴァル同型据置）。
+		if boss_id == "albark":
+			expect_power = 0.6
+		## P3-DG-APEX-FORGE-BOSS-001: フォージ・スラグ吐息＝同型 ×0.60。
+		if boss_id == "forgedormient":
+			expect_power = 0.6
 		assert_almost_eq(float(skill.power_multiplier), expect_power, 0.001, sid)
 		assert_lte(float(skill.cast_time), 0.0, sid)
 
@@ -148,8 +154,8 @@ func test_boss_atk_scaled_with_serdion_ratio() -> void:
 		"mycolga_ancient": 193,
 		"karna_smoke": 203,
 		"nereion_depths": 242,
-		"forgedormient": 251,
-		"albark": 271,
+		"forgedormient": 248,
+		"albark": 248,
 	}
 	for boss_id: String in expect.keys():
 		var boss: Resource = DataRegistry.get_enemy_data(boss_id)

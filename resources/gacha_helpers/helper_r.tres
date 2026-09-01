@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="GachaHelperData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/GachaHelperData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "helper_r"
+display_name = "ブラン"
+job_id = "engineer"
+origin_note = "長CDの決め技のあと味を残す、装炎のガスマスク工兵！！"
+summon_quote = "……熱は逃がさない。決めたあとも燃え続ける。"
+rarity = 4
+passive_id = "eng_brand_afterheat"
+ultimate_skill_id = "eng_blaze_overload"
+hometown = "煤煙区画の耐熱工房"
+height_cm = 171
+likes = "耐熱手袋、静かな排気音"
+dislikes = "急冷却、半端な密封"
+backstory = "ガスマスクを被った装炎専門の機巧士。すすけた作業服と焦茶の金属装具が特徴。\n長いクールダウンの一撃が当たったあとも炎上を残す「装炎の余熱」で、決め技の余韻を戦場に広げる。\n口調は短く、熱管理の話になると珍しく饒舌になる。"
+record_note = "マスク下の素顔は未確認。装炎必殺は超重一射型。"

@@ -5,23 +5,33 @@
 [resource]
 script = ExtResource("1")
 id = "north_reach"
-display_name = "地図の余白ノースリーチ"
-difficulty = 6
-recommended_level = 58
-enemy_level = 55
+display_name = "地図なき主　征討"
+difficulty = 7
+recommended_level = 60
+enemy_level = 58
 room_count = 8
-floor_count = 10
-enemy_pool = Array[String](["frost_claw_raptor", "oldrex"])
+floor_count = 20
+enemy_pool = Array[String](["rock_bison", "iron_horn", "moss_shell", "crown_raven", "grave_bell_bat", "wind_ripper", "storm_joe"])
 boss_id = "albark"
 drop_table_id = "north_reach_drops"
 discovery_unlocks = {"hidden_room": 0.3, "special_event": 0.6, "hidden_boss": 1.0}
-elite_pool = Array[String](["greios", "glacier_warden"])
-favored_element = "fire"
+elite_pool = Array[String](["greios", "mist_wyvern", "rock_bison"])
+favored_element = "holy"
 route_type = "apex"
-event_room_weight = 25
-min_event_rooms = 1
+event_room_weight = 15
+min_event_rooms = 0
+room_weight_overrides = {
+"combat": 40,
+"elite": 28,
+"heal": 8,
+"lore": 8,
+"treasure": 10,
+"trap": 12
+}
 weapon_pool = Array[String](["ridge_cleaver", "frostclaw_blades", "snowline_longbow", "cairn_staff", "glacier_greatsword", "rime_bow", "aurora_staff", "shadow_fang_saw", "permafrost_edge", "white_needle", "eldion_frostbrand", "umbra_terminus_staff", "eldion_spine", "eldion_claw", "rime_fang_blades", "umbra_needle", "frostspire_bow", "regicide_longbow"])
 armor_pool = Array[String](["furline_garb", "glacier_plate", "snowdrift_cloak", "dragon_scale_aegis", "aurora_vestment", "drove_wool_coat"])
 accessory_pool = Array[String](["ice_crystal_ring", "frost_fang_charm", "eldion_heart_talisman", "mitten_pin", "rimecrown_seal"])
 unlock_after_dungeon_id = "frostridge"
-flavor_text = "ノースリーチ、地図の余白。白闇に白甲の古龍が境界を守り、\n地図の余白で、白甲の古龍が名を呼ばれることを拒む。"
+daily_attempt_limit = 0
+disable_wandering = true
+flavor_text = "最果ての天望塔。階を上げるほど街の灯は遠のき、雲だけが近い。\n地図に載らない最上階に、白甲の主がいる。"

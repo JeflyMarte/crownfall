@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "albark_namerefuse_dual"
+display_name = "名拒みの双剣"
+description = "天望の塔のセット武器。名を拒む双刃。"
+fixed_skill_id = ""
+fixed_passive_id = ""
+base_attack = 102
+rarity = 5
+base_attack_speed = 1.05
+base_critical_rate = 0.08
+base_knockback = 0.3
+base_stagger_power = 0.2
+base_attack_range = 1.0
+weight = 1.0
+element = "ice"
+weapon_type = "dual_blades"
+base_element_power = 1000
+tags = Array[String](["slash", "ice"])
+flavor_text = "征討セット装備。武器・防具・装飾を揃えると加護が発動する。"
+set_id = "albark_namerefuse"

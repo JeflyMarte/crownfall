@@ -168,7 +168,7 @@ func _build_gameplay_section() -> Control:
 	light.toggled.connect(_on_light_mode_toggled)
 	UiTypography.apply_button(light, false)
 	body.add_child(light)
-	_add_caption(body, "オンで天候・オーラ・帯・ヒット演出・紙吹雪などを抑え、発熱しやすい端末向けに軽くします")
+	_add_caption(body, "オンで演出最小・idle停止・30fps。オフでもモバイルは45fps・天候ループ抑止")
 	var auto_dm := CheckButton.new()
 	auto_dm.text = "N・Rを自動分解"
 	auto_dm.button_pressed = _SettingsPrefs.is_auto_dismantle_common_rare()

@@ -15,6 +15,8 @@ const _EVENT_ONLY: Array[String] = [
 const _POOL_KEEP: Array[String] = [
 	"rock_stampede",
 	"valgard_boundary",
+	"north_reach",
+	"red_forge_depths",
 ]
 
 
@@ -86,15 +88,20 @@ func test_rock_bison_dedicated_art() -> void:
 
 
 func test_rock_bison_wander_chance_matches_raven_band() -> void:
-	assert_almost_eq(_WanderingEnemyConfig.spawn_chance_rock_bison(0), 0.015, 0.0001)
 	assert_almost_eq(
 		_WanderingEnemyConfig.spawn_chance_rock_bison(0),
 		_WanderingEnemyConfig.spawn_chance_crown_raven(0),
 		0.0001
 	)
-	## N: duck+raven+scarab=0.055 → bison until 0.070
+	## イベント倍率が乗っても、duck+raven+scarab の直後帯は bison。
+	var duck: float = _WanderingEnemyConfig.spawn_chance_cosmic_duck(0)
+	var raven: float = _WanderingEnemyConfig.spawn_chance_crown_raven(0)
+	var scarab: float = _WanderingEnemyConfig.spawn_chance_golden_scarab(0)
+	var bison: float = _WanderingEnemyConfig.spawn_chance_rock_bison(0)
+	assert_gt(bison, 0.0)
+	var roll: float = duck + raven + scarab + minf(0.001, bison * 0.5)
 	assert_eq(
-		_WanderingEnemyConfig.wandering_id_for_roll(0.06),
+		_WanderingEnemyConfig.wandering_id_for_roll(roll),
 		_WanderingEnemyConfig.ID_ROCK_BISON
 	)
 
