@@ -20,6 +20,7 @@ const _META_BODY_BASE_BOTTOM: StringName = &"_cf_body_base_bottom"
 const HUB_TOP_BAR_H: float = 88.0
 const HUB_LEFT_MENU_DESIGN_TOP: float = 96.0
 const HUB_DAILY_H: float = 236.0
+const HUB_EXCAVATE_H: float = 44.0
 const HUB_STRIP_H: float = 80.0
 const HUB_STACK_GAP: float = 8.0
 
@@ -212,6 +213,18 @@ static func _stack_hub_bottom_panels(hub: Control) -> void:
 	var strip: Control = hub.get_node_or_null("CurrencyStrip") as Control
 	if strip != null:
 		strip.visible = false
+	var excavate_extra: float = 0.0
+	var excavate: Control = hub.get_node_or_null("ExcavateEntryPanel") as Control
+	if excavate != null and excavate.visible:
+		excavate.anchor_left = 0.0
+		excavate.anchor_right = 1.0
+		excavate.anchor_top = 1.0
+		excavate.anchor_bottom = 1.0
+		excavate.offset_left = CONTENT_MARGIN_H
+		excavate.offset_right = -CONTENT_MARGIN_H
+		excavate.offset_top = -(HUB_DAILY_H + HUB_STACK_GAP + HUB_EXCAVATE_H + HUB_STACK_GAP)
+		excavate.offset_bottom = excavate.offset_top + HUB_EXCAVATE_H
+		excavate_extra = HUB_EXCAVATE_H + HUB_STACK_GAP
 	if daily != null:
 		daily.anchor_left = 0.0
 		daily.anchor_right = 1.0
@@ -219,7 +232,7 @@ static func _stack_hub_bottom_panels(hub: Control) -> void:
 		daily.anchor_bottom = 1.0
 		daily.offset_left = CONTENT_MARGIN_H
 		daily.offset_right = -CONTENT_MARGIN_H
-		daily.offset_top = -(HUB_DAILY_H + HUB_STACK_GAP)
+		daily.offset_top = -(HUB_DAILY_H + HUB_STACK_GAP + excavate_extra)
 		daily.offset_bottom = -HUB_STACK_GAP
 
 

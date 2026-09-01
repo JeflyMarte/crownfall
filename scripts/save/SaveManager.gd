@@ -23,7 +23,7 @@ const SLOT_DEBUG: String = "debug"
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 15
+const SAVE_VERSION: int = 16
 
 ## セッション中の読み書き先。タイトルで本編／デバッグを切り替える。
 var _active_slot: String = SLOT_NORMAL
@@ -141,6 +141,7 @@ func save_game() -> bool:
 		"saved_parties": GameState.saved_parties.duplicate(true),
 		"owned_relics": GameState.owned_relics.duplicate(),
 		"daily_mission_state": GameState.daily_mission_state.duplicate(true),
+		"crystal_excavate_state": GameState.crystal_excavate_state.duplicate(true),
 		"event_dungeon_attempts": GameState.event_dungeon_attempts.duplicate(true),
 		"current_dungeon_tier": GameState.current_dungeon_tier,
 		"dungeon_tier_cleared": GameState.dungeon_tier_cleared.duplicate(true),
@@ -268,6 +269,8 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 		data = _migrate_save_v13_to_v14(data)
 	if version < 15:
 		data = _migrate_save_v14_to_v15(data)
+	if version < 16:
+		data = _migrate_save_v15_to_v16(data)
 	data["save_version"] = SAVE_VERSION
 	return data
 
@@ -282,6 +285,13 @@ func _migrate_save_v14_to_v15(data: Dictionary) -> Dictionary:
 			if raw is Array:
 				from_cycle = (raw as Array).duplicate()
 		data["hub_survey_party_backup_ids"] = from_cycle
+	return data
+
+
+## P3-UX-CRYSTAL-EXCAVATE-001: 魔晶石発掘日次状態。
+func _migrate_save_v15_to_v16(data: Dictionary) -> Dictionary:
+	if not data.has("crystal_excavate_state") or not (data["crystal_excavate_state"] is Dictionary):
+		data["crystal_excavate_state"] = {}
 	return data
 
 
@@ -962,6 +972,10 @@ func _apply_save_data(data: Dictionary) -> void:
 	_NinaRareAcquireGuide.heal_flags_from_progress()
 	if data.has("daily_mission_state") and data["daily_mission_state"] is Dictionary:
 		GameState.daily_mission_state = (data["daily_mission_state"] as Dictionary).duplicate(true)
+	if data.has("crystal_excavate_state") and data["crystal_excavate_state"] is Dictionary:
+		GameState.crystal_excavate_state = (data["crystal_excavate_state"] as Dictionary).duplicate(true)
+	else:
+		GameState.crystal_excavate_state = {}
 	if data.has("event_dungeon_attempts") and data["event_dungeon_attempts"] is Dictionary:
 		GameState.event_dungeon_attempts = (data["event_dungeon_attempts"] as Dictionary).duplicate(true)
 	else:

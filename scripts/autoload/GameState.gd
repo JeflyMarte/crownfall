@@ -238,6 +238,10 @@ func top_run_modifiers(limit: int = 3) -> Array:
 
 # ギルド日課（P3-DAILY）— SaveManager が永続化。
 var daily_mission_state: Dictionary = {}
+## 魔晶石発掘（P3-UX-CRYSTAL-EXCAVATE-001）。{ day_key, used, last_tokens, ... }
+var crystal_excavate_state: Dictionary = {}
+## 発掘フロー中のみ（非永続）。
+var crystal_excavate_session: Dictionary = {}
 ## イベントDG日次挑戦（P3-DG-DUCK-EVENT-001）。dungeon_id → { day_key, used }
 var event_dungeon_attempts: Dictionary = {}
 
@@ -1747,6 +1751,8 @@ func reset_for_new_game() -> void:
 	enemy_codex = {}
 	combat_presets = []
 	daily_mission_state = {}
+	crystal_excavate_state = {}
+	crystal_excavate_session = {}
 	event_dungeon_attempts = {}
 	commander = {}
 	current_exploration_policy = ""
