@@ -126,3 +126,59 @@ func test_armor_gekigeki_has_vs_armor_break_tag() -> void:
 	var sd: Resource = DataRegistry.get_skill_data("eng_armor_gekigeki")
 	assert_true(sd.tags.has("vs_armor_break"))
 	assert_eq(str(sd.apply_status_id), "armor_break")
+
+
+func test_engineer_helper_lv40_signature_skills() -> void:
+	var cases: Array[Dictionary] = [
+		{
+			"helper_id": "helper_q",
+			"skill_id": "eng_trim_spike_rain",
+			"replaces": "eng_scrap_burst",
+		},
+		{
+			"helper_id": "helper_r",
+			"skill_id": "eng_bran_ember_wave",
+			"replaces": "eng_scrap_burst",
+		},
+		{
+			"helper_id": "helper_s",
+			"skill_id": "eng_ortho_seam_burst",
+			"replaces": "eng_scrap_burst",
+		},
+	]
+	for case: Dictionary in cases:
+		var helper: Resource = DataRegistry.get_gacha_helper_data(str(case["helper_id"]))
+		assert_not_null(helper, case["helper_id"])
+		var reps: Array = helper.skill_slot_replacements
+		assert_eq(reps.size(), 1, case["helper_id"])
+		assert_eq(str(reps[0].get("replaces", "")), str(case["replaces"]))
+		assert_eq(str(reps[0].get("skill_id", "")), str(case["skill_id"]))
+		assert_eq(int(reps[0].get("level", 0)), 40)
+		var member: Resource = Adventurer.new()
+		member.id = "gacha_%s" % str(case["helper_id"])
+		member.job_id = "engineer"
+		member.level = 40
+		var unlocked: Array[String] = SkillProgression.get_unlocked_job_skill_ids(member)
+		assert_true(unlocked.has(str(case["skill_id"])), case["helper_id"])
+		assert_false(unlocked.has(str(case["replaces"])), case["helper_id"])
+
+
+func test_engineer_job_keeps_scrap_burst_at_lv40() -> void:
+	var member: Resource = Adventurer.new()
+	member.id = "adventurer_0"
+	member.job_id = "engineer"
+	member.level = 40
+	var unlocked: Array[String] = SkillProgression.get_unlocked_job_skill_ids(member)
+	assert_true(unlocked.has("eng_scrap_burst"))
+	assert_false(unlocked.has("eng_trim_spike_rain"))
+
+
+func test_engineer_helper_equipped_scrap_burst_remaps() -> void:
+	var member: Resource = Adventurer.new()
+	member.id = "gacha_helper_q"
+	member.job_id = "engineer"
+	member.level = 45
+	member.equipped_skill_ids = ["eng_scrap_burst"] as Array[String]
+	SkillProgression.normalize_equipped_skills(member)
+	assert_eq(member.equipped_skill_ids.size(), 1)
+	assert_eq(str(member.equipped_skill_ids[0]), "eng_trim_spike_rain")

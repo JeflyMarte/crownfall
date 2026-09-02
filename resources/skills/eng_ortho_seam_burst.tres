@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "eng_ortho_seam_burst"
+display_name = "継ぎ目爆"
+description = "継ぎ目を割り、敵全体の装甲を崩す。"
+skill_type = "player"
+target_type = "all_enemies"
+power_multiplier = 0.52
+cooldown = 6.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ranged", "aoe", "debuff"])
+element = ""
+slot_type = "skill"
+range_type = "long"
+apply_status_id = "armor_break"
+apply_status_chance = 0.4

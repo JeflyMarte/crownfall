@@ -18,6 +18,8 @@ extends Resource
 @export var passive_id: String = ""
 ## キャラ別必殺 id（空なら `JobData.ultimate_skill_id` へフォールバック / P3-JOB-ENGINEER-001）。
 @export var ultimate_skill_id: String = ""
+## 職習得表の差替え（P3-SKILL-CHAR-SLOT-001）。例: {level, replaces, skill_id}。
+@export var skill_slot_replacements: Array[Dictionary] = []
 ## 専用スプライト animation resource パス（空なら job 既定）。
 @export var sprite_resource_path: String = ""
 ## 専用立ち絵 PNG パス（召喚演出・編成等。空なら job バストへフォールバック / P3-GACHA-003）。

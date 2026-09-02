@@ -49,9 +49,12 @@ static func _ultimate_entry(member: Resource) -> Dictionary:
 	if member == null or Constants.is_pet_id(str(member.id)):
 		return {}
 	var ultimate_id: String = Constants.DEFAULT_ULTIMATE_SKILL_ID
-	var job_id: String = str(member.job_id)
-	if not job_id.is_empty():
-		var job_data: Resource = DataRegistry.get_job_data(job_id)
+	if Constants.is_gacha_helper_id(str(member.id)):
+		var helper: Resource = DataRegistry.get_gacha_helper_data(str(member.id).trim_prefix("gacha_"))
+		if helper != null and "ultimate_skill_id" in helper and not str(helper.ultimate_skill_id).is_empty():
+			ultimate_id = str(helper.ultimate_skill_id)
+	elif not str(member.job_id).is_empty():
+		var job_data: Resource = DataRegistry.get_job_data(str(member.job_id))
 		if (
 			job_data != null
 			and "ultimate_skill_id" in job_data

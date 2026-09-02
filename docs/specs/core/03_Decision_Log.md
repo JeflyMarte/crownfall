@@ -8245,3 +8245,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-APEX-FORGE-SET-001-5 | SSOT — `136_ApexForgeSlagSet.md` | Decision 本体 |
 | P3-DG-APEX-FORGE-SET-001-6 | Impl＝資源7＋持続／vs炎上フック＋**専用ICO 7点**（炉熱テーマ） | 2026-08-30 |
 
+## キャラ差替えスキル枠パイロット（2026-09-02 — P3-SKILL-CHAR-SLOT-001）
+
+> **オーナー GO**（案B・推奨パイロット）。機巧士3・Lv40×1枠。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-SKILL-CHAR-SLOT-001-1 | 職7本のうち **Lv40 拡張枠1本** をキャラ固有スキルに差替え | 案B |
+| P3-SKILL-CHAR-SLOT-001-2 | パイロット＝`helper_q`／`helper_r`／`helper_s`（棘の雨／余熱波／継ぎ目爆） | 必殺・パッシブ接続済 |
+| P3-SKILL-CHAR-SLOT-001-3 | `GachaHelperData.skill_slot_replacements` ＋ `SkillProgression.get_unlock_entries_for_member` | 126 必殺上書きと同型 |
+| P3-SKILL-CHAR-SLOT-001-4 | SSOT — `137_CharacterSkillSlotPilot.md` | Decision 本体 |
+

@@ -33,6 +33,30 @@ static func remap_equipped_skill_id(skill_id: String) -> String:
 	return skill_id
 
 
+static func get_gacha_helper_for_member(member: Resource) -> Resource:
+	if member == null or not Constants.is_gacha_helper_id(str(member.id)):
+		return null
+	return DataRegistry.get_gacha_helper_data(str(member.id).trim_prefix("gacha_"))
+
+
+static func remap_equipped_skill_id_for_member(member: Resource, skill_id: String) -> String:
+	var sid: String = remap_equipped_skill_id(skill_id)
+	if member == null or sid.is_empty():
+		return sid
+	var helper: Resource = get_gacha_helper_for_member(member)
+	if helper == null or not "skill_slot_replacements" in helper:
+		return sid
+	for rep_v: Variant in helper.skill_slot_replacements:
+		if not rep_v is Dictionary:
+			continue
+		var rep: Dictionary = rep_v as Dictionary
+		if str(rep.get("replaces", "")) == sid:
+			var replacement: String = str(rep.get("skill_id", ""))
+			if not replacement.is_empty():
+				return replacement
+	return sid
+
+
 static func get_unlock_entries(data: Resource) -> Array:
 	if data == null:
 		return []
@@ -60,6 +84,40 @@ static func get_unlock_entries(data: Resource) -> Array:
 	return []
 
 
+static func get_unlock_entries_for_member(member: Resource) -> Array:
+	if member == null:
+		return []
+	if Constants.is_pet_id(str(member.id)):
+		return get_unlock_entries(_load_pet_data(str(member.id)))
+	var job_data: Resource = DataRegistry.get_job_data(str(member.job_id))
+	var entries: Array = get_unlock_entries(job_data)
+	var helper: Resource = get_gacha_helper_for_member(member)
+	if helper == null or not "skill_slot_replacements" in helper:
+		return entries
+	var merged: Array = entries.duplicate(true)
+	for rep_v: Variant in helper.skill_slot_replacements:
+		if not rep_v is Dictionary:
+			continue
+		var rep: Dictionary = rep_v as Dictionary
+		var replaces: String = str(rep.get("replaces", ""))
+		var replacement: String = str(rep.get("skill_id", ""))
+		var level: int = maxi(1, int(rep.get("level", 40)))
+		if replaces.is_empty() or replacement.is_empty():
+			continue
+		var replaced: bool = false
+		for i: int in range(merged.size()):
+			var entry_v: Variant = merged[i]
+			if not entry_v is Dictionary:
+				continue
+			if str((entry_v as Dictionary).get("skill_id", "")) == replaces:
+				merged[i] = {"skill_id": replacement, "level": level}
+				replaced = true
+				break
+		if not replaced:
+			merged.append({"skill_id": replacement, "level": level})
+	return merged
+
+
 static func _unlocked_ids_from_entries(entries: Array, level: int) -> Array[String]:
 	var out: Array[String] = []
 	for entry in entries:
@@ -83,11 +141,9 @@ static func _required_level_from_entries(entries: Array, skill_id: String) -> in
 
 
 static func get_unlocked_job_skill_ids(member: Resource) -> Array[String]:
-	var out: Array[String] = []
 	if member == null:
-		return out
-	var job_data: Resource = DataRegistry.get_job_data(str(member.job_id))
-	return _unlocked_ids_from_entries(get_unlock_entries(job_data), int(member.level))
+		return []
+	return _unlocked_ids_from_entries(get_unlock_entries_for_member(member), int(member.level))
 
 
 static func get_unlocked_pet_skill_ids(pet: Resource) -> Array[String]:
@@ -103,8 +159,7 @@ static func get_required_level(member: Resource, skill_id: String) -> int:
 		return 1
 	if Constants.is_pet_id(str(member.id)):
 		return get_pet_required_level(member, skill_id)
-	var job_data: Resource = DataRegistry.get_job_data(str(member.job_id))
-	return _required_level_from_entries(get_unlock_entries(job_data), skill_id)
+	return _required_level_from_entries(get_unlock_entries_for_member(member), skill_id)
 
 
 static func get_pet_required_level(pet: Resource, skill_id: String) -> int:
@@ -147,7 +202,7 @@ static func normalize_equipped_skills(member: Resource) -> void:
 	var ids: Array[String] = []
 	if "equipped_skill_ids" in member:
 		for raw_id in member.equipped_skill_ids:
-			var sid: String = remap_equipped_skill_id(str(raw_id))
+			var sid: String = remap_equipped_skill_id_for_member(member, str(raw_id))
 			if sid.is_empty() or not allowed.has(sid):
 				continue
 			if ids.size() >= Constants.MAX_EQUIPPED_SKILLS:
@@ -169,7 +224,7 @@ static func skill_ids_unlocked_between(member: Resource, level_before: int, leve
 	if Constants.is_pet_id(str(member.id)):
 		entries = get_unlock_entries(_load_pet_data(str(member.id)))
 	else:
-		entries = get_unlock_entries(DataRegistry.get_job_data(str(member.job_id)))
+		entries = get_unlock_entries_for_member(member)
 	for entry in entries:
 		if not entry is Dictionary:
 			continue

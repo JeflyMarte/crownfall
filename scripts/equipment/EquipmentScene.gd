@@ -3096,7 +3096,7 @@ func _rebuild_skill_tab() -> void:
 	if job == null:
 		ScrollTouchHelper.enable(_tab_skill_scroll)
 		return
-	for entry in SkillProgression.get_unlock_entries(job):
+	for entry in SkillProgression.get_unlock_entries_for_member(member):
 		if not entry is Dictionary:
 			continue
 		var sid: String = str(entry.get("skill_id", ""))

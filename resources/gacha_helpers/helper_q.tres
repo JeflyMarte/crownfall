@@ -12,6 +12,11 @@ summon_quote = "……先に棘を置いておく。動いたら刺さる。"
 rarity = 3
 passive_id = "eng_trap_opener"
 ultimate_skill_id = "eng_full_arm_cascade"
+skill_slot_replacements = Array[Dictionary]([{
+"level": 40,
+"replaces": "eng_scrap_burst",
+"skill_id": "eng_trim_spike_rain"
+}])
 sprite_resource_path = "res://resources/animation/CHR_Helper_q.tres"
 portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_q.png"
 hometown = "下鍛冶街の工房路地"

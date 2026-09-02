@@ -12,6 +12,11 @@ summon_quote = "……熱は逃がさない。決めたあとも燃え続ける�
 rarity = 4
 passive_id = "eng_brand_afterheat"
 ultimate_skill_id = "eng_blaze_overload"
+skill_slot_replacements = Array[Dictionary]([{
+"level": 40,
+"replaces": "eng_scrap_burst",
+"skill_id": "eng_bran_ember_wave"
+}])
 sprite_resource_path = "res://resources/animation/CHR_Helper_r.tres"
 portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_r.png"
 hometown = "煤煙区画の耐熱工房"
