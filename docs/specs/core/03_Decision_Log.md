@@ -8245,3 +8245,19 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-APEX-FORGE-SET-001-5 | SSOT — `136_ApexForgeSlagSet.md` | Decision 本体 |
 | P3-DG-APEX-FORGE-SET-001-6 | Impl＝資源7＋持続／vs炎上フック＋**専用ICO 7点**（炉熱テーマ） | 2026-08-30 |
 
+## 遺跡遠征 — ローグライク単騎モード（2026-09-02 — P3-DG-ROGUE-001）
+
+> **オーナー体験像確定・Decision 草案。** 単騎Lv1・50Fランダム・10Fピック・30F中ボス・50F限定装備・キャラ別ビンゴ。**GO 待ち**（Q1時間／Q4装備粒度／表示名）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-ROGUE-001-1 | 所持キャラ1人・**ラン内Lv1**・本編装備非持込 | オーナー指定 |
+| P3-DG-ROGUE-001-2 | **50F固定**・ランダム部屋列 | オーナー指定 |
+| P3-DG-ROGUE-001-3 | **F10/20/40 ピック**（仲間・武器・回復等）／**F30 中ボス** | オーナー指定 |
+| P3-DG-ROGUE-001-4 | **F50 クリア**で遠征限定装備（恒久） | オーナー指定 |
+| P3-DG-ROGUE-001-5 | **キャラ別5×5ビンゴ星**（やり込み・コスメ中心報酬） | オーナー指定 |
+| P3-DG-ROGUE-001-6 | `route_type=rogue`・深層／征討／本編と分離 | 役割整理 |
+| P3-DG-ROGUE-001-7 | 解放＝**メイン5 N 全クリア後**・日次無制限 | エンド帯 |
+| P3-DG-ROGUE-001-8 | SSOT — `137_RoguelikeExpedition.md` | Decision 本体 |
+| P3-DG-ROGUE-001-9 | Impl 分割 A→E（RunState／戦闘／ピック／ボス／ビンゴ） | 工数管理 |
+
