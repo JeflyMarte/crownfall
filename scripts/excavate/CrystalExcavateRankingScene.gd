@@ -85,7 +85,7 @@ func _make_row(rank: int, entry: Dictionary) -> Control:
 	dmg_col.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_child(dmg_col)
 	var dmg := Label.new()
-	dmg.text = "%d" % int(entry.get("dealt_damage", 0))
+	dmg.text = "%dダメージ" % int(entry.get("dealt_damage", 0))
 	dmg.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	dmg_col.add_child(dmg)
 	UiTypography.apply_display(dmg, UiTypography.SIZE_DISPLAY_TITLE, UiTypography.COLOR_GOLD)

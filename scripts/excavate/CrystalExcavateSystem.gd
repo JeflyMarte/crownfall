@@ -123,6 +123,8 @@ static func begin_excavate(member_id: String, skill_id: String) -> Dictionary:
 	var dealt: int = _DamageHelper.roll_damage(member, skill)
 	var tokens: int = damage_to_tokens(dealt)
 	var day_key: String = DailyMissionSystem.current_day_key()
+	var prev_best: int = best_damage_on_record()
+	var is_record: bool = dealt > prev_best
 	GameState.crystal_excavate_state = {
 		"day_key": day_key,
 		"used": true,
@@ -130,6 +132,7 @@ static func begin_excavate(member_id: String, skill_id: String) -> Dictionary:
 		"last_dealt_damage": dealt,
 		"last_member_id": member_id,
 		"last_skill_id": skill_id,
+		"last_was_record": is_record,
 		"pending_hub_fx_tokens": tokens,
 	}
 	GameState.crystal_excavate_session = {
@@ -212,6 +215,15 @@ static func ranking_back_scene() -> String:
 	return ranking_return_scene
 
 
+static func best_damage_on_record() -> int:
+	var best: int = 0
+	for row: Variant in GameState.crystal_excavate_history:
+		if row is not Dictionary:
+			continue
+		best = maxi(best, int((row as Dictionary).get("dealt_damage", 0)))
+	return best
+
+
 static func last_result() -> Dictionary:
 	ensure_refreshed()
 	var state: Dictionary = GameState.crystal_excavate_state
@@ -221,6 +233,7 @@ static func last_result() -> Dictionary:
 		"member_id": str(state.get("last_member_id", "")),
 		"skill_id": str(state.get("last_skill_id", "")),
 		"used": bool(state.get("used", false)),
+		"was_record": bool(state.get("last_was_record", false)),
 	}
 
 

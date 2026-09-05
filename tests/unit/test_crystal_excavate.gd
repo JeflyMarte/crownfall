@@ -158,6 +158,39 @@ func test_pending_hub_fx_tokens_consumed_once() -> void:
 	pass_test("no eligible roster member")
 
 
+func test_new_record_flag_when_damage_beats_history() -> void:
+	GameState.debug_full_unlock = true
+	GameState.crystal_excavate_history = []
+	GameState.crystal_excavate_state = {
+		"day_key": DailyMissionSystem.current_day_key(),
+		"used": false,
+	}
+	assert_eq(_Excavate.best_damage_on_record(), 0)
+	for member: Resource in GameState.roster:
+		if member == null or PetSystem.is_pet_member(member):
+			continue
+		var candidates: Array[Dictionary] = _Excavate.skill_candidates_for_member(member)
+		if candidates.is_empty():
+			continue
+		var sid: String = str(candidates[0].get("id", ""))
+		var r1: Dictionary = _Excavate.begin_excavate(str(member.id), sid)
+		assert_true(bool(r1.get("ok", false)), str(r1))
+		assert_true(bool(GameState.crystal_excavate_state.get("last_was_record", false)))
+		assert_true(bool(_Excavate.last_result().get("was_record", false)))
+		## 2回目は履歴があるので、前回超えのみ記録更新。
+		GameState.crystal_excavate_state["used"] = false
+		var prev_best: int = _Excavate.best_damage_on_record()
+		var r2: Dictionary = _Excavate.begin_excavate(str(member.id), sid)
+		assert_true(bool(r2.get("ok", false)), str(r2))
+		var dealt2: int = int(r2.get("dealt_damage", 0))
+		assert_eq(
+			bool(GameState.crystal_excavate_state.get("last_was_record", false)),
+			dealt2 > prev_best
+		)
+		return
+	pass_test("no eligible roster member")
+
+
 func test_history_ranks_by_damage_desc() -> void:
 	GameState.crystal_excavate_history = []
 	GameState.debug_full_unlock = true

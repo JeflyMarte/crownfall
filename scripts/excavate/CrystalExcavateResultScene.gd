@@ -7,6 +7,10 @@ const _Excavate := preload("res://scripts/excavate/CrystalExcavateSystem.gd")
 const _BgHelper := preload("res://scripts/excavate/CrystalExcavateBgHelper.gd")
 const _UiTokens := preload("res://scripts/excavate/CrystalExcavateUiTokens.gd")
 
+const BANNER_H: float = 320.0
+const RECORD_DMG_COLOR := Color(1.0, 0.42, 0.28, 1.0)
+const NORMAL_DMG_COLOR := Color(1.0, 0.88, 0.55, 1.0)
+
 @onready var _main: VBoxContainer = $MainVBox
 
 
@@ -24,6 +28,7 @@ func _build_result() -> void:
 	var result: Dictionary = _Excavate.last_result()
 	var tokens: int = int(result.get("tokens", 0))
 	var dealt: int = int(result.get("dealt_damage", 0))
+	var was_record: bool = bool(result.get("was_record", false))
 
 	var banner_tex: Texture2D = _UiTokens.result_banner_texture()
 	if banner_tex != null:
@@ -31,7 +36,7 @@ func _build_result() -> void:
 		banner.texture = banner_tex
 		banner.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		banner.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		banner.custom_minimum_size = Vector2(0, 160)
+		banner.custom_minimum_size = Vector2(0, BANNER_H)
 		banner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		banner.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 		_main.add_child(banner)
@@ -57,11 +62,29 @@ func _build_result() -> void:
 	row.add_child(amount)
 	UiTypography.apply_display(amount, UiTypography.SIZE_DISPLAY_TITLE, UiTypography.COLOR_GOLD)
 
+	var dmg_row := HBoxContainer.new()
+	dmg_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	dmg_row.add_theme_constant_override("separation", 8)
+	_main.add_child(dmg_row)
+	if was_record:
+		var badge := Label.new()
+		badge.text = "記録更新！"
+		badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		dmg_row.add_child(badge)
+		UiTypography.apply_display(badge, 30, UiTypography.COLOR_GOLD)
+		badge.add_theme_constant_override("outline_size", 6)
 	var detail := Label.new()
-	detail.text = "与ダメージ %d" % dealt
+	detail.text = "与ダメージ%d" % dealt
 	detail.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_main.add_child(detail)
-	UiTypography.apply_caption(detail)
+	dmg_row.add_child(detail)
+	var dmg_color: Color = RECORD_DMG_COLOR if was_record else NORMAL_DMG_COLOR
+	var impact: Font = UiTypography.impact_font()
+	if impact != null:
+		detail.add_theme_font_override("font", impact)
+	detail.add_theme_font_size_override("font_size", 40 if was_record else 36)
+	detail.add_theme_color_override("font_color", dmg_color)
+	detail.add_theme_constant_override("outline_size", 6)
+	detail.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.92))
 
 	var btn_rank := Button.new()
 	btn_rank.text = "ダメージランキング"
