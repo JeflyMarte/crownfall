@@ -4445,6 +4445,9 @@ func _enter_current_room() -> void:
 			if _room_transition_busy:
 				_defer_combat_room_visuals = true
 				_pending_swarm_enemy_ids = enemy_ids.duplicate()
+				## 明け後に flush するまで前部屋の死体が残ると一瞬見えるため、暗転中に消す。
+				_boss_sprite.visible = false
+				_hide_enemy_sprite()
 			else:
 				_show_enemy_swarm(enemy_ids)
 				_update_hp_bars()
@@ -12455,7 +12458,9 @@ func _normalize_enemy_scale(sprite: AnimatedSprite2D, frames: SpriteFrames, enem
 func _hide_enemy_sprite() -> void:
 	_clear_swarm_slots()
 	_clear_turn_order_ui()
-	_enemy_sprite.visible = false
+	if _enemy_sprite != null and is_instance_valid(_enemy_sprite):
+		_enemy_sprite.stop()
+		_enemy_sprite.visible = false
 	_hp_bar_enemy.visible = false
 	_enemy_nameplate.visible = false
 

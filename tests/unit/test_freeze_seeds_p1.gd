@@ -37,3 +37,12 @@ func test_dungeon_defers_combat_visuals_api_exists() -> void:
 		src.contains("_run_post_transition_flush_async"),
 		"async split flush present"
 	)
+	## 暗転 defer 時に前部屋の死体を残すと幕明けで一瞬見える。
+	var defer_hide_idx: int = src.find("_defer_combat_room_visuals = true")
+	assert_gt(defer_hide_idx, 0, "defer assignment present")
+	var hide_after: int = src.find("_hide_enemy_sprite()", defer_hide_idx)
+	var else_after: int = src.find("else:", defer_hide_idx)
+	assert_true(
+		hide_after > defer_hide_idx and (else_after < 0 or hide_after < else_after),
+		"defer path must hide previous enemy sprites before fade-in"
+	)
