@@ -8,6 +8,7 @@ const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
 const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd")
 const _StarterRecruitment = preload("res://scripts/roster/StarterRecruitment.gd")
 const _PetSystem = preload("res://scripts/pets/PetSystem.gd")
+const _UltimateSkillResolver = preload("res://scripts/combat/UltimateSkillResolver.gd")
 
 # 所持ゴールド（永続）
 var gold: int = 0
@@ -2079,6 +2080,9 @@ func _create_base_adventurer(def: Dictionary) -> Resource:
 	adv.display_name = str(def["name"])
 	adv.job_id = str(def["job"])
 	adv.rarity = Adventurer.STARTER_RARITY
+	var ult_id: String = _UltimateSkillResolver.starter_ultimate_id(adv.id)
+	if not ult_id.is_empty():
+		adv.ultimate_skill_id = ult_id
 	_GachaRarityConfig.apply_stats_for_adventurer(adv)
 	return adv
 

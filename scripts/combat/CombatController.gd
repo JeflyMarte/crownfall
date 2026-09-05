@@ -1258,11 +1258,42 @@ func _enemy_passes_incoming_status_roll(slot: int) -> bool:
 
 func _party_passes_incoming_status_roll() -> bool:
 	var mult: float = CombatPassives.party_incoming_status_chance_mult()
+	mult *= get_party_status_incoming_status_chance_mult()
 	if mult >= 0.999:
 		return true
 	if mult <= 0.0:
 		return false
 	return randf() <= mult
+
+
+## アイアンオーラ等の状態による被異常付与減衰（生存味方の乗算最小）。
+func get_party_status_incoming_status_chance_mult() -> float:
+	var mult: float = 1.0
+	for i: int in party_combat_hp.size():
+		if not is_member_alive(i):
+			continue
+		var m: float = _status_resolver.get_incoming_status_chance_mult("party_%d" % i)
+		if m < mult:
+			mult = m
+	return mult
+
+
+func get_member_status_crit_rate_add(member_index: int) -> float:
+	if member_index < 0:
+		return 0.0
+	return _status_resolver.get_crit_rate_add("party_%d" % member_index)
+
+
+func get_member_status_lifesteal_ratio(member_index: int) -> float:
+	if member_index < 0:
+		return 0.0
+	return _status_resolver.get_lifesteal_ratio("party_%d" % member_index)
+
+
+func get_member_status_elemental_outgoing_mult(member_index: int) -> float:
+	if member_index < 0:
+		return 1.0
+	return _status_resolver.get_elemental_outgoing_mult("party_%d" % member_index)
 
 func apply_status_to_active_enemy(
 	effect_id: String,
@@ -1460,6 +1491,9 @@ func get_member_outgoing_damage_multiplier(
 		)
 		if elem_any > 0.0 and not is_equal_approx(elem_any, 1.0):
 			mult *= elem_any
+		var status_elem: float = get_member_status_elemental_outgoing_mult(member_index)
+		if status_elem > 0.0 and not is_equal_approx(status_elem, 1.0):
+			mult *= status_elem
 		var elem_mults: Dictionary = CombatPassives.weapon_stat_modifiers_for_member(member_index).get("element_outgoing_mult", {})
 		if elem_mults is Dictionary and elem_mults.has(attack_element):
 			mult *= float(elem_mults[attack_element])

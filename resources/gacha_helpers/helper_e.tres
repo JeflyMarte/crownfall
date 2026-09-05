@@ -13,6 +13,7 @@ rarity = 3
 passive_id = "mira_beast_call"
 sprite_resource_path = "res://resources/animation/CHR_Helper_e.tres"
 portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_e.png"
+ultimate_skill_id = "blood_drain"
 hometown = "グリーンホロウ"
 height_cm = 166
 likes = "相棒の呼吸、翠の葉陰"

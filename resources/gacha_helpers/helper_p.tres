@@ -13,6 +13,7 @@ rarity = 4
 passive_id = "hodaka_blood_price"
 sprite_resource_path = "res://resources/animation/CHR_Helper_p.tres"
 portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_p.png"
+ultimate_skill_id = "critical_storm"
 hometown = "不明（登録地アイアンヘイブン）"
 height_cm = 192
 likes = "斬ること、短い命令"

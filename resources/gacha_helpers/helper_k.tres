@@ -13,6 +13,7 @@ rarity = 2
 passive_id = "lenore_seal_echo"
 sprite_resource_path = "res://resources/animation/CHR_Helper_k.tres"
 portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_k.png"
+ultimate_skill_id = "curse_burst"
 hometown = "アイアンヘイブン（学府寄りの寄宿歴）"
 height_cm = 170
 likes = "きれいな式、静かな計算"

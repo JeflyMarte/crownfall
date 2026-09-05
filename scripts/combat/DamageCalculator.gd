@@ -112,6 +112,8 @@ static func attack_base(combat: CombatController, member_index: int = -1) -> Dic
 	crit_rate += EvolutionTraits.member_crit_add(member_index)
 	if member_index >= 0:
 		crit_rate += float(CombatPassives.weapon_stat_modifiers_for_member(member_index).get("crit_rate_add", 0.0))
+	if member_index >= 0 and combat != null:
+		crit_rate += combat.get_member_status_crit_rate_add(member_index)
 	if member_index >= 0:
 		var member: Resource = GameState.get_combatant(member_index)
 		if member != null:

@@ -42,3 +42,5 @@ const DEFAULT_RARITY: int = 1
 @export var is_evolved: bool = false
 ## 限界突破回数（0..5）。初期5人はここに保持。ガチャ助っ人は owned_helpers 由来を優先。
 @export var limit_breakthrough: int = 0
+## キャラ別必殺 id（空なら UltimateSkillResolver のスターター表／職へフォールバック）。
+@export var ultimate_skill_id: String = ""

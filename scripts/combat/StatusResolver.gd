@@ -137,6 +137,10 @@ const BENEFICIAL_STATUS_IDS: PackedStringArray = [
 	"empower_minor",
 	"empower_pet",
 	"regen",
+	"crit_surge",
+	"blood_drain",
+	"status_ward",
+	"elemental_attune",
 ]
 
 
@@ -251,6 +255,58 @@ func get_outgoing_damage_multiplier(unit_id: String) -> float:
 			continue
 		if effect.outgoing_damage_multiplier > 0.0:
 			mult *= effect.outgoing_damage_multiplier
+	return mult
+
+
+func get_crit_rate_add(unit_id: String) -> float:
+	var add: float = 0.0
+	if not _active.has(unit_id):
+		return add
+	for inst: StatusInstance in _active[unit_id]:
+		var effect: Resource = DataRegistry.get_status_effect(inst.effect_id)
+		if effect == null or not ("crit_rate_add" in effect):
+			continue
+		add += maxf(0.0, float(effect.crit_rate_add))
+	return add
+
+
+func get_lifesteal_ratio(unit_id: String) -> float:
+	var ratio: float = 0.0
+	if not _active.has(unit_id):
+		return ratio
+	for inst: StatusInstance in _active[unit_id]:
+		var effect: Resource = DataRegistry.get_status_effect(inst.effect_id)
+		if effect == null or not ("lifesteal_ratio" in effect):
+			continue
+		ratio += maxf(0.0, float(effect.lifesteal_ratio))
+	return ratio
+
+
+func get_elemental_outgoing_mult(unit_id: String) -> float:
+	var mult: float = 1.0
+	if not _active.has(unit_id):
+		return mult
+	for inst: StatusInstance in _active[unit_id]:
+		var effect: Resource = DataRegistry.get_status_effect(inst.effect_id)
+		if effect == null or not ("elemental_outgoing_mult" in effect):
+			continue
+		var e_mult: float = float(effect.elemental_outgoing_mult)
+		if e_mult > 0.0 and not is_equal_approx(e_mult, 1.0):
+			mult *= e_mult
+	return mult
+
+
+func get_incoming_status_chance_mult(unit_id: String) -> float:
+	var mult: float = 1.0
+	if not _active.has(unit_id):
+		return mult
+	for inst: StatusInstance in _active[unit_id]:
+		var effect: Resource = DataRegistry.get_status_effect(inst.effect_id)
+		if effect == null or not ("incoming_status_chance_mult" in effect):
+			continue
+		var s_mult: float = float(effect.incoming_status_chance_mult)
+		if s_mult > 0.0 and not is_equal_approx(s_mult, 1.0):
+			mult *= s_mult
 	return mult
 
 func get_incoming_damage_multiplier(unit_id: String) -> float:

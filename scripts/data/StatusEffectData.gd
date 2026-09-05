@@ -19,3 +19,11 @@ extends Resource
 @export var defense_reduction: float = 0.0  # armor_break: 0.5 = 対象 DEF を半減（0..1・P3-D107）
 ## 被回復倍率（heal_block=0）。複数付与時は乗算。
 @export var healing_received_multiplier: float = 1.0
+## 会心率加算（0..1。クリティカルストーム等・P3-BAL-CHAR-ULTIMATE-001）。
+@export var crit_rate_add: float = 0.0
+## 与ダメ吸血割合加算（ブラッドドレイン等）。
+@export var lifesteal_ratio: float = 0.0
+## 属性つき攻撃の与ダメ倍率（1.0=なし。エレメンタルブースト等）。
+@export var elemental_outgoing_mult: float = 1.0
+## 被状態異常付与率倍率（1.0=なし。アイアンオーラ等）。
+@export var incoming_status_chance_mult: float = 1.0

@@ -13,6 +13,7 @@ rarity = 2
 passive_id = "kaida_arena_edge"
 sprite_resource_path = "res://resources/animation/CHR_Helper_f.tres"
 portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_f.png"
+ultimate_skill_id = "break_edge"
 hometown = "シーゲート"
 height_cm = 181
 likes = "広い空、観客のいない剣"

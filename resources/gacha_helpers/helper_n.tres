@@ -13,6 +13,7 @@ rarity = 3
 passive_id = "borg_gate_voice"
 sprite_resource_path = "res://resources/animation/CHR_Helper_n.tres"
 portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_n.png"
+ultimate_skill_id = "vg_gate_counter"
 hometown = "アイアンヘイブン門前町"
 height_cm = 185
 likes = "自分の活躍、決めの反撃"

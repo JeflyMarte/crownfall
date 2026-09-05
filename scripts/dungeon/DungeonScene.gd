@@ -587,6 +587,10 @@ const STATUS_ICON_DEF: Dictionary = {
 	"empower": {"abbrev": "攻", "color": Color(0.95, 0.55, 0.2)},
 	"empower_minor": {"abbrev": "攻", "color": Color(0.85, 0.6, 0.35)},
 	"empower_pet": {"abbrev": "絆", "color": Color(0.95, 0.5, 0.25)},
+	"crit_surge": {"abbrev": "会", "color": Color(1.0, 0.85, 0.2)},
+	"blood_drain": {"abbrev": "吸", "color": Color(0.85, 0.2, 0.35)},
+	"status_ward": {"abbrev": "耐", "color": Color(0.55, 0.75, 0.95)},
+	"elemental_attune": {"abbrev": "属", "color": Color(0.55, 0.85, 0.95)},
 	"guard": {"abbrev": "防", "color": Color(0.4, 0.55, 0.85)},
 	"guard_minor": {"abbrev": "防", "color": Color(0.5, 0.65, 0.88)},
 	"bleed": {"abbrev": "出血", "color": Color(0.9, 0.28, 0.28)},
@@ -629,6 +633,10 @@ const SUPPORT_VFX_TINT: Dictionary = {
 	"empower": Color(1.0, 0.72, 0.25, 1.0),
 	"empower_minor": Color(0.92, 0.7, 0.4, 1.0),
 	"empower_pet": Color(1.0, 0.68, 0.3, 1.0),
+	"crit_surge": Color(1.0, 0.88, 0.3, 1.0),
+	"blood_drain": Color(0.9, 0.3, 0.4, 1.0),
+	"status_ward": Color(0.55, 0.8, 1.0, 1.0),
+	"elemental_attune": Color(0.5, 0.9, 1.0, 1.0),
 	"guard": Color(0.45, 0.78, 1.0, 1.0),
 	"guard_minor": Color(0.55, 0.82, 1.0, 1.0),
 	"default_buff": Color(1.0, 0.9, 0.45, 1.0),
@@ -751,6 +759,7 @@ const HitVfxPoolScript: Script = preload("res://scripts/combat/HitVfxPool.gd")
 const _StatusEffectLinkHelper = preload("res://scripts/ui/StatusEffectLinkHelper.gd")
 const _SkillEffectOneLineHelper = preload("res://scripts/ui/SkillEffectOneLineHelper.gd")
 const _CombatMemberInspectHelper = preload("res://scripts/ui/CombatMemberInspectHelper.gd")
+const _UltimateSkillResolver = preload("res://scripts/combat/UltimateSkillResolver.gd")
 const EvolutionVisualScript: Script = preload("res://scripts/systems/EvolutionVisual.gd")
 const ElementResolverScript: Script = preload("res://scripts/combat/ElementResolver.gd")
 const AffixStatCalculatorScript: Script = preload("res://scripts/equipment/AffixStatCalculator.gd")
@@ -6084,6 +6093,16 @@ func _apply_skill_on_hit_self_effects(member_idx: int, skill_data: Resource) -> 
 	if skill_data.tags.has("pet_empower_on_hit"):
 		_apply_status_to_pet("empower", false)
 		_update_status_icons()
+	if skill_data.tags.has("self_status_crit_surge"):
+		if $CombatController.apply_status("party_%d" % member_idx, "crit_surge", 1, 0):
+			_on_party_status_applied(member_idx, "crit_surge", false)
+			_update_status_icons()
+	for tag: Variant in skill_data.tags:
+		var tag_s: String = str(tag)
+		if tag_s.begins_with("self_evasion_"):
+			var eva_add: float = float(tag_s.trim_prefix("self_evasion_"))
+			if eva_add > 0.0:
+				CombatPassives.grant_combat_evasion(member_idx, eva_add)
 	## ダメージ技の taunt タグ（威嚇斬など）— バフ技と同じ Threat スパイク。
 	if skill_data.tags.has("taunt"):
 		$CombatController.apply_taunt(member_idx)
@@ -6149,6 +6168,8 @@ func _skill_crit_chance(member_idx: int, skill_data: Resource = null) -> float:
 	var rate: float = float(base_info.get("crit_rate", 0.0))
 	if skill_data != null and "crit_rate_bonus" in skill_data:
 		rate += float(skill_data.crit_rate_bonus)
+	if member_idx >= 0:
+		rate += $CombatController.get_member_status_crit_rate_add(member_idx)
 	return clampf(rate, 0.0, 1.0)
 
 
@@ -6940,6 +6961,8 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 				var n: int = int(tag_s.get_slice("_", 2))
 				if n > 0:
 					CombatPassives.grant_combat_counter_charges(member_idx, n)
+		if skill_data.tags.has("also_empower_pet"):
+			_apply_status_to_pet("empower_pet", false)
 	return {
 		"applied": applied,
 		"status_id": status_id,
@@ -8641,6 +8664,10 @@ func _apply_member_lifesteal(member_idx: int, damage: int, skill_id: String = ""
 		var sd: Resource = DataRegistry.get_skill_data(sid)
 		if sd != null and sd.tags.has("drain"):
 			ratio += BalanceConfig.SKILL_DRAIN_HEAL_RATIO
+	## ブラッドドレイン必殺バフ: 通常攻撃の吸血を大幅加算。
+	var is_basic: bool = sid.is_empty() or sid == "basic_attack" or sid == "counter_attack"
+	if is_basic:
+		ratio += $CombatController.get_member_status_lifesteal_ratio(member_idx)
 	if ratio <= 0.0:
 		return
 	var heal_amount: int = maxi(1, int(round(float(damage) * ratio)))
@@ -10222,7 +10249,7 @@ func _do_member_basic_attack(member_idx: int) -> void:
 		"session_id": _combat_session_id,
 	})
 
-# 必殺技スロットのスキル（ジョブ ultimate_skill_id → 既定 ultimate_strike）。
+# 必殺技スロットのスキル（キャラ／助っ人 → 職 → 既定）。
 # ペットは職なしのため DEFAULT に落ちて撃ててしまうため除外（P3-PET-ULT-OMIT-001）。
 func _get_member_ultimate_skill(member_idx: int) -> Resource:
 	var member: Resource = GameState.get_combatant(member_idx)
@@ -10230,19 +10257,7 @@ func _get_member_ultimate_skill(member_idx: int) -> Resource:
 		return null
 	if GameState.is_pet_combatant(member_idx) or Constants.is_pet_id(str(member.id)):
 		return null
-	var ult_id: String = Constants.DEFAULT_ULTIMATE_SKILL_ID
-	var adv_id: String = str(member.id)
-	if adv_id.begins_with("gacha_"):
-		var helper: Resource = DataRegistry.get_gacha_helper_data(adv_id.trim_prefix("gacha_"))
-		if helper != null and "ultimate_skill_id" in helper and not str(helper.ultimate_skill_id).is_empty():
-			ult_id = str(helper.ultimate_skill_id)
-	if ult_id == Constants.DEFAULT_ULTIMATE_SKILL_ID and not str(member.job_id).is_empty():
-		var job: Resource = DataRegistry.get_job_data(member.job_id)
-		if job != null and "ultimate_skill_id" in job and not str(job.ultimate_skill_id).is_empty():
-			ult_id = str(job.ultimate_skill_id)
-	if ult_id.is_empty():
-		return null
-	return DataRegistry.get_skill_data(ult_id)
+	return _UltimateSkillResolver.resolve_ultimate_skill(member)
 
 func _member_has_status(member_idx: int, effect_id: String) -> bool:
 	for e: Dictionary in $CombatController.get_member_status_list(member_idx):

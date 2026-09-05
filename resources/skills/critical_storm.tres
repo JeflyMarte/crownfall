@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "critical_storm"
+display_name = "クリティカルストーム"
+description = "会心の嵐を纏い、敵1体に大ダメージを与える。自身の会心も短時間大きく上がる。"
+skill_type = "player"
+target_type = "enemy"
+power_multiplier = 2.7
+crit_rate_bonus = 0.35
+cooldown = 30.0
+trigger_type = "cooldown"
+effect_type = "damage"
+tags = Array[String](["ultimate", "slash", "self_status_crit_surge"])
+element = ""
+apply_status_id = ""
+apply_status_chance = 0.0
+slot_type = "ultimate"
+range_type = "melee"
+cast_time = 0.0

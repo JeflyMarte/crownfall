@@ -4,20 +4,19 @@
 
 [resource]
 script = ExtResource("1")
-id = "titan_roar"
-display_name = "聖盾咆哮"
-description = "聖なる盾の咆哮で味方全体に防壁と鼓舞を張り、敵の注意を一身に集める。"
+id = "elemental_boost"
+display_name = "エレメンタルブースト"
+description = "万象の触媒を開き、味方全体の属性攻撃を短時間強化する。"
 skill_type = "player"
 target_type = "all_party"
 power_multiplier = 1.0
 cooldown = 30.0
 trigger_type = "cooldown"
 effect_type = "buff"
-tags = Array[String](["ultimate", "buff", "guard", "shield", "taunt", "empower"])
+tags = Array[String](["ultimate", "buff"])
 element = ""
-apply_status_id = "guard"
+apply_status_id = "elemental_attune"
 apply_status_chance = 1.0
-apply_status_id2 = "empower"
-apply_status_chance2 = 1.0
 slot_type = "ultimate"
-range_type = "melee"
+range_type = "global"
+cast_time = 0.0

@@ -13,6 +13,7 @@ rarity = 4
 passive_id = "valden_iron_oath"
 sprite_resource_path = "res://resources/animation/CHR_Helper_a.tres"
 portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_a.png"
+ultimate_skill_id = "iron_aura"
 hometown = "ストームクラウン麓の砦集落（自称）"
 height_cm = 190
 likes = "明確な境界線、守る約束"

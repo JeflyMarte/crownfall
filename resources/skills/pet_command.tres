@@ -4,20 +4,19 @@
 
 [resource]
 script = ExtResource("1")
-id = "titan_roar"
-display_name = "聖盾咆哮"
-description = "聖なる盾の咆哮で味方全体に防壁と鼓舞を張り、敵の注意を一身に集める。"
+id = "pet_command"
+display_name = "ペットコマンド"
+description = "相棒へ指揮を飛ばし、ペットを大きく強化しつつ味方にも薄い鼓舞を配る。"
 skill_type = "player"
 target_type = "all_party"
 power_multiplier = 1.0
 cooldown = 30.0
 trigger_type = "cooldown"
 effect_type = "buff"
-tags = Array[String](["ultimate", "buff", "guard", "shield", "taunt", "empower"])
+tags = Array[String](["ultimate", "buff", "also_empower_pet"])
 element = ""
-apply_status_id = "guard"
+apply_status_id = "empower_minor"
 apply_status_chance = 1.0
-apply_status_id2 = "empower"
-apply_status_chance2 = 1.0
 slot_type = "ultimate"
-range_type = "melee"
+range_type = "long"
+cast_time = 0.0

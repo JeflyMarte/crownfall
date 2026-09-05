@@ -23,6 +23,7 @@ const _ChrIdlePortrait = preload("res://scripts/ui/ChrIdlePortrait.gd")
 const _GachaLimitBreak = preload("res://scripts/gacha/GachaLimitBreak.gd")
 const _CharacterStatPages = preload("res://scripts/roster/CharacterStatPages.gd")
 const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuses.gd")
+const _UltimateSkillResolver = preload("res://scripts/combat/UltimateSkillResolver.gd")
 const _VirtualInventoryGrid = preload("res://scripts/ui/VirtualInventoryGrid.gd")
 
 # CombatController.BASE_MEMBER_HP と同値（表示用の素HP）。
@@ -3522,14 +3523,7 @@ func _get_member_ultimate_skill_data(member: Resource) -> Resource:
 		return null
 	if PetSystem.is_pet_member(member):
 		return null
-	var ult_id: String = Constants.DEFAULT_ULTIMATE_SKILL_ID
-	if not str(member.job_id).is_empty():
-		var job: Resource = DataRegistry.get_job_data(member.job_id)
-		if job != null and not str(job.ultimate_skill_id).is_empty():
-			ult_id = str(job.ultimate_skill_id)
-	if ult_id.is_empty():
-		return null
-	return DataRegistry.get_skill_data(ult_id)
+	return _UltimateSkillResolver.resolve_ultimate_skill(member)
 
 # ---- パッシブタブ ----
 ## 一覧はスキル行と同尺。大アイコン＋多重 RTL はタッチスクロールを奪い重い。

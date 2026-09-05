@@ -4,22 +4,23 @@
 
 [resource]
 script = ExtResource("1")
-id = "beast_dominion"
-display_name = "毒牙の嵐"
-description = "毒牙の掟で敵全体を崩す。毒・出血・炎上を刻み、薄いダメージを与える。"
+id = "silence_web"
+display_name = "サイレンスウェブ"
+description = "沈黙の網で敵全体の手数を封じる。薄いダメージと冷却・鈍化・恐怖を撒く。"
 skill_type = "player"
 target_type = "all_enemies"
-power_multiplier = 1.35
+power_multiplier = 1.15
 cooldown = 30.0
 trigger_type = "cooldown"
 effect_type = "damage"
-tags = Array[String](["ultimate", "debuff", "poison", "aoe"])
+tags = Array[String](["ultimate", "debuff", "aoe"])
 element = ""
-apply_status_id = "poison"
+apply_status_id = "chill"
 apply_status_chance = 1.0
-apply_status_id2 = "bleed"
+apply_status_id2 = "slow"
 apply_status_chance2 = 1.0
-apply_status_id3 = "ignite"
-apply_status_chance3 = 0.85
+apply_status_id3 = "fear"
+apply_status_chance3 = 0.7
 slot_type = "ultimate"
 range_type = "long"
+cast_time = 0.0

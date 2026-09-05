@@ -13,6 +13,7 @@ rarity = 3
 passive_id = "serin_quick_mend"
 sprite_resource_path = "res://resources/animation/CHR_Helper_c.tres"
 portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_c.png"
+ultimate_skill_id = "grand_elixir"
 hometown = "アイアンヘイブン"
 height_cm = 160
 likes = "まだ直せる傷、新しい触媒"

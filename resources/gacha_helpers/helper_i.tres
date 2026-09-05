@@ -13,6 +13,7 @@ rarity = 2
 passive_id = "garm_caravan_guard"
 sprite_resource_path = "res://resources/animation/CHR_Helper_i.tres"
 portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_i.png"
+ultimate_skill_id = "heartbeat"
 hometown = "王の大街道沿い（隊商育ち）"
 height_cm = 186
 likes = "通した道、盾の凹み話"

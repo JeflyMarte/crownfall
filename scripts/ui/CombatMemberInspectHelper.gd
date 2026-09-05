@@ -3,6 +3,7 @@ extends RefCounted
 
 const _SkillEffectOneLineHelper = preload("res://scripts/ui/SkillEffectOneLineHelper.gd")
 const _RosterUiHelper = preload("res://scripts/roster/RosterUiHelper.gd")
+const _UltimateSkillResolver = preload("res://scripts/combat/UltimateSkillResolver.gd")
 
 
 static func build(member: Resource) -> Dictionary:
@@ -48,22 +49,7 @@ static func _skill_entry(skill_data: Resource, is_ultimate: bool) -> Dictionary:
 static func _ultimate_entry(member: Resource) -> Dictionary:
 	if member == null or Constants.is_pet_id(str(member.id)):
 		return {}
-	var ultimate_id: String = Constants.DEFAULT_ULTIMATE_SKILL_ID
-	if Constants.is_gacha_helper_id(str(member.id)):
-		var helper: Resource = DataRegistry.get_gacha_helper_data(str(member.id).trim_prefix("gacha_"))
-		if helper != null and "ultimate_skill_id" in helper and not str(helper.ultimate_skill_id).is_empty():
-			ultimate_id = str(helper.ultimate_skill_id)
-	elif not str(member.job_id).is_empty():
-		var job_data: Resource = DataRegistry.get_job_data(str(member.job_id))
-		if (
-			job_data != null
-			and "ultimate_skill_id" in job_data
-			and not str(job_data.ultimate_skill_id).is_empty()
-		):
-			ultimate_id = str(job_data.ultimate_skill_id)
-	if ultimate_id.is_empty():
-		return {}
-	var skill_data: Resource = DataRegistry.get_skill_data(ultimate_id)
+	var skill_data: Resource = _UltimateSkillResolver.resolve_ultimate_skill(member)
 	if skill_data == null:
 		return {}
 	return _skill_entry(skill_data, true)

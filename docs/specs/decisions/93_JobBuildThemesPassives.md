@@ -1,9 +1,9 @@
 # 職ビルドテーマと固有パッシブ再編（P3-BAL-JOB-THEME-001）
 
-**Status:** Decision 承認済（2026-08-08 — オーナー GO）／**パッシブ実装済**（同日）／**機巧士テーマ追記**（2026-08-25 — P3-JOB-ENGINEER-001 GO）／**機巧士キャラ3＋パッシブ GO**（2026-08-26）／**コード接続済**（2026-08-28 — 助っ人3＋必殺3）  
+**Status:** Decision 承認済（2026-08-08 — オーナー GO）／**パッシブ実装済**（同日）／**機巧士テーマ追記**（2026-08-25 — P3-JOB-ENGINEER-001 GO）／**機巧士キャラ3＋パッシブ GO**（2026-08-26）／**コード接続済**（2026-08-28 — 助っ人3＋必殺3）／**キャラ別必殺 GO**（2026-09-05 — `138`）  
 **上書き:** `70_PassiveKitLock.md` のテーマ／担当割り振り  
 **例外:** **火鷹**のパッシブ（血潮の代償）は変更しない  
-**関連:** 機巧士の戦闘核・装炎定義は `126_EngineerJob.md`
+**関連:** 機巧士の戦闘核・装炎定義は `126_EngineerJob.md`／キャラ別必殺は `138_CharacterUniqueUltimates.md`
 
 ---
 
@@ -81,6 +81,10 @@
 | ブラン | ブレイズ・オーバーロード |
 | オルソ | 穿甲の極撃 |
 
+### 基本5職＋助っ人のキャラ別必殺
+
+**GO済・接続済。** 名前・役割・効果イメージの正は `138_CharacterUniqueUltimates.md`。解決は `UltimateSkillResolver`。
+
 ---
 
 ## 5. 後続スコープ
@@ -88,12 +92,14 @@
 | 順 | 内容 |
 |---|---|
 | 1 | ~~職スキルキットのテーマ整合~~ → **`94_JobSkillThemeKits.md` で確定・実装** |
-| 2 | 実機確認 |
+| 2 | ~~キャラ別必殺の方針~~ → **`138` GO・接続済**。Impl はアップデート枠 |
+| 3 | 実機確認 |
 
 ---
 
 ## 6. SSOT
 
 - 本ファイル  
+- `138_CharacterUniqueUltimates.md`（キャラ別必殺）  
 - `scripts/combat/CombatPassives.gd`  
 - `CombatController`（`elemental_outgoing_mult`）／`DungeonScene`（`member_lifesteal_ratio`）

@@ -12,6 +12,7 @@ func test_titan_roar_party_guard_taunt() -> void:
 	assert_eq(str(skill.apply_status_id2), "empower")
 	assert_almost_eq(float(skill.apply_status_chance2), 1.0, 0.001)
 	assert_true(skill.tags.has("taunt"))
+	assert_eq(str(skill.display_name), "聖盾咆哮")
 
 
 func test_ouga_retsudan_all_enemies() -> void:
@@ -20,8 +21,9 @@ func test_ouga_retsudan_all_enemies() -> void:
 	assert_eq(str(skill.target_type), "all_enemies")
 	assert_eq(str(skill.slot_type), "ultimate")
 	assert_almost_eq(float(skill.power_multiplier), 1.9, 0.001)
-	assert_eq(str(skill.apply_status_id), "vulnerable")
+	assert_eq(str(skill.apply_status_id), "bleed")
 	assert_gte(float(skill.apply_status_chance), 0.6)
+	assert_eq(str(skill.display_name), "王炎断")
 
 
 func test_grand_elixir_party_heal() -> void:
@@ -45,9 +47,10 @@ func test_beast_dominion_multi_debuff_aoe() -> void:
 	var skill: Resource = DataRegistry.get_skill_data("beast_dominion")
 	assert_not_null(skill)
 	assert_eq(str(skill.target_type), "all_enemies")
-	assert_eq(str(skill.apply_status_id), "mark")
-	assert_eq(str(skill.apply_status_id2), "slow")
-	assert_eq(str(skill.apply_status_id3), "poison")
+	assert_eq(str(skill.apply_status_id), "poison")
+	assert_eq(str(skill.apply_status_id2), "bleed")
+	assert_eq(str(skill.apply_status_id3), "ignite")
+	assert_eq(str(skill.display_name), "毒牙の嵐")
 
 
 func test_band_styles_for_role_ults() -> void:

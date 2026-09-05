@@ -13,6 +13,7 @@ rarity = 3
 passive_id = "sian_silent_line"
 sprite_resource_path = "res://resources/animation/CHR_Helper_m.tres"
 portrait_resource_path = "res://assets/gacha/portraits/ART_HELPER_helper_m.png"
+ultimate_skill_id = "silence_web"
 hometown = "アステリア外郭〜王の大街道（在野歴）"
 height_cm = 183
 likes = "うまくいった配置、静かな勝利"

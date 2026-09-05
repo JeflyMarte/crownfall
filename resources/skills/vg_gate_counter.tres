@@ -4,20 +4,19 @@
 
 [resource]
 script = ExtResource("1")
-id = "titan_roar"
-display_name = "聖盾咆哮"
-description = "聖なる盾の咆哮で味方全体に防壁と鼓舞を張り、敵の注意を一身に集める。"
+id = "vg_gate_counter"
+display_name = "門前応撃"
+description = "門前で敵の一撃を待ち受ける。短時間の応撃チャージと挑発を得る。"
 skill_type = "player"
-target_type = "all_party"
+target_type = "self"
 power_multiplier = 1.0
 cooldown = 30.0
 trigger_type = "cooldown"
 effect_type = "buff"
-tags = Array[String](["ultimate", "buff", "guard", "shield", "taunt", "empower"])
+tags = Array[String](["ultimate", "buff", "taunt", "self", "counter_charges_3"])
 element = ""
-apply_status_id = "guard"
+apply_status_id = "guard_minor"
 apply_status_chance = 1.0
-apply_status_id2 = "empower"
-apply_status_chance2 = 1.0
 slot_type = "ultimate"
 range_type = "melee"
+cast_time = 0.0

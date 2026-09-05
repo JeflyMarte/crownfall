@@ -122,7 +122,7 @@ static func classify_ally_aoe_skill(skill: Resource) -> String:
 	if _id_has_any(
 		sid,
 		name,
-		["miasma", "瘴気", "venom", "毒", "mist", "霧", "hunting_ground", "狩場", "beast_dominion", "ビースト"]
+		["miasma", "瘴気", "venom", "毒", "mist", "霧", "hunting_ground", "狩場", "beast_dominion", "ビースト", "毒牙"]
 	):
 		return STYLE_MIST
 	if _id_has_any(sid, name, ["blade_tempest", "剣嵐", "blood_mist", "血煙", "slash"]):
@@ -140,9 +140,9 @@ static func classify_ultimate(skill: Resource) -> String:
 	var name: String = str(skill.display_name)
 	if _id_has_any(sid, name, ["dead_eye", "デッドアイ"]):
 		return STYLE_SHOT
-	if _id_has_any(sid, name, ["beast_dominion", "ビースト", "roar"]):
+	if _id_has_any(sid, name, ["beast_dominion", "ビースト", "毒牙", "roar"]):
 		return STYLE_ROAR
-	if _id_has_any(sid, name, ["ouga_retsudan", "王牙", "blade", "slash"]):
+	if _id_has_any(sid, name, ["ouga_retsudan", "王牙", "王炎", "blade", "slash"]):
 		return STYLE_SLASH
 	return STYLE_SLASH
 

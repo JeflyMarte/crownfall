@@ -4,19 +4,19 @@
 
 [resource]
 script = ExtResource("1")
-id = "dead_eye"
-display_name = "デッドアイ"
-description = "辺境の死角を穿つ必殺の一矢。強大な一撃に加え、自身の回避も短く高まる。"
+id = "break_edge"
+display_name = "ブレイクエッジ"
+description = "開幕の一閃を極限まで研ぎ澄ました必殺。敵1体に詠唱なしの超火力を叩き込む。"
 skill_type = "player"
 target_type = "enemy"
-power_multiplier = 3.0
+power_multiplier = 3.2
 cooldown = 30.0
 trigger_type = "cooldown"
 effect_type = "damage"
-tags = Array[String](["ultimate", "pierce", "self_evasion_0.15"])
+tags = Array[String](["ultimate", "slash"])
 element = ""
-apply_status_id = "mark"
-apply_status_chance = 0.7
+apply_status_id = ""
+apply_status_chance = 0.0
 slot_type = "ultimate"
-range_type = "long"
+range_type = "melee"
 cast_time = 0.0
