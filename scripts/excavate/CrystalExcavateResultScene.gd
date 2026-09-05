@@ -15,7 +15,8 @@ func _ready() -> void:
 	_Excavate.ensure_refreshed()
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.NONE)
 	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
-	UiTypography.apply_screen_title($Header/HeaderRow/LabelTitle)
+	## 上部タイトル「発掘結果」は出さない（戻るのみ残す）。
+	$Header/HeaderRow/LabelTitle.visible = false
 	_build_result()
 
 
