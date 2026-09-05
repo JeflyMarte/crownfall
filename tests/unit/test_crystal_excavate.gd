@@ -108,14 +108,30 @@ func test_begin_grants_tokens_to_gacha_token() -> void:
 		if candidates.is_empty():
 			continue
 		var sid: String = str(candidates[0].get("id", ""))
-		var dealt: int = _DamageHelper.preview_damage(member, candidates[0]["skill"])
-		var expected: int = _Excavate.damage_to_tokens(dealt)
+		var base: int = _DamageHelper.preview_damage(member, candidates[0]["skill"])
+		var bounds: Vector2i = _DamageHelper.variance_bounds(base)
 		var result: Dictionary = _Excavate.begin_excavate(str(member.id), sid)
 		assert_true(bool(result.get("ok", false)), str(result))
+		var dealt: int = int(result.get("dealt_damage", -1))
+		assert_gte(dealt, bounds.x)
+		assert_lte(dealt, bounds.y)
+		var expected: int = _Excavate.damage_to_tokens(dealt)
+		assert_eq(int(result.get("tokens", -1)), expected)
 		assert_eq(GameState.gacha_token, before + expected)
 		assert_lte(expected, 300)
 		return
 	pass_test("no eligible roster member")
+
+
+func test_damage_variance_bounds_are_pm_15_percent() -> void:
+	assert_eq(_DamageHelper.DAMAGE_VARIANCE, 0.15)
+	assert_eq(_DamageHelper.apply_variance(0, 1.15), 0)
+	assert_eq(_DamageHelper.apply_variance(1000, 1.0), 1000)
+	assert_eq(_DamageHelper.apply_variance(1000, 0.85), 850)
+	assert_eq(_DamageHelper.apply_variance(1000, 1.15), 1150)
+	var b: Vector2i = _DamageHelper.variance_bounds(1000)
+	assert_eq(b.x, 850)
+	assert_eq(b.y, 1150)
 
 
 func test_history_ranks_by_damage_desc() -> void:

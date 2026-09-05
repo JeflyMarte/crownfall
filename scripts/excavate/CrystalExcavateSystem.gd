@@ -119,7 +119,8 @@ static func begin_excavate(member_id: String, skill_id: String) -> Dictionary:
 			break
 	if not allowed:
 		return {"ok": false, "reason": "skill_not_allowed"}
-	var dealt: int = _DamageHelper.preview_damage(member, skill)
+	## 選択画面の見込みは中央値。確定時のみ ±15% 乱数。
+	var dealt: int = _DamageHelper.roll_damage(member, skill)
 	var tokens: int = damage_to_tokens(dealt)
 	var day_key: String = DailyMissionSystem.current_day_key()
 	GameState.crystal_excavate_state = {

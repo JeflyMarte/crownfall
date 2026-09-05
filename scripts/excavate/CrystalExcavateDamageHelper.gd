@@ -5,6 +5,9 @@ const _RosterUiHelper := preload("res://scripts/roster/RosterUiHelper.gd")
 const _SkillExecutor := preload("res://scripts/combat/SkillExecutor.gd")
 
 ## 魔晶石発掘用の1撃ダメージ見積もり（装備・パッシブ込み・非必殺）。
+## 確定ダメは preview ± DAMAGE_VARIANCE（選択画面は中央値表示）。
+const DAMAGE_VARIANCE: float = 0.15
+
 
 static func preview_damage(member: Resource, skill_data: Resource) -> int:
 	if member == null or skill_data == null:
@@ -21,6 +24,29 @@ static func preview_damage(member: Resource, skill_data: Resource) -> int:
 	var raw: int = executor.calculate_damage(skill_data, base_atk, false, 1.5, 1.0)
 	var mult: float = _roster_skill_outgoing_mult(member, skill_data)
 	return maxi(0, int(round(float(raw) * mult)))
+
+
+## 確定用。中央値 × [1−V, 1+V] の一様乱数。
+static func roll_damage(member: Resource, skill_data: Resource) -> int:
+	var base: int = preview_damage(member, skill_data)
+	if base <= 0:
+		return 0
+	var factor: float = randf_range(1.0 - DAMAGE_VARIANCE, 1.0 + DAMAGE_VARIANCE)
+	return apply_variance(base, factor)
+
+
+static func apply_variance(base_damage: int, factor: float) -> int:
+	if base_damage <= 0:
+		return 0
+	return maxi(0, int(round(float(base_damage) * factor)))
+
+
+static func variance_bounds(base_damage: int) -> Vector2i:
+	if base_damage <= 0:
+		return Vector2i(0, 0)
+	var lo: int = apply_variance(base_damage, 1.0 - DAMAGE_VARIANCE)
+	var hi: int = apply_variance(base_damage, 1.0 + DAMAGE_VARIANCE)
+	return Vector2i(lo, hi)
 
 
 static func _roster_skill_outgoing_mult(member: Resource, skill_data: Resource) -> float:
