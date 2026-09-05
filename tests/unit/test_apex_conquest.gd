@@ -86,11 +86,23 @@ func test_red_forge_conquest_volcano_data() -> void:
 	assert_true(bool(data.disable_wandering))
 	assert_eq(str(data.unlock_after_dungeon_id), "north_reach")
 	assert_eq(int(data.daily_attempt_limit), 0)
-	assert_true("rock_bison" in data.enemy_pool)
-	assert_true("oldrex" in data.enemy_pool)
-	assert_true("greios" in data.elite_pool)
+	assert_eq(
+		data.enemy_pool,
+		[
+			"golden_scarab",
+			"skull_turtle",
+			"crystal_scorpion",
+			"spore_widow",
+			"bone_picker",
+			"undertaker_shark",
+			"mist_wyvern",
+		]
+	)
+	assert_eq(data.elite_pool, ["mist_wyvern", "crystal_scorpion", "spore_widow"])
+	assert_false("rock_bison" in data.enemy_pool)
 	assert_false("frost_claw_raptor" in data.enemy_pool)
-	assert_false("sepia_hound" in data.enemy_pool)
+	assert_false("skarpedion" in data.enemy_pool)
+	assert_false("skarpedion" in data.elite_pool)
 
 
 func test_red_forge_weather_heat_bias_no_snow() -> void:

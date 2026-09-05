@@ -7863,9 +7863,11 @@ func _play_boss_banner_cutin(
 	var face := TextureRect.new()
 	face.custom_minimum_size = Vector2(BOSS_SKILL_CUTIN_FACE_PX, BOSS_SKILL_CUTIN_FACE_PX)
 	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	## COVERED だと図鑑縦長ARTの上下／左右が切れる → 全体が入る CENTERED。
+	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	face.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	face.clip_contents = false
 	if not enemy_id.is_empty():
 		face.texture = IconPaths.get_icon_texture(enemy_id, "enemy")
 	row.add_child(face)
@@ -14503,12 +14505,13 @@ func _show_ultimate_center_telop(
 	row.add_theme_constant_override("separation", 14)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	band.add_child(row)
-	## 顔のみ（レア枠・キャラ枠なし — P3-UX-ULTIMATE-002）
+	## 顔のみ（レア枠・キャラ枠なし — P3-UX-ULTIMATE-002）。全体表示（見切れ禁止）。
 	var face := TextureRect.new()
 	face.custom_minimum_size = Vector2(FACE_PX, FACE_PX)
 	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	face.clip_contents = false
 	var face_tex: Texture2D = _get_member_icon_texture(member) if member != null else null
 	if face_tex != null:
 		face.texture = face_tex

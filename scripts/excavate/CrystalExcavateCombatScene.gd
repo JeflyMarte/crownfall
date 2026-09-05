@@ -339,7 +339,8 @@ func _play_skill_cutin() -> void:
 	var face := TextureRect.new()
 	face.custom_minimum_size = Vector2(CUTIN_FACE_PX, CUTIN_FACE_PX)
 	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	face.clip_contents = false
 	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if member != null:
 		face.texture = _RosterUiHelper.get_member_portrait_texture(member)

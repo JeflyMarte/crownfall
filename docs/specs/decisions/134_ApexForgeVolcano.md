@@ -46,12 +46,12 @@
 
 | 枠 | id |
 |---|---|
-| `enemy_pool` | `rock_bison`, `iron_horn`, `moss_shell`, `storm_joe`, `crown_raven`, `greios`, `oldrex` |
-
-> `crown_raven` / `rock_bison` は `spawn_weight_mult = 0.2`（征討等重み過多の防止。本編放浪は別）。
-| `elite_pool` | `greios`, `oldrex`, `rock_bison` |
+| `enemy_pool` | `golden_scarab`, `skull_turtle`, `crystal_scorpion`, `spore_widow`, `bone_picker`, `undertaker_shark`, `mist_wyvern` |
+| `elite_pool` | `mist_wyvern`, `crystal_scorpion`, `spore_widow` |
 | Boss | `forgedormient` |
-| 出さない | 氷本編種・海沼専任・サンダーピーク専用扱いの別Boss |
+| 出さない | 氷本編種・地図なき主（`north_reach`）雑魚との重複・サンダーピーク専用 Boss |
+
+> 2026-09-06 オーナー指定差し替え（火山／鉱熱寄り・天望雑魚と分離）。`mist_wyvern` は天望 elite と重複するが明示採用。
 
 ### 天候重み（合計100）
 
