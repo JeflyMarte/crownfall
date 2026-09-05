@@ -104,7 +104,7 @@
 | 状態異常レジェンドに半透明 Panel | `StyleBoxEmpty`（アイコン＋文言のみ） |
 | 戦闘ログ最上行が見切れる | `BATTLE_LOG_LINE_HEIGHT` と上余白を本文サイズに同期 |
 | 無限 11F で暗転のまま固まる | 暗転中点で天候 VFX 再生成（Scene 直下ループ tween／雪 preprocess）。**再発**: 明け後 1 フレームに VFX＋敵 load＋Late 背景 load | 天候 id は advance で即。`_begin_post_transition_flush` で天候+背景→敵を 2 フレーム分割。暗転中の背景は `_defer_room_art_refresh` |
-| 次戦闘入場で前の敵の死体が一瞬見える | `_defer_combat_room_visuals` 時に旧スプライトを残したまま幕明け | defer 時に `_hide_enemy_sprite`（＋Boss 非表示）。新敵は `_flush_deferred_combat_room_visuals` |
+| 次戦闘入場で前の敵の死体が一瞬見える | `_defer_combat_room_visuals` 時に旧スプライトを残したまま幕明け | defer 時に `_hide_enemy_sprite`（＋Boss 非表示）。新敵は **hold 終了の黒幕中**に `_flush_deferred_combat_room_visuals`（幕明け即表示） |
 
 ---
 

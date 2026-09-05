@@ -219,6 +219,97 @@ func _mark_codex_tab_stop(btn: Button) -> void:
 	btn.mouse_filter = Control.MOUSE_FILTER_STOP
 
 
+const LIST_TAP_CANCEL_PX: float = 12.0
+const _LIST_PRESS_NONE: int = 0
+const _LIST_PRESS_TOUCH: int = 1
+const _LIST_PRESS_MOUSE: int = 2
+
+var _list_press_down: bool = false
+var _list_press_source: int = _LIST_PRESS_NONE
+var _list_press_origin: Vector2 = Vector2.ZERO
+var _list_press_travel: float = 0.0
+var _list_press_action: Callable = Callable()
+
+
+## 装備セルと同ポリシー: PASS でドラッグを Scroll へ通し、短押しだけ詳細。
+func _bind_scroll_list_tap(btn: BaseButton, action: Callable) -> void:
+	if btn == null or not action.is_valid():
+		return
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.mouse_filter = Control.MOUSE_FILTER_PASS
+	if btn.has_meta(&"_cf_keep_mouse_stop"):
+		btn.remove_meta(&"_cf_keep_mouse_stop")
+	btn.gui_input.connect(_on_scroll_list_tap_gui_input.bind(action))
+
+
+func _on_scroll_list_tap_gui_input(event: InputEvent, action: Callable) -> void:
+	if _list_press_down and _should_cancel_list_press_for_move(event):
+		_cancel_list_press()
+		return
+	if not _is_list_pointer_event(event):
+		return
+	var is_touch: bool = event is InputEventScreenTouch
+	var is_mouse: bool = event is InputEventMouseButton
+	if event.pressed:
+		if _list_press_down:
+			return
+		_list_press_source = _LIST_PRESS_TOUCH if is_touch else _LIST_PRESS_MOUSE
+		_list_press_origin = _list_event_position(event)
+		_list_press_travel = 0.0
+		_list_press_down = true
+		_list_press_action = action
+	else:
+		if not _list_press_down:
+			return
+		if _list_press_source == _LIST_PRESS_TOUCH and is_mouse:
+			return
+		if _list_press_source == _LIST_PRESS_MOUSE and is_touch:
+			return
+		var pending: Callable = _list_press_action
+		_cancel_list_press()
+		if pending.is_valid():
+			pending.call()
+
+
+func _is_list_pointer_event(event: InputEvent) -> bool:
+	if event is InputEventMouseButton:
+		return (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT
+	if event is InputEventScreenTouch:
+		return true
+	return false
+
+
+func _list_event_position(event: InputEvent) -> Vector2:
+	if event is InputEventScreenTouch:
+		return (event as InputEventScreenTouch).position
+	if event is InputEventMouseButton:
+		return (event as InputEventMouseButton).position
+	if event is InputEventScreenDrag:
+		return (event as InputEventScreenDrag).position
+	if event is InputEventMouseMotion:
+		return (event as InputEventMouseMotion).position
+	return Vector2.ZERO
+
+
+func _should_cancel_list_press_for_move(event: InputEvent) -> bool:
+	if event is InputEventScreenDrag:
+		_list_press_travel += (event as InputEventScreenDrag).relative.length()
+		return _list_press_travel >= LIST_TAP_CANCEL_PX
+	if event is InputEventMouseMotion:
+		var motion: InputEventMouseMotion = event as InputEventMouseMotion
+		if (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0:
+			return false
+		return _list_press_origin.distance_to(motion.position) >= LIST_TAP_CANCEL_PX
+	return false
+
+
+func _cancel_list_press() -> void:
+	_list_press_down = false
+	_list_press_source = _LIST_PRESS_NONE
+	_list_press_travel = 0.0
+	_list_press_action = Callable()
+
+
 func _hide_achieve_tab_button() -> void:
 	var btn: Button = $MainScroll/MainVBox/TabRow.get_node_or_null("ButtonTabAchieve") as Button
 	if btn == null:
@@ -301,11 +392,13 @@ func _rebuild_entry_list() -> void:
 	for child in container.get_children():
 		child.queue_free()
 	_entry_rows.clear()
+	_cancel_list_press()
 	if _entries.is_empty():
 		var empty_label := Label.new()
 		empty_label.text = "（項目なし）"
 		empty_label.add_theme_color_override("font_color", COLOR_SUB)
 		container.add_child(empty_label)
+		ScrollTouchHelper.enable($MainScroll/MainVBox/EntryListScroll)
 		return
 	for i in _entries.size():
 		var entry: Dictionary = _entries[i]
@@ -313,9 +406,8 @@ func _rebuild_entry_list() -> void:
 		btn.custom_minimum_size = Vector2(0, 68)
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		btn.clip_text = true
+		btn.focus_mode = Control.FOCUS_NONE
 		btn.add_theme_font_size_override("font_size", 20)
-		btn.set_meta(&"_cf_keep_mouse_stop", true)
-		btn.mouse_filter = Control.MOUSE_FILTER_STOP
 		btn.text = "  " + _entry_list_name(entry)
 		var tex: Texture2D = _entry_list_icon(entry)
 		if tex != null:
@@ -331,10 +423,12 @@ func _rebuild_entry_list() -> void:
 		chevron.position = Vector2(-22, -14)
 		btn.add_child(chevron)
 		var idx: int = i
-		btn.pressed.connect(func(): _show_detail(idx))
+		## PASS＋短押し: フル幅 STOP だと一覧スクロール不能（ダンジョン選択と同型）。
+		_bind_scroll_list_tap(btn, _show_detail.bind(idx))
 		container.add_child(btn)
 		_entry_rows.append(btn)
 	_highlight_selected()
+	ScrollTouchHelper.enable($MainScroll/MainVBox/EntryListScroll)
 
 func _entry_list_name(entry: Dictionary) -> String:
 	if _current_category == "achieve":

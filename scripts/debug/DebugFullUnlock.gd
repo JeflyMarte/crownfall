@@ -2,7 +2,7 @@ class_name DebugFullUnlock
 extends RefCounted
 
 ## タイトル「デバッグ」用フル所持プリセット。
-## 金 999999 / 魔晶石 9999・全装備（武／防／装）・武器LvMAX・全キャラ LvMAX・
+## 金 999999 / 魔晶石 9999・全装備（武／防／装）・装備LvMAX・全キャラ LvMAX・
 ## 指揮官 S+99・図鑑全開放・進行解放。
 
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
@@ -185,7 +185,8 @@ static func _grant_all_equipment() -> void:
 		ainst.armor_id = aid
 		ainst.is_appraised = true
 		ainst.rarity = int(data.rarity)
-		ainst.equip_level = 1
+		ainst.equip_level = EquipmentEnhancer.EQUIP_MAX_LEVEL
+		ainst.equip_exp = 0
 		_ArmorStatResolver.apply_drop_stats(ainst, data)
 		GameState.try_add_armor_instance(ainst, true)
 		seq += 1
@@ -199,7 +200,8 @@ static func _grant_all_equipment() -> void:
 		xinst.instance_id = "debug_acc_%s_%d" % [xid, seq]
 		xinst.accessory_id = xid
 		xinst.is_appraised = true
-		xinst.equip_level = 1
+		xinst.equip_level = EquipmentEnhancer.EQUIP_MAX_LEVEL
+		xinst.equip_exp = 0
 		_AccessoryStatResolver.apply_drop_stats(xinst, data)
 		GameState.try_add_accessory_instance(xinst, true)
 		seq += 1
@@ -211,19 +213,26 @@ static func _grant_all_equipment() -> void:
 		member.equipped_armor = null
 		member.equipped_accessory = null
 		GameState._grant_member_starting_weapon(member)
-	_max_all_weapon_levels()
+	_max_all_equip_levels()
 
 
-static func _max_all_weapon_levels() -> void:
+static func _max_all_equip_levels() -> void:
 	for item: Variant in GameState.inventory:
-		_set_weapon_max_level(item as Resource)
+		_set_equip_max_level(item as Resource)
+	for item: Variant in GameState.armor_inventory:
+		_set_equip_max_level(item as Resource)
+	for item: Variant in GameState.accessory_inventory:
+		_set_equip_max_level(item as Resource)
 	for member: Variant in GameState.roster:
 		if member == null:
 			continue
-		_set_weapon_max_level((member as Resource).equipped_weapon)
+		var adv: Resource = member as Resource
+		_set_equip_max_level(adv.equipped_weapon)
+		_set_equip_max_level(adv.equipped_armor)
+		_set_equip_max_level(adv.equipped_accessory)
 
 
-static func _set_weapon_max_level(item: Resource) -> void:
+static func _set_equip_max_level(item: Resource) -> void:
 	if item == null or not ("equip_level" in item):
 		return
 	item.equip_level = EquipmentEnhancer.EQUIP_MAX_LEVEL

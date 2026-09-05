@@ -65,6 +65,18 @@ func test_debug_full_unlock_max_levels_and_codex() -> void:
 			EquipmentEnhancer.EQUIP_MAX_LEVEL,
 			str(item.weapon_id)
 		)
+	for item in GameState.armor_inventory:
+		assert_eq(
+			int(item.equip_level),
+			EquipmentEnhancer.EQUIP_MAX_LEVEL,
+			str(item.armor_id)
+		)
+	for item in GameState.accessory_inventory:
+		assert_eq(
+			int(item.equip_level),
+			EquipmentEnhancer.EQUIP_MAX_LEVEL,
+			str(item.accessory_id)
+		)
 	for member in GameState.roster:
 		if member == null or member.equipped_weapon == null:
 			continue

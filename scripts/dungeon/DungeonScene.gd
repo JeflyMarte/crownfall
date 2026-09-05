@@ -1007,13 +1007,14 @@ const SWARM_STAIR_Y_RATIO: float = 0.045
 ## 群れ配置の左右クリップ防止（左=味方帯／行動順単一列）。
 const SWARM_X_MIN_RATIO: float = 0.48
 const SWARM_X_MAX_RATIO: float = 0.9
-## 群れ時の見た目縮小（1体=MAX／4体以上=最小。2・3は線形）。
+## 群れ時の見た目縮小（1体=やや抑制／4体以上=最小。2・3は 1.0→最小の線形）。
+const SWARM_DISPLAY_SCALE_SOLO: float = 0.92
 const SWARM_DISPLAY_SCALE_MIN: float = 0.82
 const SWARM_DISPLAY_SCALE_AT_COUNT: int = 4
 ## 互換: 旧一律縮小値（=4体時の最小）。
 const SWARM_DISPLAY_SCALE: float = SWARM_DISPLAY_SCALE_MIN
 ## フロストリッジ系は単体時のみ大きめ（群れ時は体数スケールのみ）。
-const FROSTRIDGE_SOLO_DISPLAY_SCALE: float = 1.28
+const FROSTRIDGE_SOLO_DISPLAY_SCALE: float = 1.18
 const FROSTRIDGE_SOLO_DUNGEON_IDS: Dictionary = {
 	"frostridge": true,
 	"abyss_frostridge": true,
@@ -2249,6 +2250,9 @@ func _on_current_room_transition_midpoint() -> void:
 	var fade: float = float(timing.get("fade", 0.2))
 	var tw: Tween = create_tween()
 	tw.tween_interval(hold)
+	## 黒幕中に敵／味方スプライトを用意し、幕明けで即見える（明け後フレーム待ちを避ける）。
+	## 天候 VFX／Late 背景は `_run_post_transition_flush_async` 側で分割維持。
+	tw.tween_callback(_flush_deferred_combat_room_visuals)
 	tw.tween_property(_transition_overlay, "modulate:a", 0.0, fade)
 	tw.tween_callback(_on_room_transition_finished)
 
@@ -2434,6 +2438,9 @@ func _on_room_transition_midpoint() -> void:
 	var fade: float = float(timing.get("fade", 0.2))
 	var tw: Tween = create_tween()
 	tw.tween_interval(hold)
+	## 黒幕中に敵／味方スプライトを用意し、幕明けで即見える（明け後フレーム待ちを避ける）。
+	## 天候 VFX／Late 背景は `_run_post_transition_flush_async` 側で分割維持。
+	tw.tween_callback(_flush_deferred_combat_room_visuals)
 	tw.tween_property(_transition_overlay, "modulate:a", 0.0, fade)
 	tw.tween_callback(_on_room_transition_finished)
 
@@ -8850,8 +8857,9 @@ func _reveal_appended_enemy_slot(slot: int) -> void:
 		elif spr.sprite_frames != null:
 			## frames 再代入しない（攻撃中アニメを落とさない）。スケールだけ群れ人数に合わせ直す。
 			_normalize_enemy_scale(spr, spr.sprite_frames, id)
-		if n > 1:
-			spr.scale *= body_scale
+		spr.scale *= body_scale
+		if n == 1 and _is_frostridge_solo_scale_dungeon():
+			spr.scale *= FROSTRIDGE_SOLO_DISPLAY_SCALE
 		spr.position = _swarm_combat_position_for_slot(i, n)
 		spr.visible = $CombatController.is_enemy_slot_alive(i)
 		if is_new_slot and spr.visible and spr.sprite_frames != null and spr.sprite_frames.has_animation("idle"):
@@ -12583,10 +12591,10 @@ func _is_frostridge_solo_scale_dungeon() -> bool:
 	return FROSTRIDGE_SOLO_DUNGEON_IDS.has(str($DungeonController.current_dungeon_data.id))
 
 
-## 1体=1.0（MAX）。4体以上=SWARM_DISPLAY_SCALE_MIN。2〜3は線形補間。
+## 1体=SOLO。4体以上=MIN。2〜3は 1.0→MIN の線形（群れ側の見た目は据置）。
 func _swarm_display_scale_for_count(n: int) -> float:
 	if n <= 1:
-		return 1.0
+		return SWARM_DISPLAY_SCALE_SOLO
 	var t: float = clampf(
 		float(n - 1) / float(SWARM_DISPLAY_SCALE_AT_COUNT - 1),
 		0.0,
@@ -12637,9 +12645,8 @@ func _show_enemy_swarm(enemy_ids: Array) -> void:
 			continue
 		spr.sprite_frames = frames
 		_normalize_enemy_scale(spr, frames, id)
-		if n > 1:
-			spr.scale *= body_scale
-		elif _is_frostridge_solo_scale_dungeon():
+		spr.scale *= body_scale
+		if n == 1 and _is_frostridge_solo_scale_dungeon():
 			spr.scale *= FROSTRIDGE_SOLO_DISPLAY_SCALE
 		spr.position = _swarm_combat_position_for_slot(i, n)
 		_play_combat_idle(spr)
