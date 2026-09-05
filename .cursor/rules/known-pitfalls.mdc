@@ -325,3 +325,5 @@ alwaysApply: false
 | エルディオン開幕ストーム1体が前部屋のスノーストーム見た目 | 連れスプライトが `EnemySprite.duplicate` で旧 `sprite_frames` を継承し、新規スロット以外は再読込しない | ボス入場で `EnemySprite.sprite_frames=null`。開幕は `_reveal_boss_add_slot(..., force_reload_all)`。`enemy_id` meta 不一致でも再読込 |
 | 冠呼び等の途中召集で強制終了 | `duplicate()` が SIGNALS コピー＋ノード捕獲ラムダ／`lbl.free()` と tween 競合 | SIGNALS なし duplicate＋`_on_swarm_sprite_animation_finished.bind(slot)`／スキル名は instance_id＋`queue_free` |
 | 右上バフ凡例にアイコンが見えない | 装備ステICOが黒地＋Emptyパネル | 金枠バッジ台座の上に TextureRect（`_make_field_buff_legend_row`） |
+
+| 仕掛けを付けても頭上が変わらないように見える | 罠ICOが透過シルエット＋空パネルでほぼ不可視 | `eng_trap_*` は色板＋枠を敷く。付与時に頭上パルス |

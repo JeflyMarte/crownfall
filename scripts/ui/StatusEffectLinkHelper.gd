@@ -131,6 +131,13 @@ static func _effect_one_line_body(status_id: String) -> String:
 static func display_name_for(status_id: String) -> String:
 	if status_id == "skill_silence":
 		return "スキル封じ"
+	match status_id:
+		"eng_trap_spike":
+			return "スパイクトラップ"
+		"eng_trap_snare":
+			return "スネアトラップ"
+		"eng_trap_break":
+			return "ブレイクトラップ"
 	var data: Resource = DataRegistry.get_status_effect(status_id)
 	if data != null and str(data.display_name) != "":
 		return str(data.display_name)

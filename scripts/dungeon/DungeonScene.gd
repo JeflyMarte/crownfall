@@ -3237,8 +3237,19 @@ func _build_status_icon(entry: Dictionary) -> PanelContainer:
 		return panel
 	var icon_tex: Texture2D = IconPaths.get_icon_texture(effect_id, "status")
 	if icon_tex != null:
-		var style := StyleBoxEmpty.new()
-		panel.add_theme_stylebox_override("panel", style)
+		## 機巧士仕掛けICOは透過シルエットが多く、空パネルだと頭上でほぼ見えない。
+		## 状態異常と同様に色板＋枠を敷いてからテクスチャを載せる。
+		if effect_id.begins_with("eng_trap_"):
+			var trap_style := StyleBoxFlat.new()
+			trap_style.bg_color = Color(0.08, 0.08, 0.1, 0.92)
+			trap_style.set_corner_radius_all(4)
+			trap_style.set_border_width_all(1)
+			var accent: Color = def.get("color", Color(0.75, 0.65, 0.35))
+			trap_style.border_color = Color(accent.r, accent.g, accent.b, 0.95)
+			panel.add_theme_stylebox_override("panel", trap_style)
+		else:
+			var style := StyleBoxEmpty.new()
+			panel.add_theme_stylebox_override("panel", style)
 		var icon := TextureRect.new()
 		icon.texture = icon_tex
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -3832,7 +3843,8 @@ func _collect_active_status_ids() -> Array[String]:
 	for slot: int in enemy_count:
 		if not $CombatController.is_enemy_slot_alive(slot):
 			continue
-		for entry: Variant in $CombatController.get_enemy_status_list_at(slot):
+		## 仕掛け印は CombatController 状態ではなく `_engineer_traps` 側。
+		for entry: Variant in _enemy_status_list_with_traps(slot):
 			if entry is Dictionary:
 				var esid: String = str(entry.get("effect_id", ""))
 				if not esid.is_empty():
@@ -6351,9 +6363,24 @@ func _execute_engineer_trap_place(
 		)
 	var kind_label: String = _engineer_trap_kind_label(kind)
 	_update_status_icons()
+	_pulse_enemy_trap_status_icon(target_slot)
 	return "\n【スキル】%s: %sを仕掛けた（残%d）" % [
 		result["display_name"], kind_label, fires,
 	]
+
+
+## 仕掛け付与直後、対象の頭上印を一瞬拡大して「今この敵」を示す。
+func _pulse_enemy_trap_status_icon(slot: int) -> void:
+	if slot < 0 or slot >= _status_icon_swarm_rows.size():
+		return
+	var row: HBoxContainer = _status_icon_swarm_rows[slot]
+	if row == null or not is_instance_valid(row) or not row.visible:
+		return
+	row.pivot_offset = row.size * 0.5
+	var tw: Tween = create_tween()
+	tw.set_parallel(false)
+	tw.tween_property(row, "scale", Vector2(1.45, 1.45), 0.12)
+	tw.tween_property(row, "scale", Vector2.ONE, 0.18)
 
 
 ## 印のない敵を優先。全員に印があれば現行ターゲット（上書き）。
@@ -6411,6 +6438,7 @@ func _place_engineer_cascade_traps(
 	if slots.is_empty():
 		return ""
 	var placed: int = 0
+	var placed_slots: Array[int] = []
 	var status_info: Dictionary = EngineerTrapsScript.status_for_kind("spike")
 	for slot: int in slots:
 		var place_result: Dictionary = _engineer_traps.place(
@@ -6424,9 +6452,12 @@ func _place_engineer_cascade_traps(
 		)
 		if place_result.get("ok", false):
 			placed += 1
+			placed_slots.append(slot)
 	if placed <= 0:
 		return ""
 	_update_status_icons()
+	for slot: int in placed_slots:
+		_pulse_enemy_trap_status_icon(slot)
 	return "\n【必殺】スパイクの仕掛けを%d体に付けた" % placed
 
 
