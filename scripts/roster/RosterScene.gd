@@ -72,7 +72,6 @@ var _party_overwrite_slot: int = -1
 @onready var _label_status: Label = $MainScroll/MainVBox/LabelStatus
 @onready var _formation_overlay: CanvasLayer = $FormationOverlay
 @onready var _formation_board: VBoxContainer = $FormationOverlay/FormationPanel/FormationVBox/FormationBoard
-@onready var _button_save: Button = $FooterRow/ButtonSave
 var _toolbar_band: MarginContainer
 var _btn_recommend: Button
 var _btn_formation: Button
@@ -88,7 +87,6 @@ func _ready() -> void:
 	$MainScroll/MainVBox/ListHeader/ButtonPet.pressed.connect(_on_pet_tab_pressed)
 	$FooterRow/ButtonPartySave.pressed.connect(_on_party_save_pressed)
 	$FooterRow/ButtonPartyList.pressed.connect(_on_party_list_pressed)
-	$FooterRow/ButtonSave.pressed.connect(_on_save_pressed)
 	$FormationOverlay/Dim.gui_input.connect(_on_formation_dim_input)
 	$FormationOverlay/FormationPanel/FormationVBox/ButtonFormationClose.pressed.connect(_close_formation_overlay)
 	$FormationOverlay/FormationPanel/FormationVBox/FormationPresetRow/ButtonPresetFront.pressed.connect(
@@ -215,10 +213,8 @@ func _apply_typography() -> void:
 	)
 	UiTypography.apply_menu_button($FooterRow/ButtonPartySave, false)
 	UiTypography.apply_menu_button($FooterRow/ButtonPartyList, false)
-	UiTypography.apply_menu_button($FooterRow/ButtonSave, false)
 	$FooterRow/ButtonPartySave.custom_minimum_size = Vector2(0, 48)
 	$FooterRow/ButtonPartyList.custom_minimum_size = Vector2(0, 48)
-	$FooterRow/ButtonSave.custom_minimum_size = Vector2(0, 48)
 
 func _apply_toolbar_buttons() -> void:
 	var compact := _compact_toolbar_style()
@@ -414,7 +410,6 @@ func _sync_formation_slots_from_selection() -> void:
 				seen[adv] = true
 				break
 	_dedupe_formation_slots_local()
-	## GameState への前列／後列書き込みは保存時のみ（下書きと本反映を分離）。
 
 func _active_members_in_slot_order() -> Array:
 	var members: Array = []
@@ -440,7 +435,6 @@ func _refresh_entry_light() -> void:
 		_active_party_row.add_child(_make_active_party_card(slot_index))
 	_roster_ui_rebuilding = false
 	_refresh_formation_grid()
-	_update_save_button()
 	_reapply_scroll_touch()
 
 
@@ -467,7 +461,7 @@ func _refresh_all() -> void:
 	_populate_roster_grid()
 	_roster_ui_rebuilding = false
 	_refresh_formation_grid()
-	_update_save_button()
+	_commit_active_party()
 	_reapply_scroll_touch()
 
 func _make_active_party_card(slot_index: int) -> Control:
@@ -530,7 +524,7 @@ func _make_active_party_card(slot_index: int) -> Control:
 	vbox.add_child(_make_card_stat_row("attack", "攻撃力", int(stats.get("attack", 0))))
 	vbox.add_child(_make_card_stat_row("defense", "防御力", int(stats.get("defense", 0))))
 	var row_lbl := Label.new()
-	## 表示は下書きスロット位置基準（GameState 未保存でも前列／後列が正しい）。
+	## 表示はスロット位置基準（前列／後列の見た目）。
 	var is_back: bool = _slot_row_for_index(slot_index) == GameState.FORMATION_BACK
 	row_lbl.text = "後列" if is_back else "前列"
 	row_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -617,9 +611,10 @@ func _on_active_card_pressed(slot_index: int) -> void:
 		_active_pick_slot = -1
 	_rebuild_active_party_row()
 	_rebuild_roster_grid()
+	_commit_active_party()
 
 func _on_detail_pressed(member: Resource) -> void:
-	## 詳細は閲覧遷移のみ。未保存の下書き編成を set_active_party しない。
+	## 詳細は閲覧遷移のみ（編成確定は入れ替え操作時に済んでいる）。
 	if member == null:
 		return
 	## 入れ替え選択中でも詳細は優先（カード入れ替えに食わせない）。
@@ -990,7 +985,7 @@ func _on_recommend_pressed() -> void:
 	if _selected.is_empty():
 		_label_status.text = "編成可能なメンバーがいません（調査中を除く）"
 	else:
-		_label_status.text = "おすすめ編成を適用しました（未保存）"
+		_label_status.text = "おすすめ編成を適用しました"
 	_refresh_all()
 
 ## ---- パーティ保存／一覧（P3-ROSTER-PARTY-PRESET-001） ----
@@ -1184,10 +1179,10 @@ func _on_party_overwrite_confirmed() -> void:
 
 
 func _save_party_to_slot(slot: int) -> void:
-	## 保存対象は画面に表示中の下書き編成（未確定でも保存できる）。
+	## 保存対象は画面に表示中の編成（アクティブ編成も同時に確定する）。
 	_sync_formation_slots_from_selection()
-	## プリセットに陣形を残すため、下書きスロットを Adventurer へ書いてから保存する。
-	_apply_formation_rows_from_slots()
+	if not _commit_active_party():
+		return
 	var party: Array = _ordered_party_from_formation()
 	if party.is_empty():
 		_label_status.text = "編成が空のため保存できません"
@@ -1220,20 +1215,20 @@ func _on_role_filter_pressed() -> void:
 	)
 	_rebuild_roster_grid()
 
-func _on_save_pressed() -> void:
+## 編成変更をアクティブパーティへ即確定しセーブする（フッター「保存」は廃止）。
+func _commit_active_party() -> bool:
 	_sync_formation_slots_from_selection()
 	var party: Array = _ordered_party_from_formation()
 	var reject: String = GameState.active_party_reject_reason(party)
 	if not reject.is_empty():
 		_label_status.text = reject
-		return
+		return false
 	if not GameState.set_active_party(party):
 		_label_status.text = "編成の変更に失敗しました（1〜%d名・重複不可）" % GameState.ACTIVE_PARTY_SIZE
-		return
-	## 本反映: 下書きスロットを GameState の前列／後列へ書くのは保存成功時のみ。
+		return false
 	_apply_formation_rows_from_slots()
 	SaveManager.save_game()
-	_label_status.text = "編成を保存しました"
+	return true
 
 func _ordered_party_from_formation() -> Array:
 	var ordered: Array = []
@@ -1245,14 +1240,6 @@ func _ordered_party_from_formation() -> Array:
 		if not ordered.has(adv):
 			ordered.append(adv)
 	return ordered
-
-func _update_save_button() -> void:
-	var count: int = _selected.size()
-	var can_save: bool = count >= 1 and count <= GameState.ACTIVE_PARTY_SIZE
-	if can_save:
-		var reject: String = GameState.active_party_reject_reason(_ordered_party_from_formation())
-		can_save = reject.is_empty()
-	_button_save.disabled = not can_save
 
 func _eligible_roster_for_party() -> Array:
 	var out: Array = []
@@ -1283,18 +1270,19 @@ func _open_formation_overlay() -> void:
 		close_btn.text = "確定"
 	var hint: Label = $FormationOverlay/FormationPanel/FormationVBox/LabelFormationHint
 	if hint != null:
-		hint.text = "マスをタップして入れ替え。確定で下書きに反映／外側タップでキャンセル。保存は画面下の保存ボタン。"
+		hint.text = "マスをタップして入れ替え。確定で反映／外側タップでキャンセル。"
 	_formation_overlay.visible = true
 
 func _close_formation_overlay() -> void:
-	## 閉じるボタン＝確定（下書き維持）。GameState 本反映は保存時。
+	## 閉じるボタン＝確定（アクティブ編成へ即反映）。
 	_formation_overlay.visible = false
 	_formation_pick_slot = -1
 	_formation_overlay_snapshot.clear()
 	_refresh_formation_grid()
 	_rebuild_active_party_row()
 	_refresh_power_label()
-	_label_status.text = "陣形を下書きに反映しました（未保存）"
+	if _commit_active_party():
+		_label_status.text = "陣形を反映しました"
 
 func _cancel_formation_overlay() -> void:
 	## Dim タップ＝キャンセル（オープン時スナップショットへ戻す）。
@@ -1517,6 +1505,11 @@ func _place_members_in_slots(members: Array, slot_order: Array) -> void:
 		_formation_slots[int(slot_order[i])] = members[i]
 
 func _on_back_pressed() -> void:
+	## 画面上の編成を確定してから戻る（陣形オーバーレイ中は確定扱い）。
+	if _formation_overlay.visible:
+		_close_formation_overlay()
+	else:
+		_commit_active_party()
 	SceneRouter.change_scene(HOME_SCENE)
 
 func _go_home() -> void:

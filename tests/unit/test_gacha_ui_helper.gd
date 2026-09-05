@@ -35,7 +35,11 @@ func test_featured_helpers_are_star3_plus_ordered() -> void:
 	var prev_name: String = ""
 	for helper in featured:
 		var rarity: int = int(helper.rarity)
-		assert_gte(rarity, GachaUiHelper.FEATURED_MIN_RARITY, "★2以下は Featured に出さない")
+		var helper_id: String = str(helper.id)
+		if GachaUiHelper.is_engineer_new_helper(helper_id):
+			assert_gte(rarity, 2, "機巧士NEWは★2も Featured 可")
+		else:
+			assert_gte(rarity, GachaUiHelper.FEATURED_MIN_RARITY, "★2以下は Featured に出さない")
 		assert_lte(rarity, prev_rarity)
 		if rarity == prev_rarity:
 			assert_true(str(helper.display_name) >= prev_name, "同★帯は名前昇順")

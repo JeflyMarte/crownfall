@@ -47,6 +47,7 @@ func test_guide_no_outdated_combat_or_gacha_copy() -> void:
 	var g016: String = str(by_id.get("COMBAT-G016", ""))
 	assert_false(g016.contains("職共通パッシブを使う"), "助っ人も固有あり")
 	assert_true(g016.contains("招待状"), "招待状探索者の固有に言及")
+	assert_true(g016.contains("機巧士"), "パッシブ例に機巧士")
 
 	var g018: String = str(by_id.get("COMBAT-G018", ""))
 	assert_false(g018.is_empty(), "パーティ連携の手引きがある")
@@ -237,7 +238,6 @@ func test_world_guide_entries_cover_canon_basics() -> void:
 	assert_true(str(by_id.get("WORLD-G012", "")).contains("共生"), "ウィスパーウッド生態")
 	assert_true(str(by_id.get("WORLD-G012", "")).contains("葉隠れ") or str(by_id.get("WORLD-G012", "")).contains("糸網"), "囁きの森地名")
 	assert_true(str(by_id.get("WORLD-G013", "")).contains("専門"), "ジョブは専門資格")
-	assert_true(str(by_id.get("COMBAT-G016", "")).contains("機巧士"), "パッシブ例に機巧士")
 	assert_true(str(by_id.get("WORLD-G050", "")).contains("機巧匠") or str(by_id.get("WORLD-G050", "")).contains("機巧士"), "到達形に機巧士系")
 	assert_true(str(by_id.get("WORLD-G013", "")).contains("機巧士"), "機巧士を職一覧に")
 	assert_true(str(by_id.get("WORLD-G014", "")).contains("英雄ではない"), "隊長は選ばれし英雄ではない")

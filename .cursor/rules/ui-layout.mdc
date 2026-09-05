@@ -238,24 +238,26 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 パーティ選択・陣形オーバーレイ・調査派遣の競合。見た目だけ正しく本反映が壊れる事故が再発しやすい。
 
 ❌ BAD
-- 陣形スロット操作のたび `_apply_formation_rows_from_slots` で GameState 即書き
+- 陣形オーバーレイ操作のたび `_apply_formation_rows_from_slots` で GameState 即書き（オーバーレイ中は確定まで待つ）
 - Dim（外側）タップを確定扱い／スナップショット復元しない
 - 空き枠を `party_members[i]` で埋めて同一メンバーを複数スロットに入れる
 - `_sync_formation_slots_from_selection` が空き前列を詰めて後列指定を前列化する
 - おすすめ／リセットが全 roster から選ぶ（調査派遣中を含む）
-- 詳細遷移前に `set_active_party`（未保存編成が本反映）
+- 詳細遷移だけをトリガに `set_active_party` する（閲覧遷移と編成確定を混ぜる）
 - 復元時に派遣中メンバーを無理に `set_active_party` して失敗
+- フッター「保存」必須の下書き運用に戻す（編成変更は即確定が正）
 - Toolbar（おすすめ／陣形）を MainScroll 先頭だけに置き Header 金線に食い込ませる
 - パーティカード「詳細」を ScrollTouch PASS のまま `pressed` だけに頼る（押しても無反応）
 
 ✅ GOOD
-- スロットは **下書き**。GameState 書きは **保存成功時のみ**
-- Dim＝キャンセル（スナップショット復元）。確定＝下書き維持→保存で本反映
+- メンバー入れ替え・おすすめ・陣形確定は `_commit_active_party` で **即 GameState＋セーブ**（フッター「保存」は置かない）
+- フッター「パーティ保存／一覧」はプリセット用として残す
+- 陣形オーバーレイ中だけスロット下書き。Dim＝キャンセル（スナップショット復元）。確定＝`_commit_active_party`
 - 空きは未配置メンバーから埋める＋スロット重複除去。sync は空きスロット保持
 - 後衛プリセットは後ろ最大2を後列（前列空可）
 - 候補は `_eligible_roster_for_party()`（派遣中除外）。派遣中は選択不可＋「調査中」
 - 失敗理由は `active_party_reject_reason` で出し分ける
-- 詳細は `equipment_focus_member_index`＋遷移のみ。Button に `_cf_keep_mouse_stop`
+- 詳細は `equipment_focus_member_id`＋遷移のみ。Button に `_cf_keep_mouse_stop`
 - 復元は派遣中スキップ＋フォールバックも除外
 - タブは Header 直下の固定 `ToolbarBand`。ステ表示は `RosterUiHelper.compute_member_stats`＋`AffixStatCalculator.get_bonuses_for_member`
 

@@ -1,6 +1,6 @@
 extends GutTest
 
-## 前列空きの陣形保存／調査派遣中の拒否文言／入れ替え下書き。
+## 前列空きの陣形即確定／調査派遣中の拒否文言／入れ替え即確定。
 
 
 func before_each() -> void:
@@ -20,8 +20,7 @@ func test_save_party_with_empty_front_slot_succeeds() -> void:
 	scene._selected = [a, b, c]
 	## 画面スクショと同型: 左前空き / 右前1 / 後列2
 	scene._formation_slots = [null, a, b, c]
-	scene._on_save_pressed()
-	assert_eq(str(scene._label_status.text), "編成を保存しました")
+	assert_true(scene._commit_active_party())
 	assert_eq(GameState.party_members.size(), 3)
 	assert_eq(GameState.party_members[0], a)
 	assert_eq(GameState.get_member_formation_slot(a), 1)
@@ -46,7 +45,7 @@ func test_save_fails_with_survey_dispatched_message() -> void:
 	await get_tree().process_frame
 	scene._selected = [a, b]
 	scene._formation_slots = [a, b, null, null]
-	scene._on_save_pressed()
+	assert_false(scene._commit_active_party())
 	assert_eq(
 		str(scene._label_status.text),
 		"%sは調査中のため編成できません" % str(a.display_name)
@@ -96,7 +95,7 @@ func test_recommend_skips_dispatched_members() -> void:
 	assert_false(GameState.active_party_reject_reason(scene._ordered_party_from_formation()).contains("調査中"))
 
 
-func test_swap_list_then_party_is_draft_until_save() -> void:
+func test_swap_list_then_party_commits_immediately() -> void:
 	assert_gte(GameState.roster.size(), 3)
 	var a: Resource = GameState.roster[0]
 	var b: Resource = GameState.roster[1]
@@ -117,11 +116,7 @@ func test_swap_list_then_party_is_draft_until_save() -> void:
 	assert_eq(scene._formation_slots[0], c)
 	assert_true(scene._selected.has(c))
 	assert_false(scene._selected.has(a))
-	## 未保存なので GameState の本編成はまだ a,b
-	assert_eq(GameState.party_members[0], a)
-	assert_eq(GameState.get_member_formation_slot(a), 0)
-	scene._on_save_pressed()
-	assert_eq(str(scene._label_status.text), "編成を保存しました")
+	## 入れ替え操作で即確定
 	assert_true(GameState.party_members.has(c))
 	assert_false(GameState.party_members.has(a))
 	assert_eq(GameState.get_member_formation_slot(c), 0)
@@ -165,7 +160,7 @@ func test_detail_does_not_commit_draft_party() -> void:
 	assert_eq(GameState.equipment_focus_member_index, -1)
 
 
-func test_swap_party_then_list_is_draft_until_save() -> void:
+func test_swap_party_then_list_commits_immediately() -> void:
 	assert_gte(GameState.roster.size(), 3)
 	var a: Resource = GameState.roster[0]
 	var b: Resource = GameState.roster[1]
@@ -182,8 +177,14 @@ func test_swap_party_then_list_is_draft_until_save() -> void:
 	assert_eq(scene._formation_slots[0], c)
 	assert_true(scene._selected.has(c))
 	assert_false(scene._selected.has(a))
-	assert_eq(GameState.party_members[0], a)
-	scene._on_save_pressed()
-	assert_eq(str(scene._label_status.text), "編成を保存しました")
 	assert_true(GameState.party_members.has(c))
 	assert_false(GameState.party_members.has(a))
+
+
+func test_footer_has_no_save_button() -> void:
+	var scene: Node = load("res://scenes/roster/RosterScene.tscn").instantiate()
+	add_child_autofree(scene)
+	await get_tree().process_frame
+	assert_null(scene.get_node_or_null("FooterRow/ButtonSave"))
+	assert_not_null(scene.get_node_or_null("FooterRow/ButtonPartySave"))
+	assert_not_null(scene.get_node_or_null("FooterRow/ButtonPartyList"))
