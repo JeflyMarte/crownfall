@@ -122,6 +122,9 @@ func test_make_unique_icon_uses_individual_texture_for_ultimates() -> void:
 	var ultimate_ids: Array[String] = [
 		"ouga_retsudan", "titan_roar", "grand_elixir", "dead_eye", "beast_dominion",
 		"eng_full_arm_cascade", "eng_blaze_overload", "eng_armor_gekigeki", "eng_overclock",
+		"break_edge", "critical_storm", "mark_shot", "silence_web", "iron_aura",
+		"vg_gate_counter", "heartbeat", "curse_burst", "elemental_boost", "pet_command",
+		"blood_drain",
 	]
 	for skill_id in ultimate_ids:
 		var icon: Control = _SkillIconHelper.make_unique_icon(skill_id, Vector2(96, 96))
