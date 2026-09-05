@@ -15,14 +15,14 @@ const SLOT_BACK := Rect2(23, 23, 60, 60)
 const SLOT_HELP := Rect2(92, 23, 60, 60)
 const SLOT_POINTS := Rect2(47, 207, 450, 43)
 const SLOT_UNSPENT := Rect2(300, 833, 117, 47)
-const SLOT_RESET := Rect2(400, 829, 167, 58)
-const SLOT_DECIDE := Rect2(591, 825, 208, 67)
+const SLOT_RESET := Rect2(412, 840, 167, 52)
+const SLOT_DECIDE := Rect2(603, 836, 208, 60)
 
 ## カード0=略奪 / 1=成長 / 2=戦力（TRACK_ORDER と同順）。
 const SLOT_BONUS: Array[Rect2] = [
-	Rect2(62, 557, 208, 37),
-	Rect2(322, 557, 208, 37),
-	Rect2(582, 557, 208, 37),
+	Rect2(62, 578, 208, 37),
+	Rect2(322, 578, 208, 37),
+	Rect2(582, 578, 208, 37),
 ]
 const SLOT_MINUS: Array[Rect2] = [
 	Rect2(65, 723, 57, 50),
@@ -203,7 +203,7 @@ func _make_label_hit_button(label: String) -> Button:
 	btn.text = label
 	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	UiTypography.apply_button(btn, false)
-	btn.add_theme_font_size_override("font_size", 26)
+	btn.add_theme_font_size_override("font_size", 22)
 	btn.add_theme_color_override("font_color", COLOR_GOLD)
 	btn.add_theme_color_override("font_hover_color", COLOR_NUM)
 	btn.add_theme_color_override("font_pressed_color", COLOR_GOLD)
@@ -306,7 +306,7 @@ func _refresh_draft_labels() -> void:
 		var track: String = _CommanderPermitBoost.TRACK_ORDER[i]
 		var n: int = _draft_get(track)
 		_val_labels[i].text = str(n)
-		_apply_num_style(_val_labels[i], 34)
+		_apply_num_style(_val_labels[i], 28)
 		_bonus_labels[i].text = _draft_bonus_caption(track)
 		UiTypography.apply_caption(_bonus_labels[i], COLOR_GOLD)
 		_bonus_labels[i].add_theme_color_override("font_color", COLOR_GOLD)
