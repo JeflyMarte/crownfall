@@ -17,6 +17,7 @@ alwaysApply: true
 | `Expected statement, found "else"` | Python の `for`/`else`・`while`/`else` 禁止。フラグループ（`gdscript.mdc`） |
 | GUT `COLOR_BODY` not declared | `COLOR_*` と `UiTypography.COLOR_*` を混同しない |
 | `.tscn` で親 vanish | `.tscn` コメントは `;` のみ。`##` 禁止 |
+| `.tres` で後続プロパティが無視される | リソース本体に `##` を入れるとパースが壊れ既定値のまま | `.tres` もコメントは `;` のみ（例: `spawn_weight_mult` が 1.0 のまま） |
 | Boot 黒画面・`inherits from Control, can't assign to Node` | スクリプト `extends` とシーンルート型を一致。Boot は `Node` |
 | autoload 失敗／壊れた UID | 実在パスのみ。空 autoload・不正 `uid://` 禁止。headless 起動確認 |
 | GUT が DungeonScene の invalid UID を Unexpected Errors で落とす | `.tscn` の `uid://` を `.gd.uid` と一致させる（`DungeonController`=`b6jnb58fiqe20`／`CombatController`=`dl123pund5qv`）。CI で serdion 等を確認 |
