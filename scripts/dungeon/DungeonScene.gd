@@ -6517,10 +6517,10 @@ func _spawn_engineer_trap_fire_telop(slot: int, text: String) -> void:
 	var spr: AnimatedSprite2D = _enemy_sprite_for_slot(slot)
 	if spr == null or not is_instance_valid(spr):
 		return
-	var lbl := Label.new()
+	## DamageNumberPool 流用（毎作動 Label.new＋queue_free を避ける）。
+	var lbl: Label = _damage_number_pool.acquire() as Label
 	lbl.text = "【%s】" % text
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
 	lbl.clip_text = false
 	lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
@@ -6532,6 +6532,10 @@ func _spawn_engineer_trap_fire_telop(slot: int, text: String) -> void:
 	lbl.add_theme_color_override("font_color", ENGINEER_TRAP_FIRE_TELOP_COLOR)
 	lbl.add_theme_color_override("font_outline_color", Color(0.12, 0.08, 0.0, 0.95))
 	lbl.add_theme_constant_override("outline_size", 7)
+	## ダメ数字プール再利用時に影が残らないよう消す。
+	lbl.remove_theme_color_override("font_shadow_color")
+	lbl.remove_theme_constant_override("shadow_offset_x")
+	lbl.remove_theme_constant_override("shadow_offset_y")
 	lbl.reset_size()
 	var text_w: float = maxf(lbl.size.x, 48.0)
 	var head_center: Vector2 = _sprite_visual_center_global(spr)
@@ -6546,7 +6550,7 @@ func _spawn_engineer_trap_fire_telop(slot: int, text: String) -> void:
 	lbl.pivot_offset = Vector2(text_w * 0.5, lbl.size.y * 0.5)
 	lbl.position = Vector2(head_center.x - text_w * 0.5, head_top)
 	lbl.scale = Vector2(0.8, 0.8)
-	lbl.modulate.a = 0.0
+	lbl.modulate = Color(1.0, 1.0, 1.0, 0.0)
 	_damage_numbers_layer.add_child(lbl)
 	var tw: Tween = create_tween()
 	tw.set_parallel(true)
@@ -6555,7 +6559,43 @@ func _spawn_engineer_trap_fire_telop(slot: int, text: String) -> void:
 	tw.chain().set_parallel(true)
 	tw.tween_property(lbl, "position:y", head_top - 22.0, 0.55)
 	tw.tween_property(lbl, "modulate:a", 0.0, 0.35).set_delay(0.28)
-	tw.chain().tween_callback(lbl.queue_free)
+	tw.chain().tween_callback(_release_damage_number.bind(lbl))
+	lbl.set_meta(&"_cf_dmg_tween", tw)
+
+
+## 仕掛け作動など: 対象スロットの頭上だけ更新（全ユニット再構築＋tint上書きを避ける）。
+func _refresh_enemy_slot_status_icons(slot: int, sync_aura: bool = false) -> void:
+	if not $CombatController.is_in_combat or slot < 0:
+		return
+	_ensure_swarm_status_icon_rows(maxi(1, _swarm_sprites.size()))
+	var statuses: Array = _enemy_status_list_with_traps(slot)
+	var alive: bool = $CombatController.is_enemy_slot_alive(slot)
+	if _boss_sprite.visible and _is_boss_lead_slot(slot):
+		var boss_row: HBoxContainer = _status_icon_swarm_rows[0]
+		if alive and _boss_sprite.visible:
+			_set_status_row_above_sprite(boss_row, _boss_sprite, statuses, -1, slot)
+		else:
+			boss_row.visible = false
+	elif slot < _status_icon_swarm_rows.size() and slot < _swarm_sprites.size():
+		var row: HBoxContainer = _status_icon_swarm_rows[slot]
+		var spr: AnimatedSprite2D = _swarm_sprites[slot]
+		if alive and spr.visible:
+			_set_status_row_above_sprite(row, spr, statuses, -1, slot)
+		else:
+			row.visible = false
+	if sync_aura:
+		var aura_spr: AnimatedSprite2D = _enemy_sprite_for_slot(slot)
+		if aura_spr != null:
+			var aura_statuses: Array = (
+				$CombatController.get_enemy_status_list_at(slot) if alive else []
+			)
+			_combat_vfx.sync_unit_auras(
+				"enemy_%d" % slot,
+				aura_spr,
+				aura_statuses,
+				alive and aura_spr.visible
+			)
+	_update_status_legend()
 
 
 ## 敵が行動しようとする時点で発火（冷却スキップより前）。
@@ -6577,6 +6617,7 @@ func _fire_engineer_traps_on_enemy(slot: int) -> void:
 	_present_engineer_trap_fire(slot, kind)
 	var dmg: int = 0
 	var vs_armor_break: bool = false
+	var status_applied: bool = false
 	if power > 0.0:
 		var base_damage: int = 1
 		if placer_idx >= 0:
@@ -6619,6 +6660,7 @@ func _fire_engineer_traps_on_enemy(slot: int) -> void:
 		if placer_idx >= 0:
 			src_atk = _dot_source_attack_for_member(placer_idx)
 		if $CombatController.apply_status_to_enemy_slot(slot, status_id, 1, src_atk):
+			status_applied = true
 			if placer_idx >= 0:
 				_party_applied_enemy_status(placer_idx, slot, status_id)
 	var kind_label: String = _engineer_trap_kind_label(kind)
@@ -6628,7 +6670,8 @@ func _fire_engineer_traps_on_enemy(slot: int) -> void:
 	else:
 		_append_log("[仕掛け・%s] 発動（残%d）" % [kind_label, fires_left])
 	_update_hp_bars()
-	_update_status_icons()
+	## 全再構築＋tint同期はフラッシュと競合し群れで重い → 対象スロットのみ。
+	_refresh_enemy_slot_status_icons(slot, status_applied)
 	if $CombatController.get_enemy_hp_at(slot) <= 0:
 		var killer: int = -1
 		if placer_idx >= 0 and $CombatController.is_member_alive(placer_idx):

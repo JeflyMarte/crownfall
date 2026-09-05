@@ -51,6 +51,7 @@ alwaysApply: false
 | 戦闘フロアで敵がワンテンポ遅れて出る | 幕明け後 `_run_post_transition_flush_async` の追加フレーム待ちまで defer 表示 | hold 終了（黒幕中）に `_flush_deferred_combat_room_visuals`。天候 VFX 分割は維持 |
 | 戦闘入場で前部屋の宝箱／泉が残る | 敵だけ黒幕中、部屋アートは明け後 | hold 終了で `_flush_deferred_room_art` も。→ **`14_Presentation_Pitfalls.md`** |
 | 機巧仕掛けが効いているか分からない | 作動がログと数字のみで弱い | 作動時に敵フラッシュ＋「作動」テロップ＋頭上印パルス（案A） |
+| 機巧印付き群れで戦闘が重い | 作動ごとに Label.new＋全ユニット `_update_status_icons`（tint がフラッシュも潰す） | テロップは `DamageNumberPool`。更新は `_refresh_enemy_slot_status_icons`（対象のみ・tint 省略） |
 | はじめから後に編成プリセットが残る | `reset_for_new_game` が `saved_parties`／`showcase_member_id` 未クリア | reset で空配列／空文字。Continue／Debug つづける前も reset→load |
 | 保存パーティ読込で前衛後衛が崩れる | プリセットが member_ids のみで陣形未保存。適用時は各人の現行スロット＋衝突再配置 | `formations`（slot/row）も保存し適用前に書き戻す。保存前に下書きスロットを Adventurer へ書く |
 | 限凸結果が「強化された」のに数値が変わって見えない | ポップが定性 `description` 優先でハイライト不可 | `passive_numeric_effect_text`＋prev/new スケール比較ハイライト |
