@@ -24,8 +24,8 @@ const DESIGN_H: float = 1231.0
 
 ## デザイン座標（焼込枠の内側）。Downloads 原寸 959×1639 からスケール。
 const SLOT_BACK := Rect2(23, 23, 90, 90)
-const SLOT_TOKEN := Rect2(575, 12, 110, 50)
-const SLOT_HELP := Rect2(648, 155, 48, 48)
+const SLOT_TOKEN := Rect2(575, 20, 110, 50)
+const SLOT_HELP := Rect2(648, 120, 48, 48)
 const SLOT_MEMBER := Rect2(137, 243, 536, 71)
 const SLOT_SKILL := Rect2(137, 342, 536, 72)
 const SLOT_DMG := Rect2(150, 448, 200, 60)

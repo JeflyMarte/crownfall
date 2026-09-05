@@ -1,27 +1,31 @@
 extends Control
 
 ## 魔晶石発掘 — 対石の簡易戦闘演出（P3-UX-CRYSTAL-EXCAVATE-001）。
-## WALK(idle)待機 → TAP で攻撃モーション → 岩破碎 → 結果へ。
+## WALK待機 → TAP → スキルカットイン → 攻撃／ダメージEF → 岩破碎 → 結果。
 
 const _Excavate := preload("res://scripts/excavate/CrystalExcavateSystem.gd")
 const _BgHelper := preload("res://scripts/excavate/CrystalExcavateBgHelper.gd")
 const _ChrHelper := preload("res://scripts/excavate/CrystalExcavateChrHelper.gd")
+const _RosterUiHelper := preload("res://scripts/roster/RosterUiHelper.gd")
+const _SkillEffectOneLineHelper := preload("res://scripts/ui/SkillEffectOneLineHelper.gd")
+const _UltimatePresentationConfig := preload("res://scripts/combat/UltimatePresentationConfig.gd")
 
 const CHR_TARGET_H: float = 220.0
+const CHR_Y_OFFSET: float = 72.0
 const TAP_FONT_SIZE: int = 72
 const SHARD_GRID: int = 4
-## 飛び散り量はダメージ→トークン換算（1〜300）に連動。
 const SHARD_COUNT_MIN: int = 6
 const SHARD_COUNT_MAX: int = 32
 const SPARK_COUNT_MIN: int = 20
 const SPARK_COUNT_MAX: int = 72
 const HIT_BURST_MIN: int = 18
 const HIT_BURST_MAX: int = 56
+const CUTIN_FACE_PX: float = 112.0
 
 @onready var _arena: Control = $Arena
+@onready var _header: PanelContainer = $Header
 
 var _damage_label: Label
-var _skill_label: Label
 var _tap_label: Label
 var _chr_host: Control
 var _chr: AnimatedSprite2D
@@ -29,6 +33,7 @@ var _rock: TextureRect
 var _session: Dictionary = {}
 var _awaiting_tap: bool = false
 var _attacking: bool = false
+var _cutin_root: Control
 
 
 func _ready() -> void:
@@ -41,7 +46,11 @@ func _ready() -> void:
 			SceneRouter.change_scene(_Excavate.SELECT_SCENE)
 		return
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.NONE)
-	UiTypography.apply_screen_title($Header/HeaderRow/LabelTitle)
+	## 上の「発掘中」ヘッダ／スキル名は出さない。
+	if _header != null:
+		_header.visible = false
+		_header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_arena.offset_top = 0.0
 	_build_arena(_session)
 	_awaiting_tap = true
 	_arena.gui_input.connect(_on_arena_gui_input)
@@ -51,6 +60,8 @@ func _ready() -> void:
 func _build_arena(session: Dictionary) -> void:
 	var row := HBoxContainer.new()
 	row.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	row.offset_top = CHR_Y_OFFSET
+	row.offset_bottom = CHR_Y_OFFSET
 	row.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	row.grow_vertical = Control.GROW_DIRECTION_BOTH
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -94,16 +105,6 @@ func _build_arena(session: Dictionary) -> void:
 		rock_panel.add_child(rock_lbl)
 		UiTypography.apply_display(rock_lbl, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
 
-	var skill: Resource = DataRegistry.get_skill_data(str(session.get("skill_id", "")))
-	_skill_label = Label.new()
-	_skill_label.text = str(skill.display_name) if skill != null else "—"
-	_skill_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_skill_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_arena.add_child(_skill_label)
-	_skill_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	_skill_label.offset_top = 24.0
-	UiTypography.apply_body(_skill_label, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
-
 	_tap_label = Label.new()
 	_tap_label.text = "TAP"
 	_tap_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -129,7 +130,7 @@ func _build_arena(session: Dictionary) -> void:
 	_damage_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_arena.add_child(_damage_label)
 	_damage_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	_damage_label.offset_top = -80.0
+	_damage_label.offset_top = -40.0 + CHR_Y_OFFSET
 	if impact != null:
 		_damage_label.add_theme_font_override("font", impact)
 	_damage_label.add_theme_font_size_override("font_size", 42)
@@ -206,9 +207,9 @@ func _play_attack() -> void:
 		return
 	_attacking = true
 	_stop_tap_pulse()
-	AudioManager.play_sfx("ui_confirm")
 	var dealt: int = int(_session.get("dealt_damage", 0))
 	var intensity: float = _damage_intensity(dealt)
+	await _play_skill_cutin()
 	_damage_label.text = str(dealt)
 	_damage_label.modulate.a = 0.0
 	_damage_label.scale = Vector2(0.55, 0.55)
@@ -250,8 +251,153 @@ func _play_attack() -> void:
 	SceneRouter.change_scene(_Excavate.RESULT_SCENE)
 
 
+## 必殺技イメージの横帯カットイン（スキル名＋顔）。
+func _play_skill_cutin() -> void:
+	_dismiss_skill_cutin()
+	var member: Resource = GameState.find_roster_member_by_id(str(_session.get("member_id", "")))
+	var skill: Resource = DataRegistry.get_skill_data(str(_session.get("skill_id", "")))
+	var skill_name: String = str(skill.display_name) if skill != null else "—"
+	var effect_line: String = _SkillEffectOneLineHelper.for_combat_ultimate(skill)
+	var accent := Color(0.92, 0.78, 0.42, 1.0)
+
+	var layer := Control.new()
+	layer.name = "ExcavateSkillCutin"
+	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.z_index = 40
+	add_child(layer)
+	_cutin_root = layer
+
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dim.color = Color(0.02, 0.02, 0.06, 0.0)
+	layer.add_child(dim)
+
+	var band := Control.new()
+	band.name = "CutinBand"
+	band.anchor_left = 0.0
+	band.anchor_right = 0.0
+	band.anchor_top = 0.5
+	band.anchor_bottom = 0.5
+	band.offset_left = -560.0
+	band.offset_right = 200.0
+	var band_half: float = 86.0 if not effect_line.is_empty() else 70.0
+	band.offset_top = -band_half
+	band.offset_bottom = band_half
+	band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	band.modulate.a = 0.0
+	layer.add_child(band)
+
+	var band_bg := ColorRect.new()
+	band_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	band_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	band_bg.color = Color(accent.r * 0.22, accent.g * 0.18, accent.b * 0.12, 0.92)
+	band.add_child(band_bg)
+	var stripe := ColorRect.new()
+	stripe.set_anchors_and_offsets_preset(Control.PRESET_LEFT_WIDE)
+	stripe.offset_right = 10.0
+	stripe.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stripe.color = accent
+	band.add_child(stripe)
+
+	var row := HBoxContainer.new()
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	row.offset_left = 18.0
+	row.offset_right = -18.0
+	row.offset_top = 10.0
+	row.offset_bottom = -10.0
+	row.add_theme_constant_override("separation", 14)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	band.add_child(row)
+
+	var face := TextureRect.new()
+	face.custom_minimum_size = Vector2(CUTIN_FACE_PX, CUTIN_FACE_PX)
+	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if member != null:
+		face.texture = _RosterUiHelper.get_member_portrait_texture(member)
+	row.add_child(face)
+
+	var text_col := VBoxContainer.new()
+	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_col.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	text_col.alignment = BoxContainer.ALIGNMENT_CENTER
+	text_col.add_theme_constant_override("separation", 2)
+	text_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(text_col)
+
+	var tag := Label.new()
+	tag.text = "スキル"
+	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var af: Font = UiTypography.impact_font()
+	if af != null:
+		tag.add_theme_font_override("font", af)
+	tag.add_theme_font_size_override("font_size", 28)
+	tag.add_theme_color_override("font_color", Color(1.0, 0.94, 0.7))
+	tag.add_theme_color_override("font_outline_color", Color(0.1, 0.04, 0.0, 0.95))
+	tag.add_theme_constant_override("outline_size", 6)
+	text_col.add_child(tag)
+
+	var name_lbl := Label.new()
+	name_lbl.text = skill_name
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_lbl.clip_text = false
+	if af != null:
+		name_lbl.add_theme_font_override("font", af)
+	name_lbl.add_theme_font_size_override("font_size", 40)
+	name_lbl.add_theme_color_override("font_color", accent)
+	name_lbl.add_theme_color_override("font_outline_color", Color(0.08, 0.02, 0.0, 0.95))
+	name_lbl.add_theme_constant_override("outline_size", 12)
+	text_col.add_child(name_lbl)
+
+	if not effect_line.is_empty():
+		var effect_lbl := Label.new()
+		effect_lbl.text = effect_line
+		effect_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		effect_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		UiTypography.apply_body(effect_lbl, 22)
+		effect_lbl.add_theme_color_override("font_color", Color(0.96, 0.92, 0.82, 0.95))
+		effect_lbl.add_theme_color_override("font_outline_color", Color(0.06, 0.02, 0.0, 0.9))
+		effect_lbl.add_theme_constant_override("outline_size", 5)
+		text_col.add_child(effect_lbl)
+
+	AudioManager.play_sfx("combat_ultimate", 0.92, 0.06)
+	var t: Dictionary = _UltimatePresentationConfig.scaled(1.0)
+	var fade_in: float = 0.18
+	var hold: float = float(t.get("announce", 1.0)) + float(t.get("windup", 0.65)) * 0.55
+	var fade_out: float = float(t.get("release", 0.25))
+
+	var enter := create_tween()
+	enter.set_parallel(true)
+	enter.tween_property(dim, "color:a", 0.58, fade_in).set_trans(Tween.TRANS_QUAD).set_ease(
+		Tween.EASE_OUT
+	)
+	enter.tween_property(band, "offset_left", 16.0, 0.28).set_trans(Tween.TRANS_BACK).set_ease(
+		Tween.EASE_OUT
+	)
+	enter.tween_property(band, "offset_right", 776.0, 0.28).set_trans(Tween.TRANS_BACK).set_ease(
+		Tween.EASE_OUT
+	)
+	enter.tween_property(band, "modulate:a", 1.0, 0.14)
+	await enter.finished
+	await get_tree().create_timer(hold).timeout
+	var leave := create_tween()
+	leave.tween_property(layer, "modulate:a", 0.0, fade_out)
+	await leave.finished
+	_dismiss_skill_cutin()
+
+
+func _dismiss_skill_cutin() -> void:
+	if _cutin_root != null and is_instance_valid(_cutin_root):
+		_cutin_root.queue_free()
+	_cutin_root = null
+
+
 func _damage_intensity(dealt: int) -> float:
-	## トークン換算（上限300）を 0〜1 の強さに。低ダメでも最低限の演出。
 	var tokens: int = _Excavate.damage_to_tokens(dealt)
 	return clampf(float(tokens) / float(_Excavate.TOKEN_CAP), 0.08, 1.0)
 
@@ -288,7 +434,6 @@ func _spawn_hit_burst(center_global: Vector2, intensity: float) -> void:
 	host.add_child(burst)
 	burst.global_position = center_global
 	burst.emitting = true
-	## ヒット輪（拡大フェード）。
 	var ring := ColorRect.new()
 	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var ring_px: float = lerpf(70.0, 140.0, intensity)

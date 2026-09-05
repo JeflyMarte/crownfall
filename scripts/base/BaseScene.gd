@@ -54,6 +54,7 @@ var _field_survey_banner: PanelContainer
 var _field_survey_click_hint: TextureRect
 var _field_survey_click_hint_tween: Tween
 var _excavate_entry_panel: PanelContainer
+var _excavate_pulse_tween: Tween
 var _gift_badge: PanelContainer
 var _nina_nav: Control
 var _rank_sp_bar: ProgressBar
@@ -714,6 +715,37 @@ func _setup_excavate_entry() -> void:
 	$HubView.add_child(_excavate_entry_panel)
 	_place_excavate_entry()
 	_refresh_excavate_entry()
+	_start_excavate_entry_pulse()
+
+
+func _start_excavate_entry_pulse() -> void:
+	if _excavate_entry_panel == null:
+		return
+	var btn: TextureButton = _excavate_entry_panel.find_child("ButtonExcavateGo", true, false) as TextureButton
+	if btn == null:
+		return
+	_stop_excavate_entry_pulse()
+	## 調査室ショートカットと同じ明滅（HubNinaNavigator.SURVEY_PULSE_*）。
+	btn.modulate = _HubNinaNavigator.SURVEY_PULSE_DIM
+	_excavate_pulse_tween = create_tween().set_loops()
+	_excavate_pulse_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_excavate_pulse_tween.tween_property(
+		btn, "modulate", _HubNinaNavigator.SURVEY_PULSE_BRIGHT, _HubNinaNavigator.SURVEY_PULSE_SEC
+	)
+	_excavate_pulse_tween.tween_property(
+		btn, "modulate", _HubNinaNavigator.SURVEY_PULSE_DIM, _HubNinaNavigator.SURVEY_PULSE_SEC
+	)
+
+
+func _stop_excavate_entry_pulse() -> void:
+	if _excavate_pulse_tween != null and is_instance_valid(_excavate_pulse_tween):
+		_excavate_pulse_tween.kill()
+	_excavate_pulse_tween = null
+	if _excavate_entry_panel == null:
+		return
+	var btn: TextureButton = _excavate_entry_panel.find_child("ButtonExcavateGo", true, false) as TextureButton
+	if btn != null:
+		btn.modulate = Color.WHITE
 
 
 func _place_excavate_entry() -> void:
@@ -764,6 +796,11 @@ func _on_excavate_entry_pressed() -> void:
 		SceneRouter.change_scene(EXCAVATE_RESULT_SCENE)
 	else:
 		SceneRouter.change_scene(EXCAVATE_SELECT_SCENE)
+
+
+func _exit_tree() -> void:
+	_stop_excavate_entry_pulse()
+	_stop_field_survey_click_hint_blink()
 
 
 func _apply_typography() -> void:
