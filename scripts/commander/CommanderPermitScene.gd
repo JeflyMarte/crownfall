@@ -15,7 +15,7 @@ const SLOT_BACK := Rect2(23, 23, 60, 60)
 const SLOT_HELP := Rect2(92, 23, 60, 60)
 const SLOT_POINTS := Rect2(47, 207, 450, 43)
 const SLOT_UNSPENT := Rect2(300, 833, 117, 47)
-const SLOT_RESET := Rect2(412, 840, 167, 52)
+const SLOT_RESET := Rect2(424, 848, 167, 52)
 const SLOT_DECIDE := Rect2(603, 836, 208, 60)
 
 ## カード0=略奪 / 1=成長 / 2=戦力（TRACK_ORDER と同順）。
@@ -30,9 +30,9 @@ const SLOT_MINUS: Array[Rect2] = [
 	Rect2(585, 723, 57, 50),
 ]
 const SLOT_VAL: Array[Rect2] = [
-	Rect2(125, 723, 92, 50),
+	Rect2(112, 723, 92, 50),
 	Rect2(385, 723, 92, 50),
-	Rect2(645, 723, 92, 50),
+	Rect2(658, 723, 92, 50),
 ]
 const SLOT_PLUS: Array[Rect2] = [
 	Rect2(220, 723, 57, 50),
