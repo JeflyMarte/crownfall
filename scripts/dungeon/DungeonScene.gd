@@ -1060,6 +1060,10 @@ const BATTLE_LOG_PANEL_HEIGHT: float = BATTLE_LOG_SCROLL_HEIGHT + 24.0
 const TRAP_HIT_PAUSE_SEC: float = 0.45
 const TRAP_FEEDBACK_FLASH_COLOR: Color = Color(1.0, 0.32, 0.22)
 const TRAP_FEEDBACK_DMG_COLOR: Color = Color(1.0, 0.35, 0.35)
+## 機巧士仕掛けの作動フィードバック（案A: 敵フラッシュ＋短い作動テロップ）。
+const ENGINEER_TRAP_FIRE_FLASH: Color = Color(1.0, 0.82, 0.35)
+const ENGINEER_TRAP_FIRE_TELOP_COLOR: Color = Color(1.0, 0.88, 0.42)
+const ENGINEER_TRAP_FIRE_TELOP_FONT_SIZE: int = 22
 const TrapPresentationScript: Script = preload("res://scripts/dungeon/TrapPresentation.gd")
 const UltimatePresentationConfigScript: Script = preload("res://scripts/combat/UltimatePresentationConfig.gd")
 const HealRoomPresentationScript: Script = preload("res://scripts/dungeon/HealRoomPresentation.gd")
@@ -6485,6 +6489,75 @@ func _engineer_trap_kind_label(kind: String) -> String:
 			return "仕掛け"
 
 
+## 仕掛け作動の視認フィードバック（敵フラッシュ＋頭上「作動」＋印パルス）。
+func _present_engineer_trap_fire(slot: int, kind: String) -> void:
+	_flash_enemy_sprite(slot, ENGINEER_TRAP_FIRE_FLASH)
+	_pulse_enemy_trap_status_icon(slot)
+	var kind_label: String = _engineer_trap_kind_label(kind)
+	var telop: String = "作動"
+	if not kind_label.is_empty() and kind_label != "仕掛け":
+		telop = "作動・%s" % kind_label
+	_spawn_engineer_trap_fire_telop(slot, telop)
+	AudioManager.play_sfx("combat_buff", 0.85, 0.06)
+
+
+func _flash_enemy_sprite(slot: int, flash_color: Color) -> void:
+	var sprite: AnimatedSprite2D = _enemy_sprite_for_slot(slot)
+	if sprite == null or not is_instance_valid(sprite) or not sprite.visible:
+		return
+	var orig: Color = sprite.modulate
+	var tw: Tween = create_tween()
+	tw.tween_property(sprite, "modulate", flash_color, 0.07)
+	tw.tween_property(sprite, "modulate", orig, 0.2)
+
+
+func _spawn_engineer_trap_fire_telop(slot: int, text: String) -> void:
+	if text.is_empty():
+		return
+	var spr: AnimatedSprite2D = _enemy_sprite_for_slot(slot)
+	if spr == null or not is_instance_valid(spr):
+		return
+	var lbl := Label.new()
+	lbl.text = "【%s】" % text
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+	lbl.clip_text = false
+	lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	lbl.z_index = 13
+	var af: Font = UiTypography.impact_font()
+	if af != null:
+		lbl.add_theme_font_override("font", af)
+	lbl.add_theme_font_size_override("font_size", ENGINEER_TRAP_FIRE_TELOP_FONT_SIZE)
+	lbl.add_theme_color_override("font_color", ENGINEER_TRAP_FIRE_TELOP_COLOR)
+	lbl.add_theme_color_override("font_outline_color", Color(0.12, 0.08, 0.0, 0.95))
+	lbl.add_theme_constant_override("outline_size", 7)
+	lbl.reset_size()
+	var text_w: float = maxf(lbl.size.x, 48.0)
+	var head_center: Vector2 = _sprite_visual_center_global(spr)
+	var head_top: float = _sprite_top_y_global(spr) - 28.0
+	if head_center == Vector2.ZERO:
+		head_center = spr.global_position
+		head_top = spr.global_position.y - 100.0
+	var nudge: Vector2 = _boss_add_overlay_nudge(slot)
+	head_center.x += nudge.x
+	head_top -= nudge.y
+	lbl.custom_minimum_size = Vector2(text_w, lbl.size.y)
+	lbl.pivot_offset = Vector2(text_w * 0.5, lbl.size.y * 0.5)
+	lbl.position = Vector2(head_center.x - text_w * 0.5, head_top)
+	lbl.scale = Vector2(0.8, 0.8)
+	lbl.modulate.a = 0.0
+	_damage_numbers_layer.add_child(lbl)
+	var tw: Tween = create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(lbl, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(lbl, "modulate:a", 1.0, 0.08)
+	tw.chain().set_parallel(true)
+	tw.tween_property(lbl, "position:y", head_top - 22.0, 0.55)
+	tw.tween_property(lbl, "modulate:a", 0.0, 0.35).set_delay(0.28)
+	tw.chain().tween_callback(lbl.queue_free)
+
+
 ## 敵が行動しようとする時点で発火（冷却スキップより前）。
 func _fire_engineer_traps_on_enemy(slot: int) -> void:
 	if slot < 0 or not _engineer_traps.has_trap(slot):
@@ -6500,6 +6573,8 @@ func _fire_engineer_traps_on_enemy(slot: int) -> void:
 	var status_id: String = str(fired.get("status_id", ""))
 	var status_chance: float = float(fired.get("status_chance", 0.0))
 	var fires_left: int = int(fired.get("fires_left", 0))
+	## 案A: 作動が一目で分かるよう敵フラッシュ＋短い「作動」テロップ。
+	_present_engineer_trap_fire(slot, kind)
 	var dmg: int = 0
 	var vs_armor_break: bool = false
 	if power > 0.0:
