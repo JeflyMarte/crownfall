@@ -4370,6 +4370,14 @@ func _skill_stats_detail_lines(skill_data: Resource, unlocked: bool = true, req_
 					if in_mult < 0.999:
 						var down: int = int(round((1.0 - in_mult) * 100.0))
 						lines.append("味方の被ダメージ: -%d%%" % down)
+					var lifesteal: float = (
+						float(eff_b.lifesteal_ratio) if "lifesteal_ratio" in eff_b else 0.0
+					)
+					if lifesteal > 0.001:
+						lines.append("種別: 自己強化（直撃ダメージなし）")
+						lines.append(
+							"通常攻撃の吸血: 与ダメの約%d%%をHP吸収" % int(round(lifesteal * 100.0))
+						)
 					if int(eff_b.duration_ticks) > 0:
 						lines.append("持続: 行動待ち %d 回分" % int(eff_b.duration_ticks))
 		_:
@@ -4529,6 +4537,14 @@ func _skill_detail_text(skill_data: Resource, unlocked: bool = true, req_lv: int
 					var up: int = int(round((eff_b.outgoing_damage_multiplier - 1.0) * 100.0))
 					if up != 0:
 						parts_buff.append("味方与ダメ+%d%%" % up)
+					var lifesteal: float = (
+						float(eff_b.lifesteal_ratio) if "lifesteal_ratio" in eff_b else 0.0
+					)
+					if lifesteal > 0.001:
+						parts_buff.append("自己強化（直撃なし）")
+						parts_buff.append(
+							"通常攻撃吸血約%d%%" % int(round(lifesteal * 100.0))
+						)
 					if int(eff_b.duration_ticks) > 0:
 						parts_buff.append("行動待ち%d回分" % int(eff_b.duration_ticks))
 			parts_buff.append("再使用%.0f秒" % skill_data.cooldown)

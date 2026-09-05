@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Add the gold ultimate frame (draw_ultimate_frame) onto character ultimate skill icons.
+"""Add DeadEye-style steel+cyan ultimate frame onto character ultimate skill icons.
 
-Reuses the same frame geometry/colors as tools/generate_skill_ultimate_ouga_retsudan.py.
-Does NOT modify EngFullArmCascade / OugaRetsudan (already framed).
+Prefer tools/reframe_char_ult_icons_deadeye_style.py for production framing
+(matches DeadEye / original ultimate chrome). This file's gold frame is legacy.
 """
 from __future__ import annotations
 

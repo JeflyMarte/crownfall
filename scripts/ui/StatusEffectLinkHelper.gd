@@ -66,6 +66,9 @@ static func effect_summary(status_id: String) -> String:
 	if ticks > 0:
 		## CT 進行の回数（壁時計秒ではない）。秒表記は誤解を招く。
 		parts.append("行動待ち %d 回分続く" % ticks)
+	var lifesteal: float = float(data.lifesteal_ratio) if "lifesteal_ratio" in data else 0.0
+	if lifesteal > 0.001:
+		parts.append("通常攻撃の与ダメ約%d%%をHP吸収" % int(round(lifesteal * 100.0)))
 	var stacks: int = int(data.max_stacks)
 	if stacks > 1:
 		parts.append("最大 %d 重ね" % stacks)
@@ -126,6 +129,9 @@ static func _effect_one_line_body(status_id: String) -> String:
 	var interval: float = float(data.interval_multiplier)
 	if interval > 1.001:
 		return "行動が遅くなる"
+	var lifesteal: float = float(data.lifesteal_ratio) if "lifesteal_ratio" in data else 0.0
+	if lifesteal > 0.001:
+		return "通常攻撃吸血"
 	return "一時的な効果"
 
 

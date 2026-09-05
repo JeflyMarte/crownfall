@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "blood_drain"
 display_name = "ブラッドドレイン"
-description = "血契を解放し、短時間だけ通常攻撃の吸血を大幅に高める。"
+description = "自身を強化する必殺（敵への直撃はない）。効果中、通常攻撃で与えたダメージの一部をHPとして吸収する。"
 skill_type = "player"
 target_type = "self"
 power_multiplier = 1.0
