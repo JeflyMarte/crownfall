@@ -1,7 +1,7 @@
 extends Control
 
-## 魔晶石発掘 — キャラ＋スキル選択（P3-UX-CRYSTAL-EXCAVATE-001）。
-## レイアウト正: Downloads「魔晶石発掘参考」／枠は Select_Frame 背景。
+## 魔晶石発掘 — 選択画面。
+## 見た目は Select_Frame 背景のみ。コード側の枠は作らず、焼込位置に操作／数値だけ重ねる。
 
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const _Excavate := preload("res://scripts/excavate/CrystalExcavateSystem.gd")
@@ -10,37 +10,72 @@ const _BgHelper := preload("res://scripts/excavate/CrystalExcavateBgHelper.gd")
 const _UiTokens := preload("res://scripts/excavate/CrystalExcavateUiTokens.gd")
 const _HeaderCurrencyHelper := preload("res://scripts/ui/HeaderCurrencyHelper.gd")
 
-@onready var _content: VBoxContainer = $MainScroll/MainVBox/ContentHost
+## フレーム原寸（assets の Select_Frame = 720×1231）。
+const DESIGN_W: float = 720.0
+const DESIGN_H: float = 1231.0
 
+## デザイン座標（焼込枠の内側）。Downloads 原寸 959×1639 からスケール。
+const SLOT_MEMBER := Rect2(137, 243, 536, 71)
+const SLOT_SKILL := Rect2(137, 342, 536, 72)
+const SLOT_DMG := Rect2(150, 448, 200, 60)
+const SLOT_TOKENS := Rect2(400, 448, 170, 60)
+const SLOT_EXCAVATE := Rect2(60, 552, 600, 64)
+const SLOT_REMAIN := Rect2(36, 188, 280, 36)
+
+@onready var _header: PanelContainer = $Header
+@onready var _header_row: HBoxContainer = $Header/HeaderRow
+@onready var _btn_back: Button = $Header/HeaderRow/ButtonBack
+@onready var _label_title: Label = $Header/HeaderRow/LabelTitle
+@onready var _main_scroll: ScrollContainer = $MainScroll
+@onready var _bottom_nav: PanelContainer = $BottomNav
+
+var _frame_host: Control
+var _bg: TextureRect
 var _member_option: OptionButton
 var _skill_option: OptionButton
-var _label_preview: Label
-var _label_hint: Label
+var _label_dmg: Label
+var _label_tokens: Label
+var _label_remain: Label
+var _remain_panel: PanelContainer
 var _btn_excavate: Button
 var _members: Array[Resource] = []
 var _skill_rows: Array[Dictionary] = []
 
 
 func _ready() -> void:
-	_BgHelper.ensure_background(self, _BgHelper.BG_SELECT)
 	_Excavate.ensure_refreshed()
 	if _Excavate.is_used_today():
 		SceneRouter.change_scene(_Excavate.RESULT_SCENE)
 		return
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.NONE)
-	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
-	ScrollTouchHelper.enable($MainScroll)
-	$Header/HeaderRow/LabelTitle.text = "魔晶石の発掘"
-	UiTypography.apply_screen_title($Header/HeaderRow/LabelTitle)
+	_btn_back.pressed.connect(_on_back_pressed)
+	## タイトル／説明／枠は背景焼込。ヘッダは戻る＋魔晶石のみ。
+	_label_title.visible = false
+	_label_title.text = ""
+	_main_scroll.visible = false
+	_main_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_style_back_over_frame()
 	_ensure_header_token_chip()
-	_build_ui()
+	_build_frame_overlay()
 	_refresh_members()
-	_refresh_hint()
+	_refresh_remain()
+	resized.connect(_layout_frame_host)
+	call_deferred("_layout_frame_host")
+
+
+func _style_back_over_frame() -> void:
+	var empty := StyleBoxEmpty.new()
+	_btn_back.add_theme_stylebox_override("normal", empty)
+	_btn_back.add_theme_stylebox_override("hover", empty)
+	_btn_back.add_theme_stylebox_override("pressed", empty)
+	_btn_back.add_theme_stylebox_override("focus", empty)
+	_btn_back.text = ""
+	_btn_back.custom_minimum_size = Vector2(56, 48)
+	_btn_back.focus_mode = Control.FOCUS_NONE
 
 
 func _ensure_header_token_chip() -> void:
-	var row: HBoxContainer = $Header/HeaderRow as HBoxContainer
-	if row == null or row.get_node_or_null("TokenChip") != null:
+	if _header_row.get_node_or_null("TokenChip") != null:
 		return
 	var chip := PanelContainer.new()
 	chip.name = "TokenChip"
@@ -63,104 +98,141 @@ func _ensure_header_token_chip() -> void:
 	label.name = "LabelToken"
 	label.text = str(GameState.gacha_token)
 	inner.add_child(label)
-	row.add_child(chip)
-	_HeaderCurrencyHelper.apply_to_row(row)
+	_header_row.add_child(chip)
+	_HeaderCurrencyHelper.apply_to_row(_header_row)
 
 
-func _build_ui() -> void:
-	_content.add_theme_constant_override("separation", 12)
-	var lead := Label.new()
-	lead.text = "隊員とスキルを選んで岩を掘ります。\n必殺は使えません。1日1回・上限300魔晶石。"
-	lead.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_content.add_child(lead)
-	UiTypography.apply_body(lead, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_MUTED)
+func _build_frame_overlay() -> void:
+	_frame_host = Control.new()
+	_frame_host.name = "ExcavateFrameHost"
+	_frame_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_frame_host)
+	move_child(_frame_host, 0)
 
-	_label_hint = Label.new()
-	_label_hint.text = "残り1回"
-	_label_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_content.add_child(_label_hint)
-	UiTypography.apply_caption(_label_hint)
-	_label_hint.add_theme_color_override("font_color", UiTypography.COLOR_GOLD)
+	_bg = TextureRect.new()
+	_bg.name = "BgTexture"
+	_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_bg.stretch_mode = TextureRect.STRETCH_SCALE
+	_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var tex: Texture2D = _UiTokens.select_frame_texture()
+	if tex == null and ResourceLoader.exists(_BgHelper.BG_SELECT_FALLBACK):
+		tex = load(_BgHelper.BG_SELECT_FALLBACK) as Texture2D
+	_bg.texture = tex
+	_frame_host.add_child(_bg)
 
-	_content.add_child(_make_labeled_option_row("隊員", true))
-	_content.add_child(_make_labeled_option_row("スキル", false))
-	_content.add_child(_make_preview_row())
+	_member_option = _make_flat_option()
+	_member_option.item_selected.connect(_on_member_selected)
+	_frame_host.add_child(_member_option)
 
-	var btn_wrap := CenterContainer.new()
-	btn_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_content.add_child(btn_wrap)
+	_skill_option = _make_flat_option()
+	_skill_option.item_selected.connect(_on_skill_selected)
+	_frame_host.add_child(_skill_option)
+
+	_label_dmg = _make_value_label(HORIZONTAL_ALIGNMENT_RIGHT)
+	_frame_host.add_child(_label_dmg)
+
+	_label_tokens = _make_value_label(HORIZONTAL_ALIGNMENT_LEFT)
+	_label_tokens.add_theme_color_override("font_color", _UiTokens.PREVIEW_TOKEN)
+	_frame_host.add_child(_label_tokens)
+
+	_remain_panel = PanelContainer.new()
+	_remain_panel.name = "RemainPanel"
+	var remain_bg := StyleBoxFlat.new()
+	remain_bg.bg_color = Color(0.04, 0.03, 0.08, 0.92)
+	remain_bg.set_corner_radius_all(4)
+	remain_bg.content_margin_left = 6.0
+	remain_bg.content_margin_right = 6.0
+	remain_bg.content_margin_top = 2.0
+	remain_bg.content_margin_bottom = 2.0
+	_remain_panel.add_theme_stylebox_override("panel", remain_bg)
+	_label_remain = Label.new()
+	_label_remain.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_label_remain.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_remain_panel.add_child(_label_remain)
+	_frame_host.add_child(_remain_panel)
+	UiTypography.apply_caption(_label_remain)
+	_label_remain.add_theme_color_override("font_color", UiTypography.COLOR_GOLD)
+
 	_btn_excavate = Button.new()
-	_btn_excavate.text = "発掘"
-	_btn_excavate.custom_minimum_size = Vector2(280, _UiTokens.EXCAVATE_BTN_H)
+	_btn_excavate.text = ""
+	_btn_excavate.focus_mode = Control.FOCUS_NONE
+	var empty := StyleBoxEmpty.new()
+	_btn_excavate.add_theme_stylebox_override("normal", empty)
+	_btn_excavate.add_theme_stylebox_override("hover", empty)
+	_btn_excavate.add_theme_stylebox_override("pressed", empty)
+	_btn_excavate.add_theme_stylebox_override("disabled", empty)
+	_btn_excavate.add_theme_stylebox_override("focus", empty)
 	_btn_excavate.pressed.connect(_on_excavate_pressed)
-	_UiTokens.apply_excavate_button(_btn_excavate)
-	btn_wrap.add_child(_btn_excavate)
+	_frame_host.add_child(_btn_excavate)
+
+	## ヘッダを前面に（戻る／所持石）。
+	_header.z_index = 20
+	_bottom_nav.z_index = 20
 
 
-func _make_labeled_option_row(label_text: String, is_member: bool) -> PanelContainer:
-	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", _UiTokens.gold_row_style())
-	panel.custom_minimum_size = Vector2(0, _UiTokens.ROW_MIN_H)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
-	panel.add_child(row)
-	var lbl := Label.new()
-	lbl.text = label_text
-	lbl.custom_minimum_size = Vector2(72, 0)
-	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	row.add_child(lbl)
-	UiTypography.apply_body(lbl, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+func _make_flat_option() -> OptionButton:
 	var opt := OptionButton.new()
-	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	opt.custom_minimum_size = Vector2(0, 36)
-	row.add_child(opt)
-	if is_member:
-		_member_option = opt
-		_member_option.item_selected.connect(_on_member_selected)
-	else:
-		_skill_option = opt
-		_skill_option.item_selected.connect(_on_skill_selected)
-	return panel
+	opt.focus_mode = Control.FOCUS_NONE
+	var empty := StyleBoxEmpty.new()
+	opt.add_theme_stylebox_override("normal", empty)
+	opt.add_theme_stylebox_override("hover", empty)
+	opt.add_theme_stylebox_override("pressed", empty)
+	opt.add_theme_stylebox_override("disabled", empty)
+	opt.add_theme_stylebox_override("focus", empty)
+	opt.add_theme_color_override("font_color", Color(0.95, 0.92, 0.85, 1.0))
+	opt.add_theme_color_override("font_hover_color", Color(1.0, 0.96, 0.8, 1.0))
+	opt.add_theme_color_override("font_pressed_color", UiTypography.COLOR_GOLD)
+	return opt
 
 
-func _make_preview_row() -> PanelContainer:
-	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", _UiTokens.gold_row_style())
-	panel.custom_minimum_size = Vector2(0, _UiTokens.ROW_MIN_H)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	panel.add_child(row)
+func _make_value_label(align: HorizontalAlignment) -> Label:
 	var lbl := Label.new()
-	lbl.text = "見込みダメージ"
+	lbl.horizontal_alignment = align
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	row.add_child(lbl)
-	UiTypography.apply_body(lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
-	_label_preview = Label.new()
-	_label_preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_label_preview.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_label_preview.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_label_preview.autowrap_mode = TextServer.AUTOWRAP_OFF
-	row.add_child(_label_preview)
-	UiTypography.apply_body(_label_preview, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
-	var crystal := TextureRect.new()
-	crystal.custom_minimum_size = Vector2(28, 28)
-	crystal.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	crystal.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	crystal.texture = CurrencyHelper.get_icon_texture()
-	crystal.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(crystal)
-	var token_lbl := Label.new()
-	token_lbl.text = "魔晶石"
-	token_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	row.add_child(token_lbl)
-	UiTypography.apply_caption(token_lbl, _UiTokens.PREVIEW_TOKEN)
-	return panel
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_body(lbl, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	return lbl
 
 
-func _refresh_hint() -> void:
-	if _label_hint == null:
+func _layout_frame_host() -> void:
+	if _frame_host == null:
 		return
-	_label_hint.text = _Excavate.entry_status_label()
+	var top: float = 46.0
+	if _header != null:
+		top = maxf(top, _header.size.y)
+		if _header.offset_bottom > 1.0:
+			top = _header.offset_bottom
+	var bottom_h: float = 84.0
+	if _bottom_nav != null:
+		bottom_h = maxf(1.0, absf(_bottom_nav.offset_top))
+	var area := Rect2(0.0, top, size.x, maxf(1.0, size.y - top - bottom_h))
+	var scale: float = minf(area.size.x / DESIGN_W, area.size.y / DESIGN_H)
+	var shown := Vector2(DESIGN_W, DESIGN_H) * scale
+	var origin := area.position + (area.size - shown) * 0.5
+	_frame_host.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	_frame_host.position = origin
+	_frame_host.size = shown
+	_place_design_rect(_member_option, SLOT_MEMBER, scale)
+	_place_design_rect(_skill_option, SLOT_SKILL, scale)
+	_place_design_rect(_label_dmg, SLOT_DMG, scale)
+	_place_design_rect(_label_tokens, SLOT_TOKENS, scale)
+	_place_design_rect(_remain_panel, SLOT_REMAIN, scale)
+	_place_design_rect(_btn_excavate, SLOT_EXCAVATE, scale)
+
+
+func _place_design_rect(ctrl: Control, design: Rect2, scale: float) -> void:
+	if ctrl == null:
+		return
+	ctrl.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	ctrl.position = design.position * scale
+	ctrl.size = design.size * scale
+
+
+func _refresh_remain() -> void:
+	if _label_remain == null:
+		return
+	_label_remain.text = _Excavate.entry_status_label()
 
 
 func _refresh_members() -> void:
@@ -172,7 +244,8 @@ func _refresh_members() -> void:
 		_member_option.add_item(name, i)
 	if _members.is_empty():
 		_btn_excavate.disabled = true
-		_label_preview.text = "—"
+		_label_dmg.text = "—"
+		_label_tokens.text = "—"
 		return
 	_member_option.select(0)
 	_refresh_skills()
@@ -198,7 +271,8 @@ func _refresh_skills() -> void:
 		_skill_rows.append(row)
 	if _skill_rows.is_empty():
 		_btn_excavate.disabled = true
-		_label_preview.text = "—"
+		_label_dmg.text = "—"
+		_label_tokens.text = "—"
 		return
 	_skill_option.select(0)
 	_btn_excavate.disabled = false
@@ -213,8 +287,8 @@ func _update_preview() -> void:
 	var skill: Resource = row.get("skill") as Resource
 	var dealt: int = _DamageHelper.preview_damage(member, skill)
 	var tokens: int = _Excavate.damage_to_tokens(dealt)
-	_label_preview.text = "%d → %d" % [dealt, tokens]
-	_label_preview.add_theme_color_override("font_color", _UiTokens.PREVIEW_TOKEN)
+	_label_dmg.text = str(dealt)
+	_label_tokens.text = str(tokens)
 
 
 func _on_member_selected(_index: int) -> void:
