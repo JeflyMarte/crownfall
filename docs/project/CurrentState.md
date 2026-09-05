@@ -4,6 +4,7 @@
 
 ## Last Update
 
+2026-09-05（**iOS 1.0.3 build20 releaseエクスポート＋Xcode適用**: 第2弾検証（機巧ガチャ／征討／発掘）＋必殺ICO込み。PCK 515MB・ja.lproj。要実機）
 2026-09-05（**第2弾検証フラグON**: 機巧士ガチャ／征討天望+星炉／魔晶石発掘。`GACHA_HELPER_OMITTED=[]`／`APEX`／`CRYSTAL_EXCAVATE`。要実機）
 2026-09-05（**キャラ必殺ICO**: 新規11種接続。既存の王炎断／聖盾咆哮／毒牙／デッドアイ／エリクサー／機巧3は据置。`138`）
 2026-09-05（**iOS 1.0.3 build19 releaseエクスポート＋Xcode適用**: 機巧ICO／罠BAL／発熱Pack A／エンシェント案D・必殺138・ニーナ幅込み。PCK 515MB・ja.lproj。要 Archive／実機）
