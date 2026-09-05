@@ -12,7 +12,8 @@ const _HubNinaNavHelper := preload("res://scripts/ui/HubNinaNavHelper.gd")
 const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
 
 const ROTATE_SEC: float = 10.0
-const PANEL_W: float = 308.0
+## 降臨告知など長めの1行が「す！」「い！」だけ折り返さないよう広め（旧308）。
+const PANEL_W: float = 400.0
 const PANEL_H: float = 160.0
 const FACE_PX: float = 80.0
 const SURVEY_ICON_PX: float = 350.0
