@@ -22,7 +22,14 @@ static func ensure_refreshed() -> void:
 	var day_key: String = DailyMissionSystem.current_day_key()
 	var state: Dictionary = GameState.crystal_excavate_state
 	if state.is_empty() or str(state.get("day_key", "")) != day_key:
-		GameState.crystal_excavate_state = {"day_key": day_key, "used": false}
+		## 日跨ぎでも未再生チャリンは残す（石は付与済みのため演出だけ遅延しうる）。
+		var pending_fx: int = 0
+		if not state.is_empty():
+			pending_fx = maxi(0, int(state.get("pending_hub_fx_tokens", 0)))
+		var next_state: Dictionary = {"day_key": day_key, "used": false}
+		if pending_fx > 0:
+			next_state["pending_hub_fx_tokens"] = pending_fx
+		GameState.crystal_excavate_state = next_state
 
 
 static func is_used_today() -> bool:

@@ -46,6 +46,26 @@ func test_conquest_always_open_and_unlock() -> void:
 	assert_true(GameState.is_dungeon_unlocked("red_forge_depths"))
 
 
+func test_north_reach_clear_queues_red_forge_unlock_notice() -> void:
+	## SUB_STAGES 中でも征討クリアは解放ポップを積む（星炉の告知）。
+	const _DungeonTierConfig := preload("res://scripts/dungeon/DungeonTierConfig.gd")
+	GameState.debug_full_unlock = false
+	GameState.dungeon_progress.clear()
+	GameState.stage_progress.clear()
+	GameState.pending_content_unlock_notices.clear()
+	GameState.mark_stage_cleared("frostridge_5_5", _DungeonTierConfig.TIER_NORMAL)
+	GameState.pending_content_unlock_notices.clear()
+	GameState.mark_dungeon_cleared("north_reach")
+	var queued_ids: Array = []
+	for entry: Variant in GameState.pending_content_unlock_notices:
+		if entry is Dictionary:
+			queued_ids.append(str((entry as Dictionary).get("id", "")))
+	assert_true(
+		queued_ids.has("red_forge_depths"),
+		"天望クリアで星炉解放をキューへ: %s" % str(queued_ids)
+	)
+
+
 func test_other_apex_still_omitted() -> void:
 	GameState.debug_full_unlock = false
 	GameState.dungeon_progress.clear()

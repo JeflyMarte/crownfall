@@ -655,9 +655,12 @@ func mark_dungeon_cleared(dungeon_id: String) -> void:
 	if dungeon_id.is_empty():
 		return
 	## 章クリア経路は mark_stage_cleared 側でまとめて検知する。
-	## 単体クリア（非サブステージ運用）でも解放ポップアップを積む。
+	## 章なし征討は mark_dungeon_cleared のみなので、SUB_STAGES 中でも解放ポップを積む。
 	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
-	var track: bool = not Constants.SUB_STAGES_PLAYABLE
+	var track: bool = (
+		not Constants.SUB_STAGES_PLAYABLE
+		or Constants.is_apex_conquest_playable(dungeon_id)
+	)
 	var unlock_before: Dictionary = {}
 	if track:
 		unlock_before = _ContentUnlockNotice.snapshot_unlocked()

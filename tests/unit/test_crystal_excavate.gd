@@ -87,6 +87,18 @@ func test_day_key_mismatch_resets_used() -> void:
 	)
 
 
+func test_day_key_mismatch_keeps_pending_hub_fx() -> void:
+	GameState.crystal_excavate_state = {
+		"day_key": "1999-01-01",
+		"used": true,
+		"pending_hub_fx_tokens": 42,
+	}
+	_Excavate.ensure_refreshed()
+	assert_eq(int(GameState.crystal_excavate_state.get("pending_hub_fx_tokens", 0)), 42)
+	assert_eq(_Excavate.consume_pending_hub_fx_tokens(), 42)
+	assert_eq(int(GameState.crystal_excavate_state.get("pending_hub_fx_tokens", -1)), 0)
+
+
 func test_skill_candidates_exclude_ultimate() -> void:
 	for member: Resource in GameState.roster:
 		if member == null or PetSystem.is_pet_member(member):

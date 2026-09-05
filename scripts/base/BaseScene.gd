@@ -216,6 +216,7 @@ func _maybe_show_rank_up() -> void:
 func _continue_hub_clear_flow() -> void:
 	## 解放キュー消化後／遅延再開用。
 	_maybe_show_rank_up()
+	call_deferred("_maybe_play_excavate_token_fx")
 
 
 func _on_clear_nina_merit_dismissed() -> void:
@@ -301,9 +302,11 @@ func _on_starter_join_dismissed(adventurer_id: String) -> void:
 		GameState.pending_hub_pet_grant_id = ""
 		SaveManager.save_game()
 		_maybe_grant_starting_tokens_fx()
+		call_deferred("_maybe_play_excavate_token_fx")
 		return
 	## 初期キャラ加入の直後にノノカ調査室合流（ミストフェン初回クリア時）。
 	call_deferred("_maybe_show_nonoka_survey_join")
+	call_deferred("_maybe_play_excavate_token_fx")
 
 
 func _maybe_show_nonoka_survey_join() -> void:
@@ -394,6 +397,7 @@ func _maybe_show_hub_simple_guide() -> void:
 func _on_hub_simple_guide_dismissed() -> void:
 	## preview 再演はフラグを立てない → 支給しない。
 	if not _HubSimpleGuideOverlay.is_done():
+		call_deferred("_maybe_play_excavate_token_fx")
 		return
 	const _PetSystem := preload("res://scripts/pets/PetSystem.gd")
 	if not _PetSystem.is_starter_pet_granted():
@@ -401,6 +405,7 @@ func _on_hub_simple_guide_dismissed() -> void:
 		SaveManager.save_game()
 	## ガイドは queue_free 直後もツリーに残るため、次フレームでジャック支給へ。
 	call_deferred("_maybe_show_hub_pet_join")
+	call_deferred("_maybe_play_excavate_token_fx")
 
 
 func _maybe_show_hub_pet_join() -> void:
@@ -465,7 +470,7 @@ func _maybe_grant_starting_tokens_fx() -> void:
 
 ## 魔晶石発掘結果から拠点復帰時の右上魔晶石チャリン演出。
 func _maybe_play_excavate_token_fx() -> void:
-	## ガイド／加入オーバーレイ中は先にそちらを優先。
+	## ガイド／加入オーバーレイ中は先にそちらを優先（pending は残し、dismiss 後に再試行）。
 	if _hub_overlay_blocking("NinaDialogueOverlay"):
 		return
 	if _hub_overlay_blocking("StarterJoinOverlay"):
@@ -473,6 +478,8 @@ func _maybe_play_excavate_token_fx() -> void:
 	if _hub_overlay_blocking("HubSimpleGuideOverlay"):
 		return
 	if _hub_overlay_blocking("CommanderRankUpOverlay"):
+		return
+	if _hub_overlay_blocking("DungeonUnlockOverlay"):
 		return
 	var amount: int = _CrystalExcavateSystem.consume_pending_hub_fx_tokens()
 	if amount <= 0:
