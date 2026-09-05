@@ -24,7 +24,7 @@ const DESIGN_H: float = 1231.0
 
 ## デザイン座標（焼込枠の内側）。Downloads 原寸 959×1639 からスケール。
 const SLOT_BACK := Rect2(23, 23, 90, 90)
-const SLOT_TOKEN := Rect2(500, 42, 100, 55)
+const SLOT_TOKEN := Rect2(575, 28, 110, 50)
 const SLOT_HELP := Rect2(600, 192, 48, 48)
 const SLOT_MEMBER := Rect2(137, 243, 536, 71)
 const SLOT_SKILL := Rect2(137, 342, 536, 72)
@@ -53,6 +53,7 @@ var _label_tokens: Label
 var _label_remain: Label
 var _remain_panel: PanelContainer
 var _btn_excavate: Button
+var _confirm: ConfirmationDialog
 var _members: Array[Resource] = []
 var _skill_rows: Array[Dictionary] = []
 var _guide_showing: bool = false
@@ -162,6 +163,14 @@ func _build_frame_overlay() -> void:
 	_btn_excavate = _make_hit_button()
 	_btn_excavate.pressed.connect(_on_excavate_pressed)
 	_frame_host.add_child(_btn_excavate)
+
+	_confirm = ConfirmationDialog.new()
+	_confirm.name = "ExcavateConfirm"
+	_confirm.title = "確認"
+	_confirm.ok_button_text = "発掘する"
+	_confirm.cancel_button_text = "やめる"
+	_confirm.confirmed.connect(_on_excavate_confirmed)
+	add_child(_confirm)
 
 	_bottom_nav.z_index = 20
 
@@ -353,6 +362,16 @@ func _on_skill_selected(_index: int) -> void:
 func _on_excavate_pressed() -> void:
 	if _guide_showing:
 		return
+	if _members.is_empty() or _skill_rows.is_empty():
+		return
+	var member: Resource = _members[_member_option.selected]
+	var member_name: String = str(member.display_name if "display_name" in member else member.id)
+	_confirm.dialog_text = "%s で発掘してよろしいですか？" % member_name
+	AudioManager.play_sfx("ui_confirm")
+	_confirm.popup_centered()
+
+
+func _on_excavate_confirmed() -> void:
 	if _members.is_empty() or _skill_rows.is_empty():
 		return
 	var member: Resource = _members[_member_option.selected]

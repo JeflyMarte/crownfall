@@ -19,13 +19,17 @@ const FACE_PX: float = 80.0
 const SURVEY_ICON_PX: float = 350.0
 const SURVEY_FRAME_INSET: float = 10.0
 ## 吹き出し〜調査室のあいだに魔晶石発掘円形入口＋状態文言を確保。
-const GAP_ABOVE_EXCAVATE: float = 4.0
-const GAP_BELOW_EXCAVATE: float = 8.0
+const GAP_ABOVE_EXCAVATE: float = 2.0
+const GAP_BELOW_EXCAVATE: float = 0.0
 const EXCAVATE_BAND_H: float = 190.0
 const GAP_BELOW_PANEL: float = GAP_ABOVE_EXCAVATE + EXCAVATE_BAND_H + GAP_BELOW_EXCAVATE
 ## 親右端より外へはみ出して画面右端寄りに寄せる（負＝右方向）。
 const SURVEY_MARGIN_RIGHT: float = -80.0
+## 調査室を発掘帯に少し重ねて上へ寄せる。
+const SURVEY_LIFT_PX: float = 28.0
 const MARGIN_RIGHT: float = 12.0
+## 発掘入口をニーナ列内でさらに右寄せ。
+const EXCAVATE_SHIFT_RIGHT: float = 56.0
 ## TopBar 直下から下げて、指揮官カード／バナーと被りにくくする。
 const GAP_BELOW_TOP: float = 48.0
 ## 調査室ショートカットの「押せる」アテンション点滅。
@@ -111,12 +115,12 @@ func place_below_top_bar(top_bar: Control) -> void:
 		_panel.offset_bottom = PANEL_H
 		_panel.custom_minimum_size = Vector2(PANEL_W, PANEL_H)
 	if _survey_frame != null:
-		## 吹き出しの右下寄りに枠付きアイコンを配置。
+		## 吹き出しの右下寄りに枠付きアイコンを配置（発掘帯に少し重ねて上へ）。
 		_survey_frame.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 		_survey_frame.offset_left = - SURVEY_MARGIN_RIGHT - frame_px
 		_survey_frame.offset_right = - SURVEY_MARGIN_RIGHT
-		_survey_frame.offset_top = PANEL_H + GAP_BELOW_PANEL
-		_survey_frame.offset_bottom = PANEL_H + GAP_BELOW_PANEL + frame_px
+		_survey_frame.offset_top = PANEL_H + GAP_BELOW_PANEL - SURVEY_LIFT_PX
+		_survey_frame.offset_bottom = PANEL_H + GAP_BELOW_PANEL - SURVEY_LIFT_PX + frame_px
 		_survey_frame.custom_minimum_size = Vector2(frame_px, frame_px)
 
 
