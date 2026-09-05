@@ -114,7 +114,8 @@
 | Boss | `albark` |
 | 出さない | 海／沼／坑道専用（`ship_eater_crab`, `sepia_hound` 等）／`eldion`／案B の Biome 混成セット |
 
-> 敵 id は **塔・空・砦** に合う既存のみ。GO 後に `north_reach.tres` へ反映。
+> 敵 id は **塔・空・砦** に合う既存のみ。GO 後に `north_reach.tres` へ反映。  
+> **希少感:** `crown_raven` / `rock_bison` は `spawn_weight_mult = 0.2`（等重みだと征討で過多。本編放浪率は別経路）。
 
 ### 却下済み
 

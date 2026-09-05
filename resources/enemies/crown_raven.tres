@@ -37,6 +37,8 @@ skill_ids = Array[String](["enemy_shrapnel_slam"])
 skill_use_chance = 0.32
 is_wandering = true
 wander_flee_after_turns = 0
+## 征討通常プールでも希少感を保つ（等重みだと約16%/体で多すぎる）。本編放浪率は別経路。
+spawn_weight_mult = 0.2
 weapon_drop_chance = 0.55
 weapon_rarity_weights = {
 0: 10,

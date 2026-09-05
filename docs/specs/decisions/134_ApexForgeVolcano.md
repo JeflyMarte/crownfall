@@ -47,6 +47,8 @@
 | 枠 | id |
 |---|---|
 | `enemy_pool` | `rock_bison`, `iron_horn`, `moss_shell`, `storm_joe`, `crown_raven`, `greios`, `oldrex` |
+
+> `crown_raven` / `rock_bison` は `spawn_weight_mult = 0.2`（征討等重み過多の防止。本編放浪は別）。
 | `elite_pool` | `greios`, `oldrex`, `rock_bison` |
 | Boss | `forgedormient` |
 | 出さない | 氷本編種・海沼専任・サンダーピーク専用扱いの別Boss |

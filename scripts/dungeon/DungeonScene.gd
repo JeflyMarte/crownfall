@@ -2250,8 +2250,9 @@ func _on_current_room_transition_midpoint() -> void:
 	var fade: float = float(timing.get("fade", 0.2))
 	var tw: Tween = create_tween()
 	tw.tween_interval(hold)
-	## 黒幕中に敵／味方スプライトを用意し、幕明けで即見える（明け後フレーム待ちを避ける）。
-	## 天候 VFX／Late 背景は `_run_post_transition_flush_async` 側で分割維持。
+	## 黒幕中に部屋アート（宝箱／泉など）と敵を差し替え、幕明けで前部屋が残らないようにする。
+	## 天候 VFX は `_run_post_transition_flush_async` 側で分割維持。
+	tw.tween_callback(_flush_deferred_room_art)
 	tw.tween_callback(_flush_deferred_combat_room_visuals)
 	tw.tween_property(_transition_overlay, "modulate:a", 0.0, fade)
 	tw.tween_callback(_on_room_transition_finished)
@@ -2438,8 +2439,9 @@ func _on_room_transition_midpoint() -> void:
 	var fade: float = float(timing.get("fade", 0.2))
 	var tw: Tween = create_tween()
 	tw.tween_interval(hold)
-	## 黒幕中に敵／味方スプライトを用意し、幕明けで即見える（明け後フレーム待ちを避ける）。
-	## 天候 VFX／Late 背景は `_run_post_transition_flush_async` 側で分割維持。
+	## 黒幕中に部屋アート（宝箱／泉など）と敵を差し替え、幕明けで前部屋が残らないようにする。
+	## 天候 VFX は `_run_post_transition_flush_async` 側で分割維持。
+	tw.tween_callback(_flush_deferred_room_art)
 	tw.tween_callback(_flush_deferred_combat_room_visuals)
 	tw.tween_property(_transition_overlay, "modulate:a", 0.0, fade)
 	tw.tween_callback(_on_room_transition_finished)
@@ -11798,6 +11800,9 @@ func _on_floor_choice_confirmed(choice_id: String, harvest_kinds: Array[String])
 		(_floor_choice_overlay as FloorChoiceOverlay).close()
 	## 階層キャプションは出さず、確定後に次フロアへ入場して暗転を開ける。
 	_advance_to_next_room()
+	## 分かれ道経路でも前部屋の宝箱／泉などが幕明けに残らないよう、fade 前に差し替える。
+	_flush_deferred_room_art()
+	_flush_deferred_combat_room_visuals()
 	var tw: Tween = create_tween()
 	tw.tween_interval(0.12)
 	tw.tween_property(_transition_overlay, "modulate:a", 0.0, 0.28)

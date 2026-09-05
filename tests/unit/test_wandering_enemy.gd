@@ -157,6 +157,8 @@ func test_crown_raven_multi_category_drop() -> void:
 	assert_not_null(data)
 	assert_true(data.is_wandering)
 	assert_eq(data.wander_flee_after_turns, 0)
+	## 征討通常プールでも希少（バイソンと同帯）。本編放浪率は別経路。
+	assert_almost_eq(float(data.spawn_weight_mult), 0.2, 0.0001)
 	assert_eq(data.weapon_drop_chance, 0.55)
 	assert_false(data.weapon_rarity_weights.is_empty())
 	assert_eq(int(data.equip_category_weights.get("weapon", 0)), 40)
