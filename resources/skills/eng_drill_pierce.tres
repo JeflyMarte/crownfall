@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "eng_drill_pierce"
 display_name = "ドリルピアス"
-description = "ドリルで装甲の継ぎ目を穿つ。敵の防御を崩す。"
+description = "ドリルで装甲の継ぎ目を穿つ（威力×1.55）。高い確率で甲砕を付与する。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 1.55

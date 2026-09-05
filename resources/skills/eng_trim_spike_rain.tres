@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "eng_trim_spike_rain"
 display_name = "棘の雨"
-description = "廃材と棘を撒き、敵全体を削りながらスパイクの仕掛けを付ける。"
+description = "廃材と棘を撒き、敵全体を削りながらスパイクの仕掛けを付ける（威力×0.50）。"
 skill_type = "player"
 target_type = "all_enemies"
 power_multiplier = 0.5

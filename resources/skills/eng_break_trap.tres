@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "eng_break_trap"
 display_name = "ブレイクトラップ"
-description = "装甲を蝕む仕掛けを付ける。動くたびに削れ、防御が落ちる。"
+description = "装甲を蝕む仕掛けを付ける。敵が動くたび削り、甲砕を付与する（最大3回）。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 0.5

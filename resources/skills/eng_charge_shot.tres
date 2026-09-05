@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "eng_charge_shot"
 display_name = "チャージショット"
-description = "熱を込めた一射。当たった敵を炎上させる。次まで間が空く。"
+description = "熱を込めた一射（威力×2.2）。当たった敵に炎上を必ず付与する。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 2.2

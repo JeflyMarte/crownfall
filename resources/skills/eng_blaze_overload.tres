@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "eng_blaze_overload"
 display_name = "ブレイズ・オーバーロード"
-description = "敵1体に超重い装炎の一射。当たると炎上させる。"
+description = "敵1体に超重い装炎の一射（威力×3.0）。当たると炎上を必ず付与する。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 3.0

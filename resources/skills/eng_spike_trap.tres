@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "eng_spike_trap"
 display_name = "スパイクトラップ"
-description = "敵に棘の仕掛けを付ける。動くたびに刺さり、何度か反応する。"
+description = "敵に棘の仕掛けを付ける。敵が動くたび物理ダメージ（威力×0.65）。最大4回まで反応する。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 0.65

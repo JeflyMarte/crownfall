@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "eng_scrap_burst"
 display_name = "スクラップバースト"
-description = "廃材を撒き、敵全体を薄く削る。"
+description = "廃材を撒き、敵全体を薄く削る（威力×0.55）。"
 skill_type = "player"
 target_type = "all_enemies"
 power_multiplier = 0.55

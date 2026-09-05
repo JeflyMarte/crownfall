@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "eng_full_arm_cascade"
 display_name = "フルアーム・カスケード"
-description = "生存敵全体に薄い一撃を放ち、あわせてスパイクの仕掛けを最大3体に付ける。"
+description = "生存敵全体に薄い一撃（威力×0.70）を放ち、あわせてスパイクの仕掛けを最大3体に付ける。"
 skill_type = "player"
 target_type = "all_enemies"
 power_multiplier = 0.70

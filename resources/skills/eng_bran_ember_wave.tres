@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "eng_bran_ember_wave"
 display_name = "余熱波"
-description = "熱波を浴びせ、敵全体を炎上させる。"
+description = "熱波を浴びせ、敵全体を削る（威力×0.52）。炎上を付与することがある。"
 skill_type = "player"
 target_type = "all_enemies"
 power_multiplier = 0.52

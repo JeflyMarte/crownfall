@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "eng_ortho_seam_burst"
 display_name = "継ぎ目爆"
-description = "継ぎ目を割り、敵全体の装甲を崩す。"
+description = "継ぎ目を割り、敵全体を削る（威力×0.52）。甲砕を付与することがある。"
 skill_type = "player"
 target_type = "all_enemies"
 power_multiplier = 0.52

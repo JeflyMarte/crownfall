@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "eng_burn_trap"
 display_name = "バーントラップ"
-description = "焼夷を叩き込む機巧の極意。敵を燃やし尽くす。次まで大きく間が空く。"
+description = "焼夷の極意の一射（威力×2.6）。当たった敵に炎上を必ず付与する。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 2.6

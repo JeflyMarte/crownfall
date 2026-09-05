@@ -25,6 +25,7 @@ const _CharacterStatPages = preload("res://scripts/roster/CharacterStatPages.gd"
 const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuses.gd")
 const _UltimateSkillResolver = preload("res://scripts/combat/UltimateSkillResolver.gd")
 const _VirtualInventoryGrid = preload("res://scripts/ui/VirtualInventoryGrid.gd")
+const _EngineerTraps = preload("res://scripts/combat/EngineerTraps.gd")
 
 # CombatController.BASE_MEMBER_HP と同値（表示用の素HP）。
 const BASE_MEMBER_HP: int = BalanceConfig.BASE_MEMBER_HP
@@ -154,6 +155,7 @@ var _combat_setup_panel: PanelContainer = null
 var _combat_setup_content: VBoxContainer = null
 
 var _selected_member_index: int = 0
+var _member_cycle_inv_rebuild_queued: bool = false
 var _inventory_filter: String = "all"
 var _inventory_sort: String = "rarity"
 var _inventory_equipped_filter: String = "all"
@@ -820,26 +822,18 @@ func _on_member_prev_pressed() -> void:
 func _on_member_next_pressed() -> void:
 	_cycle_member(1)
 
-## キャラ画面の ◀▶ 対象（ロスター＋随伴ペット）。
+## キャラ画面の ◀▶／一覧順: 現在パーティ順 → 編成外ロスター → 随伴ペット。
 func _get_view_members() -> Array:
 	var out: Array = []
+	for m in GameState.party_members:
+		if m != null and not out.has(m):
+			out.append(m)
 	for m in GameState.get_roster():
-		if m != null:
+		if m != null and not out.has(m):
 			out.append(m)
 	if GameState.active_pet != null and not out.has(GameState.active_pet):
 		out.append(GameState.active_pet)
-	out.sort_custom(_cmp_view_member_by_level)
 	return out
-
-
-func _cmp_view_member_by_level(a: Resource, b: Resource) -> bool:
-	if a == null or b == null:
-		return a != null
-	if int(a.level) != int(b.level):
-		return int(a.level) > int(b.level)
-	if int(a.rarity) != int(b.rarity):
-		return int(a.rarity) > int(b.rarity)
-	return str(a.display_name) < str(b.display_name)
 
 
 func _is_viewing_pet() -> bool:
@@ -862,7 +856,47 @@ func _cycle_member(delta: int) -> void:
 	if count <= 0:
 		return
 	var next_index: int = (_selected_member_index + delta + count) % count
-	_on_member_selected(next_index)
+	_selected_member_index = next_index
+	## ◀▶ はカード／装備枠／右タブを即反映。所持一覧の全再生成は差分パッチ＋遅延。
+	_refresh_display_for_member_cycle()
+
+
+## キャラ ◀▶ 専用の軽量更新（所持グリッド全破棄を避ける）。
+func _refresh_display_for_member_cycle() -> void:
+	_update_character_card()
+	_rebuild_equip_slots()
+	_rebuild_effects()
+	_rebuild_active_side_tab()
+	_patch_inventory_ownership_for_view()
+	if not _member_cycle_inv_rebuild_queued:
+		_member_cycle_inv_rebuild_queued = true
+		call_deferred("_flush_member_cycle_inventory_rebuild")
+
+
+func _flush_member_cycle_inventory_rebuild() -> void:
+	_member_cycle_inv_rebuild_queued = false
+	## 連続 ◀▶ 中は最新キャラのみ最終反映（途中の全再生成を間引く）。
+	_rebuild_inventory_grid()
+
+
+## 所持セルの装備中ハイライト／職制限を現在閲覧キャラ向けに差分更新。
+func _patch_inventory_ownership_for_view() -> void:
+	for iid in _inv_item_cells_by_id.keys():
+		var rec: Variant = _inv_item_cells_by_id.get(iid)
+		if rec is not Dictionary:
+			continue
+		var btn: Button = rec.get("btn") as Button
+		var item: Resource = rec.get("item") as Resource
+		var category: String = str(rec.get("category", ""))
+		if btn == null or not is_instance_valid(btn) or item == null or category.is_empty():
+			continue
+		_apply_inventory_cell_presentation(btn, item, category)
+	for rid in _inv_relic_cells_by_id.keys():
+		var relic_id: String = str(rid)
+		var rbtn: Button = _inv_relic_cells_by_id.get(relic_id) as Button
+		if rbtn == null or not is_instance_valid(rbtn):
+			continue
+		_apply_relic_cell_presentation(rbtn, relic_id)
 
 
 func _on_member_list_pressed() -> void:
@@ -4324,13 +4358,20 @@ func _skill_stats_detail_lines(skill_data: Resource, unlocked: bool = true, req_
 			var pct: int = int(round(float(skill_data.power_multiplier) * 100.0))
 			lines.append("回復: 最大HPの%d%%" % pct)
 		"buff":
-			var eff_b: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
-			if eff_b != null:
-				var up: int = int(round((eff_b.outgoing_damage_multiplier - 1.0) * 100.0))
-				if up != 0:
-					lines.append("味方の与ダメージ: +%d%%" % up)
-				if int(eff_b.duration_ticks) > 0:
-					lines.append("持続: しばらく続く")
+			if skill_data.tags is Array and skill_data.tags.has("trap_place"):
+				_append_trap_place_detail_lines(lines, skill_data)
+			else:
+				var eff_b: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
+				if eff_b != null:
+					var up: int = int(round((eff_b.outgoing_damage_multiplier - 1.0) * 100.0))
+					if up != 0:
+						lines.append("味方の与ダメージ: +%d%%" % up)
+					var in_mult: float = float(eff_b.incoming_damage_multiplier)
+					if in_mult < 0.999:
+						var down: int = int(round((1.0 - in_mult) * 100.0))
+						lines.append("味方の被ダメージ: -%d%%" % down)
+					if int(eff_b.duration_ticks) > 0:
+						lines.append("持続: 行動待ち %d 回分" % int(eff_b.duration_ticks))
 		_:
 			lines.append("威力: ×%.1f" % skill_data.power_multiplier)
 			var elem_label: String = _ElementResolver.get_display_name(str(skill_data.element))
@@ -4351,6 +4392,34 @@ func _skill_stats_detail_lines(skill_data: Resource, unlocked: bool = true, req_
 	if not reserve.is_empty():
 		lines.append("温存: %s" % reserve)
 	return lines
+
+
+## 機巧士・仕掛け設置スキルの効果行（残発／作動威力を他スキルと同粒度で開示）。
+func _append_trap_place_detail_lines(lines: PackedStringArray, skill_data: Resource) -> void:
+	var kind: String = _EngineerTraps.kind_from_skill(skill_data)
+	lines.append("設置: 敵に仕掛け（設置時ダメージなし）")
+	lines.append("作動: 敵が動くたび")
+	var power: float = float(skill_data.power_multiplier)
+	if power <= 0.0:
+		power = _EngineerTraps.power_for_kind(kind)
+	if power > 0.0:
+		lines.append("作動威力: ×%.2f" % power)
+	var fires: int = _EngineerTraps.fires_for_kind(kind)
+	if fires > 0:
+		lines.append("残発: %d回" % fires)
+	var status_info: Dictionary = _EngineerTraps.status_for_kind(kind)
+	var status_line: String = _skill_status_line(
+		str(status_info.get("id", "")),
+		float(status_info.get("chance", 0.0))
+	)
+	if status_line.is_empty() and not str(skill_data.apply_status_id).is_empty():
+		status_line = _skill_status_line(
+			str(skill_data.apply_status_id),
+			float(skill_data.apply_status_chance)
+		)
+	if not status_line.is_empty():
+		lines.append("作動時付与: %s" % status_line)
+
 
 func _show_skill_detail_overlay(
 	skill_id: String, unlocked: bool, req_lv: int, is_equipped: bool
@@ -4443,13 +4512,25 @@ func _skill_detail_text(skill_data: Resource, unlocked: bool = true, req_lv: int
 			body = "最大HPの%d%%回復／再使用%.0f秒" % [pct, skill_data.cooldown]
 		"buff":
 			var parts_buff: PackedStringArray = []
-			var eff_b: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
-			if eff_b != null:
-				var up: int = int(round((eff_b.outgoing_damage_multiplier - 1.0) * 100.0))
-				if up != 0:
-					parts_buff.append("味方与ダメ+%d%%" % up)
-				if int(eff_b.duration_ticks) > 0:
-					parts_buff.append("しばらく続く")
+			if skill_data.tags is Array and skill_data.tags.has("trap_place"):
+				var kind: String = _EngineerTraps.kind_from_skill(skill_data)
+				var fires: int = _EngineerTraps.fires_for_kind(kind)
+				var power: float = float(skill_data.power_multiplier)
+				if power <= 0.0:
+					power = _EngineerTraps.power_for_kind(kind)
+				parts_buff.append("仕掛け設置")
+				if power > 0.0:
+					parts_buff.append("作動×%.2f" % power)
+				if fires > 0:
+					parts_buff.append("残発%d" % fires)
+			else:
+				var eff_b: Resource = DataRegistry.get_status_effect(skill_data.apply_status_id)
+				if eff_b != null:
+					var up: int = int(round((eff_b.outgoing_damage_multiplier - 1.0) * 100.0))
+					if up != 0:
+						parts_buff.append("味方与ダメ+%d%%" % up)
+					if int(eff_b.duration_ticks) > 0:
+						parts_buff.append("行動待ち%d回分" % int(eff_b.duration_ticks))
 			parts_buff.append("再使用%.0f秒" % skill_data.cooldown)
 			body = "／".join(parts_buff)
 		_:

@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "eng_armor_gekigeki"
 display_name = "穿甲の極撃"
-description = "敵1体を割り、甲砕を必ず付与する。すでに甲砕中なら大きく痛める。"
+description = "敵1体を割り、甲砕を必ず付与する（威力×2.4）。すでに甲砕中なら大きく痛める。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 2.4

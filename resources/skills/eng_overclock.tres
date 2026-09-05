@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "eng_overclock"
 display_name = "オーバークロック"
-description = "機巧を限界まで回し、熱を乗せた必殺の一射を放つ。"
+description = "機巧を限界まで回し、熱を乗せた一射を放つ（威力×2.8）。高確率で炎上を付与する。"
 skill_type = "player"
 target_type = "enemy"
 power_multiplier = 2.8

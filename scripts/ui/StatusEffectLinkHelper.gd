@@ -64,7 +64,8 @@ static func effect_summary(status_id: String) -> String:
 			parts.append("継続ダメージ（%d）" % dot_flat)
 	var ticks: int = int(data.duration_ticks)
 	if ticks > 0:
-		parts.append("しばらく続く")
+		## CT 進行の回数（壁時計秒ではない）。秒表記は誤解を招く。
+		parts.append("行動待ち %d 回分続く" % ticks)
 	var stacks: int = int(data.max_stacks)
 	if stacks > 1:
 		parts.append("最大 %d 重ね" % stacks)
