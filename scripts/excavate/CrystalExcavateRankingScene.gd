@@ -1,20 +1,50 @@
 extends Control
 
 ## 魔晶石発掘 — 過去ダメージランキング。
+## 見出しは Ranking_Banner 画像のみ（「発掘ランキング」「ダメージ順」文言は出さない）。
 
 const _Excavate := preload("res://scripts/excavate/CrystalExcavateSystem.gd")
 const _BgHelper := preload("res://scripts/excavate/CrystalExcavateBgHelper.gd")
+const _UiTokens := preload("res://scripts/excavate/CrystalExcavateUiTokens.gd")
 const _RosterUiHelper := preload("res://scripts/roster/RosterUiHelper.gd")
 
+const BANNER_H: float = 132.0
+
+@onready var _header: PanelContainer = $Header
+@onready var _header_row: HBoxContainer = $Header/HeaderRow
+@onready var _btn_back: Button = $Header/HeaderRow/ButtonBack
+@onready var _label_title: Label = $Header/HeaderRow/LabelTitle
+@onready var _main_scroll: ScrollContainer = $MainScroll
 @onready var _list: VBoxContainer = $MainScroll/MainVBox
 
 
 func _ready() -> void:
 	_BgHelper.ensure_background(self, _BgHelper.BG_RESULT)
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.NONE)
-	$Header/HeaderRow/ButtonBack.pressed.connect(_on_back_pressed)
-	UiTypography.apply_screen_title($Header/HeaderRow/LabelTitle)
+	_btn_back.pressed.connect(_on_back_pressed)
+	_setup_title_banner()
 	_build_list()
+
+
+func _setup_title_banner() -> void:
+	## テキスト見出しは出さず、バナー画像に置き換える。
+	_label_title.visible = false
+	_label_title.text = ""
+	_label_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var tex: Texture2D = _UiTokens.ranking_banner_texture()
+	var banner := TextureRect.new()
+	banner.name = "RankingBanner"
+	banner.texture = tex
+	banner.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	banner.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	banner.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	banner.custom_minimum_size = Vector2(0.0, BANNER_H)
+	banner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_header_row.add_child(banner)
+	_header_row.move_child(banner, _label_title.get_index())
+	_header.offset_bottom = 12.0 + BANNER_H
+	_main_scroll.offset_top = 20.0 + BANNER_H
 
 
 func _build_list() -> void:
@@ -28,11 +58,6 @@ func _build_list() -> void:
 		_list.add_child(empty)
 		UiTypography.apply_body(empty, UiTypography.SIZE_BODY, UiTypography.COLOR_MUTED)
 		return
-	var header := Label.new()
-	header.text = "ダメージ順（上位%d件）" % mini(rows.size(), _Excavate.HISTORY_CAP)
-	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_list.add_child(header)
-	UiTypography.apply_caption(header, UiTypography.COLOR_GOLD)
 	for i: int in rows.size():
 		_list.add_child(_make_row(i + 1, rows[i]))
 
