@@ -26,10 +26,10 @@ const GAP_BELOW_PANEL: float = GAP_ABOVE_EXCAVATE + EXCAVATE_BAND_H + GAP_BELOW_
 ## 親右端より外へはみ出して画面右端寄りに寄せる（負＝右方向）。
 const SURVEY_MARGIN_RIGHT: float = -80.0
 ## 調査室を発掘帯に少し重ねて上へ寄せる。
-const SURVEY_LIFT_PX: float = 40.0
+const SURVEY_LIFT_PX: float = 52.0
 const MARGIN_RIGHT: float = 12.0
 ## 発掘入口をニーナ列内で右寄せ（大きいほど右）。
-const EXCAVATE_SHIFT_RIGHT: float = 24.0
+const EXCAVATE_SHIFT_RIGHT: float = 8.0
 ## TopBar 直下から下げて、指揮官カード／バナーと被りにくくする。
 const GAP_BELOW_TOP: float = 48.0
 ## 調査室ショートカットの「押せる」アテンション点滅。

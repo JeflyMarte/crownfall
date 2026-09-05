@@ -9,8 +9,14 @@ const _ChrHelper := preload("res://scripts/excavate/CrystalExcavateChrHelper.gd"
 
 const CHR_TARGET_H: float = 220.0
 const TAP_FONT_SIZE: int = 72
-const SHARD_COUNT: int = 14
 const SHARD_GRID: int = 4
+## 飛び散り量はダメージ→トークン換算（1〜300）に連動。
+const SHARD_COUNT_MIN: int = 6
+const SHARD_COUNT_MAX: int = 32
+const SPARK_COUNT_MIN: int = 20
+const SPARK_COUNT_MAX: int = 72
+const HIT_BURST_MIN: int = 18
+const HIT_BURST_MAX: int = 56
 
 @onready var _arena: Control = $Arena
 
@@ -202,9 +208,12 @@ func _play_attack() -> void:
 	_stop_tap_pulse()
 	AudioManager.play_sfx("ui_confirm")
 	var dealt: int = int(_session.get("dealt_damage", 0))
+	var intensity: float = _damage_intensity(dealt)
 	_damage_label.text = str(dealt)
 	_damage_label.modulate.a = 0.0
-	_damage_label.scale = Vector2(0.6, 0.6)
+	_damage_label.scale = Vector2(0.55, 0.55)
+	var dmg_peak: float = lerpf(1.35, 1.85, intensity)
+	_damage_label.add_theme_font_size_override("font_size", int(lerpf(42.0, 64.0, intensity)))
 
 	var base_x: float = 0.0
 	if _chr != null:
@@ -212,33 +221,99 @@ func _play_attack() -> void:
 		if _chr.sprite_frames != null and _chr.sprite_frames.has_animation("attack"):
 			_chr.play("attack")
 		var lunge := create_tween()
-		lunge.tween_property(_chr, "position:x", base_x + 36.0, 0.12).set_trans(Tween.TRANS_SINE)
+		lunge.tween_property(_chr, "position:x", base_x + 44.0, 0.12).set_trans(Tween.TRANS_SINE)
 		lunge.tween_property(_chr, "position:x", base_x, 0.18).set_trans(Tween.TRANS_SINE)
 
 	var dmg_tw := create_tween()
-	dmg_tw.tween_property(_damage_label, "modulate:a", 1.0, 0.18)
-	dmg_tw.parallel().tween_property(_damage_label, "scale", Vector2(1.2, 1.2), 0.22).set_trans(
+	dmg_tw.tween_property(_damage_label, "modulate:a", 1.0, 0.14)
+	dmg_tw.parallel().tween_property(_damage_label, "scale", Vector2(dmg_peak, dmg_peak), 0.22).set_trans(
 		Tween.TRANS_BACK
 	)
 
 	if _rock != null:
+		var rock_base: Vector2 = _rock.scale
+		var punch: float = lerpf(1.18, 1.42, intensity)
 		var hit := create_tween()
-		hit.tween_property(_rock, "modulate", Color(1.45, 1.2, 1.65, 1.0), 0.1)
-		hit.tween_property(_rock, "modulate", Color.WHITE, 0.12)
+		hit.tween_property(_rock, "modulate", Color(1.7, 1.35, 1.9, 1.0), 0.08)
+		hit.parallel().tween_property(_rock, "scale", rock_base * punch, 0.1).set_trans(Tween.TRANS_BACK)
+		hit.tween_property(_rock, "modulate", Color.WHITE, 0.1)
+		hit.parallel().tween_property(_rock, "scale", rock_base, 0.12)
+		_spawn_hit_burst(_rock_center_global(), intensity)
 
 	if _chr != null and _chr.sprite_frames != null and _chr.sprite_frames.has_animation("attack"):
 		await _chr.animation_finished
 	else:
 		await get_tree().create_timer(0.35).timeout
 
-	await _play_rock_shatter()
+	await _play_rock_shatter(dealt)
 	await get_tree().create_timer(0.25).timeout
 	SceneRouter.change_scene(_Excavate.RESULT_SCENE)
 
 
-func _play_rock_shatter() -> void:
+func _damage_intensity(dealt: int) -> float:
+	## トークン換算（上限300）を 0〜1 の強さに。低ダメでも最低限の演出。
+	var tokens: int = _Excavate.damage_to_tokens(dealt)
+	return clampf(float(tokens) / float(_Excavate.TOKEN_CAP), 0.08, 1.0)
+
+
+func _rock_center_global() -> Vector2:
+	if _rock == null or not is_instance_valid(_rock):
+		return _arena.get_global_rect().get_center()
+	return Rect2(_rock.global_position, _rock.size).get_center()
+
+
+func _spawn_hit_burst(center_global: Vector2, intensity: float) -> void:
+	if _arena == null:
+		return
+	var host := Control.new()
+	host.name = "HitBurstHost"
+	host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.z_index = 7
+	_arena.add_child(host)
+	var burst := CPUParticles2D.new()
+	burst.emitting = false
+	burst.one_shot = true
+	burst.explosiveness = 1.0
+	burst.amount = int(lerpf(float(HIT_BURST_MIN), float(HIT_BURST_MAX), intensity))
+	burst.lifetime = lerpf(0.45, 0.7, intensity)
+	burst.direction = Vector2(0, -1)
+	burst.spread = 180.0
+	burst.gravity = Vector2(0, 280)
+	burst.initial_velocity_min = lerpf(160.0, 280.0, intensity)
+	burst.initial_velocity_max = lerpf(280.0, 480.0, intensity)
+	burst.scale_amount_min = lerpf(4.0, 8.0, intensity)
+	burst.scale_amount_max = lerpf(9.0, 16.0, intensity)
+	burst.color = Color(1.0, 0.82, 0.45, 1.0)
+	host.add_child(burst)
+	burst.global_position = center_global
+	burst.emitting = true
+	## ヒット輪（拡大フェード）。
+	var ring := ColorRect.new()
+	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var ring_px: float = lerpf(70.0, 140.0, intensity)
+	ring.size = Vector2(ring_px, ring_px)
+	ring.pivot_offset = ring.size * 0.5
+	ring.color = Color(1.0, 0.9, 0.55, 0.75)
+	host.add_child(ring)
+	ring.global_position = center_global - ring.size * 0.5
+	var ring_tw := create_tween()
+	var ring_scale: float = lerpf(2.2, 3.6, intensity)
+	ring_tw.tween_property(ring, "scale", Vector2(ring_scale, ring_scale), 0.35).set_trans(
+		Tween.TRANS_QUAD
+	).set_ease(Tween.EASE_OUT)
+	ring_tw.parallel().tween_property(ring, "modulate:a", 0.0, 0.35)
+	ring_tw.tween_callback(host.queue_free)
+
+
+func _play_rock_shatter(dealt: int = 0) -> void:
 	if _rock == null or not is_instance_valid(_rock):
 		return
+	var intensity: float = _damage_intensity(dealt)
+	var shard_count: int = int(round(lerpf(float(SHARD_COUNT_MIN), float(SHARD_COUNT_MAX), intensity)))
+	var spark_count: int = int(round(lerpf(float(SPARK_COUNT_MIN), float(SPARK_COUNT_MAX), intensity)))
+	var dist_min: float = lerpf(70.0, 120.0, intensity)
+	var dist_max: float = lerpf(160.0, 320.0, intensity)
 	var tex: Texture2D = _rock.texture
 	var rock_rect := Rect2(_rock.global_position, _rock.size)
 	var center_global: Vector2 = rock_rect.get_center()
@@ -255,15 +330,15 @@ func _play_rock_shatter() -> void:
 	sparks.emitting = false
 	sparks.one_shot = true
 	sparks.explosiveness = 1.0
-	sparks.amount = 28
-	sparks.lifetime = 0.55
+	sparks.amount = spark_count
+	sparks.lifetime = lerpf(0.5, 0.85, intensity)
 	sparks.direction = Vector2(0, -1)
 	sparks.spread = 180.0
 	sparks.gravity = Vector2(0, 420)
-	sparks.initial_velocity_min = 120.0
-	sparks.initial_velocity_max = 280.0
-	sparks.scale_amount_min = 2.0
-	sparks.scale_amount_max = 5.0
+	sparks.initial_velocity_min = lerpf(140.0, 220.0, intensity)
+	sparks.initial_velocity_max = lerpf(260.0, 420.0, intensity)
+	sparks.scale_amount_min = lerpf(3.0, 6.0, intensity)
+	sparks.scale_amount_max = lerpf(6.0, 12.0, intensity)
 	sparks.color = Color(0.75, 0.55, 1.0, 1.0)
 	host.add_child(sparks)
 	sparks.global_position = center_global
@@ -277,12 +352,14 @@ func _play_rock_shatter() -> void:
 	var th := float(tex.get_height())
 	var cell_w: float = tw / float(SHARD_GRID)
 	var cell_h: float = th / float(SHARD_GRID)
-	var shard_draw: float = minf(rock_rect.size.x, rock_rect.size.y) / float(SHARD_GRID) * 1.15
+	var shard_draw: float = minf(rock_rect.size.x, rock_rect.size.y) / float(SHARD_GRID) * lerpf(
+		1.05, 1.35, intensity
+	)
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	var shatter := create_tween()
 	shatter.set_parallel(true)
-	for i: int in SHARD_COUNT:
+	for i: int in shard_count:
 		var gx: int = i % SHARD_GRID
 		var gy: int = int(i / SHARD_GRID) % SHARD_GRID
 		var atlas := AtlasTexture.new()
@@ -300,11 +377,11 @@ func _play_rock_shatter() -> void:
 		shard.position = local_center - shard.size * 0.5
 		shard.pivot_offset = shard.size * 0.5
 		var angle: float = rng.randf_range(0.0, TAU)
-		var dist: float = rng.randf_range(90.0, 220.0)
+		var dist: float = rng.randf_range(dist_min, dist_max)
 		var dest: Vector2 = local_center - shard.size * 0.5 + Vector2(cos(angle), sin(angle)) * dist + Vector2(
-			0.0, rng.randf_range(40.0, 120.0)
+			0.0, rng.randf_range(40.0, 140.0)
 		)
-		var dur: float = rng.randf_range(0.45, 0.75)
+		var dur: float = rng.randf_range(0.45, 0.8)
 		shatter.tween_property(shard, "position", dest, dur).set_trans(Tween.TRANS_QUAD).set_ease(
 			Tween.EASE_OUT
 		)
