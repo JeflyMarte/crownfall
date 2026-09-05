@@ -92,6 +92,7 @@ func _ready() -> void:
 	call_deferred("_layout_hub_if_needed")
 	call_deferred("_maybe_show_rank_up")
 	call_deferred("_warmup_hub_scenes")
+	call_deferred("_maybe_play_excavate_token_fx")
 
 
 func _warmup_hub_scenes() -> void:
@@ -460,6 +461,71 @@ func _maybe_grant_starting_tokens_fx() -> void:
 		[{"texture": token_tex, "target": token_chip, "amount": amount}],
 		_update_display
 	)
+
+
+## 魔晶石発掘結果から拠点復帰時の右上魔晶石チャリン演出。
+func _maybe_play_excavate_token_fx() -> void:
+	## ガイド／加入オーバーレイ中は先にそちらを優先。
+	if _hub_overlay_blocking("NinaDialogueOverlay"):
+		return
+	if _hub_overlay_blocking("StarterJoinOverlay"):
+		return
+	if _hub_overlay_blocking("HubSimpleGuideOverlay"):
+		return
+	if _hub_overlay_blocking("CommanderRankUpOverlay"):
+		return
+	var amount: int = _CrystalExcavateSystem.consume_pending_hub_fx_tokens()
+	if amount <= 0:
+		return
+	var token_chip: Control = $HubView/TopBar/TopBarRow/TokenChip as Control
+	var token_tex: Texture2D = CurrencyHelper.get_icon_texture()
+	var from_global: Vector2 = get_viewport_rect().get_center()
+	if token_tex == null or token_chip == null:
+		_update_display()
+		return
+	var shown_before: int = maxi(0, GameState.gacha_token - amount)
+	_label_token.text = CurrencyHelper.format_amount(shown_before)
+	_start_excavate_token_countup(shown_before, GameState.gacha_token)
+	_CurrencyGainFx.play(
+		self,
+		from_global,
+		[{"texture": token_tex, "target": token_chip, "amount": amount}],
+		_on_excavate_token_fx_done
+	)
+
+
+func _start_excavate_token_countup(from_amount: int, to_amount: int) -> void:
+	if _label_token == null:
+		return
+	if _label_token.has_meta("excavate_token_count_tween"):
+		var prev: Variant = _label_token.get_meta("excavate_token_count_tween")
+		if prev is Tween and is_instance_valid(prev):
+			(prev as Tween).kill()
+	var tw: Tween = create_tween()
+	_label_token.set_meta("excavate_token_count_tween", tw)
+	tw.tween_method(
+		_make_excavate_token_count_updater(from_amount, to_amount),
+		0.0,
+		1.0,
+		0.7
+	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+
+func _make_excavate_token_count_updater(from_amount: int, to_amount: int) -> Callable:
+	return func(t: float) -> void:
+		if _label_token == null or not is_instance_valid(_label_token):
+			return
+		var v: int = int(round(lerpf(float(from_amount), float(to_amount), t)))
+		_label_token.text = CurrencyHelper.format_amount(v)
+
+
+func _on_excavate_token_fx_done() -> void:
+	if _label_token != null and _label_token.has_meta("excavate_token_count_tween"):
+		var prev: Variant = _label_token.get_meta("excavate_token_count_tween")
+		if prev is Tween and is_instance_valid(prev):
+			(prev as Tween).kill()
+		_label_token.remove_meta("excavate_token_count_tween")
+	_update_display()
 
 
 func _setup_gift_badge() -> void:

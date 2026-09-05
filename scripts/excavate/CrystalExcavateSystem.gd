@@ -130,6 +130,7 @@ static func begin_excavate(member_id: String, skill_id: String) -> Dictionary:
 		"last_dealt_damage": dealt,
 		"last_member_id": member_id,
 		"last_skill_id": skill_id,
+		"pending_hub_fx_tokens": tokens,
 	}
 	GameState.crystal_excavate_session = {
 		"member_id": member_id,
@@ -142,6 +143,18 @@ static func begin_excavate(member_id: String, skill_id: String) -> Dictionary:
 		GameState.gacha_token += tokens
 	SaveManager.request_save()
 	return {"ok": true, "tokens": tokens, "dealt_damage": dealt}
+
+
+static func consume_pending_hub_fx_tokens() -> int:
+	ensure_refreshed()
+	var state: Dictionary = GameState.crystal_excavate_state.duplicate(true)
+	var amount: int = maxi(0, int(state.get("pending_hub_fx_tokens", 0)))
+	if amount <= 0:
+		return 0
+	state["pending_hub_fx_tokens"] = 0
+	GameState.crystal_excavate_state = state
+	SaveManager.request_save()
+	return amount
 
 
 static func _record_history(

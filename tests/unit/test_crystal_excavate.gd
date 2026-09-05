@@ -134,6 +134,30 @@ func test_damage_variance_bounds_are_pm_15_percent() -> void:
 	assert_eq(b.y, 1150)
 
 
+func test_pending_hub_fx_tokens_consumed_once() -> void:
+	GameState.debug_full_unlock = true
+	GameState.crystal_excavate_state = {
+		"day_key": DailyMissionSystem.current_day_key(),
+		"used": false,
+	}
+	for member: Resource in GameState.roster:
+		if member == null or PetSystem.is_pet_member(member):
+			continue
+		var candidates: Array[Dictionary] = _Excavate.skill_candidates_for_member(member)
+		if candidates.is_empty():
+			continue
+		var sid: String = str(candidates[0].get("id", ""))
+		var result: Dictionary = _Excavate.begin_excavate(str(member.id), sid)
+		assert_true(bool(result.get("ok", false)), str(result))
+		var tokens: int = int(result.get("tokens", 0))
+		assert_eq(int(GameState.crystal_excavate_state.get("pending_hub_fx_tokens", -1)), tokens)
+		var first: int = _Excavate.consume_pending_hub_fx_tokens()
+		assert_eq(first, tokens)
+		assert_eq(_Excavate.consume_pending_hub_fx_tokens(), 0)
+		return
+	pass_test("no eligible roster member")
+
+
 func test_history_ranks_by_damage_desc() -> void:
 	GameState.crystal_excavate_history = []
 	GameState.debug_full_unlock = true
