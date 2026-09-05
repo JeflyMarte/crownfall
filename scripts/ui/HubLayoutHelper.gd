@@ -20,7 +20,8 @@ const _META_BODY_BASE_BOTTOM: StringName = &"_cf_body_base_bottom"
 const HUB_TOP_BAR_H: float = 88.0
 const HUB_LEFT_MENU_DESIGN_TOP: float = 96.0
 const HUB_DAILY_H: float = 236.0
-const HUB_EXCAVATE_H: float = 44.0
+## 円形入口＋状態文言（CrystalExcavateUiTokens.HUB_ENTRY_H と同値）。
+const HUB_EXCAVATE_H: float = 190.0
 const HUB_STRIP_H: float = 80.0
 const HUB_STACK_GAP: float = 8.0
 

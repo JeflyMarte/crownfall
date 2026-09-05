@@ -33,6 +33,8 @@ alwaysApply: false
 | `ガチャタイトル.png` | `Banner_Title` + `Banner_Catchcopy` | 同上（シート分割） |
 | `メイン画面.png` | `UI_BG_Base.png` | 手動コピー＋シーン参照確認 |
 | `キャラ画面.png` | `equipment_ui/UI_BG_Equipment.png` | 手動コピー |
+| Downloads `魔晶石発掘.png` | `ui/excavate/UI_Hub_CrystalExcavate.png`（黒マット除去・512） | 手動＋拠点入口 |
+| Downloads `魔晶石発掘フレーム.jpg` | `ui/excavate/UI_CrystalExcavate_Select_Frame.png`（720幅） | 手動＋選択BG |
 
 ## キャラ戦闘ドット（Desktop → res://）
 

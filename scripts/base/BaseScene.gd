@@ -14,6 +14,7 @@ const _SurveySystem := preload("res://scripts/survey/SurveySystem.gd")
 const _HubDebugMenuOverlay := preload("res://scripts/debug/HubDebugMenuOverlay.gd")
 const _DebugAccess := preload("res://scripts/debug/DebugAccess.gd")
 const _CrystalExcavateSystem := preload("res://scripts/excavate/CrystalExcavateSystem.gd")
+const _CrystalExcavateUiTokens := preload("res://scripts/excavate/CrystalExcavateUiTokens.gd")
 
 const DUNGEON_SELECT_SCENE: String = "res://scenes/dungeon/DungeonSelectScene.tscn"
 const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
@@ -675,44 +676,40 @@ func _on_field_survey_banner_input(event: InputEvent) -> void:
 
 
 func _setup_excavate_entry() -> void:
+	## 円形入口（UI_Hub_CrystalExcavate）＋下に状態文言。ニーナ〜調査室のあいだ。
 	_excavate_entry_panel = PanelContainer.new()
 	_excavate_entry_panel.name = "ExcavateEntryPanel"
 	_excavate_entry_panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	_excavate_entry_panel.add_theme_stylebox_override(
-		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
+	var empty := StyleBoxEmpty.new()
+	_excavate_entry_panel.add_theme_stylebox_override("panel", empty)
+	var col := VBoxContainer.new()
+	col.name = "ExcavateEntryCol"
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 2)
+	_excavate_entry_panel.add_child(col)
+	var btn := TextureButton.new()
+	btn.name = "ButtonExcavateGo"
+	btn.ignore_texture_size = true
+	btn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+	btn.custom_minimum_size = Vector2(
+		_CrystalExcavateUiTokens.HUB_ICON_PX, _CrystalExcavateUiTokens.HUB_ICON_PX
 	)
-	var row := HBoxContainer.new()
-	row.set_anchors_preset(Control.PRESET_FULL_RECT)
-	row.offset_left = 10.0
-	row.offset_top = 4.0
-	row.offset_right = -10.0
-	row.offset_bottom = -4.0
-	row.add_theme_constant_override("separation", 8)
-	_excavate_entry_panel.add_child(row)
-	var icon := TextureRect.new()
-	icon.custom_minimum_size = Vector2(28, 28)
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.texture = CurrencyHelper.get_icon_texture()
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(icon)
-	var title := Label.new()
-	title.name = "LabelExcavateTitle"
-	title.text = "魔晶石発掘"
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(title)
-	UiTypography.apply_body(title, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var tex: Texture2D = _CrystalExcavateUiTokens.hub_entry_texture()
+	if tex != null:
+		btn.texture_normal = tex
+		btn.texture_pressed = tex
+		btn.texture_hover = tex
+	btn.pressed.connect(_on_excavate_entry_pressed)
+	col.add_child(btn)
 	var status := Label.new()
 	status.name = "LabelExcavateStatus"
 	status.text = "残り1回"
-	row.add_child(status)
-	UiTypography.apply_caption(status, UiTypography.COLOR_SUB)
-	var btn := Button.new()
-	btn.name = "ButtonExcavateGo"
-	btn.text = "移動"
-	btn.pressed.connect(_on_excavate_entry_pressed)
-	row.add_child(btn)
-	UiTypography.apply_menu_button(btn)
+	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	status.custom_minimum_size = Vector2(0, _CrystalExcavateUiTokens.HUB_STATUS_H)
+	col.add_child(status)
+	UiTypography.apply_caption(status, UiTypography.COLOR_GOLD)
 	_excavate_entry_panel.gui_input.connect(_on_excavate_entry_gui_input)
 	$HubView.add_child(_excavate_entry_panel)
 	_place_excavate_entry()
@@ -722,7 +719,7 @@ func _setup_excavate_entry() -> void:
 func _place_excavate_entry() -> void:
 	if _excavate_entry_panel == null:
 		return
-	## ニーナ吹き出しの少し下・調査室ショートカットの少し上（右上ニーナ列）。
+	## ニーナ吹き出しの少し下・調査室ショートカットの少し上（右上ニーナ列・中央寄せ）。
 	var top: float = HubLayoutHelper.HUB_TOP_BAR_H + _HubNinaNavigator.GAP_BELOW_TOP
 	var left: float = -_HubNinaNavigator.PANEL_W - _HubNinaNavigator.MARGIN_RIGHT
 	var right: float = -_HubNinaNavigator.MARGIN_RIGHT
@@ -730,30 +727,22 @@ func _place_excavate_entry() -> void:
 		top = _nina_nav.offset_top + _HubNinaNavigator.PANEL_H + _HubNinaNavigator.GAP_ABOVE_EXCAVATE
 		left = _nina_nav.offset_left
 		right = _nina_nav.offset_right
+	var entry_h: float = _CrystalExcavateUiTokens.HUB_ENTRY_H
 	_excavate_entry_panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	_excavate_entry_panel.offset_left = left
 	_excavate_entry_panel.offset_right = right
 	_excavate_entry_panel.offset_top = top
-	_excavate_entry_panel.offset_bottom = top + HubLayoutHelper.HUB_EXCAVATE_H
-	_excavate_entry_panel.custom_minimum_size = Vector2(
-		_HubNinaNavigator.PANEL_W, HubLayoutHelper.HUB_EXCAVATE_H
-	)
+	_excavate_entry_panel.offset_bottom = top + entry_h
+	_excavate_entry_panel.custom_minimum_size = Vector2(_HubNinaNavigator.PANEL_W, entry_h)
 
 
 func _refresh_excavate_entry() -> void:
 	if _excavate_entry_panel == null:
 		return
 	_CrystalExcavateSystem.ensure_refreshed()
-	var row: HBoxContainer = _excavate_entry_panel.get_child(0) as HBoxContainer
-	if row == null:
-		return
-	var status: Label = row.get_node_or_null("LabelExcavateStatus") as Label
-	var btn: Button = row.get_node_or_null("ButtonExcavateGo") as Button
-	var used: bool = _CrystalExcavateSystem.is_used_today()
+	var status: Label = _excavate_entry_panel.find_child("LabelExcavateStatus", true, false) as Label
 	if status != null:
 		status.text = _CrystalExcavateSystem.entry_status_label()
-	if btn != null:
-		btn.text = "結果" if used else "移動"
 
 
 func _on_excavate_entry_gui_input(event: InputEvent) -> void:
