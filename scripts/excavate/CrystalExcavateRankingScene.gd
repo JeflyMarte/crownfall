@@ -89,11 +89,6 @@ func _make_row(rank: int, entry: Dictionary) -> Control:
 	dmg.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	dmg_col.add_child(dmg)
 	UiTypography.apply_display(dmg, UiTypography.SIZE_DISPLAY_TITLE, UiTypography.COLOR_GOLD)
-	var tok := Label.new()
-	tok.text = "+%d石" % int(entry.get("tokens", 0))
-	tok.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	dmg_col.add_child(tok)
-	UiTypography.apply_caption(tok, UiTypography.COLOR_MUTED)
 	return panel
 
 
