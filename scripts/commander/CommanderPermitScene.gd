@@ -16,7 +16,7 @@ const SLOT_HELP := Rect2(92, 23, 60, 60)
 const SLOT_POINTS := Rect2(47, 207, 450, 43)
 const SLOT_UNSPENT := Rect2(300, 833, 117, 47)
 const SLOT_RESET := Rect2(424, 848, 167, 52)
-const SLOT_DECIDE := Rect2(603, 836, 208, 60)
+const SLOT_DECIDE := Rect2(603, 848, 208, 52)
 
 ## カード0=略奪 / 1=成長 / 2=戦力（TRACK_ORDER と同順）。
 const SLOT_BONUS: Array[Rect2] = [
@@ -173,11 +173,11 @@ func _build_frame_overlay() -> void:
 	_label_unspent.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_frame_host.add_child(_label_unspent)
 
-	_btn_reset = _make_label_hit_button("リセット")
+	_btn_reset = _make_label_hit_button("リセット", 18)
 	_btn_reset.pressed.connect(_on_reset_pressed)
 	_frame_host.add_child(_btn_reset)
 
-	_btn_decide = _make_label_hit_button("決定")
+	_btn_decide = _make_label_hit_button("決定", 22)
 	_btn_decide.pressed.connect(_on_decide_pressed)
 	_frame_host.add_child(_btn_decide)
 
@@ -197,13 +197,13 @@ func _make_hit_button() -> Button:
 	return btn
 
 
-func _make_label_hit_button(label: String) -> Button:
+func _make_label_hit_button(label: String, font_px: int = 22) -> Button:
 	## 枠はフレーム焼込。文字だけ重ねる。
 	var btn := _make_hit_button()
 	btn.text = label
 	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	UiTypography.apply_button(btn, false)
-	btn.add_theme_font_size_override("font_size", 22)
+	btn.add_theme_font_size_override("font_size", font_px)
 	btn.add_theme_color_override("font_color", COLOR_GOLD)
 	btn.add_theme_color_override("font_hover_color", COLOR_NUM)
 	btn.add_theme_color_override("font_pressed_color", COLOR_GOLD)
