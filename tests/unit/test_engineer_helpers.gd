@@ -3,15 +3,15 @@ extends GutTest
 ## 機巧士ガチャ助っ人3＋パッシブ＋必殺（P3-JOB-ENGINEER-001 §6）。
 
 
-func test_gacha_pool_omits_engineer_helpers_until_phase2() -> void:
+func test_gacha_pool_includes_engineer_helpers_phase2() -> void:
 	var pool: Array = DataRegistry.get_gacha_pool_helper_data()
-	assert_eq(pool.size(), 11)
+	assert_eq(pool.size(), 14)
 	var ids: Dictionary = {}
 	for h: Resource in pool:
 		ids[str(h.id)] = true
-	assert_false(ids.has("helper_q"))
-	assert_false(ids.has("helper_r"))
-	assert_false(ids.has("helper_s"))
+	assert_true(ids.has("helper_q"))
+	assert_true(ids.has("helper_r"))
+	assert_true(ids.has("helper_s"))
 	assert_not_null(DataRegistry.get_gacha_helper_data("helper_q"))
 
 

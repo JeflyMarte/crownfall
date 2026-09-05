@@ -37,10 +37,13 @@ const NORTH_REACH_DUNGEON_ID: String = "north_reach"
 ## 征討2・星炉の寝主／星炉火口（P3-DG-APEX-FORGE-001）。
 const RED_FORGE_DEPTHS_DUNGEON_ID: String = "red_forge_depths"
 ## イベント常設で配信する apex 征討 id（寄り道オミットは維持）。
-## 第1弾 UX パッチでは `[]` にして非表示（データ残置）。第2弾で id を戻す。
-const APEX_CONQUEST_PLAYABLE_IDS: Array[String] = []
-## 魔晶石発掘を拠点から出す（P3-UX-CRYSTAL-EXCAVATE-001）。第1弾 UX パッチでは false。
-const CRYSTAL_EXCAVATE_PLAYABLE: bool = false
+## 第2弾検証: 天望＋星炉を配信（第1弾は `[]`）。
+const APEX_CONQUEST_PLAYABLE_IDS: Array[String] = [
+	NORTH_REACH_DUNGEON_ID,
+	RED_FORGE_DEPTHS_DUNGEON_ID,
+]
+## 魔晶石発掘を拠点から出す（P3-UX-CRYSTAL-EXCAVATE-001）。第2弾検証 ON。
+const CRYSTAL_EXCAVATE_PLAYABLE: bool = true
 ## 初期5人ストーリー編成（P3-STORY-STARTER-001）。true=開始1人選択＋章進行で加入。
 const STARTER_STORY_RECRUIT: bool = true
 ## β検証用: モーンゲート 1-2/1-3/1-4 初回クリアでも未加入スターターを1人加入（本番×-5ルールに加え）。
@@ -48,8 +51,9 @@ const STARTER_STORY_RECRUIT: bool = true
 const STARTER_RECRUIT_BETA_EXTRA: bool = false
 ## ガチャ助っ人をプレイ対象に含める（P3-CHR-OMIT-001 / P3-GACHA-ENABLE-001）。false=招待状ロック・ロスターから除外（データ残置）。
 const GACHA_HELPERS_PLAYABLE: bool = true
-## 第2弾までガチャプール・UI 非表示（データ残置。`get_gacha_helper_data` は可 — P3-JOB-ENGINEER-001 staged）。
-const GACHA_HELPER_OMITTED_IDS: Array[String] = ["helper_q", "helper_r", "helper_s"]
+## ガチャプールから除外する助っ人（データ残置。`get_gacha_helper_data` は可）。
+## 第2弾検証: 機巧士3を排出へ戻す（第1弾は helper_q/r/s）。
+const GACHA_HELPER_OMITTED_IDS: Array[String] = []
 ## サブステージ（1-1 等）分割を有効化（P3-DG-STG-001 / P3-DG-STG-ENABLE）。
 ## 2026-07-20 一旦オミット → 2026-07-21 実機で単体DGが常時ボス化し序盤出現が崩れたため再有効化。
 const SUB_STAGES_PLAYABLE: bool = true

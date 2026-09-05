@@ -171,6 +171,14 @@ func test_albark_combat_icons_dedicated() -> void:
 	assert_eq(str(IconPaths.ICON_MAP.get("enemy_turn:albark", "")), TURN)
 	assert_eq(str(IconPaths.ICON_MAP.get("skill:enemy_albark_white_silence", "")), SILENCE)
 	assert_eq(str(IconPaths.ICON_MAP.get("skill:enemy_albark_mapless_charge", "")), CHARGE)
+	assert_true(FileAccess.file_exists(ART))
+	assert_true(FileAccess.file_exists(TURN))
+	assert_true(FileAccess.file_exists(SILENCE))
+	assert_true(FileAccess.file_exists(CHARGE))
+	assert_false(ART.contains("Eldion"))
+	assert_false(TURN.contains("Eldion"))
+	assert_false(SILENCE.contains("Eldion"))
+	assert_false(CHARGE.contains("Eldion"))
 
 
 func test_albark_boss_dot_wired() -> void:
@@ -188,14 +196,6 @@ func test_forgedormient_boss_dot_wired() -> void:
 	var frames: SpriteFrames = load(path) as SpriteFrames
 	assert_not_null(frames)
 	assert_true(frames.has_animation("idle"))
-	assert_true(FileAccess.file_exists(ART))
-	assert_true(FileAccess.file_exists(TURN))
-	assert_true(FileAccess.file_exists(SILENCE))
-	assert_true(FileAccess.file_exists(CHARGE))
-	assert_false(ART.contains("Eldion"))
-	assert_false(TURN.contains("Eldion"))
-	assert_false(SILENCE.contains("Eldion"))
-	assert_false(CHARGE.contains("Eldion"))
 
 
 ## P3-DG-APEX-FORGE-BOSS-001 — フォージはアルバーク同帯（降臨帯）
