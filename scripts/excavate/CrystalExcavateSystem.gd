@@ -7,10 +7,15 @@ const _SkillProgression := preload("res://scripts/systems/SkillProgression.gd")
 const TOKEN_DAMAGE_MULT: float = 0.08
 const TOKEN_MIN: int = 1
 const TOKEN_CAP: int = 300
+const HISTORY_CAP: int = 50
 
 const SELECT_SCENE: String = "res://scenes/excavate/CrystalExcavateSelectScene.tscn"
 const COMBAT_SCENE: String = "res://scenes/excavate/CrystalExcavateCombatScene.tscn"
 const RESULT_SCENE: String = "res://scenes/excavate/CrystalExcavateResultScene.tscn"
+const RANKING_SCENE: String = "res://scenes/excavate/CrystalExcavateRankingScene.tscn"
+
+## ランキング画面の戻り先（非永続）。
+static var ranking_return_scene: String = SELECT_SCENE
 
 
 static func ensure_refreshed() -> void:
@@ -131,10 +136,66 @@ static func begin_excavate(member_id: String, skill_id: String) -> Dictionary:
 		"dealt_damage": dealt,
 		"tokens": tokens,
 	}
+	_record_history(member, skill_id, dealt, tokens, day_key)
 	if tokens > 0:
 		GameState.gacha_token += tokens
 	SaveManager.request_save()
 	return {"ok": true, "tokens": tokens, "dealt_damage": dealt}
+
+
+static func _record_history(
+	member: Resource, skill_id: String, dealt: int, tokens: int, day_key: String
+) -> void:
+	if member == null:
+		return
+	var entry: Dictionary = {
+		"member_id": str(member.id),
+		"display_name": str(member.display_name),
+		"job_id": str(member.job_id),
+		"skill_id": skill_id,
+		"dealt_damage": dealt,
+		"tokens": tokens,
+		"day_key": day_key,
+	}
+	var hist: Array = GameState.crystal_excavate_history.duplicate(true)
+	hist.append(entry)
+	hist.sort_custom(_cmp_history_damage_desc)
+	if hist.size() > HISTORY_CAP:
+		hist.resize(HISTORY_CAP)
+	GameState.crystal_excavate_history = hist
+
+
+static func _cmp_history_damage_desc(a: Variant, b: Variant) -> bool:
+	var da: int = int((a as Dictionary).get("dealt_damage", 0)) if a is Dictionary else 0
+	var db: int = int((b as Dictionary).get("dealt_damage", 0)) if b is Dictionary else 0
+	if da == db:
+		var day_a: String = str((a as Dictionary).get("day_key", "")) if a is Dictionary else ""
+		var day_b: String = str((b as Dictionary).get("day_key", "")) if b is Dictionary else ""
+		return day_a > day_b
+	return da > db
+
+
+static func ranked_history() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for row: Variant in GameState.crystal_excavate_history:
+		if row is Dictionary:
+			out.append((row as Dictionary).duplicate(true))
+	out.sort_custom(_cmp_history_damage_desc)
+	return out
+
+
+static func open_ranking(from_scene: String) -> void:
+	if from_scene.is_empty():
+		ranking_return_scene = SELECT_SCENE
+	else:
+		ranking_return_scene = from_scene
+	SceneRouter.change_scene(RANKING_SCENE)
+
+
+static func ranking_back_scene() -> String:
+	if ranking_return_scene.is_empty():
+		return SELECT_SCENE
+	return ranking_return_scene
 
 
 static func last_result() -> Dictionary:

@@ -32,6 +32,8 @@ const SLOT_DMG := Rect2(150, 448, 200, 60)
 const SLOT_TOKENS := Rect2(400, 448, 170, 60)
 const SLOT_EXCAVATE := Rect2(60, 552, 600, 64)
 const SLOT_REMAIN := Rect2(36, 188, 280, 36)
+## フレーム下部の余白にランキング導線。
+const SLOT_RANK := Rect2(200, 640, 320, 52)
 
 @onready var _header: PanelContainer = $Header
 @onready var _header_row: HBoxContainer = $Header/HeaderRow
@@ -53,6 +55,7 @@ var _label_tokens: Label
 var _label_remain: Label
 var _remain_panel: PanelContainer
 var _btn_excavate: Button
+var _btn_rank: Button
 var _confirm: ConfirmationDialog
 var _members: Array[Resource] = []
 var _skill_rows: Array[Dictionary] = []
@@ -164,6 +167,13 @@ func _build_frame_overlay() -> void:
 	_btn_excavate.pressed.connect(_on_excavate_pressed)
 	_frame_host.add_child(_btn_excavate)
 
+	_btn_rank = Button.new()
+	_btn_rank.text = "ダメージランキング"
+	_btn_rank.focus_mode = Control.FOCUS_NONE
+	_btn_rank.pressed.connect(_on_ranking_pressed)
+	_UiTokens.apply_excavate_button(_btn_rank)
+	_frame_host.add_child(_btn_rank)
+
 	_confirm = ConfirmationDialog.new()
 	_confirm.name = "ExcavateConfirm"
 	_confirm.title = "確認"
@@ -235,6 +245,7 @@ func _layout_frame_host() -> void:
 	_place_design_rect(_label_tokens, SLOT_TOKENS, scale)
 	_place_design_rect(_remain_panel, SLOT_REMAIN, scale)
 	_place_design_rect(_btn_excavate, SLOT_EXCAVATE, scale)
+	_place_design_rect(_btn_rank, SLOT_RANK, scale)
 
 
 func _place_design_rect(ctrl: Control, design: Rect2, scale: float) -> void:
@@ -369,6 +380,12 @@ func _on_excavate_pressed() -> void:
 	_confirm.dialog_text = "%s で発掘してよろしいですか？" % member_name
 	AudioManager.play_sfx("ui_confirm")
 	_confirm.popup_centered()
+
+
+func _on_ranking_pressed() -> void:
+	if _guide_showing:
+		return
+	_Excavate.open_ranking(_Excavate.SELECT_SCENE)
 
 
 func _on_excavate_confirmed() -> void:

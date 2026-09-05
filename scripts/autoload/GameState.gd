@@ -245,6 +245,8 @@ func top_run_modifiers(limit: int = 3) -> Array:
 var daily_mission_state: Dictionary = {}
 ## 魔晶石発掘（P3-UX-CRYSTAL-EXCAVATE-001）。{ day_key, used, last_tokens, ... }
 var crystal_excavate_state: Dictionary = {}
+## 発掘ダメージ履歴（ランキング用・永続）。[{ member_id, display_name, dealt_damage, ... }, ...]
+var crystal_excavate_history: Array = []
 ## 発掘フロー中のみ（非永続）。
 var crystal_excavate_session: Dictionary = {}
 ## イベントDG日次挑戦（P3-DG-DUCK-EVENT-001）。dungeon_id → { day_key, used }
@@ -1809,6 +1811,7 @@ func reset_for_new_game() -> void:
 	combat_presets = []
 	daily_mission_state = {}
 	crystal_excavate_state = {}
+	crystal_excavate_history = []
 	crystal_excavate_session = {}
 	event_dungeon_attempts = {}
 	commander = {}

@@ -7,22 +7,29 @@ const _DamageHelper := preload("res://scripts/excavate/CrystalExcavateDamageHelp
 
 var _saved_state: Dictionary = {}
 var _saved_session: Dictionary = {}
+var _saved_history: Array = []
 var _saved_token: int = 0
+var _saved_debug: bool = false
 
 
 func before_each() -> void:
 	_saved_state = GameState.crystal_excavate_state.duplicate(true)
 	_saved_session = GameState.crystal_excavate_session.duplicate(true)
+	_saved_history = GameState.crystal_excavate_history.duplicate(true)
 	_saved_token = GameState.gacha_token
+	_saved_debug = GameState.debug_full_unlock
 	GameState.crystal_excavate_state = {}
 	GameState.crystal_excavate_session = {}
+	GameState.crystal_excavate_history = []
 	GameState.gacha_token = 0
 
 
 func after_each() -> void:
 	GameState.crystal_excavate_state = _saved_state
 	GameState.crystal_excavate_session = _saved_session
+	GameState.crystal_excavate_history = _saved_history
 	GameState.gacha_token = _saved_token
+	GameState.debug_full_unlock = _saved_debug
 
 
 func test_damage_to_tokens_caps_at_300() -> void:
@@ -109,3 +116,39 @@ func test_begin_grants_tokens_to_gacha_token() -> void:
 		assert_lte(expected, 300)
 		return
 	pass_test("no eligible roster member")
+
+
+func test_history_ranks_by_damage_desc() -> void:
+	GameState.crystal_excavate_history = []
+	GameState.debug_full_unlock = true
+	GameState.crystal_excavate_state = {
+		"day_key": DailyMissionSystem.current_day_key(),
+		"used": false,
+	}
+	var wrote: int = 0
+	for member: Resource in GameState.roster:
+		if member == null or PetSystem.is_pet_member(member):
+			continue
+		var candidates: Array[Dictionary] = _Excavate.skill_candidates_for_member(member)
+		if candidates.is_empty():
+			continue
+		var sid: String = str(candidates[0].get("id", ""))
+		var r: Dictionary = _Excavate.begin_excavate(str(member.id), sid)
+		assert_true(bool(r.get("ok", false)), str(r))
+		wrote += 1
+		GameState.crystal_excavate_state["used"] = false
+		if wrote >= 2:
+			break
+	if wrote < 1:
+		pass_test("no eligible roster member")
+		return
+	var ranked: Array[Dictionary] = _Excavate.ranked_history()
+	assert_gte(ranked.size(), 1)
+	for i: int in range(1, ranked.size()):
+		assert_gte(
+			int(ranked[i - 1].get("dealt_damage", 0)),
+			int(ranked[i].get("dealt_damage", 0))
+		)
+	assert_true(
+		FileAccess.file_exists("res://scenes/excavate/CrystalExcavateRankingScene.tscn")
+	)

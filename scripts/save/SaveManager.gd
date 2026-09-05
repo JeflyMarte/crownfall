@@ -23,7 +23,7 @@ const SLOT_DEBUG: String = "debug"
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 16
+const SAVE_VERSION: int = 17
 
 ## セッション中の読み書き先。タイトルで本編／デバッグを切り替える。
 var _active_slot: String = SLOT_NORMAL
@@ -142,6 +142,7 @@ func save_game() -> bool:
 		"owned_relics": GameState.owned_relics.duplicate(),
 		"daily_mission_state": GameState.daily_mission_state.duplicate(true),
 		"crystal_excavate_state": GameState.crystal_excavate_state.duplicate(true),
+		"crystal_excavate_history": GameState.crystal_excavate_history.duplicate(true),
 		"event_dungeon_attempts": GameState.event_dungeon_attempts.duplicate(true),
 		"current_dungeon_tier": GameState.current_dungeon_tier,
 		"dungeon_tier_cleared": GameState.dungeon_tier_cleared.duplicate(true),
@@ -271,6 +272,8 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 		data = _migrate_save_v14_to_v15(data)
 	if version < 16:
 		data = _migrate_save_v15_to_v16(data)
+	if version < 17:
+		data = _migrate_save_v16_to_v17(data)
 	data["save_version"] = SAVE_VERSION
 	return data
 
@@ -292,6 +295,13 @@ func _migrate_save_v14_to_v15(data: Dictionary) -> Dictionary:
 func _migrate_save_v15_to_v16(data: Dictionary) -> Dictionary:
 	if not data.has("crystal_excavate_state") or not (data["crystal_excavate_state"] is Dictionary):
 		data["crystal_excavate_state"] = {}
+	return data
+
+
+## P3-UX-CRYSTAL-EXCAVATE-001: 発掘ダメージ履歴（ランキング）。
+func _migrate_save_v16_to_v17(data: Dictionary) -> Dictionary:
+	if not data.has("crystal_excavate_history") or not (data["crystal_excavate_history"] is Array):
+		data["crystal_excavate_history"] = []
 	return data
 
 
@@ -976,6 +986,10 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.crystal_excavate_state = (data["crystal_excavate_state"] as Dictionary).duplicate(true)
 	else:
 		GameState.crystal_excavate_state = {}
+	if data.has("crystal_excavate_history") and data["crystal_excavate_history"] is Array:
+		GameState.crystal_excavate_history = (data["crystal_excavate_history"] as Array).duplicate(true)
+	else:
+		GameState.crystal_excavate_history = []
 	if data.has("event_dungeon_attempts") and data["event_dungeon_attempts"] is Dictionary:
 		GameState.event_dungeon_attempts = (data["event_dungeon_attempts"] as Dictionary).duplicate(true)
 	else:
