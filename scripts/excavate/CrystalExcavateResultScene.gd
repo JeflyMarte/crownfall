@@ -13,8 +13,8 @@ const DESIGN_H: float = 1205.0
 
 ## デザイン座標（焼込枠の内側）。Downloads 原寸 969×1622 からスケール。
 const SLOT_BACK := Rect2(23, 23, 90, 90)
-## 画面中央（中央帯）：獲得数。
-const SLOT_TOKEN := Rect2(180, 628, 360, 52)
+## 中央帯：魔晶石アイコン右の空き（画面中央付近）に獲得数。
+const SLOT_TOKEN := Rect2(250, 618, 340, 52)
 const SLOT_RECORD := Rect2(60, 708, 600, 36)
 const SLOT_DMG := Rect2(60, 740, 600, 60)
 const SLOT_RANK := Rect2(48, 855, 624, 95)
