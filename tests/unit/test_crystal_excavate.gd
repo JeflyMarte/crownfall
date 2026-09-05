@@ -56,6 +56,16 @@ func test_debug_full_unlock_ignores_daily_limit() -> void:
 	GameState.debug_full_unlock = saved_debug
 
 
+func test_nina_guide_flag_key_is_stable() -> void:
+	## 選択画面の初回ガイド。キー変更はセーブ互換を壊す。
+	var src: String = FileAccess.get_file_as_string(
+		"res://scripts/excavate/CrystalExcavateSelectScene.gd"
+	)
+	assert_true(src.contains("crystal_excavate_nina_guide_done"))
+	assert_true(src.contains("GUIDE_LINES"))
+	assert_true(src.contains("_on_help_pressed"))
+
+
 func test_day_key_mismatch_resets_used() -> void:
 	GameState.crystal_excavate_state = {
 		"day_key": "1999-01-01",

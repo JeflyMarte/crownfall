@@ -22,7 +22,8 @@
 | P3-UX-CRYSTAL-EXCAVATE-001-3 | **報酬＝魔晶石のみ**（`GameState.gacha_token`）。Gold・素材・装備・EXP・図鑑進捗は出さない |
 | P3-UX-CRYSTAL-EXCAVATE-001-4 | **1回あたりの硬上限＝300**。換算結果は必ず `clamp(..., 0, 300)` |
 | P3-UX-CRYSTAL-EXCAVATE-001-5 | **必殺不可**。候補は `slot_type != "ultimate"` のみ |
-| P3-UX-CRYSTAL-EXCAVATE-001-6 | **入口**＝拠点ホームで **ニーナ吹き出し下〜調査室上**の円形入口（`UI_Hub_CrystalExcavate`）。BottomNav 新タブは作らない。選択画面は `UI_CrystalExcavate_Select_Frame` 背景＋金枠行＋中央「発掘」 |
+| P3-UX-CRYSTAL-EXCAVATE-001-6 | **入口**＝拠点ホームで **ニーナ吹き出し下〜調査室上**の円形入口（`UI_Hub_CrystalExcavate`）。BottomNav 新タブは作らない。選択画面は `UI_CrystalExcavate_Select_Frame` 背景に操作のみ重ねる |
+| P3-UX-CRYSTAL-EXCAVATE-001-9 | **初回ニーナガイド**（選択画面）。`tutorial_flags.crystal_excavate_nina_guide_done`。フレーム「？」で再表示可 |
 | P3-UX-CRYSTAL-EXCAVATE-001-7 | **フロー**＝選択画面（キャラ＋スキル）→「発掘」→戦闘風画面（キャラ対石・ダメージ表示）→結果画面→拠点 |
 | P3-UX-CRYSTAL-EXCAVATE-001-8 | 消費は「発掘」確定時（または戦闘開始直前）にその日の枠を埋める。途中離脱で枠を戻さない（再入は結果／済表示） |
 

@@ -1,20 +1,31 @@
 extends Control
 
 ## 魔晶石発掘 — 選択画面。
-## 見た目は Select_Frame 背景のみ。コード側の枠は作らず、焼込位置に操作／数値だけ重ねる。
+## 見た目は Select_Frame 背景のみ。焼込位置に操作／数値／ガイド導線だけ重ねる。
 
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const _Excavate := preload("res://scripts/excavate/CrystalExcavateSystem.gd")
 const _DamageHelper := preload("res://scripts/excavate/CrystalExcavateDamageHelper.gd")
 const _BgHelper := preload("res://scripts/excavate/CrystalExcavateBgHelper.gd")
 const _UiTokens := preload("res://scripts/excavate/CrystalExcavateUiTokens.gd")
-const _HeaderCurrencyHelper := preload("res://scripts/ui/HeaderCurrencyHelper.gd")
+const _NinaDialogueOverlay := preload("res://scripts/ui/NinaDialogueOverlay.gd")
+
+const GUIDE_FLAG: String = "crystal_excavate_nina_guide_done"
+const GUIDE_LINES: Array[String] = [
+	"隊長、ここが魔晶石の採掘場です。隊員のスキルで岩を砕き、魔晶石を回収します。",
+	"まず隊員とスキルを選んでください。必殺は使えません。普段の攻撃やスキルだけで掘ります。",
+	"見込みダメージから、その場で得られる魔晶石の量が分かります。1日1回・上限は300個です。",
+	"準備ができたら中央の「発掘」を押してください。わからなくなったら、またこの「？」を押してくださいね。",
+]
 
 ## フレーム原寸（assets の Select_Frame = 720×1231）。
 const DESIGN_W: float = 720.0
 const DESIGN_H: float = 1231.0
 
 ## デザイン座標（焼込枠の内側）。Downloads 原寸 959×1639 からスケール。
+const SLOT_BACK := Rect2(23, 23, 90, 90)
+const SLOT_TOKEN := Rect2(500, 42, 100, 55)
+const SLOT_HELP := Rect2(600, 192, 48, 48)
 const SLOT_MEMBER := Rect2(137, 243, 536, 71)
 const SLOT_SKILL := Rect2(137, 342, 536, 72)
 const SLOT_DMG := Rect2(150, 448, 200, 60)
@@ -24,13 +35,17 @@ const SLOT_REMAIN := Rect2(36, 188, 280, 36)
 
 @onready var _header: PanelContainer = $Header
 @onready var _header_row: HBoxContainer = $Header/HeaderRow
-@onready var _btn_back: Button = $Header/HeaderRow/ButtonBack
+@onready var _btn_back_header: Button = $Header/HeaderRow/ButtonBack
 @onready var _label_title: Label = $Header/HeaderRow/LabelTitle
 @onready var _main_scroll: ScrollContainer = $MainScroll
 @onready var _bottom_nav: PanelContainer = $BottomNav
 
+var _letterbox: ColorRect
 var _frame_host: Control
 var _bg: TextureRect
+var _btn_back: Button
+var _label_owned: Label
+var _btn_help: Button
 var _member_option: OptionButton
 var _skill_option: OptionButton
 var _label_dmg: Label
@@ -40,6 +55,7 @@ var _remain_panel: PanelContainer
 var _btn_excavate: Button
 var _members: Array[Resource] = []
 var _skill_rows: Array[Dictionary] = []
+var _guide_showing: bool = false
 
 
 func _ready() -> void:
@@ -48,58 +64,32 @@ func _ready() -> void:
 		SceneRouter.change_scene(_Excavate.RESULT_SCENE)
 		return
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.NONE)
-	_btn_back.pressed.connect(_on_back_pressed)
-	## タイトル／説明／枠は背景焼込。ヘッダは戻る＋魔晶石のみ。
+	## タイトル／ヘッダ行は背景焼込に任せ、シーン側ヘッダは畳む。
+	_header.visible = false
+	_header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_btn_back_header.visible = false
 	_label_title.visible = false
-	_label_title.text = ""
 	_main_scroll.visible = false
 	_main_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_style_back_over_frame()
-	_ensure_header_token_chip()
+	_build_letterbox()
 	_build_frame_overlay()
 	_refresh_members()
 	_refresh_remain()
+	_refresh_owned()
 	resized.connect(_layout_frame_host)
 	call_deferred("_layout_frame_host")
+	call_deferred("_maybe_show_guide_first_time")
 
 
-func _style_back_over_frame() -> void:
-	var empty := StyleBoxEmpty.new()
-	_btn_back.add_theme_stylebox_override("normal", empty)
-	_btn_back.add_theme_stylebox_override("hover", empty)
-	_btn_back.add_theme_stylebox_override("pressed", empty)
-	_btn_back.add_theme_stylebox_override("focus", empty)
-	_btn_back.text = ""
-	_btn_back.custom_minimum_size = Vector2(56, 48)
-	_btn_back.focus_mode = Control.FOCUS_NONE
-
-
-func _ensure_header_token_chip() -> void:
-	if _header_row.get_node_or_null("TokenChip") != null:
-		return
-	var chip := PanelContainer.new()
-	chip.name = "TokenChip"
-	chip.add_theme_stylebox_override("panel", _HeaderCurrencyHelper.chip_style())
-	var inner := HBoxContainer.new()
-	inner.name = "TokenRow"
-	inner.add_theme_constant_override("separation", _HeaderCurrencyHelper.ROW_SEP)
-	chip.add_child(inner)
-	var icon := TextureRect.new()
-	icon.name = "TokenIcon"
-	icon.custom_minimum_size = Vector2(
-		_HeaderCurrencyHelper.TOKEN_ICON_PX, _HeaderCurrencyHelper.TOKEN_ICON_PX
-	)
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.texture = CurrencyHelper.get_icon_texture()
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	inner.add_child(icon)
-	var label := Label.new()
-	label.name = "LabelToken"
-	label.text = str(GameState.gacha_token)
-	inner.add_child(label)
-	_header_row.add_child(chip)
-	_HeaderCurrencyHelper.apply_to_row(_header_row)
+func _build_letterbox() -> void:
+	_letterbox = ColorRect.new()
+	_letterbox.name = "LetterboxBlack"
+	_letterbox.color = Color(0, 0, 0, 1)
+	_letterbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_letterbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_letterbox.z_index = -20
+	add_child(_letterbox)
+	move_child(_letterbox, 0)
 
 
 func _build_frame_overlay() -> void:
@@ -107,7 +97,7 @@ func _build_frame_overlay() -> void:
 	_frame_host.name = "ExcavateFrameHost"
 	_frame_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_frame_host)
-	move_child(_frame_host, 0)
+	move_child(_frame_host, 1)
 
 	_bg = TextureRect.new()
 	_bg.name = "BgTexture"
@@ -120,6 +110,21 @@ func _build_frame_overlay() -> void:
 		tex = load(_BgHelper.BG_SELECT_FALLBACK) as Texture2D
 	_bg.texture = tex
 	_frame_host.add_child(_bg)
+
+	_btn_back = _make_hit_button()
+	_btn_back.pressed.connect(_on_back_pressed)
+	_frame_host.add_child(_btn_back)
+
+	_label_owned = Label.new()
+	_label_owned.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_label_owned.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_label_owned.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_body(_label_owned, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD)
+	_frame_host.add_child(_label_owned)
+
+	_btn_help = _make_hit_button()
+	_btn_help.pressed.connect(_on_help_pressed)
+	_frame_host.add_child(_btn_help)
 
 	_member_option = _make_flat_option()
 	_member_option.item_selected.connect(_on_member_selected)
@@ -154,21 +159,24 @@ func _build_frame_overlay() -> void:
 	UiTypography.apply_caption(_label_remain)
 	_label_remain.add_theme_color_override("font_color", UiTypography.COLOR_GOLD)
 
-	_btn_excavate = Button.new()
-	_btn_excavate.text = ""
-	_btn_excavate.focus_mode = Control.FOCUS_NONE
-	var empty := StyleBoxEmpty.new()
-	_btn_excavate.add_theme_stylebox_override("normal", empty)
-	_btn_excavate.add_theme_stylebox_override("hover", empty)
-	_btn_excavate.add_theme_stylebox_override("pressed", empty)
-	_btn_excavate.add_theme_stylebox_override("disabled", empty)
-	_btn_excavate.add_theme_stylebox_override("focus", empty)
+	_btn_excavate = _make_hit_button()
 	_btn_excavate.pressed.connect(_on_excavate_pressed)
 	_frame_host.add_child(_btn_excavate)
 
-	## ヘッダを前面に（戻る／所持石）。
-	_header.z_index = 20
 	_bottom_nav.z_index = 20
+
+
+func _make_hit_button() -> Button:
+	var btn := Button.new()
+	btn.text = ""
+	btn.focus_mode = Control.FOCUS_NONE
+	var empty := StyleBoxEmpty.new()
+	btn.add_theme_stylebox_override("normal", empty)
+	btn.add_theme_stylebox_override("hover", empty)
+	btn.add_theme_stylebox_override("pressed", empty)
+	btn.add_theme_stylebox_override("disabled", empty)
+	btn.add_theme_stylebox_override("focus", empty)
+	return btn
 
 
 func _make_flat_option() -> OptionButton:
@@ -198,21 +206,20 @@ func _make_value_label(align: HorizontalAlignment) -> Label:
 func _layout_frame_host() -> void:
 	if _frame_host == null:
 		return
-	var top: float = 46.0
-	if _header != null:
-		top = maxf(top, _header.size.y)
-		if _header.offset_bottom > 1.0:
-			top = _header.offset_bottom
 	var bottom_h: float = 84.0
 	if _bottom_nav != null:
 		bottom_h = maxf(1.0, absf(_bottom_nav.offset_top))
-	var area := Rect2(0.0, top, size.x, maxf(1.0, size.y - top - bottom_h))
+	## ヘッダを畳んだので、上端からボトムナビ直前までをフレーム領域にする。
+	var area := Rect2(0.0, 0.0, size.x, maxf(1.0, size.y - bottom_h))
 	var scale: float = minf(area.size.x / DESIGN_W, area.size.y / DESIGN_H)
 	var shown := Vector2(DESIGN_W, DESIGN_H) * scale
 	var origin := area.position + (area.size - shown) * 0.5
 	_frame_host.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 	_frame_host.position = origin
 	_frame_host.size = shown
+	_place_design_rect(_btn_back, SLOT_BACK, scale)
+	_place_design_rect(_label_owned, SLOT_TOKEN, scale)
+	_place_design_rect(_btn_help, SLOT_HELP, scale)
 	_place_design_rect(_member_option, SLOT_MEMBER, scale)
 	_place_design_rect(_skill_option, SLOT_SKILL, scale)
 	_place_design_rect(_label_dmg, SLOT_DMG, scale)
@@ -233,6 +240,12 @@ func _refresh_remain() -> void:
 	if _label_remain == null:
 		return
 	_label_remain.text = _Excavate.entry_status_label()
+
+
+func _refresh_owned() -> void:
+	if _label_owned == null:
+		return
+	_label_owned.text = str(GameState.gacha_token)
 
 
 func _refresh_members() -> void:
@@ -291,6 +304,44 @@ func _update_preview() -> void:
 	_label_tokens.text = str(tokens)
 
 
+func _is_guide_done() -> bool:
+	return bool(GameState.tutorial_flags.get(GUIDE_FLAG, false))
+
+
+func _mark_guide_done() -> void:
+	GameState.tutorial_flags[GUIDE_FLAG] = true
+	SaveManager.request_save()
+
+
+func _maybe_show_guide_first_time() -> void:
+	if _is_guide_done():
+		return
+	_show_guide(true)
+
+
+func _show_guide(mark_done: bool) -> void:
+	if _guide_showing:
+		return
+	if get_node_or_null("NinaDialogueOverlay") != null:
+		return
+	_guide_showing = true
+	var overlay: CanvasLayer = _NinaDialogueOverlay.show_on(self, GUIDE_LINES)
+	if overlay == null:
+		_guide_showing = false
+		return
+	overlay.dismissed.connect(_on_guide_dismissed.bind(mark_done))
+
+
+func _on_guide_dismissed(mark_done: bool) -> void:
+	_guide_showing = false
+	if mark_done and not _is_guide_done():
+		_mark_guide_done()
+
+
+func _on_help_pressed() -> void:
+	_show_guide(false)
+
+
 func _on_member_selected(_index: int) -> void:
 	_refresh_skills()
 
@@ -300,6 +351,8 @@ func _on_skill_selected(_index: int) -> void:
 
 
 func _on_excavate_pressed() -> void:
+	if _guide_showing:
+		return
 	if _members.is_empty() or _skill_rows.is_empty():
 		return
 	var member: Resource = _members[_member_option.selected]
