@@ -25,6 +25,7 @@
 | P3-UX-CRYSTAL-EXCAVATE-001-6 | **入口**＝拠点ホームで **ニーナ吹き出し下〜調査室上**の円形入口（`UI_Hub_CrystalExcavate`）。BottomNav 新タブは作らない。選択画面は `UI_CrystalExcavate_Select_Frame` 背景に操作のみ重ねる |
 | P3-UX-CRYSTAL-EXCAVATE-001-9 | **初回ニーナガイド**（選択画面）。`tutorial_flags.crystal_excavate_nina_guide_done`。フレーム「？」で再表示可 |
 | P3-UX-CRYSTAL-EXCAVATE-001-10 | **ダメージランキング**。発掘確定時に履歴へ追加（与ダメ降順・最大50件・セーブ v17）。結果画面／選択画面から遷移可。戻り先は呼び出し元 |
+| P3-UX-CRYSTAL-EXCAVATE-001-11 | **結果画面**＝`UI_CrystalExcavate_Result_Frame` 背景に数値／ヒット領域のみ重ねる（選択画面と同型） |
 | P3-UX-CRYSTAL-EXCAVATE-001-12 | **拠点復帰チャリン**。発掘で付与した魔晶石は `pending_hub_fx_tokens` を経由し、拠点入場時に右上 TokenChip へ `CurrencyGainFx`＋数値カウントアップ |
 | P3-UX-CRYSTAL-EXCAVATE-001-7 | **フロー**＝選択画面（キャラ＋スキル）→「発掘」→戦闘風画面（キャラ対石・ダメージ表示）→結果画面→拠点 |
 | P3-UX-CRYSTAL-EXCAVATE-001-8 | 消費は「発掘」確定時（または戦闘開始直前）にその日の枠を埋める。途中離脱で枠を戻さない（再入は結果／済表示） |

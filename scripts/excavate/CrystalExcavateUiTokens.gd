@@ -6,6 +6,7 @@ extends RefCounted
 const HUB_ENTRY_ICON: String = "res://assets/ui/excavate/UI_Hub_CrystalExcavate.png"
 const SELECT_FRAME: String = "res://assets/ui/excavate/UI_CrystalExcavate_Select_Frame.png"
 const RESULT_BANNER: String = "res://assets/ui/excavate/UI_CrystalExcavate_Result_Banner.png"
+const RESULT_FRAME: String = "res://assets/ui/excavate/UI_CrystalExcavate_Result_Frame.png"
 
 ## 拠点：調査室(350)より小さめの円形入口。
 const HUB_ICON_PX: float = 168.0
@@ -40,6 +41,13 @@ static func result_banner_texture() -> Texture2D:
 	if ResourceLoader.exists(RESULT_BANNER):
 		return load(RESULT_BANNER) as Texture2D
 	return null
+
+
+static func result_frame_texture() -> Texture2D:
+	if ResourceLoader.exists(RESULT_FRAME):
+		return load(RESULT_FRAME) as Texture2D
+	## 未配置時は旧バナーへフォールバック。
+	return result_banner_texture()
 
 
 static func gold_row_style() -> StyleBoxFlat:
