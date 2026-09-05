@@ -59,8 +59,19 @@ func test_kind_helpers_from_skill() -> void:
 	assert_eq(_EngineerTraps.fires_for_kind("spike"), 4)
 	assert_eq(_EngineerTraps.fires_for_kind("snare"), 3)
 	assert_eq(_EngineerTraps.fires_for_kind("break"), 3)
+	assert_almost_eq(_EngineerTraps.power_for_kind("spike"), 0.65, 0.001)
+	assert_almost_eq(_EngineerTraps.power_for_kind("snare"), 0.25, 0.001)
+	assert_almost_eq(_EngineerTraps.power_for_kind("break"), 0.50, 0.001)
+	assert_almost_eq(_EngineerTraps.fire_power_mult_vs_status(false), 1.0, 0.001)
+	assert_almost_eq(_EngineerTraps.fire_power_mult_vs_status(true), 1.15, 0.001)
 	assert_eq(str(_EngineerTraps.status_for_kind("snare").get("id", "")), "chill")
 	assert_eq(str(_EngineerTraps.status_for_kind("break").get("id", "")), "armor_break")
+
+
+func test_spike_skill_tres_matches_power_helper() -> void:
+	var spike: Resource = DataRegistry.get_skill_data("eng_spike_trap")
+	assert_not_null(spike)
+	assert_almost_eq(float(spike.power_multiplier), _EngineerTraps.power_for_kind("spike"), 0.001)
 
 
 func test_clear_slot_and_clear_all() -> void:
