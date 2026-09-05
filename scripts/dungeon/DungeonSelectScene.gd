@@ -666,8 +666,12 @@ func _sync_route_tab_to_featured() -> void:
 	if data == null:
 		return
 	var route: String = str(data.route_type)
+	var dungeon_id: String = str(data.id)
 	if route == "main":
 		_route_tab = ROUTE_TAB_MAIN
+	elif Constants.is_apex_conquest_playable(dungeon_id):
+		## 征討パイロットはイベントタブ常設（寄り道タブオミット時に main へ落とさない）。
+		_route_tab = ROUTE_TAB_EVENT
 	elif route == "side" or route == "apex":
 		if Constants.SUB_DUNGEONS_PLAYABLE:
 			_route_tab = ROUTE_TAB_SUB

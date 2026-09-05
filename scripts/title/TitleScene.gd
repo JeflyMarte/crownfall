@@ -289,6 +289,9 @@ func _on_debug_confirmed() -> void:
 			)
 			SaveManager.use_normal_slot()
 			return
+		## 旧デバッグセーブに機巧士が無い場合は補完して保存。
+		if _DebugFullUnlock.ensure_engineer_helpers():
+			SaveManager.save_game()
 	else:
 		_DebugFullUnlock.apply()
 		SaveManager.save_game()

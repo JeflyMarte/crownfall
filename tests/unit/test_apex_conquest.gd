@@ -336,6 +336,22 @@ func test_north_reach_free_hard_nightmare_tiers() -> void:
 	assert_false(bool(scene.call("_is_event_free_tier_dungeon", "golden_nest")))
 
 
+func test_apex_featured_keeps_event_route_tab() -> void:
+	## 征討バナー押下で route_type=apex でもイベントタブに留まる（main へ落とさない）。
+	GameState.debug_full_unlock = true
+	GameState.dungeon_progress["frostridge"] = {"cleared": true}
+	var packed: PackedScene = load("res://scenes/dungeon/DungeonSelectScene.tscn")
+	var scene: Control = packed.instantiate()
+	add_child_autofree(scene)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	scene.set("_route_tab", "event")
+	scene.call("_set_featured_dungeon", "north_reach")
+	assert_eq(str(scene.get("_route_tab")), "event", "征討 Featured はイベントタブ維持")
+	scene.call("_set_featured_dungeon", "red_forge_depths")
+	assert_eq(str(scene.get("_route_tab")), "event", "星炉征討もイベントタブ維持")
+
+
 func _find_rich_label(node: Node) -> RichTextLabel:
 	if node is RichTextLabel:
 		return node as RichTextLabel

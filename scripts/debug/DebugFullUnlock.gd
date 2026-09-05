@@ -100,10 +100,43 @@ static func _unlock_all_starters_and_helpers() -> void:
 		var staged_adv: Resource = GachaSystem.create_adventurer_from_helper(staged)
 		GameState.add_roster_member(staged_adv)
 		GameState._grant_member_starting_weapon(staged_adv)
+	## 第2弾機巧士はプール復帰済みでも、旧デバッグセーブ／漏れに備えて明示付与。
+	ensure_engineer_helpers()
 	# 編成は先頭 ACTIVE_PARTY_SIZE（スターター優先のまま）
 	GameState.party_members.clear()
 	for i in mini(GameState.ACTIVE_PARTY_SIZE, GameState.roster.size()):
 		GameState.party_members.append(GameState.roster[i])
+
+
+## 機巧士3（トリム／ブラン／オルソ）をロスターへ。既存は触らない。
+static func ensure_engineer_helpers() -> bool:
+	if not _DebugAccess.is_allowed():
+		return false
+	if not Constants.are_gacha_helpers_playable():
+		return false
+	var added: bool = false
+	for hid: String in ["helper_q", "helper_r", "helper_s"]:
+		var helper: Resource = DataRegistry.get_gacha_helper_data(hid)
+		if helper == null:
+			continue
+		if int(GameState.owned_helpers.get(hid, 0)) < 1:
+			GameState.owned_helpers[hid] = DEBUG_HELPER_OWNED_COUNT
+			added = true
+		elif int(GameState.owned_helpers.get(hid, 0)) < DEBUG_HELPER_OWNED_COUNT:
+			GameState.owned_helpers[hid] = DEBUG_HELPER_OWNED_COUNT
+			added = true
+		var member_id: String = "gacha_" + hid
+		if GameState.find_roster_member_by_id(member_id) != null:
+			continue
+		var adv: Resource = GachaSystem.create_adventurer_from_helper(helper)
+		if adv == null:
+			continue
+		adv.level = LevelSystem.MAX_LEVEL
+		adv.exp = 0
+		GameState.add_roster_member(adv)
+		GameState._grant_member_starting_weapon(adv)
+		added = true
+	return added
 
 
 static func _max_all_character_levels() -> void:

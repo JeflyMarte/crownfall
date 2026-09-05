@@ -50,6 +50,9 @@ func test_debug_full_unlock_grants_currency_roster_and_gear() -> void:
 			mythic_w = true
 			break
 	assert_true(mythic_w, "神話武器が所持に含まれる")
+	for hid: String in ["helper_q", "helper_r", "helper_s"]:
+		assert_gte(int(GameState.owned_helpers.get(hid, 0)), 1, "機巧士 %s 所持" % hid)
+		assert_not_null(GameState.find_roster_member_by_id("gacha_" + hid), "機巧士 %s ロスター" % hid)
 
 
 func test_debug_full_unlock_max_levels_and_codex() -> void:
