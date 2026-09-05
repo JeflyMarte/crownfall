@@ -28,6 +28,7 @@ alwaysApply: false
 | iOS 再エクスポート後 PCK が数MB | Cursor サンドボックス／`.cursorignore` でアセット未読込のまま export | `required_permissions: ["all"]` で実行。完了後 `du -m build/ios/Crownfall.pck` が ~546 であること確認 |
 | 鍛冶完了ポップでレアロゴ巨大化／説明はみ出し | PanelContainer直下バッジ・WORD_SMART | → **`ui-layout.mdc` 鍛冶屋アイコン** |
 | 隊長カード全体が赤くなる／ランクアップ閉じで終了 | `PanelContainer` 直下バッジ＋reparent 後の旧パス | → **`ui-layout.mdc` PanelContainer 上の角バッジ** |
+| GUT が DungeonScene invalid UID を Unexpected Errors で落とす（CI） | `.tscn` の Script uid が `.gd.uid` と不一致（例: `d1r8tsefd223`／`cglo6yatfgg20`） | → **`pitfalls-startup.mdc`**（`.gd.uid` と揃える） |
 | 鍛冶／ダンジョン入場で即終了（maxf3引・wrap名衝突） | パース失敗 | → **`pitfalls-startup.mdc`**／`gdscript.mdc` |
 | ダンジョン入場 SCRIPT ERROR（`rarity_weight_mult` not found） | preload Script へ静的メソッド呼び出し | → **`pitfalls-startup.mdc`**（定数配列を直接読む） |
 | DungeonScene パース失敗（Constant has the same name） | 先頭 `const _DungeonTierConfig = preload(...)` の二重定義 | → **`pitfalls-startup.mdc`**（同名 preload は1件のみ） |

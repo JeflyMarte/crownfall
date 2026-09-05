@@ -188,6 +188,13 @@ static func member_status_chance_mult(member_index: int) -> float:
 		mult *= 1.15
 	## 征討エンシェント「名拒みの冠」等（P3-DG-APEX-SET-001）。
 	mult *= EquipmentSetBonuses.status_chance_mult(member_index)
+	## エンシェント単品（P3-EQ-ANCIENT-POWER-D-001）。
+	for raw_eq: Variant in CombatPassives.equipment_passives_for_member(member):
+		if raw_eq is not Dictionary:
+			continue
+		var edef: Dictionary = raw_eq
+		if edef.has("status_chance_mult"):
+			mult *= float(edef["status_chance_mult"])
 	return mult
 
 static func party_weapon_drop_mult() -> float:

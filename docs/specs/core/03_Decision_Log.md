@@ -8267,3 +8267,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-SKILL-CHAR-SLOT-001-3 | `GachaHelperData.skill_slot_replacements` ＋ `SkillProgression.get_unlock_entries_for_member` | 126 必殺上書きと同型 |
 | P3-SKILL-CHAR-SLOT-001-4 | SSOT — `137_CharacterSkillSlotPilot.md` | Decision 本体 |
 
+## エンシェント地力＋単品（2026-08-31 — P3-EQ-ANCIENT-POWER-D-001）
+
+> **オーナー GO**（「DでGo」）。地力を中L手前まで＋薄い単品パッシブ。**3部位加護は据置**。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-EQ-ANCIENT-POWER-D-001-1 | 武器 ATK 目安 ×約2.2（時環／名拒み／星炉。アンティークはやや低め） | レジェンド3点負け緩和 |
+| P3-EQ-ANCIENT-POWER-D-001-2 | 防具・装飾の地力も引き上げ | 同上 |
+| P3-EQ-ANCIENT-POWER-D-001-3 | 各部位に薄い固有パッシブ（テーマ一致） | 案D |
+| P3-EQ-ANCIENT-POWER-D-001-4 | 3部位加護の数値は据置 | 加護は役割の核 |
+| P3-EQ-ANCIENT-POWER-D-001-5 | SSOT — `137_AncientSetPowerPass.md` | Decision 本体 |
