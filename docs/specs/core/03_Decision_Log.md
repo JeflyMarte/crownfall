@@ -8277,4 +8277,4 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-EQ-ANCIENT-POWER-D-001-2 | 防具・装飾の地力も引き上げ | 同上 |
 | P3-EQ-ANCIENT-POWER-D-001-3 | 各部位に薄い固有パッシブ（テーマ一致） | 案D |
 | P3-EQ-ANCIENT-POWER-D-001-4 | 3部位加護の数値は据置 | 加護は役割の核 |
-| P3-EQ-ANCIENT-POWER-D-001-5 | SSOT — `137_AncientSetPowerPass.md` | Decision 本体 |
+| P3-EQ-ANCIENT-POWER-D-001-5 | SSOT — `139_AncientSetPowerPass.md` | Decision 本体 |

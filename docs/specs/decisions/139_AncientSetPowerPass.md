@@ -97,6 +97,6 @@
 
 | 層 | ファイル |
 |---|---|
-| 本決定 | `docs/specs/decisions/137_AncientSetPowerPass.md` |
+| 本決定 | `docs/specs/decisions/139_AncientSetPowerPass.md` |
 | セット枠 | `19_EventDescentSets.md`／`131`／`136` |
 | Decision Log | `03_Decision_Log.md` |
