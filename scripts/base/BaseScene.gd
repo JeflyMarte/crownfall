@@ -67,6 +67,7 @@ func _ready() -> void:
 	if Constants.is_crystal_excavate_playable():
 		_setup_excavate_entry()
 	_setup_nina_nav()
+	_place_excavate_entry()
 	_build_left_menu()
 	DailyMissionSystem.missions_updated.connect(_refresh_daily_missions)
 	EventSystem.event_updated.connect(_refresh_field_survey_banner)
@@ -139,6 +140,7 @@ func _layout_hub_if_needed() -> void:
 	HubLayoutHelper.layout_hub_home_content(self)
 	_place_field_survey_banner()
 	_place_nina_nav()
+	_place_excavate_entry()
 
 
 func _maybe_show_rank_up() -> void:
@@ -713,7 +715,29 @@ func _setup_excavate_entry() -> void:
 	UiTypography.apply_menu_button(btn)
 	_excavate_entry_panel.gui_input.connect(_on_excavate_entry_gui_input)
 	$HubView.add_child(_excavate_entry_panel)
+	_place_excavate_entry()
 	_refresh_excavate_entry()
+
+
+func _place_excavate_entry() -> void:
+	if _excavate_entry_panel == null:
+		return
+	## ニーナ吹き出しの少し下・調査室ショートカットの少し上（右上ニーナ列）。
+	var top: float = HubLayoutHelper.HUB_TOP_BAR_H + _HubNinaNavigator.GAP_BELOW_TOP
+	var left: float = -_HubNinaNavigator.PANEL_W - _HubNinaNavigator.MARGIN_RIGHT
+	var right: float = -_HubNinaNavigator.MARGIN_RIGHT
+	if _nina_nav != null:
+		top = _nina_nav.offset_top + _HubNinaNavigator.PANEL_H + _HubNinaNavigator.GAP_ABOVE_EXCAVATE
+		left = _nina_nav.offset_left
+		right = _nina_nav.offset_right
+	_excavate_entry_panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_excavate_entry_panel.offset_left = left
+	_excavate_entry_panel.offset_right = right
+	_excavate_entry_panel.offset_top = top
+	_excavate_entry_panel.offset_bottom = top + HubLayoutHelper.HUB_EXCAVATE_H
+	_excavate_entry_panel.custom_minimum_size = Vector2(
+		_HubNinaNavigator.PANEL_W, HubLayoutHelper.HUB_EXCAVATE_H
+	)
 
 
 func _refresh_excavate_entry() -> void:

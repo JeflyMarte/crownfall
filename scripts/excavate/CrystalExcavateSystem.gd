@@ -22,15 +22,23 @@ static func ensure_refreshed() -> void:
 
 static func is_used_today() -> bool:
 	ensure_refreshed()
+	## デバッグ全解放中は日次制限を無視（何度でも発掘可）。
+	if GameState.debug_full_unlock:
+		return false
 	return bool(GameState.crystal_excavate_state.get("used", false))
 
 
 static func remaining_today() -> int:
+	if GameState.debug_full_unlock:
+		return 99
 	return 0 if is_used_today() else 1
 
 
 static func entry_status_label() -> String:
-	if is_used_today():
+	ensure_refreshed()
+	if GameState.debug_full_unlock:
+		return "デバッグ無制限"
+	if bool(GameState.crystal_excavate_state.get("used", false)):
 		return "本日済"
 	return "残り1回"
 

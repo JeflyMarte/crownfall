@@ -213,18 +213,7 @@ static func _stack_hub_bottom_panels(hub: Control) -> void:
 	var strip: Control = hub.get_node_or_null("CurrencyStrip") as Control
 	if strip != null:
 		strip.visible = false
-	var excavate_extra: float = 0.0
-	var excavate: Control = hub.get_node_or_null("ExcavateEntryPanel") as Control
-	if excavate != null and excavate.visible:
-		excavate.anchor_left = 0.0
-		excavate.anchor_right = 1.0
-		excavate.anchor_top = 1.0
-		excavate.anchor_bottom = 1.0
-		excavate.offset_left = CONTENT_MARGIN_H
-		excavate.offset_right = -CONTENT_MARGIN_H
-		excavate.offset_top = -(HUB_DAILY_H + HUB_STACK_GAP + HUB_EXCAVATE_H + HUB_STACK_GAP)
-		excavate.offset_bottom = excavate.offset_top + HUB_EXCAVATE_H
-		excavate_extra = HUB_EXCAVATE_H + HUB_STACK_GAP
+	## ExcavateEntryPanel はニーナ吹き出し〜調査室のあいだ（BaseScene._place_excavate_entry）。
 	if daily != null:
 		daily.anchor_left = 0.0
 		daily.anchor_right = 1.0
@@ -232,7 +221,7 @@ static func _stack_hub_bottom_panels(hub: Control) -> void:
 		daily.anchor_bottom = 1.0
 		daily.offset_left = CONTENT_MARGIN_H
 		daily.offset_right = -CONTENT_MARGIN_H
-		daily.offset_top = -(HUB_DAILY_H + HUB_STACK_GAP + excavate_extra)
+		daily.offset_top = -(HUB_DAILY_H + HUB_STACK_GAP)
 		daily.offset_bottom = -HUB_STACK_GAP
 
 

@@ -43,6 +43,19 @@ func test_daily_once_blocks_second_begin() -> void:
 	assert_false(bool(blocked.get("ok", false)))
 
 
+func test_debug_full_unlock_ignores_daily_limit() -> void:
+	var saved_debug: bool = GameState.debug_full_unlock
+	GameState.debug_full_unlock = true
+	GameState.crystal_excavate_state = {
+		"day_key": DailyMissionSystem.current_day_key(),
+		"used": true,
+	}
+	assert_false(_Excavate.is_used_today())
+	assert_eq(_Excavate.remaining_today(), 99)
+	assert_eq(_Excavate.entry_status_label(), "デバッグ無制限")
+	GameState.debug_full_unlock = saved_debug
+
+
 func test_day_key_mismatch_resets_used() -> void:
 	GameState.crystal_excavate_state = {
 		"day_key": "1999-01-01",

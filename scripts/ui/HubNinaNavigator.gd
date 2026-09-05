@@ -18,7 +18,11 @@ const PANEL_H: float = 160.0
 const FACE_PX: float = 80.0
 const SURVEY_ICON_PX: float = 350.0
 const SURVEY_FRAME_INSET: float = 10.0
-const GAP_BELOW_PANEL: float = 40.0
+## 吹き出し〜調査室のあいだに魔晶石発掘帯（44）＋余白を確保。
+const GAP_ABOVE_EXCAVATE: float = 8.0
+const GAP_BELOW_EXCAVATE: float = 12.0
+const EXCAVATE_BAND_H: float = 44.0
+const GAP_BELOW_PANEL: float = GAP_ABOVE_EXCAVATE + EXCAVATE_BAND_H + GAP_BELOW_EXCAVATE
 ## 親右端より外へはみ出して画面右端寄りに寄せる（負＝右方向）。
 const SURVEY_MARGIN_RIGHT: float = -80.0
 const MARGIN_RIGHT: float = 12.0
