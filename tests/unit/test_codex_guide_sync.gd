@@ -68,6 +68,9 @@ func test_guide_no_outdated_combat_or_gacha_copy() -> void:
 	assert_true(str(by_id.get("SYS-G010", "")).contains("展示室"), "展示室")
 	assert_true(str(by_id.get("SYS-G011", "")).contains("無限"), "無限DG")
 	assert_true(str(by_id.get("SYS-G012", "")).contains("全滅") or str(by_id.get("SYS-G012", "")).contains("敗因"), "全滅敗因")
+	assert_true(str(by_id.get("SYS-G013", "")).contains("魔晶石発掘"), "発掘手引き")
+	assert_true(str(by_id.get("SYS-G014", "")).contains("機巧士"), "機巧士手引き")
+	assert_true(str(by_id.get("SYS-G008", "")).contains("決定") or str(by_id.get("SYS-G008", "")).contains("−"), "特権強化の操作")
 
 	var eq001: String = str(by_id.get("EQUIP-G001", ""))
 	assert_false(eq001.contains("4 段階"), "神話を含む")
@@ -234,6 +237,7 @@ func test_world_guide_entries_cover_canon_basics() -> void:
 	assert_true(str(by_id.get("WORLD-G012", "")).contains("共生"), "ウィスパーウッド生態")
 	assert_true(str(by_id.get("WORLD-G012", "")).contains("葉隠れ") or str(by_id.get("WORLD-G012", "")).contains("糸網"), "囁きの森地名")
 	assert_true(str(by_id.get("WORLD-G013", "")).contains("専門"), "ジョブは専門資格")
+	assert_true(str(by_id.get("WORLD-G013", "")).contains("機巧士"), "機巧士を職一覧に")
 	assert_true(str(by_id.get("WORLD-G014", "")).contains("英雄ではない"), "隊長は選ばれし英雄ではない")
 	assert_true(str(by_id.get("WORLD-G015", "")).contains("生存"), "動機の三層")
 	assert_true(str(by_id.get("WORLD-G016", "")).contains("灯火"), "灯火の信仰")

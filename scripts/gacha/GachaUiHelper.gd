@@ -38,6 +38,10 @@ const FEATURED_MOTE_COUNT: int = 18
 const FEATURED_IDLE_OFFSET_X: float = 0.0
 ## 封蔵 Featured 装備アイコンの追加オフセット（正で右）。中央寄りすぎるのを少し右へ。
 const FEATURED_EQUIP_OFFSET_X: float = 18.0
+## 招待状 Featured／プールで NEW！を付ける機巧士助っ人。
+const ENGINEER_NEW_HELPER_IDS: Array[String] = ["helper_q", "helper_r", "helper_s"]
+const FEATURED_NEW_BADGE_H: float = 36.0
+const POOL_NEW_BADGE_FONT: int = 11
 ## 封蔵装備アイコンをキャラ基準より少し下へ（正で下）。
 const FEATURED_EQUIP_DROP_Y: float = 28.0
 ## LEGEND InvCell 装飾角の内側にアイコンを収める（鍛冶 FORGE_ICON_SAFE_FILL より少し厳しめ）。
@@ -155,6 +159,7 @@ static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
 		shell["equip_stone_mat"] = stone
 	## InvCell 左上 LEGEND ロゴ（装備一覧と同型）。idle より手前に出す。
 	_sync_featured_equip_rarity_badge(shell, stage, idle_px, bottom, art_x, stone_on)
+	_relayout_featured_new_badge(shell, idle_px, bottom, art_x, stone_on)
 	var beam: Control = stage.get_node_or_null("FeaturedBeam") as Control
 	if beam != null:
 		var beam_h: float = idle_px + foot + absf(bottom) + 80.0
@@ -447,7 +452,7 @@ static func featured_helpers() -> Array:
 	for helper in sorted_helpers():
 		if helper == null:
 			continue
-		if int(helper.rarity) < FEATURED_MIN_RARITY:
+		if int(helper.rarity) < FEATURED_MIN_RARITY and not is_engineer_new_helper(str(helper.id)):
 			continue
 		out.append(helper)
 	out.sort_custom(func(a, b):
@@ -841,6 +846,19 @@ static func build_featured_shell(host: Control) -> Dictionary:
 	idle.offset_bottom = -foot
 	stage.add_child(idle)
 
+	var new_badge := Label.new()
+	new_badge.name = "FeaturedNewBadge"
+	new_badge.text = "NEW！"
+	new_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	new_badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	new_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	new_badge.z_index = 9
+	new_badge.visible = false
+	UiTypography.apply_display(
+		new_badge, 26, Color(1.0, 0.92, 0.35, 1.0), UiTypography.OUTLINE_STRONG
+	)
+	stage.add_child(new_badge)
+
 	## 煽り文（キャラドット足元直下。座標は relayout で確定）。
 	var blurb_wrap := PanelContainer.new()
 	blurb_wrap.name = "FeatureBlurbWrap"
@@ -957,6 +975,7 @@ static func build_featured_shell(host: Control) -> Dictionary:
 		"stats_wrap": stats_wrap,
 		"blurb_wrap": blurb_wrap,
 		"idle": idle,
+		"new_badge": new_badge,
 		"pool_strip": pool_strip,
 		"name": name_lbl,
 		"stars": stars_lbl,
@@ -1082,6 +1101,8 @@ static func make_pool_icon_button(helper: Resource) -> Button:
 	if helper != null and helper.has_method("get_portrait_texture"):
 		icon_tex = helper.call("get_portrait_texture") as Texture2D
 	_add_pool_icon_texture(btn, icon_tex)
+	if helper != null and is_engineer_new_helper(str(helper.id)):
+		_add_pool_new_badge(btn)
 	return btn
 
 
@@ -1162,6 +1183,82 @@ static func _add_pool_icon_texture(btn: Button, icon_tex: Texture2D) -> void:
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	frame.add_child(icon)
+
+static func is_engineer_new_helper(helper_id: String) -> bool:
+	return ENGINEER_NEW_HELPER_IDS.has(helper_id)
+
+
+static func _relayout_featured_new_badge(
+	shell: Dictionary, idle_px: float, bottom: float, art_x: float, stone_on: bool
+) -> void:
+	var badge: Label = shell.get("new_badge") as Label
+	if badge == null:
+		var fade: Control = shell.get("fade") as Control
+		if fade != null:
+			var stage: Control = fade.get_node_or_null("FeaturedStage") as Control
+			if stage != null:
+				badge = stage.get_node_or_null("FeaturedNewBadge") as Label
+				if badge != null:
+					shell["new_badge"] = badge
+	if badge == null:
+		return
+	var w: float = 120.0
+	var top: float = -idle_px + bottom - FEATURED_NEW_BADGE_H - 4.0
+	badge.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	badge.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	badge.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	badge.offset_left = -w * 0.5 + art_x
+	badge.offset_right = w * 0.5 + art_x
+	badge.offset_top = top
+	badge.offset_bottom = top + FEATURED_NEW_BADGE_H
+	## 装備 Featured では出さない。
+	if stone_on:
+		badge.visible = false
+
+
+static func set_featured_new_badge(shell: Dictionary, visible: bool) -> void:
+	if shell.is_empty():
+		return
+	var badge: Label = shell.get("new_badge") as Label
+	if badge == null:
+		return
+	badge.visible = visible
+	if not visible:
+		return
+	if badge.has_meta("new_pulse_tween"):
+		var old: Variant = badge.get_meta("new_pulse_tween")
+		if old is Tween and is_instance_valid(old):
+			(old as Tween).kill()
+	var tw: Tween = badge.create_tween().set_loops()
+	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	badge.modulate = Color(1, 1, 1, 1)
+	tw.tween_property(badge, "modulate:a", 0.35, 0.55)
+	tw.tween_property(badge, "modulate:a", 1.0, 0.55)
+	badge.set_meta("new_pulse_tween", tw)
+
+
+static func _add_pool_new_badge(btn: Button) -> void:
+	if btn == null:
+		return
+	btn.clip_contents = false
+	var existing: Node = btn.get_node_or_null("PoolNewBadge")
+	if existing != null:
+		existing.queue_free()
+	var lbl := Label.new()
+	lbl.name = "PoolNewBadge"
+	lbl.text = "NEW！"
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lbl.z_index = 8
+	lbl.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	lbl.offset_top = -16.0
+	lbl.offset_bottom = 4.0
+	UiTypography.apply_display(
+		lbl, POOL_NEW_BADGE_FONT, Color(1.0, 0.92, 0.35, 1.0), UiTypography.OUTLINE_STRONG
+	)
+	btn.add_child(lbl)
+
 
 static func highlight_pool_icon(strip: Control, item_id: String) -> void:
 	if strip == null:
@@ -1274,6 +1371,7 @@ static func apply_featured_helper(shell: Dictionary, helper: Resource) -> void:
 		stats_wrap.visible = true
 		stats_wrap.queue_sort()
 	highlight_pool_icon(shell.get("pool_strip") as Control, str(helper.id))
+	set_featured_new_badge(shell, is_engineer_new_helper(str(helper.id)))
 
 static func setup_pull_button(btn: Button, enabled: bool) -> void:
 	setup_pull_button_ex(btn, enabled, pull_title(), pull_cost_amount(1))
@@ -1397,6 +1495,7 @@ static func apply_featured_equipment(shell: Dictionary, entry: Dictionary) -> vo
 	if stats_wrap != null:
 		stats_wrap.visible = true
 		stats_wrap.queue_sort()
+	set_featured_new_badge(shell, false)
 
 
 static func _set_featured_banner_bg(shell: Dictionary, seal: bool) -> void:
