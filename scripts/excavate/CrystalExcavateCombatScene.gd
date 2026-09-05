@@ -11,7 +11,7 @@ const _SkillEffectOneLineHelper := preload("res://scripts/ui/SkillEffectOneLineH
 const _UltimatePresentationConfig := preload("res://scripts/combat/UltimatePresentationConfig.gd")
 
 const CHR_TARGET_H: float = 220.0
-const CHR_Y_OFFSET: float = 72.0
+const CHR_Y_OFFSET: float = 130.0
 const TAP_FONT_SIZE: int = 72
 const SHARD_GRID: int = 4
 const SHARD_COUNT_MIN: int = 6

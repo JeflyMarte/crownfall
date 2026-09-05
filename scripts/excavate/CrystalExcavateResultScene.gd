@@ -13,10 +13,10 @@ const DESIGN_H: float = 1205.0
 
 ## デザイン座標（焼込枠の内側）。Downloads 原寸 969×1622 からスケール。
 const SLOT_BACK := Rect2(23, 23, 90, 90)
-## 魔晶石帯の右：獲得数。
-const SLOT_TOKEN := Rect2(380, 690, 280, 48)
-const SLOT_RECORD := Rect2(60, 745, 600, 36)
-const SLOT_DMG := Rect2(60, 780, 600, 70)
+## 中央帯の魔晶石アイコン右：獲得数。
+const SLOT_TOKEN := Rect2(148, 678, 220, 50)
+const SLOT_RECORD := Rect2(60, 708, 600, 36)
+const SLOT_DMG := Rect2(60, 740, 600, 60)
 const SLOT_RANK := Rect2(48, 855, 624, 95)
 const SLOT_HOME := Rect2(48, 965, 624, 100)
 
@@ -89,7 +89,7 @@ func _build_frame_overlay() -> void:
 	_frame_host.add_child(_btn_back)
 
 	_label_tokens = Label.new()
-	_label_tokens.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_label_tokens.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_label_tokens.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_label_tokens.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_frame_host.add_child(_label_tokens)
