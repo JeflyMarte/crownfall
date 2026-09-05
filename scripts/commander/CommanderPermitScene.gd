@@ -1,32 +1,67 @@
 extends Control
 
-## 特権強化画面 — 略奪／成長／戦力を設定音量と同型スライダーで割り振り。
+## 特権強化画面 — Permit_Frame 背景に数値／操作だけ重ねる。
+## −／＋はドラフト編集。決定でセーブしてマイページへ戻る。戻るは破棄。
 
 const _CommanderPermitBoost := preload("res://scripts/commander/CommanderPermitBoost.gd")
 const _CommanderUiTokens := preload("res://scripts/commander/CommanderUiTokens.gd")
 const _RoomGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
 const COMMANDER_SCENE: String = "res://scenes/commander/CommanderScene.tscn"
 
-const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45)
-const COLOR_SUB: Color = Color(0.72, 0.69, 0.62)
-const SECTION_GAP: int = 16
-const BODY_SEP: int = 8
-const INNER_PAD: int = 10
-const HEADER_CONTENT_GAP: float = 24.0
-const _META_BODY_BASE_TOP: StringName = &"_cf_body_base_top"
+const DESIGN_W: float = 1024.0
+const DESIGN_H: float = 1536.0
 
-@onready var _label_title: Label = $Header/HeaderRow/LabelTitle
-@onready var _btn_back: Button = $Header/HeaderRow/ButtonBack
-@onready var _bg_texture: TextureRect = $BgTexture
+const SLOT_BACK := Rect2(28, 28, 72, 72)
+const SLOT_HELP := Rect2(110, 28, 72, 72)
+const SLOT_POINTS := Rect2(56, 248, 540, 52)
+const SLOT_UNSPENT := Rect2(360, 1000, 140, 56)
+const SLOT_RESET := Rect2(480, 995, 200, 70)
+const SLOT_DECIDE := Rect2(710, 990, 250, 80)
+
+## カード0=略奪 / 1=成長 / 2=戦力（TRACK_ORDER と同順）。
+const SLOT_BONUS: Array[Rect2] = [
+	Rect2(75, 668, 250, 44),
+	Rect2(387, 668, 250, 44),
+	Rect2(699, 668, 250, 44),
+]
+const SLOT_MINUS: Array[Rect2] = [
+	Rect2(78, 868, 68, 60),
+	Rect2(390, 868, 68, 60),
+	Rect2(702, 868, 68, 60),
+]
+const SLOT_VAL: Array[Rect2] = [
+	Rect2(150, 868, 110, 60),
+	Rect2(462, 868, 110, 60),
+	Rect2(774, 868, 110, 60),
+]
+const SLOT_PLUS: Array[Rect2] = [
+	Rect2(264, 868, 68, 60),
+	Rect2(576, 868, 68, 60),
+	Rect2(888, 868, 68, 60),
+]
+
+const COLOR_GOLD: Color = Color(0.92, 0.78, 0.42)
+const COLOR_NUM: Color = Color(1.0, 0.88, 0.45)
+
+@onready var _header: PanelContainer = $Header
 @onready var _main_scroll: ScrollContainer = $MainScroll
-@onready var _content_host: VBoxContainer = $MainScroll/MainVBox/ContentHost
+@onready var _bg_texture: TextureRect = $BgTexture
+@onready var _bottom_nav: PanelContainer = $BottomNav
 
-var _points_label: Label = null
-var _summary_label: Label = null
-var _sliders: Dictionary = {}
-var _value_labels: Dictionary = {}
-var _bonus_labels: Dictionary = {}
-var _updating_sliders: bool = false
+var _letterbox: ColorRect
+var _frame_host: Control
+var _bg: TextureRect
+var _btn_back: Button
+var _btn_help: Button
+var _label_points: Label
+var _label_unspent: Label
+var _btn_reset: Button
+var _btn_decide: Button
+var _bonus_labels: Array[Label] = []
+var _val_labels: Array[Label] = []
+var _minus_btns: Array[Button] = []
+var _plus_btns: Array[Button] = []
+var _draft: Dictionary = {}
 
 
 func _ready() -> void:
@@ -34,219 +69,288 @@ func _ready() -> void:
 	if not _CommanderPermitBoost.is_ui_unlocked():
 		call_deferred("_bounce_locked")
 		return
-	var bg_tex: Texture2D = _CommanderUiTokens.load_tex(_CommanderUiTokens.BG)
-	if bg_tex != null and _bg_texture != null:
-		_bg_texture.texture = bg_tex
-	_label_title.text = _CommanderPermitBoost.DISPLAY_NAME
-	UiTypography.apply_screen_title(_label_title)
-	UiTypography.apply_button(_btn_back, false)
-	_btn_back.pressed.connect(_on_back_pressed)
-	_setup_room_guide_help()
-	_content_host.add_theme_constant_override("separation", SECTION_GAP)
-	_sync_main_scroll_below_header()
 	BottomNavHelper.setup($BottomNav/NavRow, BottomNavHelper.Tab.MYPAGE)
-	ScrollTouchHelper.enable(_main_scroll)
-	_rebuild_page()
-	_configure_layout()
-	call_deferred("_configure_layout")
-
-
-func _setup_room_guide_help() -> void:
-	var row: Control = $Header/HeaderRow as Control
-	if row == null or row.get_node_or_null("HubRoomGuideHelpBtn") != null:
-		return
-	var btn: Button = _RoomGuide.attach_help_button(row, self, _RoomGuide.GUIDE_PERMIT, "？")
-	if btn == null:
-		return
-	var back: Node = row.get_node_or_null("ButtonBack")
-	if back != null:
-		row.move_child(btn, back.get_index() + 1)
-	btn.custom_minimum_size = Vector2(40, 40)
-	btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-
-
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_RESIZED and is_node_ready():
-		_configure_layout()
+	_header.visible = false
+	_header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_main_scroll.visible = false
+	_main_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if _bg_texture != null:
+		_bg_texture.visible = false
+		_bg_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_init_draft_from_saved()
+	_build_letterbox()
+	_build_frame_overlay()
+	_refresh_draft_labels()
+	resized.connect(_layout_frame_host)
+	call_deferred("_layout_frame_host")
 
 
 func _exit_tree() -> void:
-	SaveManager.flush_pending_save()
+	## 決定前のドラフトは破棄。保留セーブは触らない。
+	pass
 
 
-func _configure_layout() -> void:
-	if _main_scroll == null:
-		return
-	_sync_main_scroll_below_header()
-	var bottom: Control = $BottomNav as Control
-	var nav_h: float = 12.0
-	if bottom != null and bottom.visible:
-		nav_h = maxf(NavUiTokens.BOTTOM_NAV_HEIGHT, bottom.size.y) + 8.0
-	_main_scroll.offset_bottom = -nav_h
+func _init_draft_from_saved() -> void:
+	_draft = {}
+	for track: String in _CommanderPermitBoost.TRACK_ORDER:
+		_draft[track] = _CommanderPermitBoost.get_alloc(track)
 
 
-func _sync_main_scroll_below_header() -> void:
-	var header: Control = $Header as Control
-	if header == null or _main_scroll == null:
-		return
-	var top_inset: float = 0.0
-	if SafeAreaHelper.should_apply_chrome():
-		top_inset = SafeAreaHelper.top_inset()
-	var header_bottom: float = header.offset_bottom
-	if header.size.y > 1.0:
-		header_bottom = maxf(header_bottom, header.offset_top + header.size.y)
-	var desired_top: float = header_bottom + HEADER_CONTENT_GAP
-	_main_scroll.offset_top = desired_top
-	_main_scroll.set_meta(
-		_META_BODY_BASE_TOP,
-		maxf(HEADER_CONTENT_GAP + 46.0, desired_top - top_inset)
-	)
+func _build_letterbox() -> void:
+	_letterbox = ColorRect.new()
+	_letterbox.name = "LetterboxBlack"
+	_letterbox.color = Color(0, 0, 0, 1)
+	_letterbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_letterbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_letterbox.z_index = -20
+	add_child(_letterbox)
+	move_child(_letterbox, 0)
 
 
-func _rebuild_page() -> void:
-	for child in _content_host.get_children():
-		child.queue_free()
-	_sliders.clear()
-	_value_labels.clear()
+func _build_frame_overlay() -> void:
+	_frame_host = Control.new()
+	_frame_host.name = "PermitFrameHost"
+	_frame_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_frame_host)
+	move_child(_frame_host, 1)
+
+	_bg = TextureRect.new()
+	_bg.name = "PermitFrameBg"
+	_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_bg.stretch_mode = TextureRect.STRETCH_SCALE
+	_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bg.texture = _CommanderUiTokens.load_tex(_CommanderUiTokens.PERMIT_FRAME)
+	_frame_host.add_child(_bg)
+
+	_btn_back = _make_hit_button()
+	_btn_back.pressed.connect(_on_back_pressed)
+	_frame_host.add_child(_btn_back)
+
+	_btn_help = _make_hit_button()
+	_btn_help.pressed.connect(_on_help_pressed)
+	_frame_host.add_child(_btn_help)
+
+	_label_points = Label.new()
+	_label_points.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_label_points.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_label_points.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_frame_host.add_child(_label_points)
+
 	_bonus_labels.clear()
-	_content_host.add_child(_build_overview_section())
-	_content_host.add_child(_build_tracks_section())
-	_refresh_labels()
+	_val_labels.clear()
+	_minus_btns.clear()
+	_plus_btns.clear()
+	for i: int in _CommanderPermitBoost.TRACK_ORDER.size():
+		var track: String = _CommanderPermitBoost.TRACK_ORDER[i]
+		var bonus := Label.new()
+		bonus.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		bonus.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		bonus.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_frame_host.add_child(bonus)
+		_bonus_labels.append(bonus)
+
+		var minus := _make_hit_button()
+		minus.pressed.connect(_on_minus_pressed.bind(track))
+		_frame_host.add_child(minus)
+		_minus_btns.append(minus)
+
+		var val := Label.new()
+		val.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		val.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		val.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_frame_host.add_child(val)
+		_val_labels.append(val)
+
+		var plus := _make_hit_button()
+		plus.pressed.connect(_on_plus_pressed.bind(track))
+		_frame_host.add_child(plus)
+		_plus_btns.append(plus)
+
+	_label_unspent = Label.new()
+	_label_unspent.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_label_unspent.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_label_unspent.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_frame_host.add_child(_label_unspent)
+
+	_btn_reset = _make_hit_button()
+	_btn_reset.pressed.connect(_on_reset_pressed)
+	_frame_host.add_child(_btn_reset)
+
+	_btn_decide = _make_hit_button()
+	_btn_decide.pressed.connect(_on_decide_pressed)
+	_frame_host.add_child(_btn_decide)
+
+	_bottom_nav.z_index = 20
 
 
-func _build_overview_section() -> Control:
-	var panel := PanelContainer.new()
-	var pad := MarginContainer.new()
-	pad.add_theme_constant_override("margin_left", INNER_PAD)
-	pad.add_theme_constant_override("margin_right", INNER_PAD)
-	pad.add_theme_constant_override("margin_top", INNER_PAD)
-	pad.add_theme_constant_override("margin_bottom", INNER_PAD)
-	panel.add_child(pad)
-	var body := VBoxContainer.new()
-	body.add_theme_constant_override("separation", BODY_SEP)
-	pad.add_child(body)
-	var heading := Label.new()
-	heading.text = "調査許可の強化"
-	UiTypography.apply_display(heading, UiTypography.SIZE_BODY, COLOR_GOLD)
-	body.add_child(heading)
-	_points_label = Label.new()
-	UiTypography.apply_body(_points_label, UiTypography.SIZE_BODY_SMALL, COLOR_SUB)
-	body.add_child(_points_label)
-	_summary_label = Label.new()
-	_summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiTypography.apply_caption(_summary_label, COLOR_SUB)
-	body.add_child(_summary_label)
-	var hint := Label.new()
-	hint.text = "S+到達で許可点が貯まります。いつでも振り直せます。"
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiTypography.apply_caption(hint, COLOR_SUB)
-	body.add_child(hint)
-	return panel
+func _make_hit_button() -> Button:
+	var btn := Button.new()
+	btn.text = ""
+	btn.focus_mode = Control.FOCUS_NONE
+	var empty := StyleBoxEmpty.new()
+	btn.add_theme_stylebox_override("normal", empty)
+	btn.add_theme_stylebox_override("hover", empty)
+	btn.add_theme_stylebox_override("pressed", empty)
+	btn.add_theme_stylebox_override("disabled", empty)
+	btn.add_theme_stylebox_override("focus", empty)
+	return btn
 
 
-func _build_tracks_section() -> Control:
-	var panel := PanelContainer.new()
-	var pad := MarginContainer.new()
-	pad.add_theme_constant_override("margin_left", INNER_PAD)
-	pad.add_theme_constant_override("margin_right", INNER_PAD)
-	pad.add_theme_constant_override("margin_top", INNER_PAD)
-	pad.add_theme_constant_override("margin_bottom", INNER_PAD)
-	panel.add_child(pad)
-	var body := VBoxContainer.new()
-	body.add_theme_constant_override("separation", 14)
-	pad.add_child(body)
-	for track: String in _CommanderPermitBoost.TRACK_ORDER:
-		body.add_child(_make_track_row(track))
-	return panel
-
-
-func _make_track_row(track: String) -> Control:
-	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 4)
-	var title_row := HBoxContainer.new()
-	title_row.add_theme_constant_override("separation", 8)
-	col.add_child(title_row)
-	var lbl := Label.new()
-	lbl.text = str(_CommanderPermitBoost.TRACK_LABELS.get(track, track))
-	lbl.custom_minimum_size = Vector2(72, 0)
-	UiTypography.apply_body(lbl, UiTypography.SIZE_BODY_SMALL)
-	title_row.add_child(lbl)
-	var bonus := Label.new()
-	bonus.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bonus.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	UiTypography.apply_caption(bonus, COLOR_SUB)
-	title_row.add_child(bonus)
-	_bonus_labels[track] = bonus
-
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	col.add_child(row)
-	var slider := HSlider.new()
-	slider.min_value = 0.0
-	slider.step = 1.0
-	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	slider.custom_minimum_size = Vector2(0, 28)
-	slider.value = float(_CommanderPermitBoost.get_alloc(track))
-	slider.max_value = float(maxi(1, _CommanderPermitBoost.max_for_track(track)))
-	slider.value_changed.connect(_on_track_changed.bind(track))
-	row.add_child(slider)
-	_sliders[track] = slider
-	var pct := Label.new()
-	pct.custom_minimum_size = Vector2(40, 0)
-	pct.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	UiTypography.apply_caption(pct, COLOR_SUB)
-	row.add_child(pct)
-	_value_labels[track] = pct
-	return col
-
-
-func _on_track_changed(value: float, track: String) -> void:
-	if _updating_sliders:
+func _layout_frame_host() -> void:
+	if _frame_host == null:
 		return
-	_CommanderPermitBoost.set_alloc(track, int(round(value)))
-	## ドラッグ中の毎ステップ同期セーブは弱機フリーズ種。
-	SaveManager.request_save()
-	_refresh_labels()
-	_refresh_slider_bounds()
+	var bottom_h: float = 84.0
+	if _bottom_nav != null:
+		bottom_h = maxf(1.0, absf(_bottom_nav.offset_top))
+	var area := Rect2(0.0, 0.0, size.x, maxf(1.0, size.y - bottom_h))
+	var scale: float = minf(area.size.x / DESIGN_W, area.size.y / DESIGN_H)
+	var shown := Vector2(DESIGN_W, DESIGN_H) * scale
+	var origin := area.position + (area.size - shown) * 0.5
+	_frame_host.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	_frame_host.position = origin
+	_frame_host.size = shown
+	_place_design_rect(_btn_back, SLOT_BACK, scale)
+	_place_design_rect(_btn_help, SLOT_HELP, scale)
+	_place_design_rect(_label_points, SLOT_POINTS, scale)
+	_place_design_rect(_label_unspent, SLOT_UNSPENT, scale)
+	_place_design_rect(_btn_reset, SLOT_RESET, scale)
+	_place_design_rect(_btn_decide, SLOT_DECIDE, scale)
+	for i: int in _CommanderPermitBoost.TRACK_ORDER.size():
+		_place_design_rect(_bonus_labels[i], SLOT_BONUS[i], scale)
+		_place_design_rect(_minus_btns[i], SLOT_MINUS[i], scale)
+		_place_design_rect(_val_labels[i], SLOT_VAL[i], scale)
+		_place_design_rect(_plus_btns[i], SLOT_PLUS[i], scale)
 
 
-func _refresh_labels() -> void:
-	if _points_label != null:
-		_points_label.text = "残り許可点 %d ／ 累計 %d" % [
-			_CommanderPermitBoost.points_unspent(),
-			_CommanderPermitBoost.points_earned(),
-		]
-	if _summary_label != null:
-		_summary_label.text = _CommanderPermitBoost.summary_caption()
+func _place_design_rect(ctrl: Control, design: Rect2, scale: float) -> void:
+	if ctrl == null:
+		return
+	ctrl.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	ctrl.position = design.position * scale
+	ctrl.size = design.size * scale
+
+
+func _draft_allocated() -> int:
+	var total: int = 0
 	for track: String in _CommanderPermitBoost.TRACK_ORDER:
-		var n: int = _CommanderPermitBoost.get_alloc(track)
-		var value_lbl: Label = _value_labels.get(track) as Label
-		if value_lbl != null:
-			value_lbl.text = str(n)
-		var bonus_lbl: Label = _bonus_labels.get(track) as Label
-		if bonus_lbl != null:
-			bonus_lbl.text = _CommanderPermitBoost.track_bonus_caption(track)
+		total += maxi(0, int(_draft.get(track, 0)))
+	return total
 
 
-func _refresh_slider_bounds() -> void:
-	_updating_sliders = true
-	for track: String in _CommanderPermitBoost.TRACK_ORDER:
-		var slider: HSlider = _sliders.get(track) as HSlider
-		if slider == null:
+func _draft_unspent() -> int:
+	return maxi(0, _CommanderPermitBoost.points_earned() - _draft_allocated())
+
+
+func _draft_max_for(track: String) -> int:
+	var others: int = 0
+	for t: String in _CommanderPermitBoost.TRACK_ORDER:
+		if t == track:
 			continue
-		var max_v: int = maxi(1, _CommanderPermitBoost.max_for_track(track))
-		var cur: int = _CommanderPermitBoost.get_alloc(track)
-		slider.max_value = float(max_v)
-		slider.set_value_no_signal(float(cur))
-	_updating_sliders = false
+		others += maxi(0, int(_draft.get(t, 0)))
+	return maxi(0, _CommanderPermitBoost.points_earned() - others)
+
+
+func _draft_get(track: String) -> int:
+	return maxi(0, int(_draft.get(track, 0)))
+
+
+func _draft_set(track: String, value: int) -> void:
+	_draft[track] = clampi(value, 0, _draft_max_for(track))
+
+
+func _draft_bonus_caption(track: String) -> String:
+	var n: int = _draft_get(track)
+	var pct: int = int(round(_CommanderPermitBoost.PERCENT_PER_POINT * 100.0 * float(n)))
+	match track:
+		_CommanderPermitBoost.TRACK_PLUNDER:
+			return "Gold・素材 +%d%%" % pct
+		_CommanderPermitBoost.TRACK_GROWTH:
+			return "経験値 +%d%%" % pct
+		_CommanderPermitBoost.TRACK_POWER:
+			return "HP +%d%% / 防御 +%d" % [pct, _CommanderPermitBoost.DEFENSE_FLAT_PER_POINT * n]
+		_:
+			return ""
+
+
+func _is_draft_dirty() -> bool:
+	for track: String in _CommanderPermitBoost.TRACK_ORDER:
+		if _draft_get(track) != _CommanderPermitBoost.get_alloc(track):
+			return true
+	return false
+
+
+func _refresh_draft_labels() -> void:
+	var earned: int = _CommanderPermitBoost.points_earned()
+	var unspent: int = _draft_unspent()
+	_label_points.text = "残り許可点 %d ／ 累計 %d" % [unspent, earned]
+	_apply_num_style(_label_points, 30)
+	_label_unspent.text = str(unspent)
+	_apply_num_style(_label_unspent, 36)
+	for i: int in _CommanderPermitBoost.TRACK_ORDER.size():
+		var track: String = _CommanderPermitBoost.TRACK_ORDER[i]
+		var n: int = _draft_get(track)
+		_val_labels[i].text = str(n)
+		_apply_num_style(_val_labels[i], 34)
+		_bonus_labels[i].text = _draft_bonus_caption(track)
+		UiTypography.apply_caption(_bonus_labels[i], COLOR_GOLD)
+		_bonus_labels[i].add_theme_color_override("font_color", COLOR_GOLD)
+		_bonus_labels[i].add_theme_constant_override("outline_size", 4)
+		_bonus_labels[i].add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+		_minus_btns[i].disabled = n <= 0
+		_plus_btns[i].disabled = unspent <= 0 or n >= _draft_max_for(track)
+	_btn_decide.disabled = false
+	## 変更なしでも決定で戻れる。未保存変更があるときだけセーブする。
+	_btn_decide.modulate = Color(1.15, 1.05, 0.85, 1.0) if _is_draft_dirty() else Color(1, 1, 1, 0.85)
+
+
+func _apply_num_style(lbl: Label, size_px: int) -> void:
+	var impact: Font = UiTypography.impact_font()
+	if impact != null:
+		lbl.add_theme_font_override("font", impact)
+	lbl.add_theme_font_size_override("font_size", size_px)
+	lbl.add_theme_color_override("font_color", COLOR_NUM)
+	lbl.add_theme_constant_override("outline_size", 5)
+	lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.92))
+
+
+func _on_minus_pressed(track: String) -> void:
+	AudioManager.play_sfx("ui_click")
+	_draft_set(track, _draft_get(track) - 1)
+	_refresh_draft_labels()
+
+
+func _on_plus_pressed(track: String) -> void:
+	AudioManager.play_sfx("ui_click")
+	_draft_set(track, _draft_get(track) + 1)
+	_refresh_draft_labels()
+
+
+func _on_reset_pressed() -> void:
+	AudioManager.play_sfx("ui_click")
+	for track: String in _CommanderPermitBoost.TRACK_ORDER:
+		_draft[track] = 0
+	_refresh_draft_labels()
+
+
+func _on_decide_pressed() -> void:
+	AudioManager.play_sfx("ui_click")
+	if _is_draft_dirty():
+		_CommanderPermitBoost.apply_alloc_dict(_draft)
+		SaveManager.flush_pending_save()
+	get_tree().change_scene_to_file(COMMANDER_SCENE)
+
+
+func _on_help_pressed() -> void:
+	AudioManager.play_sfx("ui_click")
+	_RoomGuide.show_on(self, _RoomGuide.GUIDE_PERMIT, true)
 
 
 func _bounce_locked() -> void:
-	## S級未満で直リンクされた場合はマイページへ戻す。
 	get_tree().change_scene_to_file(COMMANDER_SCENE)
 
 
 func _on_back_pressed() -> void:
 	AudioManager.play_sfx("ui_cancel")
-	SaveManager.flush_pending_save()
+	## 未決定のドラフトは破棄。
 	get_tree().change_scene_to_file(COMMANDER_SCENE)

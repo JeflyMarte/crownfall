@@ -6,6 +6,7 @@ extends RefCounted
 const ROOT: String = "res://assets/ui/commander_ui/"
 
 const BG: String = ROOT + "UI_BG_Commander.png"
+const PERMIT_FRAME: String = ROOT + "UI_Commander_Permit_Frame.jpg"
 const ORNAMENT_DIAMOND: String = ROOT + "UI_Ornament_Diamond.png"
 const ICO_BACK: String = ROOT + "UI_Ico_Back_Gold.png"
 const SECTION_RULE: String = ROOT + "UI_CMD_SectionRule.png"

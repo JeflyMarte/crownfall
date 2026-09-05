@@ -73,6 +73,23 @@ func test_bonus_mults() -> void:
 	assert_eq(_AffixStatCalculator.apply_material_bonus(10), 11)
 
 
+func test_apply_alloc_dict_and_clear() -> void:
+	GameState.commander["permit_points_earned"] = 5
+	_CommanderPermitBoost.ensure()
+	_CommanderPermitBoost.apply_alloc_dict({
+		_CommanderPermitBoost.TRACK_PLUNDER: 2,
+		_CommanderPermitBoost.TRACK_GROWTH: 2,
+		_CommanderPermitBoost.TRACK_POWER: 2,
+	})
+	assert_eq(_CommanderPermitBoost.get_alloc(_CommanderPermitBoost.TRACK_PLUNDER), 2)
+	assert_eq(_CommanderPermitBoost.get_alloc(_CommanderPermitBoost.TRACK_GROWTH), 2)
+	assert_eq(_CommanderPermitBoost.get_alloc(_CommanderPermitBoost.TRACK_POWER), 1)
+	assert_eq(_CommanderPermitBoost.points_unspent(), 0)
+	_CommanderPermitBoost.clear_all_alloc()
+	assert_eq(_CommanderPermitBoost.points_allocated(), 0)
+	assert_eq(_CommanderPermitBoost.points_unspent(), 5)
+
+
 func _fill_enemy_discovery_for_sp(target_sp: int) -> void:
 	var need: int = int(ceili(float(target_sp) / 3.0))
 	GameState.discovery_registry.clear()

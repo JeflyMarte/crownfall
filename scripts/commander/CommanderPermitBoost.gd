@@ -142,6 +142,24 @@ static func set_alloc(track: String, value: int) -> int:
 	return clamped
 
 
+static func clear_all_alloc() -> void:
+	ensure()
+	GameState.commander["permit_alloc"] = _empty_alloc()
+
+
+static func apply_alloc_dict(alloc_in: Dictionary) -> void:
+	## 一括適用（合計が earned を超えないよう先頭トラック優先でクランプ）。
+	ensure()
+	var earned: int = points_earned()
+	var out: Dictionary = _empty_alloc()
+	var left: int = earned
+	for track: String in TRACK_ORDER:
+		var v: int = clampi(int(alloc_in.get(track, 0)), 0, left)
+		out[track] = v
+		left -= v
+	GameState.commander["permit_alloc"] = out
+
+
 static func _clamp_alloc_to_earned() -> void:
 	var earned: int = maxi(0, int(GameState.commander.get("permit_points_earned", 0)))
 	var alloc: Dictionary = GameState.commander["permit_alloc"] as Dictionary
