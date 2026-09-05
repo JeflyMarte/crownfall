@@ -4,7 +4,7 @@
 **Impl:** `P3-BAL-ULTIMATE-ROLE-001`  
 **関連:** `40_UltimateAoeDebuff.md`（BT多重デバフは維持。VG全体ダメは本 Decision で上書き）  
 **追記（2026-08-05）:** `grand_elixir`／`dead_eye` → `79_UltElixirDeadeye.md`  
-**追記（2026-09-05）:** キャラ別必殺は `138_CharacterUniqueUltimates.md`。本表は **職フォールバック／本命寄せ** の役割。表示名・分岐必殺は `137` が正
+**追記（2026-09-05）:** キャラ別必殺は `138_CharacterUniqueUltimates.md`。本表は **職フォールバック／本命寄せ** の役割。表示名・分岐必殺は `138` が正
 
 ---
 
