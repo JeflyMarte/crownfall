@@ -30,6 +30,9 @@ var _tap_label: Label
 var _chr_host: Control
 var _chr: AnimatedSprite2D
 var _rock: TextureRect
+var _rock_glow: TextureRect
+var _rock_glow_tween: Tween
+var _rock_pulse_tween: Tween
 var _session: Dictionary = {}
 var _awaiting_tap: bool = false
 var _attacking: bool = false
@@ -90,7 +93,29 @@ func _build_arena(session: Dictionary) -> void:
 	_rock.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	_rock.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_rock.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(_rock)
+	## 発光は岩の背面に重ねる。
+	var rock_stack := Control.new()
+	rock_stack.custom_minimum_size = Vector2(200, 200)
+	rock_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rock_stack.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(rock_stack)
+	_rock_glow = _BgHelper.create_crystal_glow("CombatRockGlow")
+	_rock_glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_rock_glow.offset_left = -36.0
+	_rock_glow.offset_top = -36.0
+	_rock_glow.offset_right = 36.0
+	_rock_glow.offset_bottom = 36.0
+	rock_stack.add_child(_rock_glow)
+	rock_stack.add_child(_rock)
+	_rock.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_rock_glow_tween = _BgHelper.start_glow_pulse(self, _rock_glow)
+	_rock_pulse_tween = _BgHelper.start_glow_pulse(
+		self,
+		_rock,
+		_BgHelper.ROCK_GLOW_DIM,
+		_BgHelper.ROCK_GLOW_BRIGHT,
+		1.0
+	)
 	if _rock.texture == null:
 		var rock_panel := PanelContainer.new()
 		rock_panel.custom_minimum_size = Vector2(140, 140)
@@ -451,9 +476,23 @@ func _spawn_hit_burst(center_global: Vector2, intensity: float) -> void:
 	ring_tw.tween_callback(host.queue_free)
 
 
+func _stop_rock_glow() -> void:
+	if _rock_glow_tween != null and is_instance_valid(_rock_glow_tween):
+		_rock_glow_tween.kill()
+	_rock_glow_tween = null
+	if _rock_pulse_tween != null and is_instance_valid(_rock_pulse_tween):
+		_rock_pulse_tween.kill()
+	_rock_pulse_tween = null
+	if _rock_glow != null and is_instance_valid(_rock_glow):
+		_rock_glow.visible = false
+	if _rock != null and is_instance_valid(_rock):
+		_rock.modulate = Color.WHITE
+
+
 func _play_rock_shatter(dealt: int = 0) -> void:
 	if _rock == null or not is_instance_valid(_rock):
 		return
+	_stop_rock_glow()
 	var intensity: float = _damage_intensity(dealt)
 	var shard_count: int = int(round(lerpf(float(SHARD_COUNT_MIN), float(SHARD_COUNT_MAX), intensity)))
 	var spark_count: int = int(round(lerpf(float(SPARK_COUNT_MIN), float(SPARK_COUNT_MAX), intensity)))

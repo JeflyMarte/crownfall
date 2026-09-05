@@ -6,6 +6,7 @@ extends Control
 const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const _Excavate := preload("res://scripts/excavate/CrystalExcavateSystem.gd")
 const _UiTokens := preload("res://scripts/excavate/CrystalExcavateUiTokens.gd")
+const _BgHelper := preload("res://scripts/excavate/CrystalExcavateBgHelper.gd")
 
 ## フレーム原寸（assets の Result_Frame = 720×1205）。
 const DESIGN_W: float = 720.0
@@ -19,6 +20,10 @@ const SLOT_RECORD := Rect2(60, 708, 600, 36)
 const SLOT_DMG := Rect2(60, 740, 600, 60)
 const SLOT_RANK := Rect2(48, 855, 624, 95)
 const SLOT_HOME := Rect2(48, 965, 624, 100)
+## 中央の大結晶（発光オーバーレイ）。
+const SLOT_CRYSTAL_GLOW := Rect2(200, 300, 320, 340)
+## 帯内アイコン（小発光）。
+const SLOT_ICON_GLOW := Rect2(95, 590, 120, 100)
 
 const RECORD_DMG_COLOR := Color(1.0, 0.42, 0.28, 1.0)
 const NORMAL_DMG_COLOR := Color(1.0, 0.88, 0.55, 1.0)
@@ -32,12 +37,16 @@ const NORMAL_DMG_COLOR := Color(1.0, 0.88, 0.55, 1.0)
 var _letterbox: ColorRect
 var _frame_host: Control
 var _bg: TextureRect
+var _crystal_glow: TextureRect
+var _icon_glow: TextureRect
 var _btn_back: Button
 var _label_tokens: Label
 var _label_record: Label
 var _label_dmg: Label
 var _btn_rank: Button
 var _btn_home: Button
+var _glow_tween: Tween
+var _icon_glow_tween: Tween
 
 
 func _ready() -> void:
@@ -83,6 +92,19 @@ func _build_frame_overlay() -> void:
 	_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_bg.texture = _UiTokens.result_frame_texture()
 	_frame_host.add_child(_bg)
+
+	_crystal_glow = _BgHelper.create_crystal_glow("ResultCrystalGlow")
+	_frame_host.add_child(_crystal_glow)
+	_icon_glow = _BgHelper.create_crystal_glow("ResultIconGlow")
+	_frame_host.add_child(_icon_glow)
+	_glow_tween = _BgHelper.start_glow_pulse(self, _crystal_glow)
+	_icon_glow_tween = _BgHelper.start_glow_pulse(
+		self,
+		_icon_glow,
+		Color(0.7, 0.45, 1.1, 0.35),
+		Color(1.0, 0.7, 1.4, 0.8),
+		0.75
+	)
 
 	_btn_back = _make_hit_button()
 	_btn_back.pressed.connect(_on_back_pressed)
@@ -147,6 +169,8 @@ func _layout_frame_host() -> void:
 	_frame_host.position = origin
 	_frame_host.size = shown
 	_place_design_rect(_btn_back, SLOT_BACK, scale)
+	_place_design_rect(_crystal_glow, SLOT_CRYSTAL_GLOW, scale)
+	_place_design_rect(_icon_glow, SLOT_ICON_GLOW, scale)
 	_place_design_rect(_label_tokens, SLOT_TOKEN, scale)
 	_place_design_rect(_label_record, SLOT_RECORD, scale)
 	_place_design_rect(_label_dmg, SLOT_DMG, scale)
