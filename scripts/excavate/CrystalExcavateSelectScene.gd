@@ -24,8 +24,8 @@ const DESIGN_H: float = 1231.0
 
 ## デザイン座標（焼込枠の内側）。Downloads 原寸 959×1639 からスケール。
 const SLOT_BACK := Rect2(23, 23, 90, 90)
-const SLOT_TOKEN := Rect2(575, 28, 110, 50)
-const SLOT_HELP := Rect2(600, 192, 48, 48)
+const SLOT_TOKEN := Rect2(575, 12, 110, 50)
+const SLOT_HELP := Rect2(648, 155, 48, 48)
 const SLOT_MEMBER := Rect2(137, 243, 536, 71)
 const SLOT_SKILL := Rect2(137, 342, 536, 72)
 const SLOT_DMG := Rect2(150, 448, 200, 60)
@@ -33,7 +33,7 @@ const SLOT_TOKENS := Rect2(400, 448, 170, 60)
 const SLOT_EXCAVATE := Rect2(60, 552, 600, 64)
 const SLOT_REMAIN := Rect2(36, 188, 280, 36)
 ## フレーム下部の余白にランキング導線。
-const SLOT_RANK := Rect2(200, 640, 320, 52)
+const SLOT_RANK := Rect2(200, 780, 320, 52)
 
 @onready var _header: PanelContainer = $Header
 @onready var _header_row: HBoxContainer = $Header/HeaderRow
