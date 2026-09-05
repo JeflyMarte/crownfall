@@ -16,7 +16,7 @@ const SLOT_HELP := Rect2(110, 28, 72, 72)
 const SLOT_POINTS := Rect2(56, 248, 540, 52)
 const SLOT_UNSPENT := Rect2(360, 1000, 140, 56)
 const SLOT_RESET := Rect2(480, 995, 200, 70)
-const SLOT_DECIDE := Rect2(710, 990, 250, 80)
+const SLOT_DECIDE := Rect2(700, 985, 270, 90)
 
 ## カード0=略奪 / 1=成長 / 2=戦力（TRACK_ORDER と同順）。
 const SLOT_BONUS: Array[Rect2] = [
@@ -177,7 +177,7 @@ func _build_frame_overlay() -> void:
 	_btn_reset.pressed.connect(_on_reset_pressed)
 	_frame_host.add_child(_btn_reset)
 
-	_btn_decide = _make_hit_button()
+	_btn_decide = _make_decide_button()
 	_btn_decide.pressed.connect(_on_decide_pressed)
 	_frame_host.add_child(_btn_decide)
 
@@ -195,6 +195,48 @@ func _make_hit_button() -> Button:
 	btn.add_theme_stylebox_override("disabled", empty)
 	btn.add_theme_stylebox_override("focus", empty)
 	return btn
+
+
+func _make_decide_button() -> Button:
+	## 焼込の決定が背景に溶けるため、不透明な金枠ボタンを上に載せる。
+	var btn := Button.new()
+	btn.text = "決定"
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	UiTypography.apply_button(btn, false)
+	btn.add_theme_font_size_override("font_size", 28)
+	_style_decide_button(btn, false)
+	return btn
+
+
+func _style_decide_button(btn: Button, dirty: bool) -> void:
+	if btn == null:
+		return
+	var fill := Color(0.28, 0.14, 0.42, 0.98) if dirty else Color(0.18, 0.10, 0.28, 0.96)
+	var fill_hover := Color(0.38, 0.20, 0.55, 1.0) if dirty else Color(0.26, 0.15, 0.38, 0.98)
+	var fill_pressed := Color(0.22, 0.10, 0.34, 1.0)
+	var border := Color(0.95, 0.82, 0.42, 1.0) if dirty else Color(0.78, 0.66, 0.36, 0.95)
+	for kind: String in ["normal", "hover", "pressed", "disabled", "focus"]:
+		var sb := StyleBoxFlat.new()
+		match kind:
+			"hover":
+				sb.bg_color = fill_hover
+			"pressed":
+				sb.bg_color = fill_pressed
+			_:
+				sb.bg_color = fill
+		sb.border_color = border
+		sb.set_border_width_all(3 if dirty else 2)
+		sb.set_corner_radius_all(8)
+		sb.content_margin_left = 12.0
+		sb.content_margin_right = 12.0
+		sb.content_margin_top = 8.0
+		sb.content_margin_bottom = 8.0
+		btn.add_theme_stylebox_override(kind, sb)
+	btn.add_theme_color_override("font_color", COLOR_NUM if dirty else COLOR_GOLD)
+	btn.add_theme_color_override("font_hover_color", Color(1.0, 0.95, 0.7, 1.0))
+	btn.add_theme_color_override("font_pressed_color", COLOR_GOLD)
+	btn.modulate = Color.WHITE
 
 
 func _layout_frame_host() -> void:
@@ -300,8 +342,7 @@ func _refresh_draft_labels() -> void:
 		_minus_btns[i].disabled = n <= 0
 		_plus_btns[i].disabled = unspent <= 0 or n >= _draft_max_for(track)
 	_btn_decide.disabled = false
-	## 変更なしでも決定で戻れる。未保存変更があるときだけセーブする。
-	_btn_decide.modulate = Color(1.15, 1.05, 0.85, 1.0) if _is_draft_dirty() else Color(1, 1, 1, 0.85)
+	_style_decide_button(_btn_decide, _is_draft_dirty())
 
 
 func _apply_num_style(lbl: Label, size_px: int) -> void:
