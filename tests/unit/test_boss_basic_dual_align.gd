@@ -153,7 +153,7 @@ func test_boss_atk_scaled_with_serdion_ratio() -> void:
 		"skarpedion": 184,
 		"mycolga_ancient": 193,
 		"karna_smoke": 203,
-		"nereion_depths": 242,
+		"nereion_depths": 246,
 		"forgedormient": 248,
 		"albark": 248,
 	}

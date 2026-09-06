@@ -2,7 +2,7 @@ extends GutTest
 
 ## P3-BAL-BOSS-STATUS-SPEED-001 — 全ボス状態耐性0.55＋速度1.35（特枠あり）。
 
-const _SPEED_15 := ["eldion", "chronos_wave", "valgard"]
+const _SPEED_15 := ["eldion", "chronos_wave", "valgard", "nereion_depths"]
 const _SPEED_145 := ["albark", "forgedormient"]
 const _SPEED_11 := ["serdion"]
 
