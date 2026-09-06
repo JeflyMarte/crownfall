@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "helper_q"
-display_name = "トリム"
+display_name = "ブリキ"
 job_id = "engineer"
 origin_note = "開幕から仕掛けを仕込む、罠職の小太り機械工！！"
 summon_quote = "……先に棘を置いておく。動いたら刺さる。"

@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "helper_r"
-display_name = "ブラン"
+display_name = "バルガント"
 job_id = "engineer"
 origin_note = "長CDの決め技のあと味を残す、装炎のガスマスク工兵！！"
 summon_quote = "……熱は逃がさない。決めたあとも燃え続ける。"
