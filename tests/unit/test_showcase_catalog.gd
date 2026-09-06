@@ -138,6 +138,18 @@ func test_skills_rect_sits_below_stats() -> void:
 	assert_gt(ShowcaseUiTokens.SKILLS_PAD_BOTTOM, 0.0)
 
 
+func test_skill_name_wraps_at_chars_per_line() -> void:
+	assert_eq(ShowcaseUiTokens.SKILL_NAME_CHARS_PER_LINE, 7)
+	var wrapped: String = ShowcaseUiTokens.format_skill_display_name("スネアトラップ")
+	assert_true(wrapped.begins_with("『"))
+	assert_true(wrapped.ends_with("』"))
+	assert_true(wrapped.contains("\n"), "long skill names wrap by char limit")
+	for line in wrapped.split("\n"):
+		assert_lte(line.length(), ShowcaseUiTokens.SKILL_NAME_CHARS_PER_LINE)
+	assert_eq(ShowcaseUiTokens.format_skill_display_name("なし"), "なし")
+	assert_eq(ShowcaseUiTokens.format_skill_display_name("斬"), "『斬』")
+
+
 func test_equip_icon_offsets_include_relic_rightward() -> void:
 	assert_eq(ShowcaseUiTokens.EQUIP_ICON_OFFSETS.size(), 4)
 	assert_gte(ShowcaseUiTokens.EQUIP_ICON_OFFSETS[0].x, 38.0)
@@ -176,8 +188,11 @@ func test_showcase_scene_shows_equipped_skill_card() -> void:
 	assert_ne(name_lbl.text, ShowcaseUiTokens.SKILL_HEADER_TEXT)
 	assert_true(str(name_lbl.text).begins_with("『"), "skill name should use 『』")
 	assert_true(str(name_lbl.text).ends_with("』"), "skill name should use 『』")
-	assert_eq(int(name_lbl.autowrap_mode), int(TextServer.AUTOWRAP_ARBITRARY))
-	assert_false(name_lbl.clip_text)
+	assert_eq(int(name_lbl.autowrap_mode), int(TextServer.AUTOWRAP_OFF))
+	assert_true(name_lbl.clip_text)
+	## 1行文字数上限で折り返す（細幅カードのはみ出し防止）。
+	for line in str(name_lbl.text).split("\n"):
+		assert_lte(str(line).length(), ShowcaseUiTokens.SKILL_NAME_CHARS_PER_LINE)
 	## 効果文は出さない。次はビルド見出し（スタッフ作例）。
 	assert_gte(col.get_child_count(), 3)
 	var build_hdr: Label = col.get_child(2) as Label

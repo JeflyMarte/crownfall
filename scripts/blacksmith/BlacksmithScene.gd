@@ -159,6 +159,15 @@ var _main_split: HBoxContainer = null
 ## 錬成素材チップ／コスト素材チップの長押し（名前表示）。
 const FODDER_LONG_PRESS_SEC: float = 0.45
 const FODDER_PRESS_MOVE_CANCEL_PX: float = 20.0
+## 左一覧カード: 短押しで選択・ドラッグは Scroll へ（仮想リストでも効く）。
+const LEFT_LIST_TAP_CANCEL_PX: float = 28.0
+const _LEFT_LIST_PRESS_TOUCH: int = 1
+const _LEFT_LIST_PRESS_MOUSE: int = 2
+var _left_list_press_down: bool = false
+var _left_list_press_source: int = 0
+var _left_list_press_origin: Vector2 = Vector2.ZERO
+var _left_list_press_travel: float = 0.0
+var _left_list_press_action: Callable = Callable()
 var _fodder_pointer_down: bool = false
 var _fodder_long_press_fired: bool = false
 var _fodder_press_timer: SceneTreeTimer = null
@@ -456,6 +465,76 @@ func _is_primary_press(event: InputEvent) -> bool:
 	if event is InputEventScreenTouch:
 		return (event as InputEventScreenTouch).pressed
 	return false
+
+
+## 左一覧: PASS＋短押し。押し下げ即選択だとドラッグが効きにくい（仮想リスト特に）。
+func _on_left_list_card_gui_input(event: InputEvent, action: Callable) -> void:
+	if _left_list_press_down and _should_cancel_left_list_press_for_move(event):
+		_cancel_left_list_press()
+		return
+	if not _is_left_list_pointer_event(event):
+		return
+	var is_touch: bool = event is InputEventScreenTouch
+	var is_mouse: bool = event is InputEventMouseButton
+	if event.pressed:
+		if _left_list_press_down:
+			return
+		_left_list_press_source = _LEFT_LIST_PRESS_TOUCH if is_touch else _LEFT_LIST_PRESS_MOUSE
+		_left_list_press_origin = _left_list_event_position(event)
+		_left_list_press_travel = 0.0
+		_left_list_press_down = true
+		_left_list_press_action = action
+	else:
+		if not _left_list_press_down:
+			return
+		if _left_list_press_source == _LEFT_LIST_PRESS_TOUCH and is_mouse:
+			return
+		if _left_list_press_source == _LEFT_LIST_PRESS_MOUSE and is_touch:
+			return
+		var pending: Callable = _left_list_press_action
+		_cancel_left_list_press()
+		if pending.is_valid():
+			pending.call()
+	## accept_event しない: ScrollTouch PASS 経由で LeftScroll がドラッグできる。
+
+
+func _is_left_list_pointer_event(event: InputEvent) -> bool:
+	if event is InputEventMouseButton:
+		return (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT
+	if event is InputEventScreenTouch:
+		return true
+	return false
+
+
+func _left_list_event_position(event: InputEvent) -> Vector2:
+	if event is InputEventScreenTouch:
+		return (event as InputEventScreenTouch).position
+	if event is InputEventMouseButton:
+		return (event as InputEventMouseButton).position
+	if event is InputEventScreenDrag:
+		return (event as InputEventScreenDrag).position
+	if event is InputEventMouseMotion:
+		return (event as InputEventMouseMotion).position
+	return Vector2.ZERO
+
+
+func _should_cancel_left_list_press_for_move(event: InputEvent) -> bool:
+	if event is InputEventScreenDrag:
+		_left_list_press_travel += (event as InputEventScreenDrag).relative.length()
+		return _left_list_press_travel >= LEFT_LIST_TAP_CANCEL_PX
+	if event is InputEventMouseMotion:
+		var motion: InputEventMouseMotion = event as InputEventMouseMotion
+		if (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0:
+			return false
+		return _left_list_press_origin.distance_to(motion.position) >= LEFT_LIST_TAP_CANCEL_PX
+	return false
+
+
+func _cancel_left_list_press() -> void:
+	_left_list_press_down = false
+	_left_list_press_source = 0
+	_left_list_press_travel = 0.0
+	_left_list_press_action = Callable()
 
 
 func _setup_craftable_header() -> void:
@@ -1488,6 +1567,7 @@ func _clear_left_list_immediate() -> void:
 
 
 func _rebuild_left_list() -> void:
+	_cancel_left_list_press()
 	_teardown_alchemy_virtual_list()
 	_clear_left_list_immediate()
 	## カテゴリタブ直下に一覧を密着（余白パッド無し）。
@@ -1698,7 +1778,9 @@ func _make_recipe_list_card(craft: Resource) -> PanelContainer:
 	panel.add_theme_stylebox_override(
 		"panel", BlacksmithUiHelper.list_card_style(selected, can_craft, rarity)
 	)
-	panel.gui_input.connect(_on_recipe_card_input.bind(craft))
+	panel.gui_input.connect(_on_left_list_card_gui_input.bind(
+		Callable(self, "_select_recipe_card").bind(craft)
+	))
 	var row: HBoxContainer = panel.get_child(0) as HBoxContainer
 	row.add_child(
 		_make_selectable_list_icon(
@@ -1712,12 +1794,11 @@ func _make_recipe_list_card(craft: Resource) -> PanelContainer:
 	row.add_child(name_lbl)
 	return panel
 
-func _on_recipe_card_input(event: InputEvent, craft: Resource) -> void:
-	if _is_primary_press(event):
-		if craft == _selected_craft:
-			return
-		_selected_craft = craft
-		_refresh_selection()
+func _select_recipe_card(craft: Resource) -> void:
+	if craft == null or craft == _selected_craft:
+		return
+	_selected_craft = craft
+	_refresh_selection()
 
 func _make_enhance_list_card(item: Resource) -> PanelContainer:
 	var selected: bool = item == _selected_enhance_item
@@ -1727,7 +1808,9 @@ func _make_enhance_list_card(item: Resource) -> PanelContainer:
 	var rarity: int = _EquipmentEnhancer.item_rarity(item)
 	var panel := _make_owned_list_card_shell(selected, rarity)
 	_tag_list_card(panel, "enhance", item, rarity)
-	panel.gui_input.connect(_on_enhance_card_input.bind(item))
+	panel.gui_input.connect(_on_left_list_card_gui_input.bind(
+		Callable(self, "_select_enhance_card").bind(item)
+	))
 	var row: HBoxContainer = panel.get_child(0) as HBoxContainer
 	row.add_child(_make_selectable_list_icon(item_id, category, rarity, selected, item))
 	var name_lbl := Label.new()
@@ -1740,6 +1823,13 @@ func _make_enhance_list_card(item: Resource) -> PanelContainer:
 	row.add_child(name_lbl)
 	return panel
 
+func _select_enhance_card(item: Resource) -> void:
+	if item == null or item == _selected_enhance_item:
+		return
+	_selected_enhance_item = item
+	_selected_reforge_mod_index = -1
+	_refresh_selection()
+
 func _make_dismantle_list_card(item: Resource) -> PanelContainer:
 	var selected: bool = item == _selected_dismantle_item
 	var category: String = _category
@@ -1747,7 +1837,9 @@ func _make_dismantle_list_card(item: Resource) -> PanelContainer:
 	var rarity: int = _EquipmentEnhancer.item_rarity(item)
 	var panel := _make_owned_list_card_shell(selected, rarity)
 	_tag_list_card(panel, "dismantle", item, rarity)
-	panel.gui_input.connect(_on_dismantle_card_input.bind(item))
+	panel.gui_input.connect(_on_left_list_card_gui_input.bind(
+		Callable(self, "_select_dismantle_card").bind(item)
+	))
 	var row: HBoxContainer = panel.get_child(0) as HBoxContainer
 	row.add_child(_make_selectable_list_icon(item_id, category, rarity, selected, item))
 	var name_lbl := Label.new()
@@ -1756,6 +1848,12 @@ func _make_dismantle_list_card(item: Resource) -> PanelContainer:
 	_apply_list_name_label(name_lbl, BlacksmithUiHelper.rarity_name_color(rarity))
 	row.add_child(name_lbl)
 	return panel
+
+func _select_dismantle_card(item: Resource) -> void:
+	if item == null or item == _selected_dismantle_item:
+		return
+	_selected_dismantle_item = item
+	_refresh_selection()
 
 func _item_id_for_category(item: Resource, category: String) -> String:
 	match category:
@@ -1802,30 +1900,19 @@ func _apply_list_name_label(lbl: Label, color: Color) -> void:
 		font_size = 16
 	UiTypography.apply_body(lbl, font_size, color)
 
-func _on_enhance_card_input(event: InputEvent, item: Resource) -> void:
-	if _is_primary_press(event):
-		if item == _selected_enhance_item:
-			return
-		_selected_enhance_item = item
-		_selected_reforge_mod_index = -1
-		_refresh_selection()
-
-func _on_dismantle_card_input(event: InputEvent, item: Resource) -> void:
-	if _is_primary_press(event):
-		if item == _selected_dismantle_item:
-			return
-		_selected_dismantle_item = item
-		_refresh_selection()
-
-
 func _make_alchemy_base_card(item: Resource) -> PanelContainer:
 	var selected: bool = item == _selected_alchemy_base
 	var category: String = _category
 	var item_id: String = _item_id_for_category(item, category)
 	var rarity: int = _EquipmentEnhancer.item_rarity(item)
 	var panel := _make_owned_list_card_shell(selected, rarity)
+	## 仮想ホストは絶対配置。EXPAND は幅取り合いでドラッグが鈍くなる。
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_tag_list_card(panel, "alchemy", item, rarity)
-	panel.gui_input.connect(_on_alchemy_base_card_input.bind(item))
+	panel.gui_input.connect(_on_left_list_card_gui_input.bind(
+		Callable(self, "_select_alchemy_base_card").bind(item)
+	))
 	var row: HBoxContainer = panel.get_child(0) as HBoxContainer
 	row.add_child(_make_selectable_list_icon(item_id, category, rarity, selected, item))
 	var name_lbl := Label.new()
@@ -1836,14 +1923,12 @@ func _make_alchemy_base_card(item: Resource) -> PanelContainer:
 	return panel
 
 
-func _on_alchemy_base_card_input(event: InputEvent, item: Resource) -> void:
-	if _is_primary_press(event):
-		if item == _selected_alchemy_base:
-			return
-		if _selected_alchemy_base != item:
-			_selected_alchemy_fodder = null
-		_selected_alchemy_base = item
-		_refresh_selection()
+func _select_alchemy_base_card(item: Resource) -> void:
+	if item == null or item == _selected_alchemy_base:
+		return
+	_selected_alchemy_fodder = null
+	_selected_alchemy_base = item
+	_refresh_selection()
 
 
 func _rebuild_detail() -> void:
