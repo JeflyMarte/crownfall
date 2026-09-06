@@ -8186,3 +8186,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-APEX-BOSS-001-3 | クロノス＝アルバーク超え維持（`13`） | 役割梯子 |
 | P3-DG-APEX-BOSS-001-4 | SSOT — `132_ApexAlbarkBoss.md` | Decision 本体 |
 
+## 天望の塔・専用戦闘BG（2026-09-06 — P3-DG-APEX-NR-BG-001）
+
+> **オーナー GO**（案A・開けたステージ）。境界廊流用解除。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-APEX-NR-BG-001-1 | 案A — 塔内→空。Early/Late/Boss 3枚 | バナー同系統 |
+| P3-DG-APEX-NR-BG-001-2 | 帯 — F1–14／F15–19／Boss部屋。床は開けた戦闘面 | 星炉同型＋配置用 |
+| P3-DG-APEX-NR-BG-001-3 | SSOT — `138_ApexNorthReachBattleBg.md` | Decision 本体 |
+| P3-DG-APEX-NR-BG-001-4 | Impl — `north_reach/env` 3枚＋`BATTLE_BG_BOSS_MAP`＋征討フロア帯 | 2026-09-06 |
+
