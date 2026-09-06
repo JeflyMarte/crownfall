@@ -165,6 +165,7 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 - リスト名は `clip_text`＋ellipsis＋`EXPAND_FILL`（`_apply_list_name_label`）
 - `LeftScroll` は横 `SHOW_NEVER`＋`clip_contents`（`DISABLED` 禁止）。カードも `clip_contents`
 - **下帯オミット時は BodyScroll 縦スクロールを切る**（外枠がドラッグを奪い、錬成リストが Lv3 付近で止まる）。左一覧は `LeftList.clip_contents=false`＋`SHRINK_BEGIN`
+- **下帯オミット時は MainSplit を BodyScroll から外して直置き**（アンカーで高さ拘束）。配下のままだと長い錬成一覧で LeftScroll が死ぬ
 - ヒーローはスタック内に収まるサイズ＋`clip_contents`
 - 生産／強化／錬成／分解のリストは同じ `_make_selectable_list_icon` を使う
 - カテゴリ Chip の TextureRect は縦横とも `SIZE_SHRINK_CENTER`＋固定 px（~40）

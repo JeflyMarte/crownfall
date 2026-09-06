@@ -47,6 +47,12 @@ func test_alchemy_left_list_scroll_reaches_low_level_items() -> void:
 			ScrollContainer.SCROLL_MODE_DISABLED,
 			"BodyScroll must be disabled while craftable strip is hidden"
 		)
+		assert_eq(body_scroll.visible, false, "BodyScroll should be hidden while strip omitted")
+
+	var main_split: HBoxContainer = scene.find_child("MainSplit", true, false) as HBoxContainer
+	assert_not_null(main_split)
+	## 下帯なし時は MainSplit を BodyScroll から外し、高さ拘束で LeftScroll を生かす。
+	assert_eq(main_split.get_parent(), scene, "MainSplit must be direct child when strip omitted")
 
 	var list_min_h: float = left_list.get_combined_minimum_size().y
 	assert_gt(list_min_h, left_scroll.size.y, "list content should exceed LeftScroll viewport")
