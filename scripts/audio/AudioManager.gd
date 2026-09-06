@@ -63,6 +63,9 @@ func play_bgm(bgm_id: String, path: String = "") -> void:
 	var stream: AudioStream = _load_bgm_stream(bgm_id, path)
 	if stream == null or _bgm_player == null:
 		return
+	## 再生中の stream 差し替えは iOS で resampler UAF になり得るため一旦 stop。
+	if _bgm_player.playing:
+		_bgm_player.stop()
 	_bgm_player.stream = stream
 	_current_bgm_id = bgm_id
 	_bgm_player.play()

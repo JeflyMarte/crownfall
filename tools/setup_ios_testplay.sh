@@ -167,7 +167,9 @@ EOF
 }
 
 ## iOS 向け: docs/devlog 等を同梱すると PCK が数GBになり Godot ロゴで固まる。
-IOS_EXPORT_EXCLUDE='build/*,.cursor/*,docs/*,wiki/*,tests/*,tools/*,addons/gut/*,addons/agent_tools/*,**/*.import-*,**/*_prev.png,**/*_backup.png'
+## agent_tools / godot_ai は編集用 MCP。autoload 依存で exclude だけでは残ることがあり、
+## 実機で res:// ポーリングや Logger が起動ハング／watchdog（0x8BADF00D）の原因になる。
+IOS_EXPORT_EXCLUDE='build/*,.cursor/*,docs/*,wiki/*,tests/*,tools/*,addons/gut/*,addons/agent_tools/*,addons/godot_ai/*,**/*.import-*,**/*_prev.png,**/*_backup.png'
 
 ensure_ios_export_excludes() {
     local cfg="$ROOT/export_presets.cfg"
@@ -176,7 +178,51 @@ ensure_ios_export_excludes() {
     fi
     ## export_presets.cfg は gitignore のため、毎回除外を強制する。
     perl -i -pe "s#^exclude_filter=\".*\"#exclude_filter=\"$IOS_EXPORT_EXCLUDE\"#" "$cfg"
-    green "OK: iOS exclude_filter を適用（docs/wiki/tests 等を除外）"
+    green "OK: iOS exclude_filter を適用（docs/wiki/tests/MCP addons 等を除外）"
+}
+
+## export 中だけ MCP 開発用 autoload／addon を外す（終了時に必ず復元）。
+PROJECT_GODOT_BAK=""
+MCP_ADDONS_STASH=""
+strip_mcp_autoloads_for_ios_export() {
+    local proj="$ROOT/project.godot"
+    PROJECT_GODOT_BAK="$(mktemp "${TMPDIR:-/tmp}/crownfall_project.godot.XXXXXX")"
+    cp "$proj" "$PROJECT_GODOT_BAK"
+    perl -i -ne 'print unless /^_MCPGameBridge=/ || /^_mcp_game_helper=/' "$proj"
+    ## editor_plugins からも外す（依存解決で同梱されるのを防ぐ）
+    perl -i -pe 's#,"res://addons/agent_tools/plugin\.cfg"##g; s#"res://addons/agent_tools/plugin\.cfg",?##g; s#,"res://addons/godot_ai/plugin\.cfg"##g; s#"res://addons/godot_ai/plugin\.cfg",?##g' "$proj"
+    if rg -q '^_MCPGameBridge=|^_mcp_game_helper=' "$proj"; then
+        red "ERROR: MCP autoload の一時除去に失敗"
+        restore_project_godot_after_ios_export
+        return 1
+    fi
+    ## exclude_filter だけでは残る実測あり → ディレクトリごと一時退避
+    MCP_ADDONS_STASH="$(mktemp -d "${TMPDIR:-/tmp}/crownfall_mcp_addons.XXXXXX")"
+    for d in agent_tools godot_ai; do
+        if [[ -d "$ROOT/addons/$d" ]]; then
+            mv "$ROOT/addons/$d" "$MCP_ADDONS_STASH/$d"
+        fi
+    done
+    green "OK: iOS export 用に MCP autoload／addon を一時除去"
+}
+
+restore_project_godot_after_ios_export() {
+    if [[ -n "${MCP_ADDONS_STASH}" && -d "${MCP_ADDONS_STASH}" ]]; then
+        for d in agent_tools godot_ai; do
+            if [[ -d "$MCP_ADDONS_STASH/$d" ]]; then
+                rm -rf "$ROOT/addons/$d"
+                mv "$MCP_ADDONS_STASH/$d" "$ROOT/addons/$d"
+            fi
+        done
+        rm -rf "${MCP_ADDONS_STASH}"
+        MCP_ADDONS_STASH=""
+    fi
+    if [[ -n "${PROJECT_GODOT_BAK}" && -f "${PROJECT_GODOT_BAK}" ]]; then
+        cp "${PROJECT_GODOT_BAK}" "$ROOT/project.godot"
+        rm -f "${PROJECT_GODOT_BAK}"
+        PROJECT_GODOT_BAK=""
+        green "OK: project.godot / MCP addons を復元"
+    fi
 }
 
 sync_ios_version_from_project() {
@@ -286,7 +332,15 @@ export_ios_project() {
     if [[ "$mode" == "release" ]]; then
         export_flag="--export-release"
     fi
-    "$GODOT_BIN" --path "$ROOT" --headless "$export_flag" "iOS" "$ROOT/build/ios/Crownfall.xcodeproj"
+    strip_mcp_autoloads_for_ios_export || return 1
+    trap restore_project_godot_after_ios_export EXIT
+    if ! "$GODOT_BIN" --path "$ROOT" --headless "$export_flag" "iOS" "$ROOT/build/ios/Crownfall.xcodeproj"; then
+        restore_project_godot_after_ios_export
+        trap - EXIT
+        return 1
+    fi
+    restore_project_godot_after_ios_export
+    trap - EXIT
     ## Automatic signing と衝突する手動 identity / 空プロファイル指定を除去する。
     fix_ios_automatic_signing
     ## App Store Languages が EN 固定にならないよう ja localization を適用する。
@@ -300,6 +354,11 @@ export_ios_project() {
             yellow "WARN: PCK が ${mb}MB と大きい。docs 等が混入していないか exclude_filter を確認。"
         else
             green "OK: PCK ${mb}MB（目安 <1500MB）"
+        fi
+        if rg -a -q 'res://addons/godot_ai/runtime/game_helper\.gd|res://addons/agent_tools/runtime/game_bridge\.gd' "$pck"; then
+            yellow "WARN: PCK に MCP runtime が残存。autoload 依存の強制同梱を確認。"
+        else
+            green "OK: PCK に MCP runtime autoload なし"
         fi
     fi
     green "Exported: $ROOT/build/ios/Crownfall.xcodeproj (${mode})"

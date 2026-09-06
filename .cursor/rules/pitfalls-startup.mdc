@@ -19,6 +19,7 @@ alwaysApply: true
 | `.tscn` で親 vanish | `.tscn` コメントは `;` のみ。`##` 禁止 |
 | `.tres` で後続プロパティが無視される | リソース本体に `##` を入れるとパースが壊れ既定値のまま | `.tres` もコメントは `;` のみ（例: `spawn_weight_mult` が 1.0 のまま） |
 | Boot 黒画面・`inherits from Control, can't assign to Node` | スクリプト `extends` とシーンルート型を一致。Boot は `Node` |
+| iPhone 起動ロゴ固まり／0x8BADF00D | MCP autoload 実機同梱禁止。`setup_ios_testplay.sh --export`（exclude＋autoload 一時除去）。PCK に game_helper/bridge 無し確認 |
 | autoload 失敗／壊れた UID | 実在パスのみ。空 autoload・不正 `uid://` 禁止。headless 起動確認 |
 | GUT が DungeonScene の invalid UID を Unexpected Errors で落とす | `*.uid` は gitignore。`DungeonScene.tscn` の Script `ext_resource` は **path のみ**（固定 `uid://` 禁止）。CI で `test_serdion_boss_pressure` 確認 |
 | `custom_maximum_size` で即終了 | Godot 4.6.3 未実装。`custom_minimum_size`＋`SIZE_SHRINK_*`（`gdscript.mdc`） |
