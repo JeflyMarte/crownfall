@@ -16,8 +16,9 @@ const MODE_ROW := Rect2(78, 152, 564, 72)
 const EQUIP_RECT := Rect2(70, 175, 168, 730)
 const STATS_RECT := Rect2(482, 175, 168, 460)
 ## ステータス焼込枠の直下。スキル名＋ビルド説明（効果文なし）。
-## 下端は戦力枠直前。ステと重ならないよう y≥636。
+## 下端は戦力枠直前。ステと重ならないよう y≥636。高さは内容フィット（この値が上限）。
 const SKILLS_RECT := Rect2(400, 636, 250, 278)
+const SKILLS_PAD_BOTTOM: float = 8.0
 const IDLE_CENTER := Vector2(360, 688)
 const IDLE_HOST_SIZE := Vector2(260, 320)
 ## 名前テキストのみ（枠なし）。焼込名札内の下寄り。

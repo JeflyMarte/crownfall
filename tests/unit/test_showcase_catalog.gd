@@ -128,11 +128,12 @@ func test_staff_list_button_matches_change_member_rect() -> void:
 func test_skills_rect_sits_below_stats() -> void:
 	var stats: Rect2 = ShowcaseUiTokens.STATS_RECT
 	var skills: Rect2 = ShowcaseUiTokens.SKILLS_RECT
-	## スキル箱はステ下・やや左。効果全文用に十分な高さ。
+	## スキル箱はステ下・やや左。高さ上限はビルド説明用。実パネルは内容フィットで縮む。
 	assert_lt(skills.position.x, stats.position.x)
 	assert_gte(skills.size.y, 200.0)
 	assert_gt(skills.position.y, stats.position.y + stats.size.y - 1.0)
 	assert_lt(skills.position.y + skills.size.y, ShowcaseUiTokens.POWER_RECT.position.y)
+	assert_gt(ShowcaseUiTokens.SKILLS_PAD_BOTTOM, 0.0)
 
 
 func test_equip_icon_offsets_include_relic_rightward() -> void:
@@ -154,7 +155,9 @@ func test_showcase_scene_shows_equipped_skill_card() -> void:
 	assert_true(skills_panel.visible)
 	var skills_r: Rect2 = ShowcaseUiTokens.SKILLS_RECT
 	assert_eq(skills_panel.position, skills_r.position)
-	assert_eq(skills_panel.size, skills_r.size)
+	assert_eq(skills_panel.size.x, skills_r.size.x)
+	assert_lte(skills_panel.size.y, skills_r.size.y)
+	assert_gte(skills_panel.size.y, 80.0)
 	var col: Control = scene.get("_skills_col") as Control
 	assert_not_null(col)
 	assert_gte(col.get_child_count(), 2)
@@ -167,6 +170,8 @@ func test_showcase_scene_shows_equipped_skill_card() -> void:
 	assert_ne(name_lbl.text, ShowcaseUiTokens.SKILL_HEADER_TEXT)
 	assert_true(str(name_lbl.text).begins_with("『"), "skill name should use 『』")
 	assert_true(str(name_lbl.text).ends_with("』"), "skill name should use 『』")
+	assert_eq(int(name_lbl.autowrap_mode), int(TextServer.AUTOWRAP_ARBITRARY))
+	assert_false(name_lbl.clip_text)
 	## 効果文は出さない。次はビルド見出し（スタッフ作例）。
 	assert_gte(col.get_child_count(), 3)
 	var build_hdr: Label = col.get_child(2) as Label
@@ -184,6 +189,27 @@ func test_showcase_scene_shows_equipped_skill_card() -> void:
 	var footer: Label = scene.get("_footer_name") as Label
 	assert_not_null(footer)
 	assert_eq(footer.text, "アルド(出血主砲ビルド)")
+
+
+func test_own_skills_panel_compacts_without_build_blurb() -> void:
+	## ビルド説明なしは見出し＋スキル名ぶんだけ。固定の高い空箱にしない。
+	var packed: PackedScene = load("res://scenes/showcase/ShowcaseScene.tscn")
+	assert_not_null(packed)
+	var scene: Node = packed.instantiate()
+	add_child_autofree(scene)
+	await get_tree().process_frame
+	scene.call("_populate_equipped_skill_names", null, "")
+	await get_tree().process_frame
+	var skills_panel: PanelContainer = scene.get("_skills_panel") as PanelContainer
+	assert_not_null(skills_panel)
+	var skills_r: Rect2 = ShowcaseUiTokens.SKILLS_RECT
+	assert_eq(skills_panel.position, skills_r.position)
+	assert_eq(skills_panel.size.x, skills_r.size.x)
+	assert_lt(skills_panel.size.y, 120.0)
+	assert_gte(skills_panel.size.y, 48.0)
+	var col: Control = scene.get("_skills_col") as Control
+	assert_not_null(col)
+	assert_eq(col.get_child_count(), 2)
 
 
 func test_showcase_scene_has_staff_list_button() -> void:

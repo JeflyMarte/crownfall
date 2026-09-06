@@ -191,13 +191,8 @@ func _apply_layout_rects() -> void:
 	_stats_panel.size = stats.size
 
 	if _skills_panel != null:
-		var skills_r: Rect2 = ShowcaseUiTokensScript.SKILLS_RECT
-		_skills_panel.position = skills_r.position
-		_skills_panel.size = skills_r.size
-		_skills_panel.custom_minimum_size = skills_r.size
-		if _skills_col != null:
-			_skills_col.position = Vector2.ZERO
-			_skills_col.size = skills_r.size
+		## 高さは `_fit_skills_panel_to_content` が内容に合わせる。ここでは位置と幅のみ。
+		_apply_skills_panel_frame(_skills_panel.size.y if _skills_panel.size.y > 1.0 else -1.0)
 
 	var idle_size: Vector2 = ShowcaseUiTokensScript.IDLE_HOST_SIZE
 	var idle_center: Vector2 = ShowcaseUiTokensScript.IDLE_CENTER
@@ -347,7 +342,7 @@ func _ensure_skills_panel() -> void:
 	_skills_panel.z_index = 5
 	_skills_panel.visible = false
 	_skills_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	## ビルド説明をパネル端で切らない（高さは SKILLS_RECT で戦力枠直前まで確保）。
+	## ビルド説明をパネル端で切らない（高さは内容フィット。上限は SKILLS_RECT）。
 	_skills_panel.clip_contents = false
 	_skills_panel.add_theme_stylebox_override("panel", ShowcaseUiTokensScript.skill_card_style())
 	_skills_col = Control.new()
@@ -357,6 +352,27 @@ func _ensure_skills_panel() -> void:
 	_skills_col.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_skills_panel.add_child(_skills_col)
 	add_child(_skills_panel)
+	_apply_skills_panel_frame(-1.0)
+
+
+## height<0 なら SKILLS_RECT 上限高さ。幅・位置は常にトークン準拠。
+func _apply_skills_panel_frame(height: float) -> void:
+	if _skills_panel == null:
+		return
+	var skills_r: Rect2 = ShowcaseUiTokensScript.SKILLS_RECT
+	var h: float = skills_r.size.y if height < 0.0 else clampf(height, 40.0, skills_r.size.y)
+	_skills_panel.position = skills_r.position
+	_skills_panel.size = Vector2(skills_r.size.x, h)
+	_skills_panel.custom_minimum_size = Vector2(skills_r.size.x, h)
+	if _skills_col != null:
+		_skills_col.position = Vector2.ZERO
+		_skills_col.size = Vector2(skills_r.size.x, h)
+
+
+func _fit_skills_panel_to_content(content_bottom_y: float) -> void:
+	_apply_skills_panel_frame(
+		content_bottom_y + ShowcaseUiTokensScript.SKILLS_PAD_BOTTOM
+	)
 
 
 func _populate_equipped_skill_names(member: Resource, build_blurb: String = "") -> void:
@@ -365,6 +381,10 @@ func _populate_equipped_skill_names(member: Resource, build_blurb: String = "") 
 		return
 	for child in _skills_col.get_children():
 		child.queue_free()
+	var has_blurb: bool = not build_blurb.strip_edges().is_empty()
+	## ビルド文の折り返し計測用にいったん上限高さへ。スキルのみなら後で縮める。
+	_apply_skills_panel_frame(-1.0 if has_blurb else 72.0)
+
 	var header := Label.new()
 	header.text = ShowcaseUiTokensScript.SKILL_HEADER_TEXT
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -390,24 +410,25 @@ func _populate_equipped_skill_names(member: Resource, build_blurb: String = "") 
 	var name_h: float = ShowcaseUiTokensScript.SKILL_ROW_H
 	var pad_x: float = ShowcaseUiTokensScript.SKILL_PAD_X
 	var value_w: float = maxf(24.0, _skills_panel.size.x - pad_x * 2.0)
-	var has_blurb: bool = not build_blurb.strip_edges().is_empty()
 	for i in range(names.size()):
 		var nm: String = names[i]
 		var name_lbl := Label.new()
 		name_lbl.text = nm if nm == "なし" else "『%s』" % nm
 		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		name_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
-		name_lbl.clip_text = true
-		name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		## 長いスキル名は折り返し。ellipsis で途中切れにしない。
+		name_lbl.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+		name_lbl.clip_text = false
 		name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		name_lbl.custom_minimum_size = Vector2(value_w, 0)
 		name_lbl.position = Vector2(pad_x, y)
-		name_lbl.size = Vector2(value_w, name_h)
 		UiTypography.apply_body(
 			name_lbl, ShowcaseUiTokensScript.SKILL_NAME_FONT_SIZE, COLOR_GOLD
 		)
 		_skills_col.add_child(name_lbl)
-		y += name_h
+		var row_h: float = maxf(name_h, name_lbl.get_minimum_size().y + 2.0)
+		name_lbl.size = Vector2(value_w, row_h)
+		y += row_h
 		if i < names.size() - 1:
 			y += ShowcaseUiTokensScript.SKILL_ENTRY_GAP
 
@@ -442,6 +463,9 @@ func _populate_equipped_skill_names(member: Resource, build_blurb: String = "") 
 		var blurb_h: float = minf(needed_h, minf(ShowcaseUiTokensScript.BUILD_BLURB_MAX_H, room))
 		blurb_lbl.clip_text = needed_h > blurb_h + 1.0
 		blurb_lbl.size = Vector2(value_w, blurb_h)
+		y += blurb_h
+
+	_fit_skills_panel_to_content(y)
 
 func _ensure_change_member_button() -> void:
 	if _btn_change_member != null:
