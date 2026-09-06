@@ -3933,7 +3933,8 @@ func _make_tactics_list_row(
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	body.size_flags_stretch_ratio = 1.0
 	body.custom_minimum_size.x = 0
-	body.clip_contents = true
+	## 説明は折り返し表示。clip すると攻撃特化などが途中で切れる。
+	body.clip_contents = false
 	body.mouse_filter = Control.MOUSE_FILTER_STOP
 	body.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	body.tooltip_text = summary
@@ -3954,7 +3955,7 @@ func _make_tactics_list_row(
 	name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiTypography.apply_body(name_lbl, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	body_col.add_child(name_lbl)
-	body_col.add_child(_make_skill_desc_label(summary if not summary.is_empty() else "—", true))
+	body_col.add_child(_make_tactics_desc_label(summary if not summary.is_empty() else "—"))
 	row.add_child(body)
 	var set_btn := Button.new()
 	set_btn.text = "設定中" if is_selected else "設定"
@@ -3974,6 +3975,21 @@ func _make_tactics_list_row(
 	frame.add_theme_stylebox_override("panel", _skill_row_frame_style(is_selected))
 	frame.add_child(row)
 	return frame
+
+
+func _make_tactics_desc_label(text: String) -> Label:
+	## スキル行の1行省略と違い、方針説明は全文見えるよう折り返す。
+	var desc_lbl := Label.new()
+	desc_lbl.text = text
+	desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	desc_lbl.custom_minimum_size.x = 0
+	desc_lbl.clip_text = false
+	desc_lbl.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc_lbl.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	desc_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_body(desc_lbl, UiTypography.SIZE_CAPTION, COLOR_VALUE)
+	return desc_lbl
 
 
 func _tactics_row_icon(display_name: String) -> Control:

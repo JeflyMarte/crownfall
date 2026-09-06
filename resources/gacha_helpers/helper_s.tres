@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "helper_s"
-display_name = "オルソ"
+display_name = "アンヴィ"
 job_id = "engineer"
 origin_note = "継ぎ目を穿つ破砕職。作業着の少女と大金槌！！"
 summon_quote = "……継ぎ目、見つけた。ここを割る。"

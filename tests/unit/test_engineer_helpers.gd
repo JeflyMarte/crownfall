@@ -18,7 +18,9 @@ func test_gacha_pool_includes_engineer_helpers_phase2() -> void:
 func test_engineer_helper_tres_wired() -> void:
 	var trim: Resource = DataRegistry.get_gacha_helper_data("helper_q")
 	assert_not_null(trim)
-	assert_eq(str(trim.display_name), "トリム")
+	assert_eq(str(trim.display_name), "ブリキ")
+	assert_eq(str(DataRegistry.get_gacha_helper_data("helper_r").display_name), "バルガント")
+	assert_eq(str(DataRegistry.get_gacha_helper_data("helper_s").display_name), "アンヴィ")
 	assert_eq(str(trim.job_id), "engineer")
 	assert_eq(int(trim.rarity), 3)
 	assert_eq(str(trim.passive_id), "eng_trap_opener")
