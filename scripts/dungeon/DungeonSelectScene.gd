@@ -958,11 +958,7 @@ func _dungeon_list_line_bbcode(data: Resource, unlocked: bool) -> String:
 	var name: String = _dungeon_display_name(data, unlocked)
 	if not unlocked:
 		return "[color=#c9c4b8][b]%s[/b][/color]  [color=#e0dcd0]未開[/color]" % name
-	var clear_bb: String = ""
-	if str(data.route_type) != "abyss":
-		var badge: String = _dungeon_name_badge_text(str(data.id))
-		if not badge.is_empty():
-			clear_bb = " [color=#%s][b]%s[/b][/color]" % [COLOR_CLEAR_BADGE_HEX, badge]
+	## CLEAR は右端 Label／リボン側。BBCode タイトルには埋め込まない。
 	var name_bb: String = name
 	if _is_event_dungeon(data):
 		name_bb = _EventDungeonTitleHelper.title_bbcode(str(data.id), name, true)
@@ -975,8 +971,8 @@ func _dungeon_list_line_bbcode(data: Resource, unlocked: bool) -> String:
 			% [COLOR_ABYSS_BEST_HEX, _abyss_best_floor_value(str(data.id))]
 		)
 		return (
-			"%s%s  [color=#e0dcd0]？？F  推奨レベル？？[/color]  %s"
-			% [name_bb, clear_bb, best_bb]
+			"%s  [color=#e0dcd0]？？F  推奨レベル？？[/color]  %s"
+			% [name_bb, best_bb]
 		)
 	var parts: Array[String] = []
 	if int(data.floor_count) > 0:
@@ -988,8 +984,8 @@ func _dungeon_list_line_bbcode(data: Resource, unlocked: bool) -> String:
 		parts.append("推奨Lv%d〜" % rec_lv)
 	var meta: String = "  ".join(parts)
 	if meta.is_empty():
-		return "%s%s" % [name_bb, clear_bb]
-	return "%s%s  [color=#e0dcd0]%s[/color]" % [name_bb, clear_bb, meta]
+		return name_bb
+	return "%s  [color=#e0dcd0]%s[/color]" % [name_bb, meta]
 
 func _is_stage_cleared_for_ui(stage_id: String) -> bool:
 	if stage_id.is_empty():
@@ -1720,7 +1716,7 @@ func _make_event_free_tier_enter_card(dungeon_id: String) -> Control:
 	if not open_now:
 		status_text = "？"
 	elif cleared:
-		status_text = "CLEAR"
+		status_text = BADGE_CLEAR
 	if not status_text.is_empty():
 		var status_col := VBoxContainer.new()
 		status_col.size_flags_horizontal = Control.SIZE_SHRINK_END
@@ -1792,18 +1788,66 @@ func _make_biome_title_label(data: Resource, unlocked: bool) -> Control:
 	row.add_theme_constant_override("separation", 8)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_add_dungeon_title_labels(row, data, unlocked, UiTypography.SIZE_BODY_SMALL, false)
+	## CLEAR はメインステージ行と同じく右寄せ（タイトル直後に付けない）。
 	if unlocked and data != null:
 		var badge: String = _dungeon_name_badge_text(str(data.id))
 		if not badge.is_empty():
-			var clear_lbl := Label.new()
-			clear_lbl.text = badge
-			UiTypography.apply_display(clear_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR_BADGE)
-			row.add_child(clear_lbl)
+			var spacer := Control.new()
+			spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			row.add_child(spacer)
+			row.add_child(_make_row_clear_badge_label(badge, false))
 	margin.add_child(row)
 	return margin
 
+## 一覧行・バナー右端で共有する CLEAR／挑戦済みバッジ。
+## メインステージ行と同じ caption＋右寄せを既定にし、バナー上のみ影付き display。
+func _make_row_clear_badge_label(badge: String, on_banner: bool) -> Label:
+	var clear_lbl := Label.new()
+	clear_lbl.text = badge
+	clear_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	clear_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	clear_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if on_banner:
+		UiTypography.apply_display(clear_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR_BADGE)
+		_apply_banner_title_shadow(clear_lbl)
+	else:
+		UiTypography.apply_caption(clear_lbl, COLOR_CLEAR_BADGE)
+	return clear_lbl
+
+
+## バナー右端に CLEAR（アビスは最高到達）。タイトル中央群とは分離。
+func _add_banner_right_status_badge(
+	root: Control, data: Resource, unlocked: bool, dungeon_id: String
+) -> void:
+	if not unlocked or data == null or root == null:
+		return
+	var badge_text: String = ""
+	var badge_color: Color = COLOR_CLEAR_BADGE
+	if str(data.route_type) == "abyss":
+		badge_text = _abyss_best_floor_text(dungeon_id)
+		badge_color = COLOR_ABYSS_BEST
+	else:
+		badge_text = _dungeon_name_badge_text(dungeon_id)
+	if badge_text.is_empty():
+		return
+	var clear_lbl := Label.new()
+	clear_lbl.text = badge_text
+	clear_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	clear_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	clear_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiTypography.apply_display(clear_lbl, UiTypography.SIZE_BODY_SMALL, badge_color)
+	_apply_banner_title_shadow(clear_lbl)
+	clear_lbl.set_anchors_and_offsets_preset(Control.PRESET_CENTER_RIGHT, Control.PRESET_MODE_MINSIZE)
+	clear_lbl.offset_right = -10.0
+	clear_lbl.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	clear_lbl.grow_vertical = Control.GROW_DIRECTION_BOTH
+	root.add_child(clear_lbl)
+
+
 ## バナー名は FULL_RECT 埋め込み禁止（実機でグリフが横方向に潰れて見える）。
 ## 中央寄せ＋自然サイズ。clip_text / 親 clip_contents と併用するとサイズ0で文字が消える（再発防止）。
+## CLEAR は右端バッジ（_add_banner_right_status_badge）へ分離し、メイン一覧と位置を揃える。
 func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: String) -> Control:
 	var host := HBoxContainer.new()
 	host.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -1812,29 +1856,9 @@ func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: Stri
 	host.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var title_text: String = _dungeon_display_name(data, unlocked)
-	var is_abyss: bool = data != null and str(data.route_type) == "abyss"
-	var name_badge: String = ""
-	if unlocked and data != null and not is_abyss:
-		name_badge = _dungeon_name_badge_text(str(data.id))
-	var show_abyss_best: bool = unlocked and is_abyss
-	var title_size: int = _banner_title_font_size(
-		dungeon_id, title_text, not name_badge.is_empty() or show_abyss_best
-	)
+	## 右端 CLEAR 分の幅を確保（タイトル中央群には含めない）。
+	var title_size: int = _banner_title_font_size(dungeon_id, title_text, true)
 	_add_dungeon_title_labels(host, data, unlocked, title_size, true)
-	if not name_badge.is_empty():
-		var clear_lbl := Label.new()
-		clear_lbl.text = name_badge
-		clear_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		UiTypography.apply_display(clear_lbl, title_size, COLOR_CLEAR_BADGE)
-		_apply_banner_title_shadow(clear_lbl)
-		host.add_child(clear_lbl)
-	elif show_abyss_best:
-		var best_lbl := Label.new()
-		best_lbl.text = _abyss_best_floor_text(dungeon_id)
-		best_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		UiTypography.apply_display(best_lbl, title_size, COLOR_ABYSS_BEST)
-		_apply_banner_title_shadow(best_lbl)
-		host.add_child(best_lbl)
 	host.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
 	host.offset_top -= 2.0
 	host.offset_bottom -= 6.0
@@ -2020,14 +2044,15 @@ func _sync_featured_banner(dungeon_id: String) -> void:
 	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_featured_banner_host.add_child(banner)
 	## 一覧バナーと同様、画像上にダンジョン名を重ねる（焼き込み無しの雰囲気BG向け）。
-	if _banner_hides_title(dungeon_id):
-		return
+	## CLEAR はタイトル焼き込み時も右端に出す（メイン一覧と位置統一）。
 	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
 	if data == null:
 		return
 	var unlocked: bool = GameState.is_dungeon_unlocked(dungeon_id)
-	var title: Control = _make_banner_overlay_title(data, unlocked, dungeon_id)
-	_featured_banner_host.add_child(title)
+	if not _banner_hides_title(dungeon_id):
+		var title: Control = _make_banner_overlay_title(data, unlocked, dungeon_id)
+		_featured_banner_host.add_child(title)
+	_add_banner_right_status_badge(_featured_banner_host, data, unlocked, dungeon_id)
 
 func _banner_title_font_size(
 	dungeon_id: String,
@@ -2061,9 +2086,11 @@ func _make_biome_banner_header(
 	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(banner)
 
-	## タイトルは Featured と同様・自然サイズ中央。シェブロンは左オーバーレイ（HBox だと右寄りになる）。
+	## タイトルは Featured と同様・自然サイズ中央。CLEAR は右端（メインステージ行と位置統一）。
+	## シェブロンは左オーバーレイ（HBox だと右寄りになる）。
 	if not _banner_hides_title(dungeon_id):
 		root.add_child(_make_banner_overlay_title(data, unlocked, dungeon_id))
+	_add_banner_right_status_badge(root, data, unlocked, dungeon_id)
 
 	var chevron := Label.new()
 	chevron.text = "▼" if is_expanded else "▶"
@@ -2141,9 +2168,15 @@ func _make_biome_text_header(
 		name_host, data, unlocked, UiTypography.SIZE_BODY_SMALL, false
 	)
 	title_row.add_child(name_host)
+	## CLEAR／最高到達はメインステージ行と同じく右寄せ。
+	var status_spacer := Control.new()
+	status_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	status_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	title_row.add_child(status_spacer)
 	if unlocked and str(data.route_type) == "abyss":
 		var best_lbl := Label.new()
 		best_lbl.text = _abyss_best_floor_text(dungeon_id)
+		best_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		best_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		best_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		UiTypography.apply_display(best_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_ABYSS_BEST)
@@ -2151,12 +2184,7 @@ func _make_biome_text_header(
 	elif unlocked:
 		var badge: String = _dungeon_name_badge_text(dungeon_id)
 		if not badge.is_empty():
-			var clear_lbl := Label.new()
-			clear_lbl.text = badge
-			clear_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-			clear_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			UiTypography.apply_display(clear_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR_BADGE)
-			title_row.add_child(clear_lbl)
+			title_row.add_child(_make_row_clear_badge_label(badge, false))
 	root.add_child(title_row)
 
 	var header_btn := Button.new()
