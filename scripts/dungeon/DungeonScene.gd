@@ -271,7 +271,7 @@ const BOSS_ENEMY_SPRITE_MAP: Dictionary = {
 	"granvel": "res://resources/animation/BOSS_Granvel.tres",
 	"moldgar": "res://resources/animation/BOSS_Moldgar.tres",
 	"nereion": "res://resources/animation/BOSS_Nereion.tres",
-	"nereion_depths": "res://resources/animation/BOSS_Nereion.tres",
+	"nereion_depths": "res://resources/animation/BOSS_NereionDepths.tres",
 	"eldion": "res://resources/animation/BOSS_Eldion.tres",
 	"chronos_wave": "res://resources/animation/BOSS_ChronosWave.tres",
 	"valgard": "res://resources/animation/BOSS_Valgard.tres",
@@ -317,8 +317,8 @@ const BOSS_ENEMY_SPRITE_MAP_BY_TIER: Dictionary = {
 		2: "res://resources/animation/BOSS_Nereion_Nightmare.tres",
 	},
 	"nereion_depths": {
-		1: "res://resources/animation/BOSS_Nereion_Hard.tres",
-		2: "res://resources/animation/BOSS_Nereion_Nightmare.tres",
+		1: "res://resources/animation/BOSS_NereionDepths_Hard.tres",
+		2: "res://resources/animation/BOSS_NereionDepths_Nightmare.tres",
 	},
 	"eldion": {
 		1: "res://resources/animation/BOSS_Eldion_Hard.tres",
@@ -383,8 +383,8 @@ const BOSS_SPRITE_MAP_BY_TIER: Dictionary = {
 		2: "res://resources/animation/BOSS_Nereion_Nightmare.tres",
 	},
 	"nereion_flagship": {
-		1: "res://resources/animation/BOSS_Nereion_Hard.tres",
-		2: "res://resources/animation/BOSS_Nereion_Nightmare.tres",
+		1: "res://resources/animation/BOSS_NereionDepths_Hard.tres",
+		2: "res://resources/animation/BOSS_NereionDepths_Nightmare.tres",
 	},
 	"westbay_flats": {
 		1: "res://resources/animation/ENM_NinjaOctopus_Hard.tres",
@@ -432,7 +432,7 @@ const BOSS_SPRITE_MAP: Dictionary = {
 	"mistfen_depths": "res://resources/animation/BOSS_Moldgar.tres",
 	"thunder_peak": "res://resources/animation/BOSS_Moldgar.tres",
 	"blackshore_abyss": "res://resources/animation/BOSS_Nereion.tres",
-	"nereion_flagship": "res://resources/animation/BOSS_Nereion.tres",
+	"nereion_flagship": "res://resources/animation/BOSS_NereionDepths.tres",
 	"red_forge_depths": "res://resources/animation/BOSS_Forgedormient.tres",
 	"north_reach": "res://resources/animation/BOSS_Albark.tres",
 }

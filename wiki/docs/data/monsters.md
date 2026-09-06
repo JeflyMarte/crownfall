@@ -1086,6 +1086,8 @@
 
 ## 潮脈王ネレイオン・デプス {#nereion_depths}
 
+<img src="../../assets/monsters/ART_BOSS_NereionDepths.png" alt="潮脈王ネレイオン・デプス" width="280">
+
 | 項目 | 値 |
 |---|---|
 | 種別 | ボス |
