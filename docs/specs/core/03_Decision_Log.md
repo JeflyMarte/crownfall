@@ -8278,3 +8278,17 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-EQ-ANCIENT-POWER-D-001-3 | 各部位に薄い固有パッシブ（テーマ一致） | 案D |
 | P3-EQ-ANCIENT-POWER-D-001-4 | 3部位加護の数値は据置 | 加護は役割の核 |
 | P3-EQ-ANCIENT-POWER-D-001-5 | SSOT — `139_AncientSetPowerPass.md` | Decision 本体 |
+
+## 潮脈王　降臨（2026-09-06 — P3-DG-NEREION-DESCENT-001）
+
+> **オーナー GO**（推奨一式）＋ **実装レーン＝アップデート第3弾**（第2弾の次。即 Impl しない）。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-NEREION-DESCENT-001-1 | バナー **潮脈王　降臨**／進入 **沈没旗艦下** N/H/NM | 降臨同型 |
+| P3-DG-NEREION-DESCENT-001-2 | 出現 JST **2/5/8/11** 各1時間 | クロノス・ヴァルと非重複 |
+| P3-DG-NEREION-DESCENT-001-3 | 新 id `nereion_flagship`。旧 `blackshore_abyss` は降臨へ置換（征討配信しない） | 14/16 と同型 |
+| P3-DG-NEREION-DESCENT-001-4 | Boss `nereion_depths` — HP3800／ATK246（ヴァル超え・クロノス未満） | 降臨帯 |
+| P3-DG-NEREION-DESCENT-001-5 | セット **潮脈の契** — 被ダメ×0.90／回復×1.20・戦鎚込み7種 | 耐久・回復ニッチ |
+| P3-DG-NEREION-DESCENT-001-6 | **実装レーン＝アップデート第3弾** | オーナー指定 |
+| P3-DG-NEREION-DESCENT-001-7 | SSOT — `140_NereionDescent.md` | Decision 本体 |
