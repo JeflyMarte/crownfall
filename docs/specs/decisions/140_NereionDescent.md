@@ -1,7 +1,8 @@
 # 潮脈王　降臨／沈没旗艦下（P3-DG-NEREION-DESCENT-001）
 
 **Status:** Decision **承認済**（2026-09-06 — オーナー GO／表示・時間帯・セット推奨一式）  
-**実装レーン:** **アップデート第3弾**（第2弾＝征討・機巧士・発掘の次。本線即 Impl しない）  
+**実装レーン:** **アップデート第3弾**（配信は第3弾。先端検証 ON＝`NEREION_FLAGSHIP_PLAYABLE`）
+**実装:** 接続済（DG／Boss帯／潮脈の契／2/5/8/11。BAN・ICO・BGは仮流用）  
 **型:** `14_ChronosDescent`／`16_ValgardDescent` と同型（時間帯・7F・N/H/NM・エンシェント）  
 **Boss:** `nereion_depths`（潮脈王ネレイオン・デプス）  
 **Related:** `19_EventDescentSets`／`139_AncientSetPowerPass`／`128`（征討へ戻さない）
@@ -12,7 +13,7 @@
 
 未配信 apex `blackshore_abyss` を **時間帯降臨第3本**へ置換する。  
 時環（テンポ）・境界（地力）に対し、**潮＝耐久・回復**のエンシェントを置く。  
-**配信はアップデート第3弾。** 第2弾検証中はデータ未接続・フラグOFFのまま据置。
+**配信はアップデート第3弾。** 先端は `NEREION_FLAGSHIP_PLAYABLE=true`。第2弾ストア提出では false。
 
 ---
 

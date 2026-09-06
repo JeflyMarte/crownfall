@@ -29,6 +29,7 @@ const PRIMARY_WEEKDAY: Dictionary = {
 const HOURLY_OPEN_START_HOURS: Dictionary = {
 	"chronos_mausoleum": [0, 3, 6, 9],
 	"valgard_boundary": [1, 4, 7, 10],
+	"nereion_flagship": [2, 5, 8, 11],
 }
 const HOURLY_WINDOW_HOURS: int = 1
 
@@ -156,7 +157,13 @@ static func open_schedule_label(dungeon_id: String) -> String:
 	if Constants.is_apex_conquest_playable(dungeon_id):
 		return "常設"
 	if uses_hourly_windows(dungeon_id):
-		return "毎日 0/3/6/9時〜各1時間"
+		var starts: Array = HOURLY_OPEN_START_HOURS.get(dungeon_id, []) as Array
+		if starts.is_empty():
+			return "時間帯出現"
+		var parts: PackedStringArray = PackedStringArray()
+		for h in starts:
+			parts.append(str(int(h)))
+		return "毎日 %s時〜各1時間" % "/".join(parts)
 	var primary: int = primary_weekday(dungeon_id)
 	if primary < 0:
 		return "毎日"

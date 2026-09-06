@@ -28,6 +28,7 @@ const DUNGEON_ICON_PATHS: Dictionary = {
 	"frostwall_path": "res://assets/dungeon/frostwall_path/ICO_DG_FrostwallPath.png",
 	"chronos_mausoleum": "res://assets/dungeon/chronos_mausoleum/ICO_DG_ChronosMausoleum.png",
 	"valgard_boundary": "res://assets/dungeon/valgard_boundary/ICO_DG_ValgardBoundary.png",
+	"nereion_flagship": "res://assets/dungeon/nereion_flagship/ICO_DG_NereionFlagship.png",
 	"north_reach": "res://assets/dungeon/north_reach/ICO_DG_NorthReach.png",
 }
 
@@ -138,6 +139,11 @@ const DROP_PREVIEW: Dictionary = {
 		["weapon", "valgard_antique_blade"],
 		["armor", "valgard_antique_armor"],
 		["accessory", "valgard_antique_amulet"],
+	],
+	"nereion_flagship": [
+		["weapon", "nereion_tidebond_sword"],
+		["armor", "nereion_tidebond_armor"],
+		["accessory", "nereion_tidebond_pearl"],
 	],
 	"red_ridge_mine": [
 		["weapon", "symbiont_edge"],
@@ -751,6 +757,8 @@ func _sorted_open_event_dungeons() -> Array:
 		var is_event: bool = route == "event"
 		var is_conquest: bool = route == "apex" and Constants.is_apex_conquest_playable(dungeon_id)
 		if not is_event and not is_conquest:
+			continue
+		if is_event and not Constants.is_playable_dungeon(dungeon_id, route):
 			continue
 		if not _EventDungeonSchedule.is_open_now(dungeon_id):
 			continue
@@ -1633,6 +1641,7 @@ func _is_event_free_tier_dungeon(dungeon_id: String) -> bool:
 	return (
 		dungeon_id == Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID
 		or dungeon_id == Constants.VALGARD_BOUNDARY_DUNGEON_ID
+		or dungeon_id == Constants.NEREION_FLAGSHIP_DUNGEON_ID
 		or Constants.is_apex_conquest_playable(dungeon_id)
 	)
 
@@ -1640,6 +1649,8 @@ func _is_event_free_tier_dungeon(dungeon_id: String) -> bool:
 func _event_free_tier_enter_label(dungeon_id: String) -> String:
 	if dungeon_id == Constants.VALGARD_BOUNDARY_DUNGEON_ID:
 		return "ストームクラウン境界廊"
+	if dungeon_id == Constants.NEREION_FLAGSHIP_DUNGEON_ID:
+		return "沈没旗艦下"
 	if dungeon_id == Constants.NORTH_REACH_DUNGEON_ID:
 		return "天望の塔"
 	if dungeon_id == Constants.RED_FORGE_DEPTHS_DUNGEON_ID:

@@ -81,6 +81,7 @@ const _BIOME_ALIAS: Dictionary = {
 	"broken_marsh": "mistfen",
 	"green_hollow": "mistfen",
 	"blackshore_abyss": "blackshore",
+	"nereion_flagship": "blackshore",
 }
 
 ## ダンジョン id 直指定の天候重み（Biome alias より優先）。

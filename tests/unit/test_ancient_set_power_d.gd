@@ -17,6 +17,11 @@ const WEAPON_ATK := {
 	"forge_slag_bow": 220,
 	"forge_slag_staff": 216,
 	"forge_slag_hammer": 260,
+	"nereion_tidebond_sword": 242,
+	"nereion_tidebond_dual": 224,
+	"nereion_tidebond_bow": 220,
+	"nereion_tidebond_staff": 216,
+	"nereion_tidebond_hammer": 260,
 	"valgard_antique_blade": 220,
 	"valgard_antique_dual": 202,
 	"valgard_antique_arrow": 198,
@@ -38,6 +43,11 @@ const WEAPON_PASSIVE := {
 	"forge_slag_bow": "eq_set_forge_weapon",
 	"forge_slag_staff": "eq_set_forge_weapon",
 	"forge_slag_hammer": "eq_set_forge_weapon",
+	"nereion_tidebond_sword": "eq_set_tidebond_weapon",
+	"nereion_tidebond_dual": "eq_set_tidebond_weapon",
+	"nereion_tidebond_bow": "eq_set_tidebond_weapon",
+	"nereion_tidebond_staff": "eq_set_tidebond_weapon",
+	"nereion_tidebond_hammer": "eq_set_tidebond_weapon",
 	"valgard_antique_blade": "eq_set_valgard_weapon",
 	"valgard_antique_dual": "eq_set_valgard_weapon",
 	"valgard_antique_arrow": "eq_set_valgard_weapon",
@@ -49,6 +59,7 @@ const ARMOR_STATS := {
 	"valgard_antique_armor": {"def": 195, "hp": 310, "pid": "eq_set_valgard_armor"},
 	"albark_namerefuse_armor": {"def": 200, "hp": 330, "pid": "eq_set_namerefuse_armor"},
 	"forge_slag_armor": {"def": 200, "hp": 330, "pid": "eq_set_forge_armor"},
+	"nereion_tidebond_armor": {"def": 200, "hp": 330, "pid": "eq_set_tidebond_armor"},
 }
 
 const ACC_STATS := {
@@ -56,6 +67,7 @@ const ACC_STATS := {
 	"valgard_antique_amulet": {"atk": 10, "def": 28, "hp": 96, "pid": "eq_set_valgard_acc"},
 	"albark_namerefuse_circlet": {"atk": 16, "def": 16, "hp": 80, "pid": "eq_set_namerefuse_acc"},
 	"forge_slag_seal": {"atk": 16, "def": 16, "hp": 80, "pid": "eq_set_forge_acc"},
+	"nereion_tidebond_pearl": {"atk": 16, "def": 16, "hp": 80, "pid": "eq_set_tidebond_acc"},
 }
 
 

@@ -16,6 +16,7 @@ const PATHS: Dictionary = {
 	"rock_stampede": "res://assets/ui/dungeon/BAN_DG_RockStampede.png",
 	"chronos_mausoleum": "res://assets/ui/dungeon/BAN_DG_ChronosMausoleum.png",
 	"valgard_boundary": "res://assets/ui/dungeon/BAN_DG_ValgardBoundary.png",
+	"nereion_flagship": "res://assets/ui/dungeon/BAN_DG_NereionFlagship.png",
 	"north_reach": "res://assets/ui/dungeon/BAN_DG_NorthReach.png",
 	"red_forge_depths": "res://assets/ui/dungeon/BAN_DG_RedForge.png",
 }

@@ -7,6 +7,7 @@ const SET_CHRONOS_TOKI: String = "chronos_toki"
 const SET_VALGARD_ANTIQUE: String = "valgard_antique"
 const SET_ALBARK_NAMEREFUSE: String = "albark_namerefuse"
 const SET_FORGE_SLAG: String = "forge_slag"
+const SET_NEREION_TIDEBOND: String = "nereion_tidebond"
 
 const WEAPONS_BY_SET: Dictionary = {
 	SET_CHRONOS_TOKI: [
@@ -35,6 +36,13 @@ const WEAPONS_BY_SET: Dictionary = {
 		"forge_slag_bow",
 		"forge_slag_hammer",
 	],
+	SET_NEREION_TIDEBOND: [
+		"nereion_tidebond_sword",
+		"nereion_tidebond_dual",
+		"nereion_tidebond_staff",
+		"nereion_tidebond_bow",
+		"nereion_tidebond_hammer",
+	],
 }
 
 const ARMOR_BY_SET: Dictionary = {
@@ -42,6 +50,7 @@ const ARMOR_BY_SET: Dictionary = {
 	SET_VALGARD_ANTIQUE: "valgard_antique_armor",
 	SET_ALBARK_NAMEREFUSE: "albark_namerefuse_armor",
 	SET_FORGE_SLAG: "forge_slag_armor",
+	SET_NEREION_TIDEBOND: "nereion_tidebond_armor",
 }
 
 const ACCESSORY_BY_SET: Dictionary = {
@@ -49,6 +58,7 @@ const ACCESSORY_BY_SET: Dictionary = {
 	SET_VALGARD_ANTIQUE: "valgard_antique_amulet",
 	SET_ALBARK_NAMEREFUSE: "albark_namerefuse_circlet",
 	SET_FORGE_SLAG: "forge_slag_seal",
+	SET_NEREION_TIDEBOND: "nereion_tidebond_pearl",
 }
 
 const DUNGEON_SET: Dictionary = {
@@ -56,6 +66,7 @@ const DUNGEON_SET: Dictionary = {
 	"valgard_boundary": SET_VALGARD_ANTIQUE,
 	"north_reach": SET_ALBARK_NAMEREFUSE,
 	"red_forge_depths": SET_FORGE_SLAG,
+	"nereion_flagship": SET_NEREION_TIDEBOND,
 }
 
 const BONUS: Dictionary = {
@@ -84,6 +95,12 @@ const BONUS: Dictionary = {
 		"description": "炎上持続+30%／炎上中与ダメ+12%",
 		"ignite_duration_mult": 1.30,
 		"outgoing_vs_ignite_mult": 1.12,
+	},
+	SET_NEREION_TIDEBOND: {
+		"display_name": "潮脈の加護",
+		"description": "被ダメ−10%／回復効果+20%",
+		"incoming_mult": 0.90,
+		"heal_received_mult": 1.20,
 	},
 }
 
@@ -209,6 +226,10 @@ static func outgoing_mult(member_index: int) -> float:
 
 static func incoming_mult(member_index: int) -> float:
 	return float(bonus_for_member_index(member_index).get("incoming_mult", 1.0))
+
+
+static func heal_received_mult(member_index: int) -> float:
+	return float(bonus_for_member_index(member_index).get("heal_received_mult", 1.0))
 
 
 static func status_chance_mult(member_index: int) -> float:

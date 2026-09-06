@@ -32,6 +32,10 @@ const ROCK_STAMPEDE_DUNGEON_ID: String = "rock_stampede"
 const CHRONOS_MAUSOLEUM_DUNGEON_ID: String = "chronos_mausoleum"
 ## 境界の番　降臨／ストームクラウン境界廊（P3-DG-VALGARD-DESCENT-001）。
 const VALGARD_BOUNDARY_DUNGEON_ID: String = "valgard_boundary"
+## 潮脈王　降臨／沈没旗艦下（P3-DG-NEREION-DESCENT-001）。
+const NEREION_FLAGSHIP_DUNGEON_ID: String = "nereion_flagship"
+## 潮脈王降臨をプレイ対象に含める。第3弾検証 ON（第2弾ストア提出ブランチでは false）。
+const NEREION_FLAGSHIP_PLAYABLE: bool = true
 ## 征討パイロット・地図なき主／天望の塔（P3-DG-APEX-REDEFINE-001）。
 const NORTH_REACH_DUNGEON_ID: String = "north_reach"
 ## 征討2・星炉の寝主／星炉火口（P3-DG-APEX-FORGE-001）。
@@ -123,9 +127,15 @@ static func is_apex_conquest_playable(dungeon_id: String) -> bool:
 
 ## route＋征討パイロット id を見てプレイ可否を判定（P3-DG-APEX-REDEFINE-001）。
 static func is_playable_dungeon(dungeon_id: String, route_type: String) -> bool:
+	if dungeon_id == NEREION_FLAGSHIP_DUNGEON_ID:
+		return NEREION_FLAGSHIP_PLAYABLE
 	if is_apex_conquest_playable(dungeon_id):
 		return true
 	return is_playable_dungeon_route(route_type)
+
+
+static func is_nereion_flagship_playable() -> bool:
+	return NEREION_FLAGSHIP_PLAYABLE
 
 static func is_gacha_helper_id(member_id: String) -> bool:
 	return member_id.begins_with("gacha_") or member_id.begins_with("helper_")

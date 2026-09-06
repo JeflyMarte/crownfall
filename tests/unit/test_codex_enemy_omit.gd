@@ -16,12 +16,16 @@ func test_playable_enemy_set_excludes_apex_only_when_sub_omitted() -> void:
 		pass_test("SUB 有効時は apex 専用敵も掲載対象になりうる")
 		return
 	var playable: Dictionary = CatalogHelper.playable_enemy_id_set()
-	## 征討専用ボス（イベント降臨の chronos_wave / valgard は event のため掲載対象）。
+	## 征討専用ボス（イベント降臨の chronos_wave / valgard / nereion_depths は event のため掲載対象）。
 	for eid: String in [
 		"skarpedion", "mycolga_ancient",
-		"karna_smoke", "nereion_depths",
+		"karna_smoke",
 	]:
 		assert_false(playable.has(eid), "%s は征討専用のため図鑑からオミット" % eid)
+	if Constants.NEREION_FLAGSHIP_PLAYABLE:
+		assert_true(playable.has("nereion_depths"), "潮脈王降臨 Boss は図鑑対象")
+	else:
+		assert_false(playable.has("nereion_depths"), "第3弾OFF時は潮脈王を図鑑オミット")
 	assert_true(playable.has("albark"), "地図なき主パイロット Boss は図鑑対象")
 	assert_true(playable.has("forgedormient"), "星炉火口征討 Boss は図鑑対象")
 	assert_true(playable.has("chronos_wave"), "時環降臨ボスは event のため図鑑対象")

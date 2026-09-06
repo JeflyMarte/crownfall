@@ -85,6 +85,11 @@ const DUNGEON_CODEX_META: Dictionary = {
 		"exploration_theme": "境界の番　降臨・時間帯イベント",
 		"related_history": ["HE-002", "HE-007"],
 	},
+	"nereion_flagship": {
+		"location": "沈没旗艦下（ブラックショア外洋）",
+		"exploration_theme": "潮脈王　降臨・時間帯イベント",
+		"related_history": ["HE-004", "HE-005"],
+	},
 	"red_ridge_mine": {
 		"location": "レッドリッジ廃坑",
 		"exploration_theme": "鍛冶王の鉱脈・征討調査",

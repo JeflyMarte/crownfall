@@ -379,6 +379,7 @@ const BOSS_SPRITE_MAP_BY_TIER: Dictionary = {
 		2: "res://resources/animation/BOSS_Nereion_Nightmare.tres",
 	},
 	"blackshore_abyss": {
+	"nereion_flagship": {
 		1: "res://resources/animation/BOSS_Nereion_Hard.tres",
 		2: "res://resources/animation/BOSS_Nereion_Nightmare.tres",
 	},
@@ -428,6 +429,7 @@ const BOSS_SPRITE_MAP: Dictionary = {
 	"mistfen_depths": "res://resources/animation/BOSS_Moldgar.tres",
 	"thunder_peak": "res://resources/animation/BOSS_Moldgar.tres",
 	"blackshore_abyss": "res://resources/animation/BOSS_Nereion.tres",
+	"nereion_flagship": "res://resources/animation/BOSS_Nereion.tres",
 	"red_forge_depths": "res://resources/animation/BOSS_Forgedormient.tres",
 	"north_reach": "res://resources/animation/BOSS_Albark.tres",
 }
@@ -457,6 +459,7 @@ const BATTLE_BG_MAP: Dictionary = {
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/BG_Battle_Mistfen.png",
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/BG_Battle_BrokenMarsh.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/BG_Battle_Blackshore.png",
+	"nereion_flagship": "res://assets/dungeon/nereion_flagship/env/BG_Battle_NereionFlagship.png",
 	"red_forge_depths": "res://assets/dungeon/red_forge_depths/env/BG_Battle_RedForge.png",
 	"north_reach": "res://assets/dungeon/north_reach/env/BG_Battle_NorthReach.png",
 	## イベントDG（ダック／レイヴン共通背景）
@@ -476,6 +479,7 @@ const BATTLE_BG_EARLY_MAP: Dictionary = {
 	"red_ridge_mine": "res://assets/dungeon/whisperwood/env/BG_Battle_Whisperwood_Early.png",
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/BG_Battle_Mistfen_Early.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/BG_Battle_Blackshore_Early.png",
+	"nereion_flagship": "res://assets/dungeon/nereion_flagship/env/BG_Battle_NereionFlagship_Early.png",
 	"red_forge_depths": "res://assets/dungeon/red_forge_depths/env/BG_Battle_RedForge_Early.png",
 	"north_reach": "res://assets/dungeon/north_reach/env/BG_Battle_NorthReach_Early.png",
 }
@@ -514,6 +518,7 @@ const TREASURE_CLOSED_OBJ_MAP: Dictionary = {
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/OBJ_TreasureChest_Closed.png",
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/OBJ_TreasureChest_Closed.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/OBJ_TreasureChest_Closed.png",
+	"nereion_flagship": "res://assets/dungeon/blackshore/env/OBJ_TreasureChest_Closed.png",
 	"red_forge_depths": "res://assets/dungeon/broken_marsh/env/OBJ_TreasureChest_Closed.png",
 	"north_reach": "res://assets/dungeon/frostridge/env/OBJ_TreasureChest_Closed.png",
 }
@@ -534,6 +539,7 @@ const EXIT_OBJ_MAP: Dictionary = {
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/OBJ_ExitGate_Mistfen.png",
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/OBJ_ExitGate_BrokenMarsh.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/OBJ_ExitGate_Blackshore.png",
+	"nereion_flagship": "res://assets/dungeon/blackshore/env/OBJ_ExitGate_Blackshore.png",
 	"red_forge_depths": "res://assets/dungeon/broken_marsh/env/OBJ_ExitGate_BrokenMarsh.png",
 	"north_reach": "res://assets/dungeon/frostridge/env/OBJ_ExitGate_Frostridge.png",
 }
@@ -554,6 +560,7 @@ const FLOOR_TILE_MAP: Dictionary = {
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/TILE_Floor.png",
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/TILE_Floor.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/TILE_Floor.png",
+	"nereion_flagship": "res://assets/dungeon/blackshore/env/TILE_Floor.png",
 	"red_forge_depths": "res://assets/dungeon/broken_marsh/env/TILE_Floor.png",
 	"north_reach": "res://assets/dungeon/frostridge/env/TILE_Floor.png",
 }

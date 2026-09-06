@@ -451,6 +451,7 @@ const DUNGEON_EVENTS: Dictionary = {
 	"mistfen_depths": EVENTS_MISTFEN,
 	"thunder_peak": EVENTS_MISTFEN,
 	"blackshore_abyss": EVENTS_BLACKSHORE,
+	"nereion_flagship": EVENTS_BLACKSHORE,
 	"red_forge_depths": EVENTS_FROSTRIDGE,
 	"north_reach": EVENTS_FROSTRIDGE,
 }

@@ -1198,6 +1198,24 @@ const _DEFS: Dictionary = {
 		"outgoing_vs_status_mult": 1.05,
 		"outgoing_vs_status_ids": ["ignite"],
 	},
+	"eq_set_tidebond_weapon": {
+		"display_name": "潮脈の契・武器",
+		"category": "weapon",
+		"description": "被回復 ×1.08。",
+		"heal_received_mult": 1.08,
+	},
+	"eq_set_tidebond_armor": {
+		"display_name": "潮脈の契・鎧",
+		"category": "armor",
+		"description": "被ダメ ×0.97。",
+		"incoming_mult": 0.97,
+	},
+	"eq_set_tidebond_acc": {
+		"display_name": "潮脈の契・真珠",
+		"category": "accessory",
+		"description": "被回復 ×1.05。",
+		"heal_received_mult": 1.05,
+	},
 	# ---- 灰冠の九（P3-GACHA-EQ-KAIWAN／S2・F2・W1） ----
 	"eq_wpn_kaiwan_silent": {
 		"display_name": "裂鍵の刺し",

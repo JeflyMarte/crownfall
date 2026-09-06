@@ -24,6 +24,10 @@ const _BODY_THEME: Dictionary = {
 		"color": Color(0.98, 0.82, 0.45, 1.0),
 		"outline": Color(0.42, 0.22, 0.06, 1.0),
 	},
+	"nereion_flagship": {
+		"color": Color(0.45, 0.78, 0.92, 1.0),
+		"outline": Color(0.06, 0.28, 0.42, 1.0),
+	},
 }
 
 

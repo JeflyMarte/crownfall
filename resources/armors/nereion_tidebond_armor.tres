@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ArmorData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ArmorData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+armor_id = "nereion_tidebond_armor"
+display_name = "潮脈の契鎧"
+description = "潮脈を織った鎧。3部位で潮脈の加護。"
+base_defense = 200
+base_hp_bonus = 330
+base_resistance = 0.0
+resist_elements = Array[String]([])
+weight = 1.0
+rarity = 5
+fixed_passive_id = "eq_set_tidebond_armor"
+set_id = "nereion_tidebond"

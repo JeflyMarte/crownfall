@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AccessoryData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/AccessoryData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "nereion_tidebond_pearl"
+display_name = "潮脈の契真珠"
+rarity = 5
+icon = ""
+description = "外洋旗艦下で潮脈に磨かれた真珠。"
+hp_bonus = 80
+attack_bonus = 16
+defense_bonus = 16
+crit_rate_bonus = 0.03
+exp_gain_rate = 0.0
+gold_gain_rate = 0.0
+rare_drop_rate = 0.0
+fixed_passive_id = "eq_set_tidebond_acc"
+set_id = "nereion_tidebond"

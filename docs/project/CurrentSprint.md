@@ -61,7 +61,7 @@
 
 | ID | 内容 | 状態 |
 |---|---|---|
-| **P3-DG-NEREION-DESCENT-001** | **潮脈王　降臨**／沈没旗艦下 — JST 2/5/8/11・Boss `nereion_depths`・セット潮脈の契（被ダメ×0.90／回復×1.20） | Decision GO（`140`）・**Impl は第3弾** |
+| **P3-DG-NEREION-DESCENT-001** | **潮脈王　降臨**／沈没旗艦下 — JST 2/5/8/11・Boss `nereion_depths`・セット潮脈の契（被ダメ×0.90／回復×1.20） | ✅ Impl（第3弾検証 ON・`NEREION_FLAGSHIP_PLAYABLE`。BAN/ICO仮流用） |
 
 #### C（その他アップデート）
 

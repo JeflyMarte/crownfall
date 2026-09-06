@@ -111,6 +111,7 @@ const BATTLE_BY_DUNGEON: Dictionary = {
 	"blackshore": ID_BLACKSHORE,
 	"westbay_flats": ID_BLACKSHORE,
 	"blackshore_abyss": ID_BLACKSHORE,
+	"nereion_flagship": ID_BLACKSHORE,
 	"frostridge": ID_FROSTRIDGE,
 	"frostwall_path": ID_FROSTRIDGE,
 	"north_reach": ID_NORTH_REACH,
