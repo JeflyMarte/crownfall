@@ -1063,6 +1063,8 @@ const TRAP_FEEDBACK_DMG_COLOR: Color = Color(1.0, 0.35, 0.35)
 ## 機巧士仕掛けの作動フィードバック（案A: 敵フラッシュ＋短い作動テロップ）。
 const ENGINEER_TRAP_FIRE_FLASH: Color = Color(1.0, 0.82, 0.35)
 const ENGINEER_TRAP_FIRE_TELOP_COLOR: Color = Color(1.0, 0.88, 0.42)
+## 作動時ダメ数字も同系の琥珀（通常ダメと区別・T1）。
+const ENGINEER_TRAP_DAMAGE_COLOR: Color = Color(1.0, 0.88, 0.42)
 const ENGINEER_TRAP_FIRE_TELOP_FONT_SIZE: int = 22
 const TrapPresentationScript: Script = preload("res://scripts/dungeon/TrapPresentation.gd")
 const UltimatePresentationConfigScript: Script = preload("res://scripts/combat/UltimatePresentationConfig.gd")
@@ -6489,14 +6491,14 @@ func _engineer_trap_kind_label(kind: String) -> String:
 			return "仕掛け"
 
 
-## 仕掛け作動の視認フィードバック（敵フラッシュ＋頭上「作動」＋印パルス）。
+## 仕掛け作動の視認フィードバック（敵フラッシュ＋頭上「種作動！」＋印パルス）。
 func _present_engineer_trap_fire(slot: int, kind: String) -> void:
 	_flash_enemy_sprite(slot, ENGINEER_TRAP_FIRE_FLASH)
 	_pulse_enemy_trap_status_icon(slot)
 	var kind_label: String = _engineer_trap_kind_label(kind)
-	var telop: String = "作動"
+	var telop: String = "仕掛け作動！"
 	if not kind_label.is_empty() and kind_label != "仕掛け":
-		telop = "作動・%s" % kind_label
+		telop = "%s作動！" % kind_label
 	_spawn_engineer_trap_fire_telop(slot, telop)
 	AudioManager.play_sfx("combat_buff", 0.85, 0.06)
 
@@ -6644,7 +6646,7 @@ func _fire_engineer_traps_on_enemy(slot: int) -> void:
 			_spawn_damage_number(
 				str(dmg),
 				tick_pos + Vector2(0.0, -20.0),
-				Color(0.9, 0.75, 0.4),
+				ENGINEER_TRAP_DAMAGE_COLOR,
 				0.95,
 				dmg,
 				true
@@ -6664,11 +6666,12 @@ func _fire_engineer_traps_on_enemy(slot: int) -> void:
 			if placer_idx >= 0:
 				_party_applied_enemy_status(placer_idx, slot, status_id)
 	var kind_label: String = _engineer_trap_kind_label(kind)
+	## 案A＋T1: 「〜が作動した！」＋琥珀ダメ数字。
 	if dmg > 0:
-		var ab_tag: String = "・甲砕" if vs_armor_break else ""
-		_append_log("[仕掛け・%s%s] %dダメージ（残%d）" % [kind_label, ab_tag, dmg, fires_left])
+		var ab_tag: String = "（甲砕）" if vs_armor_break else ""
+		_append_log("%sの仕掛けが作動した！%s %dダメージ（残%d）" % [kind_label, ab_tag, dmg, fires_left])
 	else:
-		_append_log("[仕掛け・%s] 発動（残%d）" % [kind_label, fires_left])
+		_append_log("%sの仕掛けが作動した！（残%d）" % [kind_label, fires_left])
 	_update_hp_bars()
 	## 全再構築＋tint同期はフラッシュと競合し群れで重い → 対象スロットのみ。
 	_refresh_enemy_slot_status_icons(slot, status_applied)

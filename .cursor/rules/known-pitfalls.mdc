@@ -50,7 +50,7 @@ alwaysApply: false
 | 次戦闘入場で前の敵の死体が一瞬見える | 暗転中 defer で旧スプライトを残したまま幕明け | defer 時に `_hide_enemy_sprite`。新敵は hold 終了の黒幕中に flush。→ **`14_Presentation_Pitfalls.md`** |
 | 戦闘フロアで敵がワンテンポ遅れて出る | 幕明け後 `_run_post_transition_flush_async` の追加フレーム待ちまで defer 表示 | hold 終了（黒幕中）に `_flush_deferred_combat_room_visuals`。天候 VFX 分割は維持 |
 | 戦闘入場で前部屋の宝箱／泉が残る | 敵だけ黒幕中、部屋アートは明け後 | hold 終了で `_flush_deferred_room_art` も。→ **`14_Presentation_Pitfalls.md`** |
-| 機巧仕掛けが効いているか分からない | 作動がログと数字のみで弱い | 作動時に敵フラッシュ＋「作動」テロップ＋頭上印パルス（案A） |
+| 機巧仕掛けが効いているか分からない | 作動がログと数字のみで弱い | 作動時に敵フラッシュ＋「種作動！」テロップ＋印パルス。ログは「〜が作動した！」。ダメ数字は琥珀（T1） |
 | 機巧印付き群れで戦闘が重い | 作動ごとに Label.new＋全ユニット `_update_status_icons`（tint がフラッシュも潰す） | テロップは `DamageNumberPool`。更新は `_refresh_enemy_slot_status_icons`（対象のみ・tint 省略） |
 | ボス必殺カットインで図鑑顔が見切れる | `STRETCH_KEEP_ASPECT_COVERED` が縦長ARTをクロップ | 顔は `KEEP_ASPECT_CENTERED`＋`clip_contents=false`（味方必殺も同様） |
 | はじめから後に編成プリセットが残る | `reset_for_new_game` が `saved_parties`／`showcase_member_id` 未クリア | reset で空配列／空文字。Continue／Debug つづける前も reset→load |
