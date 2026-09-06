@@ -1,6 +1,6 @@
 extends GutTest
 
-## 錬成左リストが長いとき LeftScroll で下まで届くこと（Lv低装備がクリップされない）。
+## 錬成左リストが長いとき LeftScroll で下まで届くこと（仮想リストでもスクロール可能）。
 
 const _WeaponInstance := preload("res://scripts/domain/WeaponInstance.gd")
 
@@ -32,13 +32,26 @@ func test_alchemy_left_list_scroll_reaches_low_level_items() -> void:
 	scene.call("_set_mode", "alchemy")
 	await get_tree().process_frame
 	await get_tree().process_frame
+	## 仮想リストの deferred refresh を待つ。
+	await get_tree().process_frame
 
 	var left_scroll: ScrollContainer = scene.find_child("LeftScroll", true, false) as ScrollContainer
 	var left_list: VBoxContainer = scene.find_child("LeftList", true, false) as VBoxContainer
 	var body_scroll: ScrollContainer = scene.find_child("BodyScroll", true, false) as ScrollContainer
 	assert_not_null(left_scroll)
 	assert_not_null(left_list)
-	assert_gt(left_list.get_child_count(), 5)
+
+	## 仮想化後は LeftList 直下は見出し＋ホスト程度。件数は VirtualInventoryGrid 側。
+	var virtual_host: Control = scene.find_child("AlchemyVirtualHost", true, false) as Control
+	assert_not_null(virtual_host, "alchemy left list should use AlchemyVirtualHost")
+	var alchemy_virtual: Variant = scene.get("_alchemy_virtual")
+	assert_not_null(alchemy_virtual)
+	assert_gt(int(alchemy_virtual.entry_count()), 5, "virtual grid should hold many alchemy bases")
+	assert_gt(
+		float(alchemy_virtual.content_height()),
+		left_scroll.size.y,
+		"virtual content height should exceed LeftScroll viewport"
+	)
 
 	## 下帯オミット時は外枠 BodyScroll が左一覧のドラッグを奪わない。
 	if body_scroll != null:
@@ -68,4 +81,7 @@ func test_alchemy_left_list_scroll_reaches_low_level_items() -> void:
 
 	left_scroll.scroll_vertical = int(bar.max_value)
 	await get_tree().process_frame
+	await get_tree().process_frame
 	assert_gt(left_scroll.scroll_vertical, 0, "forcing scroll_vertical should move past top")
+	## 下端までスクロールしても仮想ホストに可視セルが残る。
+	assert_gt(virtual_host.get_child_count(), 0, "virtual host should keep visible cells after scroll")
