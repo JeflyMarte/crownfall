@@ -88,6 +88,25 @@ func test_north_reach_dedicated_banner_and_icon() -> void:
 	assert_false(ico.contains("ValgardBoundary"))
 
 
+func test_north_reach_dedicated_battle_bgs() -> void:
+	const _DungeonSceneScript := preload("res://scripts/dungeon/DungeonScene.gd")
+	const EARLY := "res://assets/dungeon/north_reach/env/BG_Battle_NorthReach_Early.png"
+	const LATE := "res://assets/dungeon/north_reach/env/BG_Battle_NorthReach.png"
+	const BOSS := "res://assets/dungeon/north_reach/env/BG_Battle_NorthReach_Boss.png"
+	assert_true(FileAccess.file_exists(EARLY))
+	assert_true(FileAccess.file_exists(LATE))
+	assert_true(FileAccess.file_exists(BOSS))
+	assert_eq(str(_DungeonSceneScript.BATTLE_BG_EARLY_MAP.get("north_reach", "")), EARLY)
+	assert_eq(str(_DungeonSceneScript.BATTLE_BG_MAP.get("north_reach", "")), LATE)
+	assert_eq(str(_DungeonSceneScript.BATTLE_BG_BOSS_MAP.get("north_reach", "")), BOSS)
+	assert_false(bool(_DungeonSceneScript.BATTLE_BG_FINAL_BOSS_BIOMES.get("north_reach", false)))
+	assert_eq(_DungeonSceneScript.BATTLE_BG_APEX_EARLY_FLOOR_MAX, 14)
+	## 境界廊／フロスト流用を残さない
+	assert_false(EARLY.contains("valgard_boundary"))
+	assert_false(LATE.contains("frostridge"))
+	assert_false(BOSS.contains("FinalBoss"))
+
+
 ## P3-DG-APEX-TIER-001 — 征討も降臨同型で N/H/NM 自由選択
 func test_north_reach_free_hard_nightmare_tiers() -> void:
 	const _DungeonTierConfig := preload("res://scripts/dungeon/DungeonTierConfig.gd")

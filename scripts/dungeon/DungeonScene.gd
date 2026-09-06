@@ -456,7 +456,7 @@ const BATTLE_BG_MAP: Dictionary = {
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/BG_Battle_BrokenMarsh.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/BG_Battle_Blackshore.png",
 	"red_forge_depths": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge.png",
-	"north_reach": "res://assets/dungeon/valgard_boundary/env/BG_Battle_ValgardBoundary.png",
+	"north_reach": "res://assets/dungeon/north_reach/env/BG_Battle_NorthReach.png",
 	## イベントDG（ダック／レイヴン共通背景）
 	"cosmic_rift": "res://assets/dungeon/event/env/BG_Battle_Event.png",
 	"crown_rookery": "res://assets/dungeon/event/env/BG_Battle_Event.png",
@@ -475,16 +475,21 @@ const BATTLE_BG_EARLY_MAP: Dictionary = {
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/BG_Battle_Mistfen_Early.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/BG_Battle_Blackshore_Early.png",
 	"red_forge_depths": "res://assets/dungeon/frostridge/env/BG_Battle_Frostridge_Early.png",
-	"north_reach": "res://assets/dungeon/valgard_boundary/env/BG_Battle_ValgardBoundary.png",
+	"north_reach": "res://assets/dungeon/north_reach/env/BG_Battle_NorthReach_Early.png",
 }
 ## フロストリッジ x-5 ボス戦専用（Hard/NM 含む）。
 const BATTLE_BG_FINAL_BOSS: String = "res://assets/dungeon/frostridge/env/BG_Battle_FinalBoss.png"
-## ラスボス背景を使う本編 Biome（親 ID）。
+## 征討など Biome 横断の専用ボスBG（FINAL_BOSS より優先）。
+const BATTLE_BG_BOSS_MAP: Dictionary = {
+	"north_reach": "res://assets/dungeon/north_reach/env/BG_Battle_NorthReach_Boss.png",
+}
+## ラスボス背景を使う本編 Biome（親 ID）。征討 north_reach は BATTLE_BG_BOSS_MAP。
 const BATTLE_BG_FINAL_BOSS_BIOMES: Dictionary = {
 	"frostridge": true,
-	"north_reach": true,
 	"red_forge_depths": true,
 }
+## 征討 20F: Early=F1–14／Late=F15–19／Boss=BOSS部屋。
+const BATTLE_BG_APEX_EARLY_FLOOR_MAX: int = 14
 const BATTLE_BG_EARLY_CHAPTER_MAX: int = 3
 const BATTLE_BG_FINAL_BOSS_CHAPTER: int = 5
 const TREASURE_CLOSED_OBJ_MAP: Dictionary = {
@@ -15867,13 +15872,17 @@ func _dungeon_battle_bg_path(dungeon_id: String) -> String:
 	var fallback_id: String = Constants.MOURNGATE_DUNGEON_ID
 	var lookup_id: String = _dungeon_battle_bg_lookup_id(dungeon_id)
 	var late_path: String = str(BATTLE_BG_MAP.get(lookup_id, BATTLE_BG_MAP[fallback_id]))
-	## ⑤ x-5 ボス戦のみラスボス専用背景（Hard/NM 含む）。
-	if (
-		$DungeonController.current_room_type == Enums.RoomType.BOSS
-		and _uses_final_boss_battle_bg(lookup_id)
-	):
-		if ResourceLoader.exists(BATTLE_BG_FINAL_BOSS) or FileAccess.file_exists(BATTLE_BG_FINAL_BOSS):
-			return BATTLE_BG_FINAL_BOSS
+	## ボス部屋: 征討専用ボスBG → 本編⑤ラスボスBG。
+	if $DungeonController.current_room_type == Enums.RoomType.BOSS:
+		var apex_boss: String = str(BATTLE_BG_BOSS_MAP.get(lookup_id, ""))
+		if (
+			not apex_boss.is_empty()
+			and (ResourceLoader.exists(apex_boss) or FileAccess.file_exists(apex_boss))
+		):
+			return apex_boss
+		if _uses_final_boss_battle_bg(lookup_id):
+			if ResourceLoader.exists(BATTLE_BG_FINAL_BOSS) or FileAccess.file_exists(BATTLE_BG_FINAL_BOSS):
+				return BATTLE_BG_FINAL_BOSS
 	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
 	## 深層: 親 Biome の Early/Late を 10F ごとに入替（1–10=1、11–20=2…）。
 	if _AbyssDungeonConfig.is_abyss_dungeon_id(dungeon_id):
@@ -15885,6 +15894,17 @@ func _dungeon_battle_bg_path(dungeon_id: String) -> String:
 				and (ResourceLoader.exists(abyss_early) or FileAccess.file_exists(abyss_early))
 			):
 				return abyss_early
+		return late_path
+	## 征討 20F: F1–14 Early／F15–19 Late（章データなしでもフロアで切替）。
+	if Constants.is_apex_conquest_playable(lookup_id):
+		var apex_floor: int = $DungeonController.get_display_floor_current()
+		if apex_floor <= BATTLE_BG_APEX_EARLY_FLOOR_MAX:
+			var apex_early: String = str(BATTLE_BG_EARLY_MAP.get(lookup_id, ""))
+			if (
+				not apex_early.is_empty()
+				and (ResourceLoader.exists(apex_early) or FileAccess.file_exists(apex_early))
+			):
+				return apex_early
 		return late_path
 	var chapter: int = 0
 	if $DungeonController.current_stage_data != null:
