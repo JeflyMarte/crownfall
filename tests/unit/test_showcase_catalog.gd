@@ -138,16 +138,26 @@ func test_skills_rect_sits_below_stats() -> void:
 	assert_gt(ShowcaseUiTokens.SKILLS_PAD_BOTTOM, 0.0)
 
 
-func test_skill_name_wraps_at_chars_per_line() -> void:
-	assert_eq(ShowcaseUiTokens.SKILL_NAME_CHARS_PER_LINE, 7)
-	var wrapped: String = ShowcaseUiTokens.format_skill_display_name("スネアトラップ")
-	assert_true(wrapped.begins_with("『"))
-	assert_true(wrapped.ends_with("』"))
-	assert_true(wrapped.contains("\n"), "long skill names wrap by char limit")
-	for line in wrapped.split("\n"):
-		assert_lte(line.length(), ShowcaseUiTokens.SKILL_NAME_CHARS_PER_LINE)
+func test_skill_name_stays_one_line_with_smaller_font() -> void:
+	assert_eq(
+		ShowcaseUiTokens.format_skill_display_name("スネアトラップ"),
+		"『スネアトラップ』"
+	)
+	assert_false(
+		ShowcaseUiTokens.format_skill_display_name("スネアトラップ").contains("\n")
+	)
 	assert_eq(ShowcaseUiTokens.format_skill_display_name("なし"), "なし")
 	assert_eq(ShowcaseUiTokens.format_skill_display_name("斬"), "『斬』")
+	var long_name: String = ShowcaseUiTokens.format_skill_display_name(
+		"ブレイズ・オーバーロード"
+	)
+	var fitted: int = ShowcaseUiTokens.fit_skill_name_font_size(long_name, 138.0)
+	assert_lte(fitted, ShowcaseUiTokens.SKILL_NAME_FONT_SIZE)
+	assert_gte(fitted, ShowcaseUiTokens.SKILL_NAME_FONT_SIZE_MIN)
+	assert_eq(
+		ShowcaseUiTokens.fit_skill_name_font_size("『斬』", 138.0),
+		ShowcaseUiTokens.SKILL_NAME_FONT_SIZE
+	)
 
 
 func test_equip_icon_offsets_include_relic_rightward() -> void:
@@ -190,9 +200,12 @@ func test_showcase_scene_shows_equipped_skill_card() -> void:
 	assert_true(str(name_lbl.text).ends_with("』"), "skill name should use 『』")
 	assert_eq(int(name_lbl.autowrap_mode), int(TextServer.AUTOWRAP_OFF))
 	assert_true(name_lbl.clip_text)
-	## 1行文字数上限で折り返す（細幅カードのはみ出し防止）。
-	for line in str(name_lbl.text).split("\n"):
-		assert_lte(str(line).length(), ShowcaseUiTokens.SKILL_NAME_CHARS_PER_LINE)
+	## 1行表示（改行なし）。長い名前はフォント縮小。
+	assert_false(str(name_lbl.text).contains("\n"))
+	assert_lte(
+		int(name_lbl.get_theme_font_size("font_size")),
+		ShowcaseUiTokens.SKILL_NAME_FONT_SIZE
+	)
 	## 効果文は出さない。次はビルド見出し（スタッフ作例）。
 	assert_gte(col.get_child_count(), 3)
 	var build_hdr: Label = col.get_child(2) as Label

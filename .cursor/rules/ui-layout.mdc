@@ -59,7 +59,7 @@ alwaysApply: false
 - ホームのイベントバナー等は **左メニューと重ねない**（メニュー下端＋余白）
 - **黒マット付き装飾枠を `StyleBoxTexture` 9-slice しない**（角／帯に黒が伸び、金枠だけ短く見える）。書籍・展示室総合戦力は `TextureRect` 直置き
 - **展示室の焼込名札枠**は自慢キャラ未設定時も BG に残る。空状態では `NAME_FRAME_MASK` で覆い、展示中だけ名札／補完線を出す（`ShowcaseScene._set_stage_visible`）
-- **展示室スキル箱**はステ右カラムの細幅（`SKILLS_RECT` 幅≦ステ）。`PanelContainer` 禁止（子で再膨張）。高さは内容フィット。スキル名は ellipsis 切らず `AUTOWRAP_ARBITRARY`
+- **展示室スキル箱**はステ右カラムの細幅（`SKILLS_RECT` 幅≦ステ）。`PanelContainer` 禁止（子で再膨張）。高さは内容フィット。スキル名は1行＋`fit_skill_name_font_size`（折り返し禁止）
 
 ## 拠点 Hub × セーフエリア（再発防止・必須）
 

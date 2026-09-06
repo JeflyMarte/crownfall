@@ -67,9 +67,9 @@ const SKILL_ENTRY_GAP: float = 2.0
 ## スキル名と「✧ ビルド ✧」のあいだ。
 const SKILL_TO_BUILD_GAP: float = 8.0
 const SKILL_PAD_X: float = 6.0
-const SKILL_NAME_FONT_SIZE: int = 16
-## 細幅カード向け。『』込みの1行上限（超えたら改行。はみ出し防止）。
-const SKILL_NAME_CHARS_PER_LINE: int = 7
+## 細幅カード向け。長い名前は `fit_skill_name_font_size` でさらに縮小。
+const SKILL_NAME_FONT_SIZE: int = 13
+const SKILL_NAME_FONT_SIZE_MIN: int = 9
 const SKILL_HEADER_TEXT: String = "✧ スキル ✧"
 const BUILD_BLURB_HEADER: String = "✧ ビルド ✧"
 const BUILD_BLURB_FONT_SIZE: int = 11
@@ -117,23 +117,29 @@ static func skill_card_style() -> StyleBoxFlat:
 	return sb
 
 
-## 展示室スキル名: 『name』を1行 N 文字で折り返し（はみ出し防止）。
+## 展示室スキル名: 『name』を1行表示（折り返し禁止）。
 static func format_skill_display_name(skill_name: String) -> String:
 	var raw: String = skill_name.strip_edges()
 	if raw.is_empty() or raw == "なし":
 		return "なし"
-	return wrap_chars("『%s』" % raw, SKILL_NAME_CHARS_PER_LINE)
+	return "『%s』" % raw
 
 
-static func wrap_chars(text: String, chars_per_line: int) -> String:
-	if chars_per_line <= 0 or text.length() <= chars_per_line:
-		return text
-	var parts: PackedStringArray = []
-	var i: int = 0
-	while i < text.length():
-		parts.append(text.substr(i, chars_per_line))
-		i += chars_per_line
-	return "\n".join(parts)
+## 細幅カードに1行で収まるようフォントサイズを下げる。
+static func fit_skill_name_font_size(text: String, max_width: float) -> int:
+	var font: Font = UiTypography.body_font()
+	if font == null:
+		return SKILL_NAME_FONT_SIZE
+	var budget: float = maxf(24.0, max_width - 2.0)
+	var size: int = SKILL_NAME_FONT_SIZE
+	while size > SKILL_NAME_FONT_SIZE_MIN:
+		var w: float = font.get_string_size(
+			text, HORIZONTAL_ALIGNMENT_LEFT, -1, size
+		).x
+		if w <= budget:
+			return size
+		size -= 1
+	return SKILL_NAME_FONT_SIZE_MIN
 
 
 static func name_card_style() -> StyleBoxEmpty:

@@ -344,7 +344,7 @@ func _ensure_skills_panel() -> void:
 	_skills_panel.z_index = 5
 	_skills_panel.visible = false
 	_skills_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	## スキル名は文字数折り返し。枠外はみ出し防止のため clip。
+	## スキル名は1行＋縮小フォント。枠外はみ出し防止のため clip。
 	_skills_panel.clip_contents = true
 	_skills_panel.add_theme_stylebox_override("panel", ShowcaseUiTokensScript.skill_card_style())
 	_skills_col = Control.new()
@@ -412,18 +412,20 @@ func _populate_equipped_skill_names(member: Resource, build_blurb: String = "") 
 	for i in range(names.size()):
 		var nm: String = names[i]
 		var name_lbl := Label.new()
-		name_lbl.text = ShowcaseUiTokensScript.format_skill_display_name(nm)
+		var display: String = ShowcaseUiTokensScript.format_skill_display_name(nm)
+		name_lbl.text = display
 		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		## 文字数で改行済み。AUTOWRAP は使わず枠内に収める。
+		## 1行表示。長い名前はフォント縮小で枠内に収める。
 		name_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
 		name_lbl.clip_text = true
 		name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		name_lbl.custom_minimum_size = Vector2(value_w, 0)
 		name_lbl.position = Vector2(pad_x, y)
-		UiTypography.apply_body(
-			name_lbl, ShowcaseUiTokensScript.SKILL_NAME_FONT_SIZE, COLOR_GOLD
+		var font_size: int = ShowcaseUiTokensScript.fit_skill_name_font_size(
+			display, value_w
 		)
+		UiTypography.apply_body(name_lbl, font_size, COLOR_GOLD)
 		_skills_col.add_child(name_lbl)
 		var row_h: float = maxf(name_h, name_lbl.get_minimum_size().y + 2.0)
 		name_lbl.size = Vector2(value_w, row_h)
