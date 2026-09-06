@@ -336,6 +336,43 @@ func _body_scroll_needed() -> bool:
 	return _craftable_panel != null and _craftable_panel.visible
 
 
+## 下帯なし時は MainSplit を BodyScroll から外し、アンカーで高さを固定する。
+## BodyScroll 配下のままだと錬成の長い左一覧で LeftScroll が縦スクロール不能になる。
+func _sync_main_split_host() -> void:
+	if _main_split == null:
+		return
+	if _body_scroll_needed():
+		if _body_scroll != null:
+			_body_scroll.visible = true
+		if _body_vbox != null and _main_split.get_parent() != _body_vbox:
+			var old_p: Node = _main_split.get_parent()
+			if old_p != null:
+				old_p.remove_child(_main_split)
+			_body_vbox.add_child(_main_split)
+			_body_vbox.move_child(_main_split, 0)
+			_prepare_body_child_for_vbox(_main_split)
+		if _craftable_panel != null and _body_vbox != null and _craftable_panel.get_parent() != _body_vbox:
+			var old_c: Node = _craftable_panel.get_parent()
+			if old_c != null:
+				old_c.remove_child(_craftable_panel)
+			_body_vbox.add_child(_craftable_panel)
+			_prepare_body_child_for_vbox(_craftable_panel)
+		return
+	## 下帯オミット: MainSplit をシーン直下へ（カテゴリ下〜下ナビ上をアンカー拘束）。
+	if _body_scroll != null:
+		_body_scroll.visible = false
+		_body_scroll.scroll_vertical = 0
+		## 非表示時は入力に参加させない（子は MainSplit 側へ移済み）。
+		_body_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if _main_split.get_parent() != self:
+		var old_parent: Node = _main_split.get_parent()
+		if old_parent != null:
+			old_parent.remove_child(_main_split)
+		add_child(_main_split)
+		var cat_i: int = _category_row.get_index() if _category_row != null else 0
+		move_child(_main_split, cat_i + 1)
+
+
 func _sync_body_scroll_input() -> void:
 	if _body_scroll == null:
 		return
@@ -349,16 +386,20 @@ func _sync_body_scroll_input() -> void:
 		_body_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 		_body_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 		_body_scroll.scroll_vertical = 0
-		## IGNORE は子までヒット不可になるため PASS（外枠はスクロールしない）。
-		_body_scroll.mouse_filter = Control.MOUSE_FILTER_PASS
+		_body_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+func _left_scroll() -> ScrollContainer:
+	if _main_split == null:
+		return null
+	return _main_split.get_node_or_null("LeftScroll") as ScrollContainer
 
 
 func _enable_forge_scroll_touch() -> void:
 	## 左一覧・詳細が本線。BodyScroll は下帯表示時のみ。
+	_sync_main_split_host()
 	_sync_body_scroll_input()
-	var left_scroll: ScrollContainer = null
-	if _main_split != null:
-		left_scroll = _main_split.get_node_or_null("LeftScroll") as ScrollContainer
+	var left_scroll: ScrollContainer = _left_scroll()
 	if left_scroll != null:
 		left_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 		## DISABLED は子最小幅で親が横拡大する。SHOW_NEVER＋clip。
@@ -430,9 +471,10 @@ func _craftable_strip_natural_height() -> float:
 
 
 func _layout_craftable_strip() -> void:
-	## BodyScroll をカテゴリ下〜下ナビ上に置き、中で MainSplit＋素材帯を縦スクロール。
+	## 下帯あり: BodyScroll 内で MainSplit＋素材帯。なし: MainSplit を直置きして LeftScroll を拘束。
 	_fit_mode_tabs_height()
 	_fit_category_row_height()
+	_sync_main_split_host()
 	var nav: Control = $BottomNav
 	var nav_h: float = BOTTOM_NAV_FALLBACK_H_PX
 	if nav != null:
@@ -446,6 +488,7 @@ func _layout_craftable_strip() -> void:
 	if view_h < 1.0:
 		view_h = 1280.0
 	var body_view_h: float = maxf(320.0, view_h - body_top - absf(body_bottom))
+	var use_body_scroll: bool = _body_scroll_needed()
 
 	if _body_scroll != null:
 		_body_scroll.anchor_left = 0.0
@@ -470,18 +513,36 @@ func _layout_craftable_strip() -> void:
 		strip_h = _craftable_strip_natural_height()
 
 	if _main_split != null:
-		## 素材帯は初画面下部に見える高さ。足りなければ BodyScroll で下へ。
-		var main_min_h: float = body_view_h
-		if strip_h > 0.0:
-			main_min_h = maxf(
-				360.0,
-				body_view_h - strip_h - float(MAIN_TO_STRIP_GAP_PX)
-			)
-		_main_split.custom_minimum_size = Vector2(0, main_min_h)
-		_main_split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_main_split.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		_main_split.clip_contents = true
 		_main_split.z_index = 0
+		if use_body_scroll:
+			## 素材帯は初画面下部に見える高さ。足りなければ BodyScroll で下へ。
+			var main_min_h: float = body_view_h
+			if strip_h > 0.0:
+				main_min_h = maxf(
+					360.0,
+					body_view_h - strip_h - float(MAIN_TO_STRIP_GAP_PX)
+				)
+			_prepare_body_child_for_vbox(_main_split)
+			_main_split.custom_minimum_size = Vector2(0, main_min_h)
+			_main_split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			_main_split.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		else:
+			## 直置き: BodyScroll と同じ矩形をアンカーで固定し、LeftScroll の viewport 高を確保。
+			_main_split.set_anchors_preset(Control.PRESET_TOP_LEFT)
+			_main_split.anchor_left = 0.0
+			_main_split.anchor_right = 1.0
+			_main_split.anchor_top = 0.0
+			_main_split.anchor_bottom = 1.0
+			_main_split.offset_left = 8.0
+			_main_split.offset_right = -8.0
+			_main_split.offset_top = body_top
+			_main_split.offset_bottom = body_bottom
+			_main_split.grow_vertical = Control.GROW_DIRECTION_BOTH
+			_main_split.grow_horizontal = Control.GROW_DIRECTION_BOTH
+			_main_split.custom_minimum_size = Vector2.ZERO
+			_main_split.size_flags_horizontal = 0
+			_main_split.size_flags_vertical = 0
 
 	if _craftable_panel != null:
 		_craftable_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1197,8 +1258,8 @@ func _set_mode(mode: String) -> void:
 	## 先にサイズ調整→詳細再構築（逆だと装備アイコンが非表示のまま残る）。
 	_setup_hero_display_layout()
 	_refresh_all()
+	## refresh_all 内でも deferred layout/scroll。ここは同期1回＋scroll 再適用のみ。
 	_layout_craftable_strip()
-	call_deferred("_layout_craftable_strip")
 	call_deferred("_enable_forge_scroll_touch")
 
 
@@ -1408,9 +1469,16 @@ func _update_mode_tab_dots() -> void:
 	_btn_alchemy.text = "錬成"
 	_produce_notify_dot.visible = BlacksmithUiHelper.has_craftable_recipes()
 
+func _clear_left_list_immediate() -> void:
+	## queue_free だと同フレームに新旧が混在し、LeftScroll の高さ計算が壊れる。
+	while _left_list.get_child_count() > 0:
+		var child: Node = _left_list.get_child(0)
+		_left_list.remove_child(child)
+		child.free()
+
+
 func _rebuild_left_list() -> void:
-	for child in _left_list.get_children():
-		child.queue_free()
+	_clear_left_list_immediate()
 	## カテゴリタブ直下に一覧を密着（余白パッド無し）。
 	_left_list.add_child(_make_list_section_header())
 	if _mode == "produce":
@@ -2899,15 +2967,28 @@ func _cancel_mat_press() -> void:
 	_cancel_mat_press_timer_only()
 	_mat_press_name = ""
 
+func _equipped_item_set() -> Dictionary:
+	## ソート比較のたびにロスター走査しない。
+	var out: Dictionary = {}
+	for member: Variant in GameState.roster:
+		if member == null:
+			continue
+		for eq in [member.equipped_weapon, member.equipped_armor, member.equipped_accessory]:
+			if eq != null:
+				out[eq] = true
+	return out
+
+
 func _sorted_enhance_candidates() -> Array:
 	var items: Array = []
+	var equipped: Dictionary = _equipped_item_set()
 	for item in _inventory_for_category(_category):
 		if item == null or not bool(item.is_appraised):
 			continue
 		items.append(item)
 	items.sort_custom(func(a: Resource, b: Resource) -> bool:
 		return BlacksmithUiHelper.enhance_list_sort_before(
-			a, b, _is_item_equipped(a), _is_item_equipped(b), _category
+			a, b, bool(equipped.get(a, false)), bool(equipped.get(b, false)), _category
 		)
 	)
 	return items
@@ -2926,6 +3007,7 @@ func _sorted_dismantle_candidates() -> Array:
 
 func _sorted_alchemy_base_candidates() -> Array:
 	var items: Array = []
+	var equipped: Dictionary = _equipped_item_set()
 	for item in _inventory_for_category(_category):
 		if item == null:
 			continue
@@ -2935,8 +3017,8 @@ func _sorted_alchemy_base_candidates() -> Array:
 		items.append(item)
 	items.sort_custom(func(a: Resource, b: Resource) -> bool:
 		## 強化一覧に寄せて装備中を上へ。
-		var ae: bool = _is_item_equipped(a)
-		var be: bool = _is_item_equipped(b)
+		var ae: bool = bool(equipped.get(a, false))
+		var be: bool = bool(equipped.get(b, false))
 		if ae != be:
 			return ae
 		var la: int = _EquipmentEnhancer.get_equip_level(a)
