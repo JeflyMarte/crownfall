@@ -1011,6 +1011,8 @@ var _cached_heal_vfx_frames: SpriteFrames
 const SWARM_SPACING_RATIO: float = 0.201
 const SWARM_CENTER_X_RATIO: float = 0.694
 const SWARM_Y_RATIO: float = 0.48
+## 天望 Early BG（F1–14）は床がやや下寄りのため、複数敵時のみ足元を下げる。
+const NORTH_REACH_EARLY_SWARM_Y_NUDGE: float = 0.06
 ## 群れを左上→右下の階段状に置く（スロットごとの Y 比率加算）。
 const SWARM_STAIR_Y_RATIO: float = 0.045
 ## 群れ配置の左右クリップ防止（左=味方帯／行動順単一列）。
@@ -2085,11 +2087,9 @@ func _dungeon_meta_line(data: Resource) -> String:
 			parts.append("ボス")
 		elif bool(stage.requires_elite):
 			parts.append("エリート")
-	elif data != null and int(data.recommended_level) > 0:
-		var dungeon_rec: int = _DungeonTierConfig.apply_tier_level(
-			int(data.recommended_level), GameState.current_dungeon_tier
-		)
-		parts.append("推奨Lv.%d〜" % dungeon_rec)
+	elif data != null and int(data.floor_count) > 0:
+		## 征討／降臨など章なし DG も本編同様にフロア数を出す。
+		parts.append("%dF" % int(data.floor_count))
 	if not GameState.get_weather().is_empty():
 		parts.append("天候:%s" % CombatWeather.label(GameState.get_weather()))
 	return " · ".join(parts)
@@ -2702,9 +2702,22 @@ func _swarm_x_ratio_for_slot(slot: int, n: int) -> float:
 ## 左上→右下の階段。slot0 が最も高く、右へいくほど下がる。
 func _swarm_y_ratio_for_slot(slot: int, n: int) -> float:
 	var base: float = _enemy_swarm_y_ratio()
+	## 地図なき主・序盤BGは複数敵のみ床合わせで下げる（単体／Bossは据置）。
+	if n > 1 and _uses_north_reach_early_swarm_y_nudge():
+		base += NORTH_REACH_EARLY_SWARM_Y_NUDGE
 	if n <= 1 or slot <= 0:
 		return base
 	return base + float(slot) * SWARM_STAIR_Y_RATIO
+
+
+func _uses_north_reach_early_swarm_y_nudge() -> bool:
+	var data: Resource = $DungeonController.current_dungeon_data
+	if data == null or str(data.id) != "north_reach":
+		return false
+	if $DungeonController.current_room_type == Enums.RoomType.BOSS:
+		return false
+	var floor_n: int = $DungeonController.get_display_floor_current()
+	return floor_n >= 1 and floor_n <= BATTLE_BG_APEX_EARLY_FLOOR_MAX
 
 
 func _swarm_combat_position_for_slot(slot: int, n: int) -> Vector2:

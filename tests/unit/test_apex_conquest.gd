@@ -382,6 +382,8 @@ func test_north_reach_free_hard_nightmare_tiers() -> void:
 	assert_not_null(rich)
 	assert_true(str(rich.text).contains("天望の塔"))
 	assert_true(str(rich.text).contains("ナイトメア"))
+	assert_true(str(rich.text).contains("20F"), "征討進入行にフロア数")
+	assert_true(str(rich.text).contains("推奨Lv"), "征討進入行に推奨レベル")
 	## 時王も同経路（回帰）
 	assert_true(bool(scene.call("_is_event_free_tier_dungeon", "chronos_mausoleum")))
 	assert_true(bool(scene.call("_is_event_free_tier_dungeon", "valgard_boundary")))
