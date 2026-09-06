@@ -379,6 +379,9 @@ const BOSS_SPRITE_MAP_BY_TIER: Dictionary = {
 		2: "res://resources/animation/BOSS_Nereion_Nightmare.tres",
 	},
 	"blackshore_abyss": {
+		1: "res://resources/animation/BOSS_Nereion_Hard.tres",
+		2: "res://resources/animation/BOSS_Nereion_Nightmare.tres",
+	},
 	"nereion_flagship": {
 		1: "res://resources/animation/BOSS_Nereion_Hard.tres",
 		2: "res://resources/animation/BOSS_Nereion_Nightmare.tres",
