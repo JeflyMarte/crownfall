@@ -3,6 +3,7 @@
 ---
 
 ## Last Update
+2026-09-06（**鍛冶錬成タブ体感改善**: 左一覧チャンク生成＋素材候補走査1回化。要実機）
 2026-09-06（**iOS起動ハング対策＋再エクスポート**: 実機PCKからMCP addon/autoload除外。BGMはstop後に差替。PCK 529MB。要Xcode再ビルド／再インストール）
 2026-09-06（**潮脈王専用ドット接続**: Depths state＋Idle/Attack/Hurt/Death → 戦闘シート／図鑑／ターンICO。Hard/NM再色。要実機）
 2026-09-06（**iOS debug再エクスポート＋Xcode適用**: 天望BG／Serdion弱体／錬成スクロール／戦術・機巧改名／図鑑同期ほか先端。PCK 531MB・ja.lproj。要実機再インストール）

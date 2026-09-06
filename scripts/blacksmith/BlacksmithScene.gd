@@ -138,6 +138,11 @@ var _selected_reforge_mod_index: int = -1
 var _alchemy_fodder_overlay: Control = null
 var _alchemy_fodder_list: VBoxContainer = null
 var _pending_alchemy_fodder: Resource = null
+## 錬成左一覧の分割生成。切替でトークンを進め、遅延チャンクを無効化する。
+const ALCHEMY_LEFT_CHUNK: int = 24
+var _alchemy_left_build_token: int = 0
+var _alchemy_left_pending: Array = []
+var _alchemy_left_next_index: int = 0
 var _result_overlay: Control = null
 var _result_panel: PanelContainer = null
 var _result_margin: MarginContainer = null
@@ -1478,6 +1483,10 @@ func _clear_left_list_immediate() -> void:
 
 
 func _rebuild_left_list() -> void:
+	## 進行中の錬成チャンク生成を無効化。
+	_alchemy_left_build_token += 1
+	_alchemy_left_pending.clear()
+	_alchemy_left_next_index = 0
 	_clear_left_list_immediate()
 	## カテゴリタブ直下に一覧を密着（余白パッド無し）。
 	_left_list.add_child(_make_list_section_header())
@@ -1570,6 +1579,7 @@ func _rebuild_dismantle_left_list() -> void:
 
 
 func _rebuild_alchemy_left_list() -> void:
+	var token: int = _alchemy_left_build_token
 	var items: Array = _sorted_alchemy_base_candidates()
 	if items.is_empty():
 		_left_list.add_child(_make_empty_label(_empty_label_for_category(_category, "alchemy")))
@@ -1579,8 +1589,27 @@ func _rebuild_alchemy_left_list() -> void:
 	if _selected_alchemy_base == null or _selected_alchemy_base not in items:
 		_selected_alchemy_base = items[0]
 		_selected_alchemy_fodder = null
-	for item in items:
-		_left_list.add_child(_make_alchemy_base_card(item))
+	_alchemy_left_pending = items
+	_alchemy_left_next_index = 0
+	_append_alchemy_left_chunk(token)
+
+
+func _append_alchemy_left_chunk(token: int) -> void:
+	if token != _alchemy_left_build_token or _mode != "alchemy":
+		return
+	if _left_list == null or not is_instance_valid(_left_list):
+		return
+	var end_i: int = mini(_alchemy_left_next_index + ALCHEMY_LEFT_CHUNK, _alchemy_left_pending.size())
+	while _alchemy_left_next_index < end_i:
+		var item: Resource = _alchemy_left_pending[_alchemy_left_next_index] as Resource
+		_alchemy_left_next_index += 1
+		if item != null:
+			_left_list.add_child(_make_alchemy_base_card(item))
+	if _alchemy_left_next_index < _alchemy_left_pending.size():
+		call_deferred("_append_alchemy_left_chunk", token)
+	else:
+		_alchemy_left_pending.clear()
+		call_deferred("_enable_forge_scroll_touch")
 
 func _empty_label_for_category(category: String, mode: String) -> String:
 	var kind: String = BlacksmithUiHelper.category_label(category)
@@ -2319,18 +2348,19 @@ func _rebuild_alchemy_detail() -> void:
 	UiTypography.apply_caption(_subtitle_label, COLOR_SUB_STRONG)
 	_subtitle_label.add_theme_font_size_override("font_size", 12)
 	_add_stat_row("現在レベル", "Lv.%d" % _EquipmentEnhancer.get_equip_level(base))
-	if _is_item_equipped(base):
+	var equipped: Dictionary = _equipped_item_set()
+	if bool(equipped.get(base, false)):
 		_add_stat_row("状態", "装備中")
 	_cost_panel.visible = false
 	_craft_button.visible = true
 	_craft_button.text = "錬成する"
-	var fodders: Array = _sorted_alchemy_fodder_candidates()
+	var fodders: Array = _sorted_alchemy_fodder_candidates(equipped)
 	_craft_button.disabled = fodders.is_empty()
 	if fodders.is_empty():
 		_reason_label.text = "消費できる同種装備がありません"
 		_reason_label.visible = true
 	else:
-		_reason_label.text = "素材候補 %d 件" % _alchemy_fodder_grouped_rows().size()
+		_reason_label.text = "素材候補 %d 件" % _alchemy_fodder_grouped_rows(fodders).size()
 		_reason_label.visible = true
 	_layout_detail_action_anchor()
 
@@ -2399,7 +2429,7 @@ func _open_alchemy_fodder_picker() -> void:
 		return
 	for child in _alchemy_fodder_list.get_children():
 		child.queue_free()
-	var rows: Array = _alchemy_fodder_grouped_rows()
+	var rows: Array = _alchemy_fodder_grouped_rows(_sorted_alchemy_fodder_candidates())
 	if rows.is_empty():
 		var empty := Label.new()
 		empty.text = "（消費できる同種装備がありません）"
@@ -2437,11 +2467,11 @@ func _restore_alchemy_fodder_row_input() -> void:
 			(child as BaseButton).mouse_filter = Control.MOUSE_FILTER_STOP
 
 
-func _alchemy_fodder_grouped_rows() -> Array:
+func _alchemy_fodder_grouped_rows(fodders: Array) -> Array:
 	## 同一テンプレIDをまとめて所持数表示。サンプルはレベル高い個体。
 	## 行表示: 装備品名　Lv　所持数　レアリティ
 	var groups: Dictionary = {}
-	for item in _sorted_alchemy_fodder_candidates():
+	for item in fodders:
 		if item == null:
 			continue
 		var item_id: String = _item_id_for_category(item, _category)
@@ -3030,10 +3060,13 @@ func _sorted_alchemy_base_candidates() -> Array:
 	return items
 
 
-func _sorted_alchemy_fodder_candidates() -> Array:
+func _sorted_alchemy_fodder_candidates(equipped: Variant = null) -> Array:
 	var items: Array = []
 	if _selected_alchemy_base == null:
 		return items
+	var equipped_set: Dictionary = (
+		equipped as Dictionary if equipped is Dictionary else _equipped_item_set()
+	)
 	for item in _inventory_for_category(_category):
 		if item == null or item == _selected_alchemy_base:
 			continue
@@ -3041,7 +3074,7 @@ func _sorted_alchemy_fodder_candidates() -> Array:
 		if _EquipmentEnhancer.is_item_locked(item):
 			continue
 		## 装備中は素材一覧に出さない（外してから候補へ）。
-		if _is_item_equipped(item):
+		if bool(equipped_set.get(item, false)):
 			continue
 		items.append(item)
 	items.sort_custom(func(a: Resource, b: Resource) -> bool:
