@@ -1799,20 +1799,12 @@ func _make_biome_title_label(data: Resource, unlocked: bool) -> Control:
 	row.add_theme_constant_override("separation", 8)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_add_dungeon_title_labels(row, data, unlocked, UiTypography.SIZE_BODY_SMALL, false)
-	## CLEAR はメインステージ行と同じく右寄せ（タイトル直後に付けない）。
-	if unlocked and data != null:
-		var badge: String = _dungeon_name_badge_text(str(data.id))
-		if not badge.is_empty():
-			var spacer := Control.new()
-			spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			row.add_child(spacer)
-			row.add_child(_make_row_clear_badge_label(badge, false))
+	## ダンジョン見出しに CLEAR は出さない（章行のみ）。
 	margin.add_child(row)
 	return margin
 
-## 一覧行・バナー右端で共有する CLEAR／挑戦済みバッジ。
-## メインステージ行と同じ caption＋右寄せを既定にし、バナー上のみ影付き display。
+## 章行などで使う CLEAR／挑戦済みバッジ。
+## caption＋右寄せ。バナー上には載せない。
 func _make_row_clear_badge_label(badge: String, on_banner: bool) -> Label:
 	var clear_lbl := Label.new()
 	clear_lbl.text = badge
@@ -1827,19 +1819,15 @@ func _make_row_clear_badge_label(badge: String, on_banner: bool) -> Label:
 	return clear_lbl
 
 
-## バナー右端に CLEAR（アビスは最高到達）。タイトル中央群とは分離。
+## バナー右端ステータス。CLEAR／挑戦済みは出さない（章行のみ）。アビスは最高到達のみ。
 func _add_banner_right_status_badge(
 	root: Control, data: Resource, unlocked: bool, dungeon_id: String
 ) -> void:
 	if not unlocked or data == null or root == null:
 		return
-	var badge_text: String = ""
-	var badge_color: Color = COLOR_CLEAR_BADGE
-	if str(data.route_type) == "abyss":
-		badge_text = _abyss_best_floor_text(dungeon_id)
-		badge_color = COLOR_ABYSS_BEST
-	else:
-		badge_text = _dungeon_name_badge_text(dungeon_id)
+	if str(data.route_type) != "abyss":
+		return
+	var badge_text: String = _abyss_best_floor_text(dungeon_id)
 	if badge_text.is_empty():
 		return
 	var clear_lbl := Label.new()
@@ -1847,7 +1835,7 @@ func _add_banner_right_status_badge(
 	clear_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	clear_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	clear_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	UiTypography.apply_display(clear_lbl, UiTypography.SIZE_BODY_SMALL, badge_color)
+	UiTypography.apply_display(clear_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_ABYSS_BEST)
 	_apply_banner_title_shadow(clear_lbl)
 	clear_lbl.set_anchors_and_offsets_preset(Control.PRESET_CENTER_RIGHT, Control.PRESET_MODE_MINSIZE)
 	clear_lbl.offset_right = -10.0
@@ -1858,7 +1846,7 @@ func _add_banner_right_status_badge(
 
 ## バナー名は FULL_RECT 埋め込み禁止（実機でグリフが横方向に潰れて見える）。
 ## 中央寄せ＋自然サイズ。clip_text / 親 clip_contents と併用するとサイズ0で文字が消える（再発防止）。
-## CLEAR は右端バッジ（_add_banner_right_status_badge）へ分離し、メイン一覧と位置を揃える。
+## CLEAR はバナーに出さない（章行の右端のみ）。
 func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: String) -> Control:
 	var host := HBoxContainer.new()
 	host.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -1867,8 +1855,7 @@ func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: Stri
 	host.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	host.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var title_text: String = _dungeon_display_name(data, unlocked)
-	## 右端 CLEAR 分の幅を確保（タイトル中央群には含めない）。
-	var title_size: int = _banner_title_font_size(dungeon_id, title_text, true)
+	var title_size: int = _banner_title_font_size(dungeon_id, title_text, false)
 	_add_dungeon_title_labels(host, data, unlocked, title_size, true)
 	host.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
 	host.offset_top -= 2.0
@@ -2055,7 +2042,7 @@ func _sync_featured_banner(dungeon_id: String) -> void:
 	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_featured_banner_host.add_child(banner)
 	## 一覧バナーと同様、画像上にダンジョン名を重ねる（焼き込み無しの雰囲気BG向け）。
-	## CLEAR はタイトル焼き込み時も右端に出す（メイン一覧と位置統一）。
+	## CLEAR はバナーに出さない（章行のみ）。アビス最高到達のみ右端。
 	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
 	if data == null:
 		return
@@ -2097,7 +2084,7 @@ func _make_biome_banner_header(
 	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(banner)
 
-	## タイトルは Featured と同様・自然サイズ中央。CLEAR は右端（メインステージ行と位置統一）。
+	## タイトルは Featured と同様・自然サイズ中央。CLEAR はバナーに出さない（章行のみ）。
 	## シェブロンは左オーバーレイ（HBox だと右寄りになる）。
 	if not _banner_hides_title(dungeon_id):
 		root.add_child(_make_banner_overlay_title(data, unlocked, dungeon_id))
@@ -2179,7 +2166,7 @@ func _make_biome_text_header(
 		name_host, data, unlocked, UiTypography.SIZE_BODY_SMALL, false
 	)
 	title_row.add_child(name_host)
-	## CLEAR／最高到達はメインステージ行と同じく右寄せ。
+	## テキスト見出しでも CLEAR は出さない（章行のみ）。アビスは最高到達を右寄せ。
 	var status_spacer := Control.new()
 	status_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	status_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -2192,10 +2179,6 @@ func _make_biome_text_header(
 		best_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		UiTypography.apply_display(best_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_ABYSS_BEST)
 		title_row.add_child(best_lbl)
-	elif unlocked:
-		var badge: String = _dungeon_name_badge_text(dungeon_id)
-		if not badge.is_empty():
-			title_row.add_child(_make_row_clear_badge_label(badge, false))
 	root.add_child(title_row)
 
 	var header_btn := Button.new()

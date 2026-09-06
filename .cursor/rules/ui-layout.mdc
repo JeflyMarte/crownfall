@@ -277,6 +277,7 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 - Featured 上段を「一覧にバナーがあるから」と非表示にする
 - 解放ポップ名を VBox 下段配置＋次解放フォールバックを whisperwood 固定
 - CLEAR をイベントバナー見出しにインライン連結（征討／降臨の直後）。メイン章行と位置がズレる
+- CLEAR をダンジョンバナー（Featured／一覧見出し）に載せる。章行と二重表示になる
 
 ✅ GOOD
 - タイトルは `PRESET_CENTER`＋`PRESET_MODE_MINSIZE`＋`clip_text=false`。自然サイズ＋中央寄せ
@@ -287,7 +288,7 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 - Featured でもバナー表示。`_sync_featured_banner` も `display_name` 中央重ね
 - 解放名はバナー内中央重ね。次解放は `ContentUnlockNotice.next_unlock_after_main_clear`
 - ロック中は「？」のみ（実名・バナー・ドロップ非表示）
-- CLEAR／挑戦済みはメインステージ行と同じく **右端**（`_add_banner_right_status_badge`／status Label）。タイトル中央群には含めない。フォント縮小は `with_clear=true` で幅確保
+- CLEAR／挑戦済みは **章行の右端のみ**。バナーには出さない（アビス最高到達のみバナー右端可）
 
 ## 職名・本文タイポ
 
