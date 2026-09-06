@@ -18,6 +18,7 @@ const COLOR_ACCENT: Color = Color(0.82, 0.9, 1.0, 1)
 
 const _AffixRoller = preload("res://scripts/equipment/AffixRoller.gd")
 const _EquipmentEnhancer = preload("res://scripts/equipment/EquipmentEnhancer.gd")
+const _VirtualInventoryGrid = preload("res://scripts/ui/VirtualInventoryGrid.gd")
 const _EquipmentReforgeHelper = preload("res://scripts/equipment/EquipmentReforgeHelper.gd")
 const _EquipmentRandomMods = preload("res://scripts/equipment/EquipmentRandomMods.gd")
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
@@ -138,11 +139,9 @@ var _selected_reforge_mod_index: int = -1
 var _alchemy_fodder_overlay: Control = null
 var _alchemy_fodder_list: VBoxContainer = null
 var _pending_alchemy_fodder: Resource = null
-## 錬成左一覧の分割生成。切替でトークンを進め、遅延チャンクを無効化する。
-const ALCHEMY_LEFT_CHUNK: int = 24
-var _alchemy_left_build_token: int = 0
-var _alchemy_left_pending: Array = []
-var _alchemy_left_next_index: int = 0
+## 錬成左一覧の仮想スクロール（見える行だけカード生成）。
+var _alchemy_virtual = _VirtualInventoryGrid.new()
+var _alchemy_list_host: Control = null
 var _result_overlay: Control = null
 var _result_panel: PanelContainer = null
 var _result_margin: MarginContainer = null
@@ -1431,11 +1430,17 @@ func _tag_list_card(
 
 
 func _sync_left_list_selection_styles() -> void:
+	var panels: Array = []
 	for child in _left_list.get_children():
-		if not (child is PanelContainer):
-			continue
-		var panel := child as PanelContainer
-		if not panel.has_meta("forge_list_kind"):
+		if child is PanelContainer:
+			panels.append(child)
+		elif _alchemy_list_host != null and child == _alchemy_list_host:
+			for gc in _alchemy_list_host.get_children():
+				if gc is PanelContainer:
+					panels.append(gc)
+	for panel_v in panels:
+		var panel := panel_v as PanelContainer
+		if panel == null or not panel.has_meta("forge_list_kind"):
 			continue
 		var kind: String = str(panel.get_meta("forge_list_kind"))
 		var ref: Variant = panel.get_meta("forge_list_ref")
@@ -1483,10 +1488,7 @@ func _clear_left_list_immediate() -> void:
 
 
 func _rebuild_left_list() -> void:
-	## 進行中の錬成チャンク生成を無効化。
-	_alchemy_left_build_token += 1
-	_alchemy_left_pending.clear()
-	_alchemy_left_next_index = 0
+	_teardown_alchemy_virtual_list()
 	_clear_left_list_immediate()
 	## カテゴリタブ直下に一覧を密着（余白パッド無し）。
 	_left_list.add_child(_make_list_section_header())
@@ -1579,7 +1581,6 @@ func _rebuild_dismantle_left_list() -> void:
 
 
 func _rebuild_alchemy_left_list() -> void:
-	var token: int = _alchemy_left_build_token
 	var items: Array = _sorted_alchemy_base_candidates()
 	if items.is_empty():
 		_left_list.add_child(_make_empty_label(_empty_label_for_category(_category, "alchemy")))
@@ -1589,27 +1590,89 @@ func _rebuild_alchemy_left_list() -> void:
 	if _selected_alchemy_base == null or _selected_alchemy_base not in items:
 		_selected_alchemy_base = items[0]
 		_selected_alchemy_fodder = null
-	_alchemy_left_pending = items
-	_alchemy_left_next_index = 0
-	_append_alchemy_left_chunk(token)
+	_setup_alchemy_virtual_list(items)
 
 
-func _append_alchemy_left_chunk(token: int) -> void:
-	if token != _alchemy_left_build_token or _mode != "alchemy":
+func _teardown_alchemy_virtual_list() -> void:
+	_alchemy_virtual.unbind()
+	_alchemy_list_host = null
+
+
+func _alchemy_list_cell_width() -> float:
+	var left_scroll: ScrollContainer = _left_scroll()
+	var width: float = LEFT_LIST_MIN_WIDTH_PX
+	if left_scroll != null and left_scroll.size.x > 1.0:
+		width = left_scroll.size.x
+	## スクロールバー余白。
+	return maxf(180.0, width - 10.0)
+
+
+func _setup_alchemy_virtual_list(items: Array) -> void:
+	var left_scroll: ScrollContainer = _left_scroll()
+	if left_scroll == null or _left_list == null:
+		for item in items:
+			_left_list.add_child(_make_alchemy_base_card(item as Resource))
 		return
-	if _left_list == null or not is_instance_valid(_left_list):
+	_alchemy_list_host = Control.new()
+	_alchemy_list_host.name = "AlchemyVirtualHost"
+	_alchemy_list_host.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_alchemy_list_host.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_alchemy_list_host.mouse_filter = Control.MOUSE_FILTER_PASS
+	_alchemy_list_host.clip_contents = false
+	_left_list.add_child(_alchemy_list_host)
+	_alchemy_virtual.columns = 1
+	_alchemy_virtual.cell_size = Vector2(
+		_alchemy_list_cell_width(), float(BlacksmithUiHelper.LIST_CARD_MIN_HEIGHT)
+	)
+	_alchemy_virtual.h_separation = 0
+	_alchemy_virtual.v_separation = 6
+	_alchemy_virtual.buffer_rows = 3
+	_alchemy_virtual.bind(
+		left_scroll,
+		_alchemy_list_host,
+		_VirtualInventoryGrid.BindMode.OUTER_SCROLL,
+		_make_alchemy_virtual_cell,
+		_make_alchemy_virtual_empty
+	)
+	var entries: Array = []
+	for item in items:
+		if item == null:
+			continue
+		entries.append({"item": item})
+	_alchemy_virtual.set_entries(entries, "")
+	call_deferred("_deferred_alchemy_virtual_refresh")
+
+
+func _make_alchemy_virtual_cell(entry: Dictionary, _index: int) -> Control:
+	var item: Resource = entry.get("item") as Resource
+	if item == null:
+		return Control.new()
+	return _make_alchemy_base_card(item)
+
+
+func _make_alchemy_virtual_empty(message: String) -> Control:
+	return _make_empty_label(message if not message.is_empty() else "（なし）")
+
+
+func _deferred_alchemy_virtual_refresh() -> void:
+	if _mode != "alchemy" or _alchemy_list_host == null:
 		return
-	var end_i: int = mini(_alchemy_left_next_index + ALCHEMY_LEFT_CHUNK, _alchemy_left_pending.size())
-	while _alchemy_left_next_index < end_i:
-		var item: Resource = _alchemy_left_pending[_alchemy_left_next_index] as Resource
-		_alchemy_left_next_index += 1
-		if item != null:
-			_left_list.add_child(_make_alchemy_base_card(item))
-	if _alchemy_left_next_index < _alchemy_left_pending.size():
-		call_deferred("_append_alchemy_left_chunk", token)
+	var width: float = _alchemy_list_cell_width()
+	var height: float = float(BlacksmithUiHelper.LIST_CARD_MIN_HEIGHT)
+	if absf(_alchemy_virtual.cell_size.x - width) > 1.0:
+		_alchemy_virtual.cell_size = Vector2(width, height)
+		## 幅が変わったら見えるセルを作り直す。
+		var n: int = _alchemy_virtual.entry_count()
+		if n > 0:
+			var entries: Array = []
+			## set_entries の再投入のため候補を取り直す（選択は維持）。
+			for item in _sorted_alchemy_base_candidates():
+				if item != null:
+					entries.append({"item": item})
+			_alchemy_virtual.set_entries(entries, "")
 	else:
-		_alchemy_left_pending.clear()
-		call_deferred("_enable_forge_scroll_touch")
+		_alchemy_virtual.refresh(false)
+	call_deferred("_enable_forge_scroll_touch")
 
 func _empty_label_for_category(category: String, mode: String) -> String:
 	var kind: String = BlacksmithUiHelper.category_label(category)

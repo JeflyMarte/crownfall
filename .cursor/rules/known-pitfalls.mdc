@@ -24,7 +24,7 @@ alwaysApply: false
 | ダンジョン選択の下情報欄が左欠け／リストに重なる | 長いイベント要約で Footer 最小幅＝全文幅＋設計高不足 | → **`ui-layout.mdc` FooterPanel**（clip＋ellipsis＋MainColumn 下端を Footer 実高で再計算） |
 | イベント一覧の CLEAR が征討／降臨直後でメイン章行とズレる | バナータイトル HBox に CLEAR をインライン追加 | → **`ui-layout.mdc` Biomeバナー**（CLEAR は章行右端のみ。バナーには出さない） |
 | iPhone で Godot ロゴのまま進まない／起動直後 watchdog（0x8BADF00D） | (1) PCK に `docs/devlog` 等同梱で数GB化 (2) **MCP autoload**（`_MCPGameBridge` / `_mcp_game_helper`）が実機に入り `res://` ポーリング | `setup_ios_testplay.sh --export` が exclude＋**autoload 一時除去**。PCK に `game_helper`/`game_bridge` が無いこと確認。目安 <1.5GB |
-| 鍛冶・錬成タブ／武器切替で固まる | 左一覧を同フレーム全件カード化＋素材候補の二重走査／装備判定のロスター全走査 | 錬成左一覧はチャンク生成。fodder は1配列を再利用。装備判定は `_equipped_item_set` |
+| 鍛冶・錬成タブ／武器切替で固まる | 左一覧を同フレーム全件カード化＋素材候補の二重走査／装備判定のロスター全走査 | 錬成左一覧は **VirtualInventoryGrid**（可視行のみ）。fodder は1配列再利用。装備判定は `_equipped_item_set` |
 | iOS `AudioStreamPlaybackResampled::mix` EXC_BAD_ACCESS | Godot 4.6.3 既知（CoreAudio init 失敗→Dummy＋focus_in で二重 mix）／再生中 stream 差替 | BGM は stop してから stream 差替。通話中起動を避ける。エンジン修正待ち [#120842](https://github.com/godotengine/godot/issues/120842) |
 | App Store 商品ページの対応言語が EN のみ | Godot iOS テンプレが `CFBundleDevelopmentRegion=en`＋`en.lproj` 固定。Connect のプライマリ言語はメタデータ専用でバイナリ言語判定に使われない | `setup_ios_testplay.sh` の export 後に `tools/fix_ios_japanese_localization.py`（`ja.lproj`／`CFBundleLocalizations=ja`／`developmentRegion=ja`）。反映には **新ビルド再提出**が必要 |
 | App Store アップロードが 90186 / 90062（1.0.0 train closed） | 承認済みバージョンへ新ビルドを載せようとした。`CFBundleShortVersionString` が承認済みと同じ | 表示バージョンを上げる（例 1.0.0→1.0.1）。ビルド番号だけ +1 では足りない。Connect で新バージョンを作成して Archive し直す |
