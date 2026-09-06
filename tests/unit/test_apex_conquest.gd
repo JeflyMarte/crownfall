@@ -140,6 +140,29 @@ func test_red_forge_dedicated_battle_bgs() -> void:
 	assert_false(str(boss_map["red_forge_depths"]).contains("BrokenMarsh"))
 
 
+## 天望専用戦闘BG（Early/Late/Boss）・境界廊／フロスト流用解除
+func test_north_reach_dedicated_battle_bgs() -> void:
+	const EARLY := "res://assets/dungeon/north_reach/env/BG_Battle_NorthReach_Early.png"
+	const LATE := "res://assets/dungeon/north_reach/env/BG_Battle_NorthReach.png"
+	const BOSS := "res://assets/dungeon/north_reach/env/BG_Battle_NorthReach_Boss.png"
+	assert_true(FileAccess.file_exists(EARLY))
+	assert_true(FileAccess.file_exists(LATE))
+	assert_true(FileAccess.file_exists(BOSS))
+	var sc: Script = load("res://scripts/dungeon/DungeonScene.gd")
+	var consts: Dictionary = sc.get_script_constant_map()
+	var late_map: Dictionary = consts["BATTLE_BG_MAP"]
+	var early_map: Dictionary = consts["BATTLE_BG_EARLY_MAP"]
+	var boss_map: Dictionary = consts["BATTLE_BG_BOSS_MAP"]
+	assert_eq(str(late_map.get("north_reach", "")), LATE)
+	assert_eq(str(early_map.get("north_reach", "")), EARLY)
+	assert_eq(str(boss_map.get("north_reach", "")), BOSS)
+	assert_true(bool(consts["BATTLE_BG_FINAL_BOSS_BIOMES"].get("north_reach", false)))
+	assert_false(str(late_map["north_reach"]).contains("valgard_boundary"))
+	assert_false(str(early_map["north_reach"]).contains("valgard_boundary"))
+	assert_false(str(boss_map["north_reach"]).contains("frostridge"))
+	assert_false(str(boss_map["north_reach"]).contains("FinalBoss"))
+
+
 func test_forgedormient_codex_art_dedicated() -> void:
 	var path: String = str(IconPaths.ICON_MAP.get("enemy:forgedormient", ""))
 	assert_eq(path, "res://assets/codex/enemies/ART_BOSS_Forgedormient.png")
