@@ -49,8 +49,9 @@ var _power_panel: Control = null
 var _power_frame: TextureRect = null
 var _power_caption: Label = null
 var _power_value: Label = null
-var _skills_panel: PanelContainer = null
+var _skills_panel: Panel = null
 var _skills_col: Control = null
+var _skills_fitted_h: float = -1.0
 var _name_frame_mask: TextureRect = null
 var _pick_overlay: Control = null
 var _pick_list: VBoxContainer = null
@@ -191,8 +192,8 @@ func _apply_layout_rects() -> void:
 	_stats_panel.size = stats.size
 
 	if _skills_panel != null:
-		## 高さは `_fit_skills_panel_to_content` が内容に合わせる。ここでは位置と幅のみ。
-		_apply_skills_panel_frame(_skills_panel.size.y if _skills_panel.size.y > 1.0 else -1.0)
+		## 幅・位置はトークン。高さは直近の内容フィットを維持（無ければ上限）。
+		_apply_skills_panel_frame(_skills_fitted_h)
 
 	var idle_size: Vector2 = ShowcaseUiTokensScript.IDLE_HOST_SIZE
 	var idle_center: Vector2 = ShowcaseUiTokensScript.IDLE_CENTER
@@ -337,7 +338,8 @@ func _set_power_display(power: int) -> void:
 func _ensure_skills_panel() -> void:
 	if _skills_panel != null:
 		return
-	_skills_panel = PanelContainer.new()
+	## PanelContainer は子の最小サイズで再膨張する。固定枠は Panel にする。
+	_skills_panel = Panel.new()
 	_skills_panel.name = "SkillsPanel"
 	_skills_panel.z_index = 5
 	_skills_panel.visible = false
@@ -348,8 +350,6 @@ func _ensure_skills_panel() -> void:
 	_skills_col = Control.new()
 	_skills_col.name = "SkillsCol"
 	_skills_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_skills_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_skills_col.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_skills_panel.add_child(_skills_col)
 	add_child(_skills_panel)
 	_apply_skills_panel_frame(-1.0)
@@ -360,19 +360,18 @@ func _apply_skills_panel_frame(height: float) -> void:
 	if _skills_panel == null:
 		return
 	var skills_r: Rect2 = ShowcaseUiTokensScript.SKILLS_RECT
-	var h: float = skills_r.size.y if height < 0.0 else clampf(height, 40.0, skills_r.size.y)
+	var h: float = skills_r.size.y if height < 0.0 else clampf(height, 36.0, skills_r.size.y)
 	_skills_panel.position = skills_r.position
-	_skills_panel.size = Vector2(skills_r.size.x, h)
 	_skills_panel.custom_minimum_size = Vector2(skills_r.size.x, h)
+	_skills_panel.size = Vector2(skills_r.size.x, h)
 	if _skills_col != null:
 		_skills_col.position = Vector2.ZERO
 		_skills_col.size = Vector2(skills_r.size.x, h)
 
 
 func _fit_skills_panel_to_content(content_bottom_y: float) -> void:
-	_apply_skills_panel_frame(
-		content_bottom_y + ShowcaseUiTokensScript.SKILLS_PAD_BOTTOM
-	)
+	_skills_fitted_h = content_bottom_y + ShowcaseUiTokensScript.SKILLS_PAD_BOTTOM
+	_apply_skills_panel_frame(_skills_fitted_h)
 
 
 func _populate_equipped_skill_names(member: Resource, build_blurb: String = "") -> void:
