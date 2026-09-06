@@ -1061,6 +1061,22 @@ static func display_texture_for_weapon(weapon_id: String, tex: Texture2D) -> Tex
 	_bow_display_cache[weapon_id] = cropped
 	return cropped
 
+
+## 機巧士仕掛け頭上ICO。透過余白が多いので不透明領域へクロップして枠内の絵を大きくする。
+static var _engineer_trap_display_cache: Dictionary = {}
+
+
+static func display_texture_for_engineer_trap(effect_id: String, tex: Texture2D) -> Texture2D:
+	if tex == null:
+		return tex
+	var key: String = effect_id if not effect_id.is_empty() else str(tex.get_path())
+	if _engineer_trap_display_cache.has(key):
+		return _engineer_trap_display_cache[key] as Texture2D
+	## 仕掛けICOは余白が大きい。pad を小さくして枠内の本体を大きく見せる。
+	var cropped: Texture2D = _crop_opaque_region(tex, 0.04)
+	_engineer_trap_display_cache[key] = cropped
+	return cropped
+
 static func _crop_opaque_region(tex: Texture2D, pad_ratio: float = 0.08) -> Texture2D:
 	var img: Image = tex.get_image()
 	if img == null or img.get_width() <= 0:

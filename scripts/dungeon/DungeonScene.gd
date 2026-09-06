@@ -618,11 +618,10 @@ const STATUS_ICON_DEF: Dictionary = {
 const HEAL_SKILL_BASE: int = BalanceConfig.HEAL_SKILL_BASE
 const STATUS_ICON_SIZE: float = 26.0
 const STATUS_ICON_GAP: float = 3.0
-## 機巧士仕掛け印（頭上）。正方形フレーム＋残発は枠の外（上）。
-const ENGINEER_TRAP_ICON_SIZE: float = 52.0
-const ENGINEER_TRAP_STACK_H: float = 14.0
+## 機巧士仕掛け印（頭上）。枠サイズは他ステと同じ。残発は枠の外（上）。絵は余白クロップで大きく。
+const ENGINEER_TRAP_STACK_H: float = 12.0
 const ENGINEER_TRAP_STACK_GAP: int = 0
-const ENGINEER_TRAP_STACK_FONT: int = 13
+const ENGINEER_TRAP_STACK_FONT: int = 11
 ## 戦闘レジェンド（P3-UX-STATUS-LEGEND-001／004／006）。
 ## 状態異常＝右下、天候などダンジョン効果＝右上。
 const STATUS_LEGEND_ICON_PX: float = 22.0
@@ -3333,14 +3332,14 @@ func _build_status_icon(entry: Dictionary) -> Control:
 	return panel
 
 
-## 機巧士仕掛け: 正方形フレーム。残発数字は枠の外（上）。
+## 機巧士仕掛け: 枠サイズは他ステと同寸。残発は枠の外（上）。絵は余白クロップで大きく。
 func _build_engineer_trap_status_icon(entry: Dictionary) -> Control:
 	var effect_id: String = str(entry.get("effect_id", ""))
 	var def: Dictionary = STATUS_ICON_DEF.get(
 		effect_id, {"abbrev": "?", "color": Color(0.75, 0.65, 0.35)}
 	)
 	var fires: int = maxi(1, int(entry.get("stacks", 1)))
-	var icon_sz: float = ENGINEER_TRAP_ICON_SIZE
+	var icon_sz: float = STATUS_ICON_SIZE
 	var root := VBoxContainer.new()
 	root.name = "EngineerTrapMark"
 	root.add_theme_constant_override("separation", ENGINEER_TRAP_STACK_GAP)
@@ -3381,7 +3380,7 @@ func _build_engineer_trap_status_icon(entry: Dictionary) -> Control:
 	if icon_tex != null:
 		var icon := TextureRect.new()
 		icon.name = "TrapIcon"
-		icon.texture = icon_tex
+		icon.texture = IconPaths.display_texture_for_engineer_trap(effect_id, icon_tex)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.custom_minimum_size = Vector2(icon_sz, icon_sz)
@@ -3393,7 +3392,7 @@ func _build_engineer_trap_status_icon(entry: Dictionary) -> Control:
 		abbrev_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		abbrev_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		abbrev_lbl.custom_minimum_size = Vector2(icon_sz, icon_sz)
-		abbrev_lbl.add_theme_font_size_override("font_size", 18)
+		abbrev_lbl.add_theme_font_size_override("font_size", 14)
 		abbrev_lbl.add_theme_color_override("font_color", Color.WHITE)
 		abbrev_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		frame.add_child(abbrev_lbl)
@@ -3407,9 +3406,9 @@ func _status_icon_entry_size(entry: Dictionary) -> Vector2:
 	var effect_id: String = str(entry.get("effect_id", ""))
 	if effect_id.begins_with("eng_trap_"):
 		var h: float = (
-			ENGINEER_TRAP_STACK_H + float(ENGINEER_TRAP_STACK_GAP) + ENGINEER_TRAP_ICON_SIZE
+			ENGINEER_TRAP_STACK_H + float(ENGINEER_TRAP_STACK_GAP) + STATUS_ICON_SIZE
 		)
-		return Vector2(ENGINEER_TRAP_ICON_SIZE, h)
+		return Vector2(STATUS_ICON_SIZE, h)
 	return Vector2(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
 
 
