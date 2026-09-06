@@ -128,9 +128,11 @@ func test_staff_list_button_matches_change_member_rect() -> void:
 func test_skills_rect_sits_below_stats() -> void:
 	var stats: Rect2 = ShowcaseUiTokens.STATS_RECT
 	var skills: Rect2 = ShowcaseUiTokens.SKILLS_RECT
-	## スキル箱はステ下・やや左。高さ上限はビルド説明用。実パネルは内容フィットで縮む。
-	assert_lt(skills.position.x, stats.position.x)
-	assert_gte(skills.size.y, 200.0)
+	## スキル箱はステ下・ステと同系右カラム（細幅）。高さ上限はビルド説明用。
+	assert_gte(skills.position.x, stats.position.x - 1.0)
+	assert_lte(skills.size.x, stats.size.x + 1.0)
+	assert_lt(skills.size.x, 180.0)
+	assert_gte(skills.size.y, 160.0)
 	assert_gt(skills.position.y, stats.position.y + stats.size.y - 1.0)
 	assert_lt(skills.position.y + skills.size.y, ShowcaseUiTokens.POWER_RECT.position.y)
 	assert_gt(ShowcaseUiTokens.SKILLS_PAD_BOTTOM, 0.0)
@@ -150,7 +152,7 @@ func test_showcase_scene_shows_equipped_skill_card() -> void:
 	await get_tree().process_frame
 	scene.call("_set_mode", scene.Mode.STAFF)
 	await get_tree().process_frame
-	var skills_panel: PanelContainer = scene.get("_skills_panel") as PanelContainer
+	var skills_panel: Panel = scene.get("_skills_panel") as Panel
 	assert_not_null(skills_panel)
 	assert_true(skills_panel.visible)
 	var skills_r: Rect2 = ShowcaseUiTokens.SKILLS_RECT
@@ -158,6 +160,10 @@ func test_showcase_scene_shows_equipped_skill_card() -> void:
 	assert_eq(skills_panel.size.x, skills_r.size.x)
 	assert_lte(skills_panel.size.y, skills_r.size.y)
 	assert_gte(skills_panel.size.y, 80.0)
+	## レイアウト後も細幅のまま（PanelContainer 膨張の再発防止）。
+	await get_tree().process_frame
+	assert_eq(skills_panel.size.x, skills_r.size.x)
+	assert_lte(skills_panel.size.y, skills_r.size.y)
 	var col: Control = scene.get("_skills_col") as Control
 	assert_not_null(col)
 	assert_gte(col.get_child_count(), 2)
@@ -200,13 +206,19 @@ func test_own_skills_panel_compacts_without_build_blurb() -> void:
 	await get_tree().process_frame
 	scene.call("_populate_equipped_skill_names", null, "")
 	await get_tree().process_frame
-	var skills_panel: PanelContainer = scene.get("_skills_panel") as PanelContainer
+	var skills_panel: Panel = scene.get("_skills_panel") as Panel
 	assert_not_null(skills_panel)
 	var skills_r: Rect2 = ShowcaseUiTokens.SKILLS_RECT
 	assert_eq(skills_panel.position, skills_r.position)
 	assert_eq(skills_panel.size.x, skills_r.size.x)
-	assert_lt(skills_panel.size.y, 120.0)
-	assert_gte(skills_panel.size.y, 48.0)
+	assert_eq(skills_panel.size.x, 150.0)
+	assert_lt(skills_panel.size.y, 100.0)
+	assert_gte(skills_panel.size.y, 40.0)
+	## リサイズ相当の再レイアウトでも細幅・低さを保つ。
+	scene.call("_apply_layout_rects")
+	await get_tree().process_frame
+	assert_eq(skills_panel.size.x, 150.0)
+	assert_lt(skills_panel.size.y, 100.0)
 	var col: Control = scene.get("_skills_col") as Control
 	assert_not_null(col)
 	assert_eq(col.get_child_count(), 2)
