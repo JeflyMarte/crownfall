@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Re-frame character ultimate icons with DeadEye-style steel+cyan frame.
+"""DEPRECATED — use tools/reframe_char_ult_icons_ornate.py instead.
 
-Restores art from commit before gold framing (86311c4c parent of gold commit uses
-86311c4c itself = unframed originals), then applies DeadEye draw_frame.
+This applied a procedural steel+cyan approximation that did NOT match the
+shipped DeadEye / initial-5 ornate 8-stud frame. Kept for history only.
 """
 from __future__ import annotations
 
