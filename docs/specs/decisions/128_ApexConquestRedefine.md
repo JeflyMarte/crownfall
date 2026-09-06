@@ -83,6 +83,12 @@
 |---|---|
 | 一言 | **石の塔を登り、上層ほど空と風が近づく。最上階だけ白闇の余白** |
 | ビジュアル | **単一系統**。下〜中層＝`valgard_boundary` 背景（砦壁・回廊）。上層〜頂＝同系統 or フロスト Late 等 **空が開ける** 既存BG。Biome 切替なし |
+
+> **実装メモ（2026-09-06）:** 戦闘BGは当面この流用を維持。  
+> Early/Late＝`BG_Battle_ValgardBoundary`／Boss＝`BG_Battle_FinalBoss`（フロスト）。  
+> 専用 `assets/dungeon/north_reach/env/` は未作成（星炉同型の差し替えは後続）。  
+> DG ICO／BAN／BGM は専用済。
+
 | 天候 | **風・薄雲**（吹雪・地下感は出さない）→ 実装正は **`133` W-A**（晴れ55／霧25／雨10／夜10／吹雪0・run固定） |
 | 有利属性 | **雷 or 聖**（高所・砦跡系。Impl 時 `valgard_boundary` 準拠で **holy** 可）。Boss 階は **炎**（アルバーク） |
 | 放浪 | **無効** |
