@@ -1721,7 +1721,24 @@ func _make_event_free_tier_enter_card(dungeon_id: String) -> Control:
 	if not open_now and not next_label.is_empty():
 		title_text += "（%s）" % next_label
 	var name_color: String = "f5e07a" if open_now else "c9c4b8"
-	line.text = "[color=#%s][b]%s[/b][/color]" % [name_color, title_text]
+	## 章行と同型: 名の横にフロア数・推奨Lv（征討／降臨の単一行も本編と揃える）。
+	var meta_parts: Array[String] = []
+	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+	if open_now and data != null:
+		if int(data.floor_count) > 0:
+			meta_parts.append("%dF" % int(data.floor_count))
+		var rec_lv: int = _DungeonTierConfig.apply_tier_level(
+			int(data.recommended_level), tier
+		)
+		if rec_lv > 0:
+			meta_parts.append("推奨Lv%d" % rec_lv)
+	if meta_parts.is_empty():
+		line.text = "[color=#%s][b]%s[/b][/color]" % [name_color, title_text]
+	else:
+		line.text = (
+			"[color=#%s][b]%s[/b][/color]  [color=#e0dcd0]%s[/color]"
+			% [name_color, title_text, "  ".join(meta_parts)]
+		)
 	text_col.add_child(line)
 	var status_text: String = ""
 	if not open_now:
