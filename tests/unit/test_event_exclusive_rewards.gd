@@ -123,7 +123,7 @@ func test_valgard_set_bonus_values() -> void:
 
 func test_namerefuse_set_activation_and_bonus() -> void:
 	assert_eq(_Sets.set_id_for_dungeon("north_reach"), _Sets.SET_ALBARK_NAMEREFUSE)
-	assert_eq(_Evt.source_label("north_reach"), "天望の塔")
+	assert_eq(_Evt.source_label("north_reach"), "アストラ・スパイア")
 	assert_eq(_Sets.all_piece_ids(_Sets.SET_ALBARK_NAMEREFUSE).size(), 7)
 	assert_gt(GameState.party_members.size(), 0)
 	var member: Resource = GameState.party_members[0]
@@ -160,7 +160,7 @@ func test_namerefuse_set_activation_and_bonus() -> void:
 
 func test_forge_slag_set_activation_and_bonus() -> void:
 	assert_eq(_Sets.set_id_for_dungeon("red_forge_depths"), _Sets.SET_FORGE_SLAG)
-	assert_eq(_Evt.source_label("red_forge_depths"), "星炉火口")
+	assert_eq(_Evt.source_label("red_forge_depths"), "アストラ・カルデラ")
 	assert_eq(_Sets.all_piece_ids(_Sets.SET_FORGE_SLAG).size(), 7)
 	assert_gt(GameState.party_members.size(), 0)
 	var member: Resource = GameState.party_members[0]

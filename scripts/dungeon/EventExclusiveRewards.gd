@@ -81,9 +81,9 @@ static func source_label(dungeon_id: String) -> String:
 		"nereion_flagship":
 			return "沈没旗艦下"
 		"north_reach":
-			return "天望の塔"
+			return "アストラ・スパイア"
 		"red_forge_depths":
-			return "星炉火口"
+			return "アストラ・カルデラ"
 		_:
 			return ""
 

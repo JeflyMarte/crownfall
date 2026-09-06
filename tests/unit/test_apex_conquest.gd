@@ -103,6 +103,14 @@ func test_red_forge_conquest_volcano_data() -> void:
 	assert_false("frost_claw_raptor" in data.enemy_pool)
 	assert_false("skarpedion" in data.enemy_pool)
 	assert_false("skarpedion" in data.elite_pool)
+	## 火山寄り装備（霜プール流用を禁止）。
+	assert_false(data.weapon_pool.has("glacier_greatsword"))
+	assert_false(data.armor_pool.has("glacier_plate"))
+	assert_false(data.accessory_pool.has("ice_crystal_ring"))
+	assert_true(data.weapon_pool.has("pyrebrand_maul"))
+	assert_true(data.weapon_pool.has("cinder_orb_staff"))
+	assert_true(data.accessory_pool.has("overheat_amulet"))
+	assert_true(data.accessory_pool.has("ashvault_pendant"))
 
 
 func test_red_forge_weather_heat_bias_no_snow() -> void:
@@ -380,7 +388,7 @@ func test_north_reach_free_hard_nightmare_tiers() -> void:
 	assert_not_null(card)
 	var rich: RichTextLabel = _find_rich_label(card)
 	assert_not_null(rich)
-	assert_true(str(rich.text).contains("天望の塔"))
+	assert_true(str(rich.text).contains("アストラ・スパイア"))
 	assert_true(str(rich.text).contains("ナイトメア"))
 	assert_true(str(rich.text).contains("20F"), "征討進入行にフロア数")
 	assert_true(str(rich.text).contains("推奨Lv"), "征討進入行に推奨レベル")

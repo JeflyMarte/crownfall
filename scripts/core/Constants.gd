@@ -36,9 +36,9 @@ const VALGARD_BOUNDARY_DUNGEON_ID: String = "valgard_boundary"
 const NEREION_FLAGSHIP_DUNGEON_ID: String = "nereion_flagship"
 ## 潮脈王降臨をプレイ対象に含める。第3弾検証 ON（第2弾ストア提出ブランチでは false）。
 const NEREION_FLAGSHIP_PLAYABLE: bool = true
-## 征討パイロット・地図なき主／天望の塔（P3-DG-APEX-REDEFINE-001）。
+## 征討パイロット・地図なき主／アストラ・スパイア（P3-DG-APEX-REDEFINE-001）。
 const NORTH_REACH_DUNGEON_ID: String = "north_reach"
-## 征討2・星炉の寝主／星炉火口（P3-DG-APEX-FORGE-001）。
+## 征討2・星炉の寝主／アストラ・カルデラ（P3-DG-APEX-FORGE-001）。
 const RED_FORGE_DEPTHS_DUNGEON_ID: String = "red_forge_depths"
 ## イベント常設で配信する apex 征討 id（寄り道オミットは維持）。
 ## 第2弾検証: 天望＋星炉を配信（第1弾は `[]`）。

@@ -8231,6 +8231,16 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-APEX-FORGE-001-5 | 戦闘BG専用3枚（Early/Late/Boss）・BrokenMarsh流用解除 | Motif B・2026-08-31 |
 | P3-DG-APEX-FORGE-001-6 | DG ICO／BAN 専用・フロストリッジ流用解除 | 天望同型・2026-08-31 |
 
+## 征討ステージ改名・星炉装備プール（2026-09-06）
+
+> **オーナー指示。** 進入名／ステージ名のみ。征討名（地図なき主／星炉の寝主）は据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-APEX-STAGE-RENAME-001-1 | 天望の塔→**アストラ・スパイア**／星炉火口→**アストラ・カルデラ** | オーナー改名 |
+| P3-DG-APEX-STAGE-RENAME-001-2 | `red_forge_depths` 装備プール＝火山寄り（炎／灰／熾火）。霜プール流用禁止 | 監査フォロー |
+| P3-DG-APEX-STAGE-RENAME-001-3 | SSOT — `128`／`134` ステージ行を上書き | Decision 本体 |
+
 ## 征討 Boss フォージ降臨帯（2026-08-30 — P3-DG-APEX-FORGE-BOSS-001）
 
 > **オーナー GO**（案A・`132` 同型）。アルバークと同帯。ヴァル超え・クロノス未満。

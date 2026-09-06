@@ -34,4 +34,4 @@ accessory_pool = Array[String](["ice_crystal_ring", "frost_fang_charm", "eldion_
 unlock_after_dungeon_id = "frostridge"
 daily_attempt_limit = 0
 disable_wandering = true
-flavor_text = "最果ての天望塔。階を上げるほど街の灯は遠のき、雲だけが近い。\n地図に載らない最上階に、白甲の主がいる。"
+flavor_text = "最果てのアストラ・スパイア。階を上げるほど街の灯は遠のき、雲だけが近い。\n地図に載らない最上階に、白甲の主がいる。"

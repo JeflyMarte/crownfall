@@ -111,12 +111,12 @@ const DUNGEON_CODEX_META: Dictionary = {
 		"related_history": ["HE-004", "HE-005"],
 	},
 	"red_forge_depths": {
-		"location": "星炉火口（レッドフォージ深部）",
+		"location": "アストラ・カルデラ（レッドフォージ深部）",
 		"exploration_theme": "星炉の寝主　征討・常設20F・星炉の滓",
 		"related_history": ["HE-006", "HE-004"],
 	},
 	"north_reach": {
-		"location": "天望の塔（ノースリーチ）",
+		"location": "アストラ・スパイア（ノースリーチ）",
 		"exploration_theme": "地図なき主　征討・常設20F・名拒みの冠",
 		"related_history": ["HE-005", "HE-004"],
 	},

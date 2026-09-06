@@ -21,8 +21,8 @@
 | # | 決定 |
 |---|---|
 | P3-DG-APEX-FORGE-001-1 | id＝`red_forge_depths`（据置） |
-| P3-DG-APEX-FORGE-001-2 | 征討名＝**星炉の寝主**／ステージ＝**星炉火口**／バナー＝**星炉の寝主　征討** |
-| P3-DG-APEX-FORGE-001-3 | 進入行＝**星炉火口　{ノーマル／ハード／ナイトメア}** |
+| P3-DG-APEX-FORGE-001-2 | 征討名＝**星炉の寝主**／ステージ＝**アストラ・カルデラ**（旧称：星炉火口 — 2026-09-06 改名）／バナー＝**星炉の寝主　征討** |
+| P3-DG-APEX-FORGE-001-3 | 進入行＝**アストラ・カルデラ　{ノーマル／ハード／ナイトメア}** |
 | P3-DG-APEX-FORGE-001-4 | Boss＝`forgedormient`（戦力は `135`。肖像は専用ART） |
 | P3-DG-APEX-FORGE-001-5 | **20F 固定**・20F＝Boss。放浪無効。日次無制限 |
 | P3-DG-APEX-FORGE-001-6 | イベント常設・TabsRow N/H/NM 自由（`is_apex_conquest_playable`） |
@@ -30,6 +30,7 @@
 | P3-DG-APEX-FORGE-001-8 | 有利属性＝**氷**。天候＝炎天寄せ・吹雪0・run固定 |
 | P3-DG-APEX-FORGE-001-9 | 雑魚Lv帯＝天望同型 50／54／58（`ApexConquestConfig`） |
 | P3-DG-APEX-FORGE-001-10 | 敵プール＝火山／熱／岩の既存種のみ（下表） |
+| P3-DG-APEX-FORGE-001-13 | **装備プール＝火山寄り**（炎／灰／熾火／戦鎚系。霜プール流用禁止。セット星炉の滓は Boss 専用のまま） |
 | P3-DG-APEX-FORGE-001-11 | 戦闘BG＝Motif B（火山＋鍛冶廃墟）。**Early F1〜14／Late F15〜19／Boss 部屋専用** |
 | P3-DG-APEX-FORGE-001-12 | DG ICO＝`ICO_DG_RedForge`（512）／BAN＝`BAN_DG_RedForge`（1408×232） |
 
@@ -59,7 +60,7 @@
 
 ### flavor
 
-> 東の星炉火口。外輪の灰を越え、炉喉を降りると熔けた寝床に、星炉の寝主がいる。
+> 東のアストラ・カルデラ。外輪の灰を越え、炉喉を降りると熔けた寝床に、星炉の寝主がいる。
 
 ---
 

@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "albark_namerefuse_staff"
 display_name = "名拒みの杖"
-description = "天望の塔のセット武器。名を拒む杖。"
+description = "アストラ・スパイアのセット武器。名を拒む杖。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_set_namerefuse_weapon"
 base_attack = 216

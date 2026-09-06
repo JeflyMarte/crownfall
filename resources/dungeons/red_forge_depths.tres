@@ -28,10 +28,10 @@ room_weight_overrides = {
 "treasure": 10,
 "trap": 12
 }
-weapon_pool = Array[String](["ridge_cleaver", "frostclaw_blades", "snowline_longbow", "cairn_staff", "glacier_greatsword", "rime_bow", "aurora_staff", "shadow_fang_saw", "permafrost_edge", "white_needle", "eldion_frostbrand", "umbra_terminus_staff", "eldion_spine", "eldion_claw", "rime_fang_blades", "umbra_needle", "frostspire_bow", "regicide_longbow"])
-armor_pool = Array[String](["furline_garb", "glacier_plate", "snowdrift_cloak", "dragon_scale_aegis", "aurora_vestment", "drove_wool_coat"])
-accessory_pool = Array[String](["ice_crystal_ring", "frost_fang_charm", "eldion_heart_talisman", "mitten_pin", "rimecrown_seal"])
+weapon_pool = Array[String](["heater_blade", "ember_fang", "ash_twin_blades", "pyre_greatsword", "tinder_bow", "willow_ember_staff", "cinder_razor_blades", "cinder_orb_staff", "pyrebranch_staff", "pyre_maul", "pyrebrand_maul", "seam_breaker_maul", "coil_spring_dual", "black_sand_cleaver", "black_sand_maul", "vanguard_war_bow", "amplify_orb_staff", "pulsekeen_edge"])
+armor_pool = Array[String](["wick_padded_coat", "shipplate_mail", "chitin_plate", "wyvern_scale_plate", "crystal_vest", "mourngate_plate"])
+accessory_pool = Array[String](["ashvault_pendant", "overheat_amulet", "trapgear_charm", "seam_focus_sigil", "pulse_amulet", "relic_shard_charm"])
 unlock_after_dungeon_id = "north_reach"
 daily_attempt_limit = 0
 disable_wandering = true
-flavor_text = "東の星炉火口。外輪の灰を越え、炉喉を降りると熔けた寝床に、星炉の寝主がいる。"
+flavor_text = "東のアストラ・カルデラ。外輪の灰を越え、炉喉を降りると熔けた寝床に、星炉の寝主がいる。"

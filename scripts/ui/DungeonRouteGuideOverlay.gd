@@ -68,8 +68,8 @@ static func _all_guides() -> Dictionary:
 			{
 				"title": "3. 常設の征討",
 				"body": (
-					"[color=#7A3E12][b]地図なき主[/b][/color]（天望の塔）と"
-					+ "[color=#7A3E12][b]星炉の寝主[/b][/color]（星炉火口）は、"
+					"[color=#7A3E12][b]地図なき主[/b][/color]（アストラ・スパイア）と"
+					+ "[color=#7A3E12][b]星炉の寝主[/b][/color]（アストラ・カルデラ）は、"
 					+ "メイン⑤ノーマル初回クリア後に常設で挑めます。\n\n"
 					+ "[color=#9A5018][b]20F[/b][/color]固定・専用 Boss。"
 					+ "N／H／NM 自由選択、[color=#9A5018][b]日次回数制限なし[/b][/color]。"

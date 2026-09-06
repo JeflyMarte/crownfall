@@ -1636,7 +1636,7 @@ func _make_biome_accordion(data: Resource) -> Control:
 
 
 ## 降臨／征討 — TabsRow の難度に連動する進入行（縦3行は廃止）。
-## N/H/NM はキャンペーン条件なしで選択可（時王／境界廊／天望の塔）。
+## N/H/NM はキャンペーン条件なしで選択可（時王／境界廊／アストラ・スパイア）。
 func _is_event_free_tier_dungeon(dungeon_id: String) -> bool:
 	return (
 		dungeon_id == Constants.CHRONOS_MAUSOLEUM_DUNGEON_ID
@@ -1652,9 +1652,9 @@ func _event_free_tier_enter_label(dungeon_id: String) -> String:
 	if dungeon_id == Constants.NEREION_FLAGSHIP_DUNGEON_ID:
 		return "沈没旗艦下"
 	if dungeon_id == Constants.NORTH_REACH_DUNGEON_ID:
-		return "天望の塔"
+		return "アストラ・スパイア"
 	if dungeon_id == Constants.RED_FORGE_DEPTHS_DUNGEON_ID:
-		return "星炉火口"
+		return "アストラ・カルデラ"
 	if Constants.is_apex_conquest_playable(dungeon_id):
 		return "征討"
 	return "時王の霊廟"
