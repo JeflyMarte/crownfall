@@ -80,9 +80,9 @@ func test_all_bosses_have_dual_basic_attacks() -> void:
 		assert_true(saw_cleave, boss_id)
 
 
-## P3-BAL-GRANVEL-B-LATER-001: グランヴェル以降メイン梯子の即時全体 ×0.6。
+## P3-BAL-GRANVEL-B-LATER-001 + P3-BAL-SERDION-SOFT-001: メイン梯子即時全体 ×0.6。
 const _LATER_MAIN_INSTANT_AOE_06 := [
-	"granvel", "moldgar", "nereion", "eldion", "chronos_wave",
+	"serdion", "granvel", "moldgar", "nereion", "eldion", "chronos_wave",
 ]
 
 
@@ -141,9 +141,9 @@ func test_hex_remains_quarter() -> void:
 
 
 func test_boss_atk_scaled_with_serdion_ratio() -> void:
-	## セルディオン以外は旧ATK×(145/120)。グランヴェル以降メイン梯子は P3-BAL-GRANVEL-B-LATER-001（×175/203）。
+	## セルディオンは P3-BAL-SERDION-SOFT-001（125）。他は旧ATK×(145/120)。グランヴェル以降は ×175/203。
 	var expect := {
-		"serdion": 145,
+		"serdion": 125,
 		"granvel": 175,
 		"moldgar": 175,
 		"nereion": 191,

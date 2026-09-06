@@ -53,14 +53,22 @@ func test_serdion_decree_wave_power_2() -> void:
 
 
 func test_serdion_plan_a_pressure_numbers() -> void:
-	## P3-BAL-SERDION-A-001: ATK145／爪×1.7／咆哮×0.75。
+	## P3-BAL-SERDION-SOFT-001: ATK125／爪×1.7／咆哮×0.6（Decision 86 同型）。
 	var boss: Resource = DataRegistry.get_enemy_data("serdion")
 	assert_not_null(boss)
-	assert_eq(int(boss.attack), 145)
+	assert_eq(int(boss.attack), 125)
 	var roar: Resource = DataRegistry.get_skill_data("enemy_serdion_roar")
 	assert_not_null(roar)
-	assert_almost_eq(float(roar.power_multiplier), 0.75, 0.001)
+	assert_almost_eq(float(roar.power_multiplier), 0.6, 0.001)
 	assert_lte(float(roar.cast_time), 0.0)
+
+
+func test_serdion_f1_roar_weight_soft() -> void:
+	## P3-BAL-SERDION-SOFT-001: F1 咆哮重み 1.6（激昂より厚い）。
+	var def: Dictionary = CombatBossPhases.phase_def("serdion", 0)
+	var weights: Dictionary = def.get("skill_weight", {})
+	assert_almost_eq(float(weights.get("enemy_serdion_roar", 0.0)), 1.6, 0.001)
+	assert_gt(float(weights.get("enemy_serdion_roar", 0.0)), float(weights.get("boss_enrage", 0.0)))
 
 
 func test_serdion_basic_attack_variants() -> void:

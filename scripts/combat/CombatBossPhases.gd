@@ -16,7 +16,8 @@ const _DEFS: Dictionary = {
 			"skill_weight": {
 				"boss_enrage": 0.45,
 				"boss_serdion_hex": 1.6,
-				"enemy_serdion_roar": 2.2,
+				## P3-BAL-SERDION-SOFT-001: 後続梯子と同型で F1 咆哮 2.2→1.6。
+				"enemy_serdion_roar": 1.6,
 				"boss_decree_wave": 1.4,
 				"boss_buff_break_all": 1.6,
 			},
