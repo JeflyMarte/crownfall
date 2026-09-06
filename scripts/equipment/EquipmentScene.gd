@@ -155,7 +155,9 @@ var _combat_setup_panel: PanelContainer = null
 var _combat_setup_content: VBoxContainer = null
 
 var _selected_member_index: int = 0
-var _member_cycle_inv_rebuild_queued: bool = false
+## ◀▶ 連続時は所持グリッド再生成を間引く（停止後に1回）。
+var _member_cycle_inv_timer: Timer = null
+const MEMBER_CYCLE_INV_DEBOUNCE_SEC: float = 0.14
 var _inventory_filter: String = "all"
 var _inventory_sort: String = "rarity"
 var _inventory_equipped_filter: String = "all"
@@ -284,8 +286,9 @@ func _ready() -> void:
 	PetSystem.ensure_starter_pet()
 	_apply_equipment_focus_selection()
 	call_deferred("_handle_layout_resized")
-	## ヘッダ／ナビを先に出し、所持グリッド等は次フレ（ローディング中に埋まる）。
+	## ヘッダ／カード／装備枠を先に出し、所持グリッドは次フレ（入場の体感遅延を短縮）。
 	call_deferred("_refresh_display")
+	call_deferred("_prefetch_view_member_idle_portraits")
 
 
 ## Roster「詳細」等からのフォーカス。ビューはレベル順なので id で解決する。
@@ -825,14 +828,27 @@ func _on_member_next_pressed() -> void:
 ## キャラ画面の ◀▶／一覧順: 現在パーティ順 → 編成外ロスター → 随伴ペット。
 func _get_view_members() -> Array:
 	var out: Array = []
+	var seen: Dictionary = {}
 	for m in GameState.party_members:
-		if m != null and not out.has(m):
-			out.append(m)
+		if m == null:
+			continue
+		var mid: String = str(m.id)
+		if seen.has(mid):
+			continue
+		seen[mid] = true
+		out.append(m)
 	for m in GameState.get_roster():
-		if m != null and not out.has(m):
-			out.append(m)
-	if GameState.active_pet != null and not out.has(GameState.active_pet):
-		out.append(GameState.active_pet)
+		if m == null:
+			continue
+		var rid: String = str(m.id)
+		if seen.has(rid):
+			continue
+		seen[rid] = true
+		out.append(m)
+	if GameState.active_pet != null:
+		var pid: String = str(GameState.active_pet.id)
+		if not seen.has(pid):
+			out.append(GameState.active_pet)
 	return out
 
 
@@ -857,7 +873,7 @@ func _cycle_member(delta: int) -> void:
 		return
 	var next_index: int = (_selected_member_index + delta + count) % count
 	_selected_member_index = next_index
-	## ◀▶ はカード／装備枠／右タブを即反映。所持一覧の全再生成は差分パッチ＋遅延。
+	## ◀▶ はカード／装備枠／右タブを即反映。所持一覧の全再生成は差分パッチ＋停止後デバウンス。
 	_refresh_display_for_member_cycle()
 
 
@@ -866,17 +882,51 @@ func _refresh_display_for_member_cycle() -> void:
 	_update_character_card()
 	_rebuild_equip_slots()
 	_rebuild_effects()
-	_rebuild_active_side_tab()
+	## 装備タブ表示中は右ペイン再構築不要（スキル／必殺タブのみ）。
+	if _active_tab != TAB_EQUIP:
+		_rebuild_active_side_tab()
 	_patch_inventory_ownership_for_view()
-	if not _member_cycle_inv_rebuild_queued:
-		_member_cycle_inv_rebuild_queued = true
-		call_deferred("_flush_member_cycle_inventory_rebuild")
+	_schedule_member_cycle_inventory_rebuild()
+
+
+func _ensure_member_cycle_inv_timer() -> void:
+	if _member_cycle_inv_timer != null and is_instance_valid(_member_cycle_inv_timer):
+		return
+	_member_cycle_inv_timer = Timer.new()
+	_member_cycle_inv_timer.name = "MemberCycleInvDebounce"
+	_member_cycle_inv_timer.one_shot = true
+	_member_cycle_inv_timer.wait_time = MEMBER_CYCLE_INV_DEBOUNCE_SEC
+	_member_cycle_inv_timer.timeout.connect(_flush_member_cycle_inventory_rebuild)
+	add_child(_member_cycle_inv_timer)
+
+
+func _schedule_member_cycle_inventory_rebuild() -> void:
+	_ensure_member_cycle_inv_timer()
+	## 連続 ◀▶ 中はタイマーを振り直し、止まったあとに1回だけ全再生成。
+	_member_cycle_inv_timer.start(MEMBER_CYCLE_INV_DEBOUNCE_SEC)
 
 
 func _flush_member_cycle_inventory_rebuild() -> void:
-	_member_cycle_inv_rebuild_queued = false
 	## 連続 ◀▶ 中は最新キャラのみ最終反映（途中の全再生成を間引く）。
 	_rebuild_inventory_grid()
+
+
+## 入場・一覧選択向け: パーティ／近傍の Idle を裏で温めて切替時の get_image を避ける。
+## 現在表示キャラ以外を1フレずつ読み、入場フレームを塞がない。
+func _prefetch_view_member_idle_portraits() -> void:
+	await get_tree().process_frame
+	var current: Resource = _get_view_adventurer()
+	var current_id: String = str(current.id) if current != null else ""
+	var members: Array = _get_view_members()
+	var limit: int = mini(members.size(), 8)
+	for i: int in limit:
+		var m: Resource = members[i] as Resource
+		if m == null:
+			continue
+		if str(m.id) == current_id:
+			continue
+		_ChrIdlePortrait.load_idle_textures_for_member(m)
+		await get_tree().process_frame
 
 
 ## 所持セルの装備中ハイライト／職制限を現在閲覧キャラ向けに差分更新。
@@ -1169,10 +1219,12 @@ func _refresh_display() -> void:
 	_rebuild_effects()
 	_refresh_category_buttons()
 	_refresh_inventory_tools()
-	_rebuild_inventory_grid()
 	## 非表示タブは開いたときだけ再構築（装備タブのスクロール／メモリ負荷軽減）。
 	_rebuild_active_side_tab()
+	## 所持グリッドは入場の体感を優先して遅延（パーティ「詳細」直後の固まりを緩和）。
+	call_deferred("_rebuild_inventory_grid")
 	call_deferred("_update_forge_nav_dot")
+
 
 func _rebuild_active_side_tab() -> void:
 	match _active_tab:
@@ -1738,8 +1790,7 @@ func _on_effects_page_next() -> void:
 
 
 func _rebuild_effects() -> void:
-	for child in _effects_grid.get_children():
-		child.queue_free()
+	_clear_children_immediate(_effects_grid)
 	var member: Resource = _get_view_adventurer()
 	var bonuses: Dictionary = _compute_equipment_effect_bonuses(member)
 	var page: int = _CharacterStatPages.clamp_page(_effects_page)
@@ -1847,8 +1898,7 @@ func _rebuild_equip_slots() -> void:
 	_slots_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_slots_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_slots_row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	for child in _slots_row.get_children():
-		child.queue_free()
+	_clear_children_immediate(_slots_row)
 	var member: Resource = _get_view_adventurer()
 	var can_equip: bool = _can_change_equipment_on_view()
 	if member == null:
@@ -1865,6 +1915,18 @@ func _rebuild_equip_slots() -> void:
 	_slots_row.add_child(_make_slot("防具", "armor", member.equipped_armor, can_equip, cell_size))
 	_slots_row.add_child(_make_slot("装飾", "accessory", member.equipped_accessory, can_equip, cell_size))
 	_slots_row.add_child(_make_relic_slot(cell_size, member, can_equip))
+
+
+## 子をツリーから即外す（レイアウトに残さない）。破棄は queue_free。
+## pressed 呼び出し中の free() は Abort の原因になるため使わない。
+func _clear_children_immediate(parent: Node) -> void:
+	if parent == null:
+		return
+	var children: Array = parent.get_children()
+	for child in children:
+		parent.remove_child(child)
+		child.queue_free()
+
 
 func _make_relic_slot(cell_size: Vector2, member: Resource, can_equip: bool) -> Control:
 	var cell_px: int = int(cell_size.x)

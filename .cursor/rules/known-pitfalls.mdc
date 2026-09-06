@@ -242,7 +242,7 @@ alwaysApply: false
 | GUT/実機で `_refresh_once` Object convert エラー | 型付き `ScrollContainer`/`Node` を `call_deferred` | → **`ui-layout.mdc` ScrollTouch**（`instance_id` 経由） |
 | 装備一覧の効果絞り込みが kind 連打／未配線 | サイクルボタンでは項目過多。Affix ID は廃止済み | ファミリーシート（案B）。`EquipmentEffectFamilyFilter`＋Catalog「効果」ボタン |
 | 装備一覧が重い／タップでカクつく | 選択のたび全セル rebuild＋幅連動 cell | → `ui-layout.mdc` 装備セルサイズ |
-| キャラ ◀▶ 切替が遅い | `_cycle_member` が毎回 `_refresh_display`（所持グリッド全再生成） | ◀▶ はカード／枠／右タブ即更新＋所持は差分パッチ＋deferred。一覧順はパーティ順 |
+| キャラ ◀▶ 切替が遅い | `_cycle_member` が毎回 `_refresh_display`（所持グリッド全再生成）／入場も同期でグリッド構築 | ◀▶ はカード／枠即更新＋所持は差分パッチ＋**停止後デバウンス**。入場はグリッド deferred。Idle は裏プリフェッチ |
 | 鍛冶屋が重い／一覧タップでカクつく | 選択のたび全再生成＋毎行 get_image | → `ui-layout` 鍛冶＋選択は `_refresh_selection` のみ |
 | 状態異常リンク不能／章カード名タップ不能（ScrollTouch RTL） | 全 RTL を STOP／PASS 化 | → **`ui-layout.mdc` ScrollTouch** |
 | イベントバナー取り違え・枠なし／戦闘入場前の謎SE | mourngate流用・room_enter・Gate外SE | → `ui-layout` バナー／**`14_Presentation_Pitfalls.md`** §4 |
