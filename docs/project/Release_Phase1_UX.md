@@ -1,8 +1,8 @@
-# 第1弾配信 — UX・安定性パッチ
+# アップデート第2弾配信 — 1.0.5
 
-**Status:** 第1弾 GO（2026-09-01）／**第2弾検証 ON**（2026-09-05 — Constants 切替）  
-**第2弾:** 征討・機巧士・魔晶石発掘（現行 `main` の Constants）  
-**第3弾（予定）:** 潮脈王　降臨（`140`）— Impl 済・検証 ON（`NEREION_FLAGSHIP_PLAYABLE`）
+**Status:** **第2弾 提出準備**（2026-09-06 — `1.0.5` / build22）  
+**第2弾:** 征討（アストラ・スパイア／カルデラ）・機巧士3・魔晶石発掘  
+**第3弾（予定）:** 潮脈王　降臨（`140`）— Impl 済・提出ビルドでは `NEREION_FLAGSHIP_PLAYABLE=false`
 
 ---
 
@@ -49,8 +49,9 @@ const APEX_CONQUEST_PLAYABLE_IDS: Array[String] = []
 const CRYSTAL_EXCAVATE_PLAYABLE: bool = false
 ```
 
-| 定数 | 第1弾 | 第2弾 | 注意 |
+| 定数 | 第1弾 | 第2弾（1.0.5） | 注意 |
 |---|---|---|---|
+| `NEREION_FLAGSHIP_PLAYABLE` | `false` | **`false`（提出）** | 第3弾検証時のみ tip で `true` |
 | `APEX_CONQUEST_PLAYABLE_IDS` | `[]` | 天望＋星炉 id | 寄り道オミットは維持 |
 | `CRYSTAL_EXCAVATE_PLAYABLE` | `false` | `true` | — |
 | `GACHA_HELPERS_PLAYABLE` | **`true` 維持** | `true` | false にするとガチャ全体が消える |
