@@ -111,13 +111,13 @@ const DUNGEON_CODEX_META: Dictionary = {
 		"related_history": ["HE-004", "HE-005"],
 	},
 	"red_forge_depths": {
-		"location": "星炉廃坑レッドフォージ深部",
-		"exploration_theme": "星炉の残熱・炉印伝承・征討調査",
+		"location": "星炉火口（レッドフォージ深部）",
+		"exploration_theme": "星炉の寝主　征討・常設20F・星炉の滓",
 		"related_history": ["HE-006", "HE-004"],
 	},
 	"north_reach": {
-		"location": "ノースリーチ・地図の余白",
-		"exploration_theme": "白甲の古龍・最果て征討",
+		"location": "天望の塔（ノースリーチ）",
+		"exploration_theme": "地図なき主　征討・常設20F・名拒みの冠",
 		"related_history": ["HE-005", "HE-004"],
 	},
 	"cosmic_rift": {

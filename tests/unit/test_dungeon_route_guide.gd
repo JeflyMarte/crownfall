@@ -126,3 +126,14 @@ func test_abyss_unlock_queues_guide() -> void:
 	_ContentUnlockNotice.queue_newly_unlocked(before)
 	assert_true(_Guide.has_pending_auto())
 	assert_eq(_Guide.peek_pending_auto(), _Guide.GUIDE_ABYSS)
+
+
+func test_event_guide_mentions_conquest() -> void:
+	var blob: String = ""
+	for page: Variant in (_Guide._all_guides()[_Guide.GUIDE_EVENT] as Dictionary).get("pages", []):
+		blob += str((page as Dictionary).get("body", ""))
+		blob += str((page as Dictionary).get("title", ""))
+	assert_true(blob.contains("征討"), "イベント手引きに征討")
+	assert_true(blob.contains("天望") or blob.contains("地図なき"), "天望／地図なき主")
+	assert_true(blob.contains("星炉"), "星炉征討")
+

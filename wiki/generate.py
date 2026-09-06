@@ -76,9 +76,11 @@ ROUTE_LABEL = {
     "event": "イベント",
     "abyss": "深層",
     "side": "寄り道（未解放）",
-    "apex": "征討（未解放）",
+    "apex": "征討",
 }
-# プレイ公開中のルートのみ詳細掲載。side/apex は一覧で未解放と明示。
+# Constants.APEX_CONQUEST_PLAYABLE_IDS と同期（イベント常設・⑤Nクリア後）
+APEX_CONQUEST_PLAYABLE_IDS = {"north_reach", "red_forge_depths"}
+# プレイ公開中のルート。apex は ID 単位で判定する。
 PLAYABLE_ROUTES = {"main", "event", "abyss"}
 
 ARR_RE = re.compile(r"Array\[\w+\]\(\[(.*?)\]\)")
@@ -431,8 +433,8 @@ def gen_dungeons():
         "",
         "リソース上の基礎値。メインは各 Biome が **5章**（×-1〜×-5）に分かれ、ボスは原則 **×-5** のみ出現します。",
         "",
-        "!!! warning \"未解放コンテンツ\"",
-        "    **寄り道**・**征討**はデータのみ残置で、現行バージョンでは選択できません。",
+        "!!! warning \"寄り道／征討の扱い\"",
+        "    **寄り道**はデータのみ残置（選択不可）。**征討**のうち `north_reach`／`red_forge_depths` はイベント常設で配信（メイン⑤ノーマル初回クリア後）。その他の征討は未解放。",
         "",
     ]
 
@@ -462,11 +464,22 @@ def gen_dungeons():
             "abyss_blackshore": 3,
             "abyss_frostridge": 4,
         },
+        "apex": {
+            "north_reach": 0,
+            "red_forge_depths": 1,
+        },
     }
     by_route: dict[str, list] = {k: [] for k in order}
     for d in dungeons:
         rt = d.get("route_type", "main") or "main"
         by_route.setdefault(rt, []).append(d)
+
+    def route_label_for(rt: str, dungeon_id: str) -> str:
+        if rt == "apex":
+            if dungeon_id in APEX_CONQUEST_PLAYABLE_IDS:
+                return "征討（イベント常設）"
+            return "征討（未解放）"
+        return ROUTE_LABEL.get(rt, rt)
 
     for rt in order:
         group = by_route.get(rt) or []
@@ -474,13 +487,21 @@ def gen_dungeons():
             continue
         key_map = sort_keys.get(rt, {})
         group = sorted(group, key=lambda d: (key_map.get(d.get("id", ""), 99), d.get("id", "")))
-        lines += [f"## {ROUTE_LABEL.get(rt, rt)}", ""]
-        if rt not in PLAYABLE_ROUTES:
+        if rt == "apex":
+            lines += ["## 征討", ""]
             lines += [
-                "現行バージョンではプレイできません（データ残置）。",
+                "イベント常設（`north_reach`／`red_forge_depths`）はメイン⑤ノーマル初回クリア後に選択可。その他はデータ残置。",
                 "",
             ]
+        else:
+            lines += [f"## {ROUTE_LABEL.get(rt, rt)}", ""]
+            if rt not in PLAYABLE_ROUTES:
+                lines += [
+                    "現行バージョンではプレイできません（データ残置）。",
+                    "",
+                ]
         for d in group:
+            did = d.get("id", "")
             pool = " / ".join(
                 enemies.get(i, {}).get("display_name", i) for i in (d.get("enemy_pool") or [])
             )
@@ -494,8 +515,8 @@ def gen_dungeons():
                 "",
                 "| 項目 | 内容 |",
                 "|---|---|",
-                f"| ID | `{d.get('id', '—')}` |",
-                f"| 種別 | {ROUTE_LABEL.get(rt, rt)} |",
+                f"| ID | `{did or '—'}` |",
+                f"| 種別 | {route_label_for(rt, did)} |",
                 f"| 難易度 | {'★' * int(d.get('difficulty', 1))} |",
                 f"| 推奨レベル | {d.get('recommended_level', '—')} |",
                 f"| 敵レベル | {d.get('enemy_level', '—')} |",
@@ -506,7 +527,7 @@ def gen_dungeons():
                 f"| ボス | {boss} |",
                 f"| 影響属性 | {ELEMENT.get(d.get('favored_element', ''), '—')} |",
             ]
-            for label, value in DUNGEON_EXTRA_ROWS.get(d.get("id", ""), []):
+            for label, value in DUNGEON_EXTRA_ROWS.get(did, []):
                 lines.append(f"| {label} | {value} |")
             lines.append("")
             flavor = (d.get("flavor_text") or "").strip()

@@ -157,6 +157,13 @@ func test_hub_and_field_guide_entries_exist() -> void:
 	assert_true(event_dg.contains("巣") or event_dg.contains("レイヴン"), "レイヴンDG")
 	assert_true(event_dg.contains("一日"), "日次挑戦")
 	assert_true(event_dg.contains("ビッグコズミック") or event_dg.contains("×2"), "曜日報酬／裂け目ボスに言及")
+	assert_true(event_dg.contains("征討"), "常設征討に言及")
+	assert_true(event_dg.contains("天望") or event_dg.contains("地図なき"), "天望征討")
+	assert_true(event_dg.contains("星炉"), "星炉征討")
+	assert_true(event_dg.contains("20") or event_dg.contains("回数"), "20Fまたは無制限に言及")
+	var eng: String = str(by_id.get("SYS-G014", ""))
+	assert_true(eng.contains("機巧士"), "機巧士手引き")
+	assert_true(eng.contains("戦鎚") or eng.contains("双剣") or eng.contains("双刃"), "機巧士武器")
 
 	var wander: String = str(by_id.get("SYS-G005", ""))
 	assert_true(wander.contains("ダック"), "放浪ダック")

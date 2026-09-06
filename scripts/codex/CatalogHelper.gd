@@ -47,7 +47,7 @@ static func get_enemy_entries() -> Array:
 
 
 ## プレイ可能なダンジョン（main / event / abyss 等）のプールに載る敵 ID。
-## 寄り道・征討オミット（SUB_DUNGEONS_PLAYABLE=false）やプール外の未実装敵は図鑑・達成率から除外。
+## 寄り道オミット（SUB_DUNGEONS_PLAYABLE=false）。征討パイロットは is_playable_dungeon 経由で図鑑対象。プール外の未実装敵は除外。
 static func playable_enemy_id_set() -> Dictionary:
 	var ids: Dictionary = {}
 	for data in DataRegistry.get_all_dungeon_data():

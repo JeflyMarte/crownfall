@@ -15,11 +15,12 @@
 | **属性共鳴** | player | damage | 1.5 | 無 | 4.0 | — |
 | **闘気** | player | buff | 1.0 | 無 | 6.5 | empower (100%) |
 | **獣牙撃** | player | damage | 1.15 | 無 | 2.5 | — |
-| **ビーストドミニオン** | player | damage | 1.35 | 無 | 30.0 | mark (100%) |
+| **毒牙の嵐** | player | damage | 1.35 | 無 | 30.0 | poison (100%) |
 | **絡み矢** | player | damage | 1.2 | 氷 | 3.5 | chill (50%) |
 | **血還の矢** | player | damage | 1.1 | 無 | 9.5 | — |
 | **剣舞** | player | damage | 0.58 | 無 | 3.0 | — |
 | **剣嵐** | player | damage | 0.7 | 無 | 5.0 | — |
+| **ブラッドドレイン** | player | buff | 1.0 | 無 | 30.0 | blood_drain (100%) |
 | **血煙斬** | player | damage | 0.7 | 無 | 5.5 | bleed (28%) |
 | **白闇の威圧** | boss | damage | 0.25 | 氷 | 6.0 | fear (100%) |
 | **解呪の王令** | boss | dispel | 1.0 | 闇 | 10.0 | — |
@@ -38,20 +39,24 @@
 | **鉄殻破砕** | boss | damage | 0.25 | 土 | 6.0 | armor_break (100%) |
 | **境界の亀裂** | boss | damage | 0.25 | 土 | 6.0 | vulnerable (100%) |
 | **甲穿ち矢** | player | damage | 1.55 | 無 | 4.0 | armor_break (45%) |
+| **ブレイクエッジ** | player | damage | 3.2 | 無 | 30.0 | — |
 | **体勢崩し** | player | damage | 1.35 | 無 | 4.5 | vulnerable (35%) |
 | **壁守り** | player | buff | 1.0 | 無 | 7.0 | guard (100%) |
 | **野営の一滴** | player | heal | 0.08 | 無 | 10.0 | — |
 | **連刃** | player | damage | 1.35 | 無 | 4.0 | bleed (45%) |
 | **庇護** | player | buff | 1.0 | 無 | 4.0 | guard (100%) |
+| **クリティカルストーム** | player | damage | 2.7 | 無 | 30.0 | — |
+| **カーズバースト** | player | damage | 1.25 | 無 | 30.0 | vulnerable (100%) |
 | **呪印** | player | damage | 1.0 | 闇 | 5.5 | major_curse (75%) |
 | **デッドアイ** | player | damage | 3.0 | 無 | 30.0 | mark (70%) |
 | **ドレインスラッシュ** | player | damage | 1.4 | 無 | 5.5 | — |
+| **エレメンタルブースト** | player | buff | 1.0 | 無 | 30.0 | elemental_attune (100%) |
 | **鼓舞** | player | buff | 1.0 | 無 | 6.0 | empower (100%) |
 | **深淵噴墨** | enemy | damage | 1.23 | 闇 | 5.5 | slow (35%) |
 | **白甲薙ぎ** | boss | damage | 1.0 | 氷 | 0.0 | — |
 | **白甲の爪** | boss | damage | 1.7 | 氷 | 0.0 | chill (30%) |
-| **地図なき突進** | boss | damage | 2.0 | 氷 | 7.0 | stun (25%) |
-| **白静寂** | boss | damage | 0.75 | 氷 | 6.0 | chill (45%) |
+| **地図なき突進** | boss | damage | 2.0 | 氷 | 6.5 | stun (25%) |
+| **白静寂** | boss | damage | 0.6 | 氷 | 6.0 | chill (45%) |
 | **錨打ち** | enemy | damage | 1.44 | 無 | 5.0 | stun (35%) |
 | **錨鎖の薙ぎ払い** | enemy | damage | 0.5 | 無 | 6.0 | slow (30%) |
 | **古鱗の再生** | enemy | heal | 0.16 | 氷 | 7.5 | — |
@@ -103,7 +108,7 @@
 | **炉薙ぎ** | boss | damage | 1.0 | 炎 | 0.0 | — |
 | **炉爪** | boss | damage | 1.7 | 炎 | 0.0 | — |
 | **炉床震動** | boss | damage | 2.0 | 炎 | 9.0 | armor_break (30%) |
-| **スラグの吐息** | boss | damage | 0.75 | 炎 | 6.0 | ignite (40%) |
+| **スラグの吐息** | boss | damage | 0.6 | 炎 | 6.0 | ignite (40%) |
 | **死毒の舌打ち** | enemy | damage | 0.72 | 無 | 5.0 | poison (35%) |
 | **凍牙** | enemy | damage | 1.43 | 氷 | 5.0 | chill (30%) |
 | **群れの霜駆け** | enemy | haste | 0.7 | 氷 | 7.5 | — |
@@ -188,7 +193,7 @@
 | **ルーンの加護** | enemy | buff | 1.0 | 無 | 8.0 | enrage (100%) |
 | **骸晶爪** | boss | damage | 1.7 | 闇 | 0.0 | bleed (20%) |
 | **骸晶薙ぎ** | boss | damage | 1.0 | 闇 | 0.0 | — |
-| **骸晶の咆哮** | boss | damage | 0.75 | 闇 | 6.0 | fear (35%) |
+| **骸晶の咆哮** | boss | damage | 0.6 | 闇 | 6.0 | fear (35%) |
 | **死告の鎌** | enemy | damage | 1.65 | 闇 | 4.0 | bleed (45%) |
 | **破片叩きつけ** | enemy | damage | 0.58 | 無 | 6.0 | armor_break (30%) |
 | **鉄殻薙ぎ** | boss | damage | 1.0 | 無 | 0.0 | — |
@@ -219,6 +224,20 @@
 | **城壁機関** | boss | damage | 0.75 | 聖 | 6.0 | armor_break (40%) |
 | **虚潮の巻縛** | enemy | damage | 0.42 | 闇 | 6.0 | mark (30%) |
 | **風裂き** | enemy | damage | 1.37 | 電気 | 5.0 | shock (25%) |
+| **穿甲の極撃** | player | damage | 2.4 | 無 | 30.0 | armor_break (100%) |
+| **ブレイズ・オーバーロード** | player | damage | 3.0 | 炎 | 30.0 | ignite (100%) |
+| **余熱波** | player | damage | 0.52 | 炎 | 6.0 | ignite (45%) |
+| **ブレイクトラップ** | player | buff | 0.5 | 無 | 5.0 | armor_break (100%) |
+| **バーントラップ** | player | damage | 2.6 | 炎 | 24.0 | ignite (100%) |
+| **チャージショット** | player | damage | 2.2 | 炎 | 14.0 | ignite (100%) |
+| **ドリルピアス** | player | damage | 1.55 | 無 | 4.0 | armor_break (70%) |
+| **フルアーム・カスケード** | player | damage | 0.7 | 無 | 30.0 | — |
+| **継ぎ目爆** | player | damage | 0.52 | 無 | 6.0 | armor_break (40%) |
+| **オーバークロック** | player | damage | 2.8 | 炎 | 30.0 | ignite (80%) |
+| **スクラップバースト** | player | damage | 0.55 | 無 | 5.5 | — |
+| **スネアトラップ** | player | buff | 0.25 | 無 | 4.5 | chill (100%) |
+| **スパイクトラップ** | player | buff | 0.65 | 無 | 4.0 | — |
+| **棘の雨** | player | damage | 0.5 | 無 | 6.0 | — |
 | **絡みつき** | player | damage | 1.15 | 無 | 4.0 | chill (55%) |
 | **恐怖追撃** | player | damage | 1.45 | 無 | 4.0 | fear (35%) |
 | **猛撃** | player | damage | 1.85 | 無 | 4.5 | — |
@@ -227,21 +246,24 @@
 | **グランドエリクサー** | player | heal | 0.2 | 無 | 35.0 | — |
 | **衛士斬り** | player | damage | 1.15 | 無 | 3.5 | stun (35%) |
 | **足払斬** | player | damage | 1.1 | 無 | 4.0 | slow (40%) |
+| **ハートビート** | player | buff | 0.08 | 無 | 30.0 | guard (100%) |
 | **重装斬** | player | damage | 1.55 | 無 | 4.5 | — |
 | **群れ纏い** | player | buff | 1.0 | 無 | 6.5 | guard_minor (100%) |
 | **アンブラボルト** | player | damage | 1.3 | 闇 | 3.0 | curse (45%) |
 | **狩人の標** | player | damage | 0.45 | 無 | 4.5 | mark (100%) |
 | **狩場の印** | player | damage | 0.7 | 無 | 5.5 | mark (32%) |
+| **アイアンオーラ** | player | buff | 1.0 | 無 | 30.0 | guard (100%) |
 | **鉄盾斬** | player | damage | 1.15 | 無 | 2.5 | — |
 | **鋭閃** | player | damage | 1.35 | 無 | 3.5 | — |
 | **イグナイトエッジ** | player | damage | 1.4 | 無 | 3.0 | ignite (40%) |
 | **追標射** | player | damage | 1.35 | 無 | 4.0 | mark (45%) |
+| **マークショット** | player | damage | 2.8 | 無 | 30.0 | mark (100%) |
 | **威嚇斬** | player | damage | 0.7 | 無 | 3.0 | — |
 | **治癒** | player | heal | 0.2 | 無 | 8.0 | — |
 | **瘴気の霧** | player | damage | 0.7 | 闇 | 5.5 | curse (30%) |
 | **追勢斬** | player | damage | 1.35 | 無 | 4.0 | — |
 | **攻勢の構え** | player | buff | 1.0 | 無 | 6.5 | empower (100%) |
-| **王牙列断** | player | damage | 1.9 | 無 | 28.0 | vulnerable (65%) |
+| **王炎断** | player | damage | 1.9 | 無 | 28.0 | bleed (85%) |
 | **灰裂** | player | damage | 1.45 | 無 | 7.0 | — |
 | **灰牙** | player | damage | 1.2 | 無 | 2.8 | — |
 | **標的裂き** | player | damage | 1.15 | 無 | 5.0 | — |
@@ -249,6 +271,7 @@
 | **追い灰** | player | damage | 1.15 | 無 | 4.5 | — |
 | **絆の守り** | player | buff | 1.0 | 無 | 7.0 | guard (100%) |
 | **相棒鼓舞** | player | buff | 1.0 | 無 | 4.0 | empower_pet (100%) |
+| **ペットコマンド** | player | buff | 1.0 | 無 | 30.0 | empower_minor (100%) |
 | **指揮の牙** | player | damage | 0.9 | 無 | 4.0 | — |
 | **影噛み** | player | damage | 0.9 | 無 | 3.2 | bleed (70%) |
 | **呪影** | player | damage | 0.85 | 無 | 5.0 | mark (75%) |
@@ -278,18 +301,20 @@
 | **砕盾斬** | player | damage | 1.65 | 無 | 4.5 | armor_break (70%) |
 | **盾撃波** | player | damage | 0.7 | 無 | 5.5 | armor_break (30%) |
 | **盾殴り** | player | damage | 1.4 | 無 | 4.0 | armor_break (40%) |
+| **サイレンスウェブ** | player | damage | 1.15 | 無 | 30.0 | chill (100%) |
 | **一閃** | player | damage | 1.45 | 無 | 2.5 | — |
 | **スネアアロー** | player | damage | 1.2 | 無 | 3.5 | slow (50%) |
 | **ボルトエッジ** | player | damage | 1.35 | 無 | 3.0 | shock (35%) |
 | **叩き伏せ** | player | damage | 1.2 | 無 | 4.0 | stun (40%) |
 | **疾風斬** | player | damage | 1.2 | 無 | 2.0 | — |
-| **タイタンロア** | player | buff | 1.0 | 無 | 30.0 | guard (100%) |
+| **聖盾咆哮** | player | buff | 1.0 | 無 | 30.0 | guard (100%) |
 | **毒矢** | player | damage | 1.1 | 無 | 3.5 | poison (50%) |
 | **踏破の護符** | player | none | 1.0 | 無 | 99.0 | — |
 | **渾身の一撃** | player | damage | 3.0 | 無 | 30.0 | — |
 | **アンブラエッジ** | player | damage | 1.35 | 無 | 3.0 | curse (35%) |
 | **猛毒噴射** | player | damage | 1.5 | 無 | 4.0 | poison (35%) |
 | **猛毒噴霧** | player | damage | 0.7 | 無 | 5.5 | poison (32%) |
+| **門前応撃** | player | buff | 1.0 | 無 | 30.0 | guard_minor (100%) |
 | **急所射** | player | damage | 1.65 | 無 | 4.5 | vulnerable (40%) |
 | **斉射** | player | damage | 0.7 | 無 | 5.0 | — |
 | **崩呪** | player | damage | 1.5 | 闇 | 4.0 | vulnerable (35%) |
