@@ -8292,3 +8292,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-NEREION-DESCENT-001-5 | セット **潮脈の契** — 被ダメ×0.90／回復×1.20・戦鎚込み7種 | 耐久・回復ニッチ |
 | P3-DG-NEREION-DESCENT-001-6 | **実装レーン＝アップデート第3弾** | オーナー指定 |
 | P3-DG-NEREION-DESCENT-001-7 | SSOT — `140_NereionDescent.md` | Decision 本体 |
+
+## 天望の塔・専用戦闘BG（2026-09-06 — P3-DG-APEX-NR-BG-001）
+
+> **オーナー GO**（案A・開けたステージ）。境界廊流用解除。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-APEX-NR-BG-001-1 | 案A — 塔内→空。Early/Late/Boss 3枚 | バナー同系統 |
+| P3-DG-APEX-NR-BG-001-2 | 帯 — F1–14／F15–19／Boss部屋。床は開けた戦闘面 | 星炉同型＋配置用 |
+| P3-DG-APEX-NR-BG-001-3 | SSOT — `141_ApexNorthReachBattleBg.md` | Decision 本体 |
+| P3-DG-APEX-NR-BG-001-4 | Impl — `north_reach/env` 3枚＋`BATTLE_BG_BOSS_MAP`＋征討フロア帯 | 2026-09-06 |
+

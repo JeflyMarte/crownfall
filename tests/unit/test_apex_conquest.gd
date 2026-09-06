@@ -156,7 +156,8 @@ func test_north_reach_dedicated_battle_bgs() -> void:
 	assert_eq(str(late_map.get("north_reach", "")), LATE)
 	assert_eq(str(early_map.get("north_reach", "")), EARLY)
 	assert_eq(str(boss_map.get("north_reach", "")), BOSS)
-	assert_true(bool(consts["BATTLE_BG_FINAL_BOSS_BIOMES"].get("north_reach", false)))
+	assert_false(bool(consts["BATTLE_BG_FINAL_BOSS_BIOMES"].get("north_reach", false)))
+	assert_eq(int(consts.get("BATTLE_BG_APEX_EARLY_FLOOR_MAX", -1)), 14)
 	assert_false(str(late_map["north_reach"]).contains("valgard_boundary"))
 	assert_false(str(early_map["north_reach"]).contains("valgard_boundary"))
 	assert_false(str(boss_map["north_reach"]).contains("frostridge"))
@@ -349,9 +350,6 @@ func test_red_forge_dedicated_banner_and_icon() -> void:
 	assert_false(ico.contains("Frostridge"))
 	assert_false(ban.contains("BrokenMarsh"))
 	assert_false(ico.contains("BrokenMarsh"))
-
-
-## P3-DG-APEX-TIER-001 — 征討も降臨同型で N/H/NM 自由選択
 func test_north_reach_free_hard_nightmare_tiers() -> void:
 	const _DungeonTierConfig := preload("res://scripts/dungeon/DungeonTierConfig.gd")
 	GameState.debug_full_unlock = true
