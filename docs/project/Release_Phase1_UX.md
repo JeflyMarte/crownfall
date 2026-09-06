@@ -2,7 +2,7 @@
 
 **Status:** 第1弾 GO（2026-09-01）／**第2弾検証 ON**（2026-09-05 — Constants 切替）  
 **第2弾:** 征討・機巧士・魔晶石発掘（現行 `main` の Constants）  
-**第3弾（予定）:** 潮脈王　降臨（`140_NereionDescent`）— Decision GO済・Impl 未着手
+**第3弾（予定）:** 潮脈王　降臨（`140`）— Impl 済・検証 ON（`NEREION_FLAGSHIP_PLAYABLE`）
 
 ---
 
