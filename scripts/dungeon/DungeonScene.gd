@@ -618,11 +618,11 @@ const STATUS_ICON_DEF: Dictionary = {
 const HEAL_SKILL_BASE: int = BalanceConfig.HEAL_SKILL_BASE
 const STATUS_ICON_SIZE: float = 26.0
 const STATUS_ICON_GAP: float = 3.0
-## 機巧士仕掛け印（頭上）。通常ステより大きく、残発はアイコン上。
-const ENGINEER_TRAP_ICON_SIZE: float = 40.0
+## 機巧士仕掛け印（頭上）。正方形フレーム＋残発は枠の外（上）。
+const ENGINEER_TRAP_ICON_SIZE: float = 52.0
 const ENGINEER_TRAP_STACK_H: float = 14.0
-const ENGINEER_TRAP_STACK_GAP: int = 1
-const ENGINEER_TRAP_STACK_FONT: int = 12
+const ENGINEER_TRAP_STACK_GAP: int = 0
+const ENGINEER_TRAP_STACK_FONT: int = 13
 ## 戦闘レジェンド（P3-UX-STATUS-LEGEND-001／004／006）。
 ## 状態異常＝右下、天候などダンジョン効果＝右上。
 const STATUS_LEGEND_ICON_PX: float = 22.0
@@ -3252,7 +3252,7 @@ func _make_status_icon_row() -> HBoxContainer:
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return row
 
-func _build_status_icon(entry: Dictionary) -> PanelContainer:
+func _build_status_icon(entry: Dictionary) -> Control:
 	var effect_id: String = entry.get("effect_id", "")
 	if effect_id.begins_with("eng_trap_"):
 		return _build_engineer_trap_status_icon(entry)
@@ -3333,33 +3333,23 @@ func _build_status_icon(entry: Dictionary) -> PanelContainer:
 	return panel
 
 
-## 機巧士仕掛け: 大きめICO＋残発をアイコン上（角バッジではない）。
-func _build_engineer_trap_status_icon(entry: Dictionary) -> PanelContainer:
+## 機巧士仕掛け: 正方形フレーム。残発数字は枠の外（上）。
+func _build_engineer_trap_status_icon(entry: Dictionary) -> Control:
 	var effect_id: String = str(entry.get("effect_id", ""))
 	var def: Dictionary = STATUS_ICON_DEF.get(
 		effect_id, {"abbrev": "?", "color": Color(0.75, 0.65, 0.35)}
 	)
 	var fires: int = maxi(1, int(entry.get("stacks", 1)))
 	var icon_sz: float = ENGINEER_TRAP_ICON_SIZE
-	var panel_h: float = ENGINEER_TRAP_STACK_H + float(ENGINEER_TRAP_STACK_GAP) + icon_sz
-	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(icon_sz, panel_h)
-	panel.size_flags_vertical = Control.SIZE_SHRINK_END
-	var trap_style := StyleBoxFlat.new()
-	trap_style.bg_color = Color(0.08, 0.08, 0.1, 0.92)
-	trap_style.set_corner_radius_all(4)
-	trap_style.set_border_width_all(1)
-	var accent: Color = def.get("color", Color(0.75, 0.65, 0.35))
-	trap_style.border_color = Color(accent.r, accent.g, accent.b, 0.95)
-	trap_style.content_margin_left = 0.0
-	trap_style.content_margin_top = 0.0
-	trap_style.content_margin_right = 0.0
-	trap_style.content_margin_bottom = 0.0
-	panel.add_theme_stylebox_override("panel", trap_style)
-	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", ENGINEER_TRAP_STACK_GAP)
-	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.add_child(col)
+	var root := VBoxContainer.new()
+	root.name = "EngineerTrapMark"
+	root.add_theme_constant_override("separation", ENGINEER_TRAP_STACK_GAP)
+	root.size_flags_vertical = Control.SIZE_SHRINK_END
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.custom_minimum_size = Vector2(
+		icon_sz,
+		ENGINEER_TRAP_STACK_H + float(ENGINEER_TRAP_STACK_GAP) + icon_sz
+	)
 	var stack_lbl := Label.new()
 	stack_lbl.name = "TrapFires"
 	stack_lbl.text = str(fires)
@@ -3371,7 +3361,22 @@ func _build_engineer_trap_status_icon(entry: Dictionary) -> PanelContainer:
 	stack_lbl.add_theme_constant_override("outline_size", 2)
 	stack_lbl.add_theme_color_override("font_outline_color", Color.BLACK)
 	stack_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	col.add_child(stack_lbl)
+	root.add_child(stack_lbl)
+	var frame := PanelContainer.new()
+	frame.name = "TrapFrame"
+	frame.custom_minimum_size = Vector2(icon_sz, icon_sz)
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var trap_style := StyleBoxFlat.new()
+	trap_style.bg_color = Color(0.08, 0.08, 0.1, 0.92)
+	trap_style.set_corner_radius_all(4)
+	trap_style.set_border_width_all(1)
+	var accent: Color = def.get("color", Color(0.75, 0.65, 0.35))
+	trap_style.border_color = Color(accent.r, accent.g, accent.b, 0.95)
+	trap_style.content_margin_left = 0.0
+	trap_style.content_margin_top = 0.0
+	trap_style.content_margin_right = 0.0
+	trap_style.content_margin_bottom = 0.0
+	frame.add_theme_stylebox_override("panel", trap_style)
 	var icon_tex: Texture2D = IconPaths.get_icon_texture(effect_id, "status")
 	if icon_tex != null:
 		var icon := TextureRect.new()
@@ -3381,20 +3386,21 @@ func _build_engineer_trap_status_icon(entry: Dictionary) -> PanelContainer:
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.custom_minimum_size = Vector2(icon_sz, icon_sz)
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		col.add_child(icon)
+		frame.add_child(icon)
 	else:
 		var abbrev_lbl := Label.new()
 		abbrev_lbl.text = str(def.get("abbrev", "?"))
 		abbrev_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		abbrev_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		abbrev_lbl.custom_minimum_size = Vector2(icon_sz, icon_sz)
-		abbrev_lbl.add_theme_font_size_override("font_size", 16)
+		abbrev_lbl.add_theme_font_size_override("font_size", 18)
 		abbrev_lbl.add_theme_color_override("font_color", Color.WHITE)
 		abbrev_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		col.add_child(abbrev_lbl)
+		frame.add_child(abbrev_lbl)
+	root.add_child(frame)
 	var display_name: String = str(entry.get("display_name", effect_id))
-	panel.tooltip_text = "%s 残%d" % [display_name, fires]
-	return panel
+	root.tooltip_text = "%s 残%d" % [display_name, fires]
+	return root
 
 
 func _status_icon_entry_size(entry: Dictionary) -> Vector2:
@@ -3988,7 +3994,7 @@ func _make_status_legend_row(status_id: String) -> HBoxContainer:
 	row.add_theme_constant_override("separation", 6)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var icon: PanelContainer = _build_status_icon({
+	var icon: Control = _build_status_icon({
 		"effect_id": status_id,
 		"stacks": 1,
 		"display_name": _StatusEffectLinkHelper.display_name_for(status_id),

@@ -18,14 +18,15 @@ func test_engineer_trap_display_names() -> void:
 	assert_eq(_StatusEffectLinkHelper.display_name_for("eng_trap_break"), "ブレイクトラップ")
 
 
-func test_engineer_trap_icon_is_larger_with_fires_above() -> void:
+func test_engineer_trap_icon_square_frame_fires_outside() -> void:
 	var packed: PackedScene = load("res://scenes/dungeon/DungeonScene.tscn")
 	assert_not_null(packed)
 	var scene: Node = packed.instantiate()
 	add_child_autofree(scene)
 	await get_tree().process_frame
-	assert_gt(float(scene.get("ENGINEER_TRAP_ICON_SIZE")), float(scene.get("STATUS_ICON_SIZE")))
-	var panel: PanelContainer = scene.call(
+	var icon_sz: float = float(scene.get("ENGINEER_TRAP_ICON_SIZE"))
+	assert_gt(icon_sz, float(scene.get("STATUS_ICON_SIZE")))
+	var mark: Control = scene.call(
 		"_build_engineer_trap_status_icon",
 		{
 			"effect_id": "eng_trap_spike",
@@ -33,13 +34,17 @@ func test_engineer_trap_icon_is_larger_with_fires_above() -> void:
 			"stacks": 4,
 		}
 	)
-	assert_not_null(panel)
-	assert_eq(panel.custom_minimum_size.x, float(scene.get("ENGINEER_TRAP_ICON_SIZE")))
-	assert_gt(panel.custom_minimum_size.y, float(scene.get("ENGINEER_TRAP_ICON_SIZE")))
-	var fires: Label = panel.find_child("TrapFires", true, false) as Label
+	assert_not_null(mark)
+	var fires: Label = mark.find_child("TrapFires", true, false) as Label
 	assert_not_null(fires)
 	assert_eq(fires.text, "4")
-	var icon: TextureRect = panel.find_child("TrapIcon", true, false) as TextureRect
+	var frame: PanelContainer = mark.find_child("TrapFrame", true, false) as PanelContainer
+	assert_not_null(frame)
+	## フレームは正方形（数字は枠の外）。
+	assert_eq(frame.custom_minimum_size.x, icon_sz)
+	assert_eq(frame.custom_minimum_size.y, icon_sz)
+	var icon: TextureRect = mark.find_child("TrapIcon", true, false) as TextureRect
 	assert_not_null(icon)
-	## 残発ラベルがアイコンより上（VBox 先頭）。
-	assert_lt(fires.get_index(), icon.get_index())
+	assert_true(frame.is_ancestor_of(icon))
+	assert_false(frame.is_ancestor_of(fires))
+	assert_lt(fires.get_index(), frame.get_index())
