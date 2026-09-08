@@ -3,6 +3,7 @@
 ---
 
 ## Last Update
+2026-09-08（**プレス一式を作成**: `docs/press/` にファクトシート／リリース文A・B／送付先／プレスキット手順／トレーラー台本／Zenn記事。要 App Store URL・X開設・4Gamer事前申請）
 2026-09-06（**iOS 1.0.5 build23 releaseエクスポート＋Xcode適用**: 第2弾（征討・機巧・発掘）・潮脈王OFF。PCK 529MB・ja.lproj。要 Archive→Upload→Connectで1.0.5作成）
 2026-09-06（**第2弾 1.0.5 提出準備**: short 1.0.5。潮脈王フラグOFF。征討・機巧・発掘ON。要 Archive→Upload→Connect）
 2026-09-06（**仕掛け印: 枠は他ステ同寸・枠内絵を余白クロップで拡大**: 残発は枠外上。要実機）
