@@ -4,14 +4,26 @@ extends Node
 ## 規約: id に対応する `resources/{category}/{id}.tres` を load する。
 ## 新規コードは本 Autoload 経由を推奨。既存の inline load() は M3 では一括置換しない。
 
+## 装備マスタは読み取り専用。装備一覧の並べ替えは所持数ぶん引き直すため、
+## パス連結＋ResourceLoader 往復が積み上がって実機のタップが固まる。id で保持する。
+var _equipment_data_cache: Dictionary = {}
+
+func _cached_equipment_data(base_path: String, id: String) -> Resource:
+	var path: String = base_path + id + ".tres"
+	if _equipment_data_cache.has(path):
+		return _equipment_data_cache[path] as Resource
+	var data: Resource = load(path)
+	_equipment_data_cache[path] = data
+	return data
+
 func get_weapon_data(weapon_id: String) -> Resource:
-	return load(Constants.RESOURCE_WEAPONS_PATH + weapon_id + ".tres")
+	return _cached_equipment_data(Constants.RESOURCE_WEAPONS_PATH, weapon_id)
 
 func get_armor_data(armor_id: String) -> Resource:
-	return load(Constants.RESOURCE_ARMORS_PATH + armor_id + ".tres")
+	return _cached_equipment_data(Constants.RESOURCE_ARMORS_PATH, armor_id)
 
 func get_accessory_data(accessory_id: String) -> Resource:
-	return load(Constants.RESOURCE_ACCESSORIES_PATH + accessory_id + ".tres")
+	return _cached_equipment_data(Constants.RESOURCE_ACCESSORIES_PATH, accessory_id)
 
 func get_enemy_data(enemy_id: String) -> Resource:
 	## P3-WANDER-002: 旧放浪ID → 新ID

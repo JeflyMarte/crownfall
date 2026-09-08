@@ -366,31 +366,47 @@ static func filter_by_equipped_state(
 			out.append(entry)
 	return out
 
+## 比較のたびに表示名／レア度を引き直すと、袋が増えるほど二乗的に重くなる
+## （所持1000で 9.2 秒＝実機は数十秒の無反応）。キーは1件1回だけ作る。
 static func sort_inventory_entries(entries: Array, sort_by: String = "rarity") -> Array:
-	var sorted: Array = entries.duplicate()
+	var keyed: Array = []
+	for entry in entries:
+		keyed.append(_make_sort_key(entry))
 	if sort_by == "name":
-		sorted.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-			var cat_a: String = str(a.get("category", ""))
-			var cat_b: String = str(b.get("category", ""))
-			if cat_a == "relic" or cat_b == "relic":
-				return _relic_sort_name(str(a.get("relic_id", ""))) < _relic_sort_name(str(b.get("relic_id", "")))
-			return _entry_sort_name(a.get("item"), cat_a) < _entry_sort_name(b.get("item"), cat_b)
-		)
-		return sorted
-	sorted.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		var cat_a: String = str(a.get("category", ""))
-		var cat_b: String = str(b.get("category", ""))
-		if cat_a == "relic" or cat_b == "relic":
-			return _relic_sort_name(str(a.get("relic_id", ""))) < _relic_sort_name(str(b.get("relic_id", "")))
-		var item_a: Resource = a.get("item")
-		var item_b: Resource = b.get("item")
-		var rarity_a: int = _entry_rarity(item_a, cat_a)
-		var rarity_b: int = _entry_rarity(item_b, cat_b)
-		if rarity_a != rarity_b:
-			return rarity_a > rarity_b
-		return _entry_sort_name(item_a, cat_a) < _entry_sort_name(item_b, cat_b)
-	)
+		keyed.sort_custom(_compare_sort_key_by_name)
+	else:
+		keyed.sort_custom(_compare_sort_key_by_rarity)
+	var sorted: Array = []
+	for key in keyed:
+		sorted.append(key["entry"])
 	return sorted
+
+static func _make_sort_key(entry: Variant) -> Dictionary:
+	if entry is not Dictionary:
+		return {"entry": entry, "rarity": 0, "name": ""}
+	var category: String = str(entry.get("category", ""))
+	if category == "relic":
+		return {
+			"entry": entry,
+			"rarity": 0,
+			"name": _relic_sort_name(str(entry.get("relic_id", ""))),
+		}
+	var item: Resource = entry.get("item")
+	return {
+		"entry": entry,
+		"rarity": _entry_rarity(item, category),
+		"name": _entry_sort_name(item, category),
+	}
+
+static func _compare_sort_key_by_name(a: Dictionary, b: Dictionary) -> bool:
+	return str(a["name"]) < str(b["name"])
+
+static func _compare_sort_key_by_rarity(a: Dictionary, b: Dictionary) -> bool:
+	var rarity_a: int = int(a["rarity"])
+	var rarity_b: int = int(b["rarity"])
+	if rarity_a != rarity_b:
+		return rarity_a > rarity_b
+	return str(a["name"]) < str(b["name"])
 
 static func _entry_rarity(item: Resource, category: String) -> int:
 	if item == null:

@@ -174,6 +174,21 @@ bar.add_theme_stylebox_override("fill", StyleBoxFlat.new())
 bar.add_theme_stylebox_override("fill", _cached_cd_fill)
 ```
 
+**比較関数（`sort_custom`）で `load` や表示名生成をしない。** 比較は n·log n 回走るので、所持数が増えるとタップが数秒〜数十秒固まる（袋1000で 9.2 秒＝1.0.5 実機報告）。キーは先に1件1回だけ作る。
+
+```gdscript
+# ❌ BAD — 比較のたびに DataRegistry.load＋表示名生成＋セーブ移行
+entries.sort_custom(func(a, b): return _entry_sort_name(a) < _entry_sort_name(b))
+
+# ✅ GOOD — キーを作ってから並べ、entry を取り出す
+var keyed: Array = []
+for entry in entries:
+    keyed.append(_make_sort_key(entry))
+keyed.sort_custom(_compare_sort_key_by_rarity)
+```
+
+マスタ `.tres`（武器／防具／装飾）は読み取り専用なので `DataRegistry` の id キャッシュ経由で引く。`load` はキャッシュヒットでも 0.1ms/回かかり、1000件×数回で効く。
+
 ## テスト
 
 - ロジック変更時は `res://tests/unit/` に GUT テストを追加・更新

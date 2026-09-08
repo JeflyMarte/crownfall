@@ -95,14 +95,20 @@ var _label_evolution_traits: Label = null
 var _lb_ticket_row: HBoxContainer = null
 var _btn_lb_ticket: Button = null
 var _label_lb_ticket: Label = null
-var _confirm_lb_ticket: ConfirmationDialog = null
 var _lb_result_overlay: Control = null
 var _lb_result_title_tex: TextureRect = null
 var _lb_result_name_lbl: Label = null
 var _lb_result_portrait: ChrIdlePortraitView = null
 var _lb_result_count_lbl: Label = null
 var _lb_result_stats_host: VBoxContainer = null
-var _confirm_take_equip: ConfirmationDialog = null
+## ConfirmationDialog（Window 排他）は実機で入力を食ってフリーズする既往のため Control 化。
+var _confirm_overlay: Control = null
+var _confirm_title_label: Label = null
+var _confirm_body_label: Label = null
+var _confirm_ok_btn: Button = null
+var _confirm_cancel_btn: Button = null
+var _confirm_on_ok: Callable = Callable()
+var _confirm_on_cancel: Callable = Callable()
 var _pending_take_item: Resource = null
 var _pending_take_category: String = ""
 var _pending_take_relic_id: String = ""
@@ -242,7 +248,7 @@ func _ready() -> void:
 	_button_back.pressed.connect(_on_back_pressed)
 	_btn_catalog.visible = false
 	_ensure_item_detail_overlay()
-	_ensure_take_equip_confirm()
+	_ensure_confirm_overlay()
 	_btn_member_prev.pressed.connect(_on_member_prev_pressed)
 	_btn_member_next.pressed.connect(_on_member_next_pressed)
 	_btn_member_list.pressed.connect(_on_member_list_pressed)
@@ -1318,13 +1324,6 @@ func _ensure_lb_ticket_row() -> void:
 	_lb_ticket_row.add_child(_btn_lb_ticket)
 	info_box.add_child(_lb_ticket_row)
 	info_box.move_child(_lb_ticket_row, _evolution_row.get_index() + 1)
-	_confirm_lb_ticket = ConfirmationDialog.new()
-	_confirm_lb_ticket.title = "限凸券"
-	_confirm_lb_ticket.ok_button_text = "使う"
-	_confirm_lb_ticket.cancel_button_text = "やめる"
-	_confirm_lb_ticket.confirmed.connect(_on_lb_ticket_confirmed)
-	add_child(_confirm_lb_ticket)
-
 
 func _update_lb_ticket_row(member: Resource) -> void:
 	_ensure_lb_ticket_row()
@@ -1366,8 +1365,13 @@ func _on_lb_ticket_pressed() -> void:
 	if not bool(check.get("ok", false)):
 		return
 	var tname: String = TicketSystem.display_name(str(check.get("ticket_id", "")))
-	_confirm_lb_ticket.dialog_text = "%s に %s を使いますか？" % [str(member.display_name), tname]
-	_confirm_lb_ticket.popup_centered()
+	_show_confirm_overlay(
+		"限凸券",
+		"%s に %s を使いますか？" % [str(member.display_name), tname],
+		"使う",
+		"やめる",
+		_on_lb_ticket_confirmed
+	)
 
 
 func _on_lb_ticket_confirmed() -> void:
@@ -2820,16 +2824,106 @@ func _on_catalog_pressed() -> void:
 func _on_cell_pressed(item: Resource, category: String) -> void:
 	_request_equip_item(item, category)
 
-func _ensure_take_equip_confirm() -> void:
-	if _confirm_take_equip != null:
+## ---- 確認オーバーレイ（Window ダイアログ禁止・実機で入力を食うため） ----
+
+func _ensure_confirm_overlay() -> void:
+	if _confirm_overlay != null:
 		return
-	_confirm_take_equip = ConfirmationDialog.new()
-	_confirm_take_equip.title = "装備の付け替え"
-	_confirm_take_equip.ok_button_text = "付け替える"
-	_confirm_take_equip.cancel_button_text = "やめる"
-	_confirm_take_equip.confirmed.connect(_on_take_equip_confirmed)
-	_confirm_take_equip.canceled.connect(_on_take_equip_canceled)
-	add_child(_confirm_take_equip)
+	_confirm_overlay = Control.new()
+	_confirm_overlay.name = "ConfirmOverlay"
+	_confirm_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_confirm_overlay.visible = false
+	_confirm_overlay.z_index = 80
+	_confirm_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_confirm_overlay)
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.0, 0.0, 0.0, 0.62)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	dim.gui_input.connect(_on_confirm_dim_input)
+	_confirm_overlay.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_confirm_overlay.add_child(center)
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(460, 0)
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	panel.add_theme_stylebox_override("panel", EquipmentUiTokens.tooltip_panel_style())
+	center.add_child(panel)
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 20)
+	margin.add_theme_constant_override("margin_top", 18)
+	margin.add_theme_constant_override("margin_right", 20)
+	margin.add_theme_constant_override("margin_bottom", 18)
+	panel.add_child(margin)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 14)
+	margin.add_child(col)
+	_confirm_title_label = Label.new()
+	_confirm_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_body(_confirm_title_label, UiTypography.SIZE_BODY, COLOR_GOLD)
+	col.add_child(_confirm_title_label)
+	_confirm_body_label = Label.new()
+	_confirm_body_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_confirm_body_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_caption(_confirm_body_label, COLOR_SUB)
+	col.add_child(_confirm_body_label)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_child(row)
+	_confirm_cancel_btn = Button.new()
+	_confirm_cancel_btn.custom_minimum_size = Vector2(150, 48)
+	UiTypography.apply_menu_button(_confirm_cancel_btn)
+	_confirm_cancel_btn.pressed.connect(_on_confirm_overlay_canceled)
+	row.add_child(_confirm_cancel_btn)
+	_confirm_ok_btn = Button.new()
+	_confirm_ok_btn.custom_minimum_size = Vector2(150, 48)
+	UiTypography.apply_menu_button(_confirm_ok_btn)
+	_confirm_ok_btn.pressed.connect(_on_confirm_overlay_confirmed)
+	row.add_child(_confirm_ok_btn)
+
+func _show_confirm_overlay(
+	title: String,
+	body: String,
+	ok_text: String,
+	cancel_text: String,
+	on_ok: Callable,
+	on_cancel: Callable = Callable()
+) -> void:
+	_ensure_confirm_overlay()
+	_confirm_title_label.text = title
+	_confirm_body_label.text = body
+	_confirm_ok_btn.text = ok_text
+	_confirm_cancel_btn.text = cancel_text
+	_confirm_on_ok = on_ok
+	_confirm_on_cancel = on_cancel
+	_confirm_overlay.visible = true
+	_confirm_overlay.move_to_front()
+
+func _hide_confirm_overlay() -> void:
+	if _confirm_overlay != null:
+		_confirm_overlay.visible = false
+	_confirm_on_ok = Callable()
+	_confirm_on_cancel = Callable()
+
+func _on_confirm_overlay_confirmed() -> void:
+	var cb: Callable = _confirm_on_ok
+	_hide_confirm_overlay()
+	if cb.is_valid():
+		cb.call()
+
+func _on_confirm_overlay_canceled() -> void:
+	var cb: Callable = _confirm_on_cancel
+	_hide_confirm_overlay()
+	if cb.is_valid():
+		cb.call()
+
+func _on_confirm_dim_input(event: InputEvent) -> void:
+	## タッチは emulate 経由の MouseButton で来る。press では閉じない（誤爆防止）。
+	if event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_on_confirm_overlay_canceled()
 
 func _clear_pending_take_equip() -> void:
 	_pending_take_item = null
@@ -2842,12 +2936,14 @@ func _owner_display_name(owner_member: Resource) -> String:
 	return RosterUiHelper.short_display_name(str(owner_member.display_name))
 
 func _popup_take_equip_confirm(owner_member: Resource) -> void:
-	_ensure_take_equip_confirm()
-	_confirm_take_equip.dialog_text = (
-		"この装備は%sが装備してます。\n付け替えますか？"
-		% _owner_display_name(owner_member)
+	_show_confirm_overlay(
+		"装備の付け替え",
+		"この装備は%sが装備してます。\n付け替えますか？" % _owner_display_name(owner_member),
+		"付け替える",
+		"やめる",
+		_on_take_equip_confirmed,
+		_on_take_equip_canceled
 	)
-	_confirm_take_equip.popup_centered()
 
 func _request_equip_item(item: Resource, category: String) -> void:
 	var member: Resource = _get_view_adventurer()
