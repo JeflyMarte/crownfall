@@ -33,14 +33,15 @@ func test_equipment_entry_defers_inventory_grid() -> void:
 	var packed: PackedScene = load("res://scenes/equipment/EquipmentScene.tscn")
 	var scene: Control = packed.instantiate() as Control
 	add_child_autofree(scene)
-	## _ready の deferred refresh 直後: 所持はまだ pending。
+	## deferred _refresh_display のあと: 所持はフレーム遅延中。
 	await get_tree().process_frame
 	assert_true(
 		bool(scene.get("_inventory_entry_pending")),
 		"entry schedules inventory delay"
 	)
-	## 遅延後に一覧が載る。
-	await get_tree().create_timer(0.2).timeout
+	## ENTRY_INVENTORY_DELAY_FRAMES(=2) 経過後に flush。
+	await get_tree().process_frame
+	await get_tree().process_frame
 	await get_tree().process_frame
 	assert_false(
 		bool(scene.get("_inventory_entry_pending")),

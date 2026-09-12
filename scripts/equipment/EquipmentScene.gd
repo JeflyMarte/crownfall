@@ -164,10 +164,11 @@ var _selected_member_index: int = 0
 ## ◀▶ 連続時は所持グリッド再生成を間引く（停止後に1回）。
 var _member_cycle_inv_timer: Timer = null
 const MEMBER_CYCLE_INV_DEBOUNCE_SEC: float = 0.14
-## 入場時: カード／装備枠を出したあと、所持グリッドを遅らせて体感固まりを短くする。
-const ENTRY_INVENTORY_DELAY_SEC: float = 0.08
-var _entry_inventory_timer: Timer = null
+## 入場時: カード／装備枠を出したあと、所持グリッドを数フレーム遅らせて体感固まりを短くする。
+## 壁時計 Timer は初フレーム delta 肥大で即発火し遅延が消える（CI GUT 失敗の原因）。
+const ENTRY_INVENTORY_DELAY_FRAMES: int = 2
 var _inventory_entry_pending: bool = false
+var _entry_inventory_delay_token: int = 0
 var _inventory_filter: String = "all"
 var _inventory_sort: String = "rarity"
 var _inventory_equipped_filter: String = "all"
@@ -1236,21 +1237,24 @@ func _refresh_display() -> void:
 	_schedule_entry_inventory_rebuild()
 
 
-func _ensure_entry_inventory_timer() -> void:
-	if _entry_inventory_timer != null and is_instance_valid(_entry_inventory_timer):
-		return
-	_entry_inventory_timer = Timer.new()
-	_entry_inventory_timer.name = "EntryInventoryDelay"
-	_entry_inventory_timer.one_shot = true
-	_entry_inventory_timer.wait_time = ENTRY_INVENTORY_DELAY_SEC
-	_entry_inventory_timer.timeout.connect(_flush_entry_inventory_rebuild)
-	add_child(_entry_inventory_timer)
-
-
 func _schedule_entry_inventory_rebuild() -> void:
 	_inventory_entry_pending = true
-	_ensure_entry_inventory_timer()
-	_entry_inventory_timer.start(ENTRY_INVENTORY_DELAY_SEC)
+	_entry_inventory_delay_token += 1
+	var token: int = _entry_inventory_delay_token
+	_entry_inventory_delay_async(token)
+
+
+func _entry_inventory_delay_async(token: int) -> void:
+	var tree: SceneTree = get_tree()
+	if tree == null:
+		if token == _entry_inventory_delay_token:
+			_flush_entry_inventory_rebuild()
+		return
+	for _i in range(ENTRY_INVENTORY_DELAY_FRAMES):
+		await tree.process_frame
+		if token != _entry_inventory_delay_token:
+			return
+	_flush_entry_inventory_rebuild()
 
 
 func _flush_entry_inventory_rebuild() -> void:
@@ -1263,12 +1267,17 @@ func _flush_entry_inventory_rebuild() -> void:
 
 func _schedule_idle_prefetch_after_entry() -> void:
 	## カード＋所持の後に回す（入場直後のフレームを Idle get_image で埋めない）。
+	_idle_prefetch_after_entry_async()
+
+
+func _idle_prefetch_after_entry_async() -> void:
 	var tree: SceneTree = get_tree()
 	if tree == null:
 		return
-	tree.create_timer(ENTRY_INVENTORY_DELAY_SEC + 0.05).timeout.connect(
-		_prefetch_view_member_idle_portraits, CONNECT_ONE_SHOT
-	)
+	## 所持 flush（2f）の後ろへ。
+	for _i in range(ENTRY_INVENTORY_DELAY_FRAMES + 1):
+		await tree.process_frame
+	_prefetch_view_member_idle_portraits()
 
 
 func _rebuild_active_side_tab() -> void:
