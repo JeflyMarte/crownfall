@@ -164,6 +164,10 @@ var _selected_member_index: int = 0
 ## ◀▶ 連続時は所持グリッド再生成を間引く（停止後に1回）。
 var _member_cycle_inv_timer: Timer = null
 const MEMBER_CYCLE_INV_DEBOUNCE_SEC: float = 0.14
+## 入場時: カード／装備枠を出したあと、所持グリッドを遅らせて体感固まりを短くする。
+const ENTRY_INVENTORY_DELAY_SEC: float = 0.08
+var _entry_inventory_timer: Timer = null
+var _inventory_entry_pending: bool = false
 var _inventory_filter: String = "all"
 var _inventory_sort: String = "rarity"
 var _inventory_equipped_filter: String = "all"
@@ -292,9 +296,10 @@ func _ready() -> void:
 	PetSystem.ensure_starter_pet()
 	_apply_equipment_focus_selection()
 	call_deferred("_handle_layout_resized")
-	## ヘッダ／カード／装備枠を先に出し、所持グリッドは次フレ（入場の体感遅延を短縮）。
+	## 段階表示: ①カード／装備枠 ②所持グリッド（遅延）③Idle 裏読み。
 	call_deferred("_refresh_display")
-	call_deferred("_prefetch_view_member_idle_portraits")
+	## Idle 先読みは所持グリッドより後に回し、入場の最初の固まりを避ける。
+	call_deferred("_schedule_idle_prefetch_after_entry")
 
 
 ## Roster「詳細」等からのフォーカス。ビューはレベル順なので id で解決する。
@@ -1227,9 +1232,43 @@ func _refresh_display() -> void:
 	_refresh_inventory_tools()
 	## 非表示タブは開いたときだけ再構築（装備タブのスクロール／メモリ負荷軽減）。
 	_rebuild_active_side_tab()
-	## 所持グリッドは入場の体感を優先して遅延（パーティ「詳細」直後の固まりを緩和）。
-	call_deferred("_rebuild_inventory_grid")
+	## 所持グリッドと鍛冶 ● はカード表示のあとへ遅延（入場の体感固まり対策）。
+	_schedule_entry_inventory_rebuild()
+
+
+func _ensure_entry_inventory_timer() -> void:
+	if _entry_inventory_timer != null and is_instance_valid(_entry_inventory_timer):
+		return
+	_entry_inventory_timer = Timer.new()
+	_entry_inventory_timer.name = "EntryInventoryDelay"
+	_entry_inventory_timer.one_shot = true
+	_entry_inventory_timer.wait_time = ENTRY_INVENTORY_DELAY_SEC
+	_entry_inventory_timer.timeout.connect(_flush_entry_inventory_rebuild)
+	add_child(_entry_inventory_timer)
+
+
+func _schedule_entry_inventory_rebuild() -> void:
+	_inventory_entry_pending = true
+	_ensure_entry_inventory_timer()
+	_entry_inventory_timer.start(ENTRY_INVENTORY_DELAY_SEC)
+
+
+func _flush_entry_inventory_rebuild() -> void:
+	if not _inventory_entry_pending:
+		return
+	_inventory_entry_pending = false
+	_rebuild_inventory_grid()
 	call_deferred("_update_forge_nav_dot")
+
+
+func _schedule_idle_prefetch_after_entry() -> void:
+	## カード＋所持の後に回す（入場直後のフレームを Idle get_image で埋めない）。
+	var tree: SceneTree = get_tree()
+	if tree == null:
+		return
+	tree.create_timer(ENTRY_INVENTORY_DELAY_SEC + 0.05).timeout.connect(
+		_prefetch_view_member_idle_portraits, CONNECT_ONE_SHOT
+	)
 
 
 func _rebuild_active_side_tab() -> void:

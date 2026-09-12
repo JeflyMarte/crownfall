@@ -36,28 +36,32 @@ func open_settings(return_scene: String = HOME_SCENE) -> void:
 
 
 ## 拠点入場後に下ナビ先を裏で温める（初回タップのディスク待ちを減らす）。
+## キャラ画面は苦情が多いので先頭付近で優先リクエストする。
 func warmup_hub_scenes() -> void:
 	if _warmup_started:
 		return
 	_warmup_started = true
 	for path: String in hub_warmup_paths():
 		_request_threaded(path)
+	## 完了分をキャッシュへ取り込む（次のタップが同期 load に落ちないようにする）。
+	call_deferred("_harvest_warmup_cache")
 
 
 ## 任意シーンの裏読み（ダンジョン選択入場時の補完など）。
 func request_warmup(path: String) -> void:
 	_request_threaded(path)
+	call_deferred("_harvest_warmup_cache")
 
 
 func hub_warmup_paths() -> PackedStringArray:
 	## BottomNavHelper と揃える（循環 preload 回避のため直書き）。
-	## ダンジョン／結果は初潜り・初クリアの同期 load 待ちを減らす。
+	## Equipment を Home の直後に置き、キャラ画面の初回同期 load を避ける。
 	return PackedStringArray([
 		HOME_SCENE,
+		"res://scenes/equipment/EquipmentScene.tscn",
 		"res://scenes/dungeon/DungeonSelectScene.tscn",
 		"res://scenes/dungeon/DungeonScene.tscn",
 		"res://scenes/result/ResultScene.tscn",
-		"res://scenes/equipment/EquipmentScene.tscn",
 		"res://scenes/roster/RosterScene.tscn",
 		"res://scenes/blacksmith/BlacksmithScene.tscn",
 		"res://scenes/equipment/EquipmentCatalogScene.tscn",
@@ -77,9 +81,10 @@ func _change_scene_async(path: String) -> void:
 	_transition_busy = true
 	_apply_scene_bgm(path)
 	_show_loading()
-	## ローディングを1フレ描画してから同期ロード／切替（真っ暗タップ感を避ける）。
+	## ローディングを1フレ描画してからロード／切替（真っ暗タップ感を避ける）。
 	await get_tree().process_frame
-	var packed: PackedScene = _resolve_packed(path)
+	## 裏読み中なら同期 load に落とさず完了を待つ（キャラ画面の入場固まり対策）。
+	var packed: PackedScene = await _resolve_packed_async(path)
 	if packed == null:
 		_hide_loading()
 		_transition_busy = false
@@ -88,7 +93,8 @@ func _change_scene_async(path: String) -> void:
 	var err: Error = get_tree().change_scene_to_packed(packed)
 	if err != OK:
 		push_error("SceneRouter: change_scene_to_packed failed (%s) %s" % [error_string(err), path])
-	## 入場側 call_deferred（一覧構築）をローディング中に消化する。
+	## 入場側のカード／枠（deferred）をローディング中に消化する。
+	## 所持グリッドは画面側でさらに遅延するため、ここでは短め。
 	await get_tree().process_frame
 	await get_tree().process_frame
 	_hide_loading()
@@ -110,6 +116,58 @@ func _resolve_packed(path: String) -> PackedScene:
 		_packed_cache[path] = loaded
 		return loaded as PackedScene
 	return null
+
+
+## キャッシュ／完了済み裏読みを優先。進行中は数フレ待ってから同期 load に落ちる。
+func _resolve_packed_async(path: String) -> PackedScene:
+	var ready: PackedScene = _resolve_packed_if_ready(path)
+	if ready != null:
+		return ready
+	_request_threaded(path)
+	var waits: int = 0
+	while waits < 45:
+		var status: int = ResourceLoader.load_threaded_get_status(path)
+		if status == ResourceLoader.THREAD_LOAD_LOADED:
+			var threaded: Resource = ResourceLoader.load_threaded_get(path)
+			if threaded is PackedScene:
+				_packed_cache[path] = threaded
+				return threaded as PackedScene
+		if status != ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+			break
+		waits += 1
+		await get_tree().process_frame
+	return _resolve_packed(path)
+
+
+func _resolve_packed_if_ready(path: String) -> PackedScene:
+	var cached: PackedScene = cached_packed(path)
+	if cached != null:
+		return cached
+	if ResourceLoader.load_threaded_get_status(path) != ResourceLoader.THREAD_LOAD_LOADED:
+		return null
+	var threaded: Resource = ResourceLoader.load_threaded_get(path)
+	if threaded is PackedScene:
+		_packed_cache[path] = threaded
+		return threaded as PackedScene
+	return null
+
+
+func _harvest_warmup_cache() -> void:
+	for path: String in hub_warmup_paths():
+		if _packed_cache.has(path):
+			continue
+		if ResourceLoader.load_threaded_get_status(path) != ResourceLoader.THREAD_LOAD_LOADED:
+			continue
+		var threaded: Resource = ResourceLoader.load_threaded_get(path)
+		if threaded is PackedScene:
+			_packed_cache[path] = threaded
+	## まだ進行中があれば次フレでもう一度取り込む。
+	for path2: String in hub_warmup_paths():
+		if _packed_cache.has(path2):
+			continue
+		if ResourceLoader.load_threaded_get_status(path2) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+			call_deferred("_harvest_warmup_cache")
+			return
 
 
 func _request_threaded(path: String) -> void:

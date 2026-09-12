@@ -166,6 +166,7 @@ alwaysApply: false
 | 初潜り／初リザルトが長い | `DungeonScene`／`ResultScene` が hub warmup 外 | `SceneRouter.hub_warmup_paths` に追加＋選択画面でも threaded request |
 | 編成空／特典コードの AcceptDialog で入力不能 | Window 排他が ScrollTouch 実機で入力を食う | Control オーバーレイへ（鍛冶錬成素材と同型） |
 | キャラ画面で武器／キャラをタップすると固まる（1.0.5 実機報告） | 一覧ソートの比較関数が毎回 表示名／レア度を作り直し、内部で `DataRegistry` の `load` を叩く。袋1000で **9.2 秒**（実機は数十秒）。袋上限 400→1000 で顕在化 | ソートキーは **1件1回だけ**先に作って並べる（`EquipmentUiHelper._make_sort_key`）。装備マスタは `DataRegistry` で id キャッシュ。実測 9284ms→26ms。`test_equipment_inventory_sort_perf` で監視 |
+| キャラ画面の入場が実機で固まる（1.0.6 後も） | ①シーン同期 load ②カード＋所持＋Idle が同タイミング ③Idle `get_image` 正規化 | A: `SceneRouter` で Equipment を優先裏読み＋完了待ち／キャッシュ収穫。B: 所持グリッドを 0.08s 遅延。C: `PREBAKED_IDLE_FOLDERS`＋`bake_chr_idle_stabilize`。`test_equipment_entry_warmup` |
 | キャラ画面の付け替え／限凸券 確認が実機で入力を食う | `ConfirmationDialog`（Window 排他）が残存。他画面は Control 化済みだった | 画面内の確認は Control オーバーレイに統一（`_show_confirm_overlay`）。`×`相当の dim タップでも pending をクリア |
 | 弱機で探索中に発熱／重い（レビュー） | 天候粒子・状態オーラ・帯VFX・idleアニメ・ループ tween・FPS無制限が積み上がる | 軽量=30fps＋静止天候・idle停止・VFX抑止。**モバイル通常=45fps**＋`_setup_weather_mobile_reduced`＋`mobile_throttle_idle_loops`（呼吸/tier/脅威／**瀕死カード／スキルCD満タン** pulse・CD隔フレーム）。**パッケージA**: `TextureBodyBoundsCache`／`DamageNumberPool`（同時24）。確認 `PerfHeat_iOS_Checklist.md` |
 | 連撃・AoE でヒットVFXが重い | 命中ごとに `AnimatedSprite2D.new`＋`queue_free` | `HitVfxPool` で再利用＋SpriteFrames キャッシュ。戦闘終了で `clear` |

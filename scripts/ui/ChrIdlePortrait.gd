@@ -15,6 +15,13 @@ const MILD_HEIGHT_RATIO: float = 1.12
 ## 軽微補正で残す高さ（max からの許容 px）。
 const MILD_HEIGHT_SLACK_PX: int = 2
 
+## tools/bake_chr_idle_stabilize.gd で PNG 焼き済みのフォルダ。
+## 実行時の get_image／画素処理をスキップし、キャラ画面入場を軽くする。
+const PREBAKED_IDLE_FOLDERS: Dictionary = {
+	"beast_tamer": true,
+	"vanguard": true,
+}
+
 ## folder_id → 正規化済みテクスチャ列。キャラ切替のたび get_image しない。
 static var _prepared_idle_cache: Dictionary = {}
 
@@ -72,7 +79,10 @@ static func load_idle_textures(folder_id: String) -> Array[Texture2D]:
 		var tex: Texture2D = _load_idle_texture(path)
 		if tex != null:
 			textures.append(tex)
-	var prepared: Array[Texture2D] = _prepare_idle_textures(textures)
+	## 焼き済みフォルダは実行時正規化しない（入場の get_image 固まり防止）。
+	var prepared: Array[Texture2D] = textures
+	if not PREBAKED_IDLE_FOLDERS.has(folder_id):
+		prepared = _prepare_idle_textures(textures)
 	_prepared_idle_cache[folder_id] = prepared
 	out.assign(prepared)
 	return out

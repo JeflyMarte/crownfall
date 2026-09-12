@@ -97,6 +97,28 @@ func _ready() -> void:
 
 func _warmup_hub_scenes() -> void:
 	SceneRouter.warmup_hub_scenes()
+	## キャラ画面入場前にパーティ Idle を温めておく（入場フレームの get_image を減らす）。
+	call_deferred("_prefetch_party_idle_portraits")
+
+
+func _prefetch_party_idle_portraits() -> void:
+	const _ChrIdlePortrait := preload("res://scripts/ui/ChrIdlePortrait.gd")
+	var seen: Dictionary = {}
+	var count: int = 0
+	for raw in GameState.party_members:
+		if count >= 8:
+			break
+		if raw == null or not (raw is Resource):
+			continue
+		var member: Resource = raw as Resource
+		var mid: String = str(member.id)
+		if mid.is_empty() or seen.has(mid):
+			continue
+		seen[mid] = true
+		_ChrIdlePortrait.load_idle_textures_for_member(member)
+		count += 1
+		## 1人ずつフレを分け、拠点操作を塞がない。
+		await get_tree().process_frame
 
 
 func _ensure_rank_sp_bar() -> void:

@@ -356,6 +356,8 @@ static func _go_adventure() -> void:
 
 static func _go_character() -> void:
 	if ResourceLoader.exists(SCENE_EQUIPMENT):
+		## タップ時点で裏読みを再リクエスト（未完了なら SceneRouter が完了待ちする）。
+		SceneRouter.request_warmup(SCENE_EQUIPMENT)
 		_change_scene(SCENE_EQUIPMENT)
 
 static func _go_equipment_catalog() -> void:

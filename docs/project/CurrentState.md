@@ -3,6 +3,7 @@
 ---
 
 ## Last Update
+2026-09-12（**キャラ画面入場を軽くする（A/B/C）／1.0.7**: 拠点で EquipmentScene を優先裏読み＋完了待ち、入場はカード→所持を段階表示、Idle は beast_tamer／vanguard を焼き済みで実行時正規化スキップ。要 iOS release 再エクスポート→Archive→1.0.7 提出）
 2026-09-08（**キャラ画面フリーズ修正／1.0.6 ホットフィックス**: ユーザー報告「武器／キャラをタップで固まる」の原因は装備一覧ソート。比較のたびに表示名・レア度を作り直し `DataRegistry.load` を叩いていた。袋1000で **9284ms→26ms**。確認ダイアログも Control 化。要 iOS release 再エクスポート→Archive→1.0.6 提出）
 2026-09-08（**プレス一式を作成**: `docs/press/` にファクトシート／リリース文A・B／送付先／プレスキット手順／トレーラー台本／Zenn記事。要 App Store URL・X開設・4Gamer事前申請）
 2026-09-06（**iOS 1.0.5 build23 releaseエクスポート＋Xcode適用**: 第2弾（征討・機巧・発掘）・潮脈王OFF。PCK 529MB・ja.lproj。要 Archive→Upload→Connectで1.0.5作成）

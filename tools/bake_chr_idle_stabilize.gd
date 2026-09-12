@@ -6,7 +6,8 @@ extends SceneTree
 const _ChrIdlePortrait = preload("res://scripts/ui/ChrIdlePortrait.gd")
 
 ## 焼き対象（重度ズーム揺れ）。軽微は間引き側に任せ、PNG は触らない。
-const FOLDERS: PackedStringArray = ["beast_tamer"]
+## ChrIdlePortrait.PREBAKED_IDLE_FOLDERS と揃えること。
+const FOLDERS: PackedStringArray = ["beast_tamer", "vanguard"]
 
 
 func _init() -> void:
