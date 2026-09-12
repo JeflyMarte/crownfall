@@ -3,6 +3,7 @@
 ---
 
 ## Last Update
+2026-09-12（**潮脈王図鑑キーアート採用**: `ART_BOSS_NereionDepths` 本描き＋ターンICO差し替え。Wiki同期。要実機で図鑑確認）
 2026-09-12（**潮脈王 ART専用化**: BAN／戦闘BG Early・Late・Boss／DG ICO／潮脈の契ICO7を新規生成し接続。効果・名前据置・フレーバー専用化。Decision140更新。要実機で選択・戦闘・装備見た目確認。配信フラグは第3弾までOFF）
 2026-09-12（**入場所持遅延をフレーム待ちへ**: 壁時計 Timer は CI 初フレームで即発火し GUT 失敗。2f 遅延に変更）
 2026-09-12（**キャラ画面入場を軽くする（A/B/C）／1.0.7**: 拠点で EquipmentScene を優先裏読み＋完了待ち、入場はカード→所持を段階表示、Idle は beast_tamer／vanguard を焼き済みで実行時正規化スキップ。要 iOS release 再エクスポート→Archive→1.0.7 提出）
