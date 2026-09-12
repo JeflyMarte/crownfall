@@ -6,7 +6,7 @@
 script = ExtResource("1")
 armor_id = "nereion_tidebond_armor"
 display_name = "潮脈の契鎧"
-description = "潮脈を織った鎧。3部位で潮脈の加護。"
+description = "潮碧の板金に珊瑚の稜。3部位で潮脈の加護。"
 base_defense = 200
 base_hp_bonus = 330
 base_resistance = 0.0

@@ -2,7 +2,8 @@
 
 **Status:** Decision **承認済**（2026-09-06 — オーナー GO／表示・時間帯・セット推奨一式）  
 **実装レーン:** **アップデート第3弾**（配信は第3弾。先端検証 ON＝`NEREION_FLAGSHIP_PLAYABLE`）
-**実装:** 接続済（DG／Boss帯／潮脈の契／2/5/8/11。BAN・ICO・BGは仮流用）  
+**実装:** 接続済（DG／Boss帯／潮脈の契／2/5/8/11）  
+**ART（2026-09-12 GO）:** BAN／戦闘BG（Early・Late・Boss）／DG ICO／セットICO7 を専用化。テーマ＝沈没旗艦断面＋潮碧金属・真珠珊瑚。効果・名前は据置、フレーバーのみ専用文。  
 **型:** `14_ChronosDescent`／`16_ValgardDescent` と同型（時間帯・7F・N/H/NM・エンシェント）  
 **Boss:** `nereion_depths`（潮脈王ネレイオン・デプス）  
 **Related:** `19_EventDescentSets`／`139_AncientSetPowerPass`／`128`（征討へ戻さない）
@@ -128,6 +129,14 @@ UI: イベントタブ。TabsRow N/H/NM（降臨同型）。降臨名2色（本�
 
 降臨セット準拠 — 初回1個確定／再周回40%／一度に複数なし（`19`／P3-BAL-DESCENT-SET-DROP-ONE-001）。
 
+### ART・フレーバー（2026-09-12 オーナー GO・推奨一式）
+
+| # | 決定 |
+|---|---|
+| A1 | **BAN／BG／DG ICO** — 沈没旗艦の断面（暗い外洋・船骨・潮発光） |
+| A2 | **セットICO** — 潮碧の金属＋真珠／珊瑚で7部位を統一生成 |
+| A3 | **効果・表示名は据置**。フレーバー文のみ専用化 |
+| A4 | 戦闘BG配線 — Early＝序盤／Late＝中盤／Boss＝BOSS部屋（`BATTLE_BG_*`） |
 ---
 
 ## 6. 明示的にやらないこと
@@ -149,8 +158,8 @@ UI: イベントタブ。TabsRow N/H/NM（降臨同型）。降臨名2色（本�
 | A | DG `nereion_flagship`・旧 abyss 置換・スケジュール 2/5/8/11・選択UI |
 | B | Boss ステ降臨帯・群れフラグ・手引き文言 |
 | C | セット7＋加護フック＋ドロップ（ICOは仮流用可） |
-| D | BAN／ICO／戦闘BG（潮・旗艦）・図鑑テーマ |
-| E | 配信フラグ（第3弾 Constants／オミット解除）＋実機 |
+| D | BAN／ICO／戦闘BG（潮・旗艦）・図鑑テーマ | ✅ 2026-09-12 専用ART取込（BAN・BG3・DG ICO・セットICO7） |
+| E | 配信フラグ（第3弾 Constants／オミット解除）＋実機 | 未（`NEREION_FLAGSHIP_PLAYABLE` は提出まで false） |
 
 ---
 

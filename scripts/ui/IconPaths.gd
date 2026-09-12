@@ -71,11 +71,11 @@ const ICON_MAP: Dictionary = {
 	"weapon:forge_slag_bow": "res://assets/ui/equipment/ICO_WPN_ForgeSlagBow.png",
 	"weapon:forge_slag_hammer": "res://assets/ui/equipment/ICO_WPN_ForgeSlagHammer.png",
 	## 潮脈の契 — 仮流用（P3-DG-NEREION-DESCENT-001）
-	"weapon:nereion_tidebond_sword": "res://assets/ui/equipment/ICO_WPN_NereidasTideblade.png",
-	"weapon:nereion_tidebond_dual": "res://assets/ui/equipment/ICO_WPN_BarnacleSaw.png",
-	"weapon:nereion_tidebond_staff": "res://assets/ui/equipment/ICO_WPN_PharoslightStaff.png",
-	"weapon:nereion_tidebond_bow": "res://assets/ui/equipment/ICO_WPN_TidewoodLongbow.png",
-	"weapon:nereion_tidebond_hammer": "res://assets/ui/equipment/ICO_WPN_SanctumTideMaul.png",
+	"weapon:nereion_tidebond_sword": "res://assets/ui/equipment/ICO_WPN_NereionTidebondSword.png",
+	"weapon:nereion_tidebond_dual": "res://assets/ui/equipment/ICO_WPN_NereionTidebondDual.png",
+	"weapon:nereion_tidebond_staff": "res://assets/ui/equipment/ICO_WPN_NereionTidebondStaff.png",
+	"weapon:nereion_tidebond_bow": "res://assets/ui/equipment/ICO_WPN_NereionTidebondBow.png",
+	"weapon:nereion_tidebond_hammer": "res://assets/ui/equipment/ICO_WPN_NereionTidebondHammer.png",
 	"weapon:burial_crown_greatsword": "res://assets/ui/equipment/ICO_WPN_BurialCrownGreatsword.png",
 	## 神話弓／杖／双剣 — 固有アート前は既存Lアイコン流用（P3-EQ-MYTHIC-WPN-TYPES-001-7）
 	"weapon:pilgrim_bow_lumen": "res://assets/ui/equipment/ICO_WPN_PilgrimBowLumen.png",
@@ -202,7 +202,7 @@ const ICON_MAP: Dictionary = {
 	"armor:chronos_toki_armor":    "res://assets/ui/equipment/ICO_ARM_ChronosTokiArmor.png",
 	"armor:albark_namerefuse_armor": "res://assets/ui/equipment/ICO_ARM_AlbarkNamerefuseArmor.png",
 	"armor:forge_slag_armor": "res://assets/ui/equipment/ICO_ARM_ForgeSlagArmor.png",
-	"armor:nereion_tidebond_armor": "res://assets/ui/equipment/ICO_ARM_NereionTidePlate.png",
+	"armor:nereion_tidebond_armor": "res://assets/ui/equipment/ICO_ARM_NereionTidebondArmor.png",
 	"armor:valgard_antique_armor": "res://assets/ui/equipment/ICO_ARM_ValgardAntiqueArmor.png",
 	# 灰冠の九 限定防具（P3-GACHA-EQ-KAIWAN-003）
 	"armor:kaiwan_primehide":      "res://assets/ui/equipment/ICO_ARM_KaiwanPrimehide.png",
@@ -287,7 +287,7 @@ const ICON_MAP: Dictionary = {
 	"accessory:chronos_toki_orb": "res://assets/ui/equipment/ICO_ACC_ChronosTokiOrb.png",
 	"accessory:albark_namerefuse_circlet": "res://assets/ui/equipment/ICO_ACC_AlbarkNamerefuseCirclet.png",
 	"accessory:forge_slag_seal": "res://assets/ui/equipment/ICO_ACC_ForgeSlagSeal.png",
-	"accessory:nereion_tidebond_pearl": "res://assets/ui/equipment/ICO_ACC_PharosBeaconRing.png",
+	"accessory:nereion_tidebond_pearl": "res://assets/ui/equipment/ICO_ACC_NereionTidebondPearl.png",
 	"accessory:valgard_antique_amulet": "res://assets/ui/equipment/ICO_ACC_ValgardAntiqueAmulet.png",
 	# 灰冠の九 限定装飾（P3-GACHA-EQ-KAIWAN-003）
 	"accessory:kaiwan_initio":     "res://assets/ui/equipment/ICO_ACC_KaiwanInitio.png",

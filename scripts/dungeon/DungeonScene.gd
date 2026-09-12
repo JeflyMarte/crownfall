@@ -462,7 +462,7 @@ const BATTLE_BG_MAP: Dictionary = {
 	"mistfen_depths": "res://assets/dungeon/mistfen/env/BG_Battle_Mistfen.png",
 	"thunder_peak": "res://assets/dungeon/broken_marsh/env/BG_Battle_BrokenMarsh.png",
 	"blackshore_abyss": "res://assets/dungeon/blackshore/env/BG_Battle_Blackshore.png",
-	"nereion_flagship": "res://assets/dungeon/nereion_flagship/env/BG_Battle_NereionFlagship.png",
+	"nereion_flagship": "res://assets/dungeon/nereion_flagship/env/BG_Battle_NereionFlagship_Late.png",
 	"red_forge_depths": "res://assets/dungeon/red_forge_depths/env/BG_Battle_RedForge.png",
 	"north_reach": "res://assets/dungeon/north_reach/env/BG_Battle_NorthReach.png",
 	## イベントDG（ダック／レイヴン共通背景）
@@ -493,6 +493,7 @@ const BATTLE_BG_BOSS_MAP: Dictionary = {
 	"frostridge": "res://assets/dungeon/frostridge/env/BG_Battle_FinalBoss.png",
 	"north_reach": "res://assets/dungeon/north_reach/env/BG_Battle_NorthReach_Boss.png",
 	"red_forge_depths": "res://assets/dungeon/red_forge_depths/env/BG_Battle_RedForge_Boss.png",
+	"nereion_flagship": "res://assets/dungeon/nereion_flagship/env/BG_Battle_NereionFlagship.png",
 }
 ## ラスボス背景フォールバックを使う本編 Biome（親 ID）。征討 north_reach は BOSS_MAP のみ。
 const BATTLE_BG_FINAL_BOSS_BIOMES: Dictionary = {

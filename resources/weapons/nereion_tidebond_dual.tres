@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "nereion_tidebond_dual"
 display_name = "潮脈の契双剣"
-description = "沈没旗艦下のセット武器。潮脈の刃。"
+description = "潮碧の双刃。寄せては返す。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_set_tidebond_weapon"
 base_attack = 224
@@ -21,5 +21,5 @@ element = "holy"
 weapon_type = "dual_blades"
 base_element_power = 1000
 tags = Array[String](["pierce", "holy"])
-flavor_text = "降臨セット装備。武器・防具・装飾を揃えると加護が発動する。"
+flavor_text = "左右で満ち引きを刻む、潮の双剣。"
 set_id = "nereion_tidebond"

@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "nereion_tidebond_staff"
 display_name = "潮脈の契杖"
-description = "沈没旗艦下のセット武器。潮脈の刃。"
+description = "真珠の穂先を持つ潮脈の杖。"
 fixed_skill_id = ""
 fixed_passive_id = "eq_set_tidebond_weapon"
 base_attack = 216
@@ -21,5 +21,5 @@ element = "holy"
 weapon_type = "staff"
 base_element_power = 1000
 tags = Array[String](["blunt", "holy"])
-flavor_text = "降臨セット装備。武器・防具・装飾を揃えると加護が発動する。"
+flavor_text = "深海の光をすくい、傷を潮で洗う杖。"
 set_id = "nereion_tidebond"
