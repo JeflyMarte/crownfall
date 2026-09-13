@@ -2764,6 +2764,19 @@ func _update_dungeon_header(dungeon_name: String) -> void:
 	_label_room.visible = false
 	var dungeon_id: String = GameState.get_active_dungeon_id()
 	_update_dungeon_header_icon(dungeon_id)
+	_fit_dungeon_header_name_font()
+	call_deferred("_fit_dungeon_header_name_font")
+
+## ヘッダー左のダンジョン名は省略せず、幅に収まるまでフォントを縮める。
+func _fit_dungeon_header_name_font() -> void:
+	if _label_dungeon_name == null or not is_instance_valid(_label_dungeon_name):
+		return
+	const MAX_FS: int = UiTypography.SIZE_CAPTION
+	const MIN_FS: int = 11
+	var avail: float = _label_dungeon_name.size.x
+	if avail < 20.0:
+		avail = 200.0
+	UiTypography.fit_label_font_to_width(_label_dungeon_name, MAX_FS, MIN_FS, avail)
 
 func _setup_combat_sprite_layer() -> void:
 	if _combat_sprites_host != null and is_instance_valid(_combat_sprites_host):
@@ -2994,10 +3007,13 @@ func _update_dungeon_header_icon(dungeon_id: String) -> void:
 	_dungeon_header_icon.visible = tex != null
 
 func _apply_scene_typography() -> void:
-	UiTypography.apply_body(_label_dungeon_name, UiTypography.SIZE_BODY, UiTypography.COLOR_GOLD)
+	UiTypography.apply_body(_label_dungeon_name, UiTypography.SIZE_CAPTION, UiTypography.COLOR_GOLD)
 	_label_dungeon_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_label_dungeon_name.clip_text = true
-	_label_dungeon_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_label_dungeon_name.clip_text = false
+	_label_dungeon_name.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	_label_dungeon_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	if not _label_dungeon_name.resized.is_connected(_fit_dungeon_header_name_font):
+		_label_dungeon_name.resized.connect(_fit_dungeon_header_name_font)
 	_label_room.visible = false
 	## 非戦闘ナラティブは図鑑登録テロップと同じ display（Shippori）・同寸で固定。
 	_constrain_narrative_band()
