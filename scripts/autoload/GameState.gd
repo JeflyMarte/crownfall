@@ -1784,6 +1784,7 @@ func reset_for_new_game() -> void:
 	## 魔晶石ははじめガイド完了後にギルド支給（CurrencyGainFx）。
 	gacha_token = 0
 	debug_full_unlock = false
+	debug_pending_dungeon_focus_id = ""
 	debug_start_at_boss = false
 	owned_helpers = {}
 	ticket_inventory = {}
