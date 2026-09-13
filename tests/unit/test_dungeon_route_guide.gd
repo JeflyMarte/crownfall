@@ -154,6 +154,8 @@ func test_event_guide_mentions_conquest() -> void:
 		blob += str((page as Dictionary).get("body", ""))
 		blob += str((page as Dictionary).get("title", ""))
 	assert_true(blob.contains("征討"), "イベント手引きに征討")
-	assert_true(blob.contains("天望") or blob.contains("地図なき"), "天望／地図なき主")
-	assert_true(blob.contains("星炉"), "星炉征討")
+	assert_true(blob.contains("20F") or blob.contains("20"), "20F")
+	assert_true(blob.contains("征討とは"), "征討とは？への案内")
+	assert_false(blob.contains("地図なき"), "固有名は出さない")
+	assert_false(blob.contains("アストラ"), "進入名は出さない")
 
