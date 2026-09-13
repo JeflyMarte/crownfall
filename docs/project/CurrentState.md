@@ -3,6 +3,7 @@
 ---
 
 ## Last Update
+2026-09-13（**潮脈の契ICO透過／装備タブ一覧／デバッグ潮脈王**: ICO灰マット除去。仮想所持グリッドの force 再構築。デバッグで潮脈王一覧＋進入メニュー。要 debug 再インストール）
 2026-09-13（**潮脈王ボス戦闘ドット接続**: DownloadsのPixelLab zip→128×36シート（Idle/Attack/Hurt/Death×9）＋Hard/NM再色。図鑑ART・ターンICOは据置。要実機でボス戦確認。配信フラグは第3弾までOFF）
 2026-09-12（**潮脈王図鑑キーアート採用**: `ART_BOSS_NereionDepths` 本描き＋ターンICO差し替え。Wiki同期。要実機で図鑑確認）
 2026-09-12（**潮脈王 ART専用化**: BAN／戦闘BG Early・Late・Boss／DG ICO／潮脈の契ICO7を新規生成し接続。効果・名前据置・フレーバー専用化。Decision140更新。要実機で選択・戦闘・装備見た目確認。配信フラグは第3弾までOFF）

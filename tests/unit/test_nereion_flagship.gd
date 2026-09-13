@@ -49,6 +49,14 @@ func test_unlocked_from_start() -> void:
 		assert_false(GameState.is_dungeon_unlocked(DID), "第3弾OFF時は未解放扱い")
 
 
+func test_debug_full_unlock_lists_flagship() -> void:
+	## PLAYABLE=false でもデバッグセーブならイベント一覧に載る。
+	GameState.debug_full_unlock = true
+	assert_true(GameState.is_dungeon_unlocked(DID))
+	const _Sched := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+	assert_true(_Sched.is_open_now(DID), "デバッグ常時開放")
+
+
 func test_hourly_windows_jst() -> void:
 	_Sched.set_debug_unix_override(_unix_for_jst(2026, 9, 6, 2, 30))
 	assert_true(_Sched.is_open_now(DID), "2時台は開放")

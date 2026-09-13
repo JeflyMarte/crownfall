@@ -300,8 +300,21 @@ func _ready() -> void:
 	_mark_scroll_safe_button(_btn_route_sub)
 	_mark_scroll_safe_button(_btn_route_event)
 	_mark_scroll_safe_button(_btn_route_abyss)
+	_apply_debug_pending_focus()
 	_refresh_all()
 	call_deferred("_maybe_show_content_unlock")
+
+
+func _apply_debug_pending_focus() -> void:
+	var focus_id: String = str(GameState.debug_pending_dungeon_focus_id)
+	GameState.debug_pending_dungeon_focus_id = ""
+	if focus_id.is_empty():
+		return
+	if DataRegistry.get_dungeon_data(focus_id) == null:
+		return
+	_featured_dungeon_id = focus_id
+	GameState.current_dungeon_id = focus_id
+	_sync_route_tab_to_featured()
 
 
 func _maybe_show_content_unlock() -> void:
@@ -759,7 +772,12 @@ func _sorted_open_event_dungeons() -> Array:
 		if not is_event and not is_conquest:
 			continue
 		if is_event and not Constants.is_playable_dungeon(dungeon_id, route):
-			continue
+			## 第3弾OFF中もデバッグフル所持なら潮脈王を検証可能に。
+			if not (
+				GameState.debug_full_unlock
+				and dungeon_id == Constants.NEREION_FLAGSHIP_DUNGEON_ID
+			):
+				continue
 		if not _EventDungeonSchedule.is_open_now(dungeon_id):
 			continue
 		## 未解放の征討は一覧に出さない（⑤クリア後）。

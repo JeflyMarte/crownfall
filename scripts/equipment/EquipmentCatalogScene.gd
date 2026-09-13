@@ -258,6 +258,7 @@ func _refresh_display() -> void:
 
 func _rebuild_inventory_grid() -> void:
 	_selected_cell_btn = null
+	_virtual_inv.clear()
 	var entries: Array = []
 	if _inventory_filter == "all" or _inventory_filter == "weapon":
 		for it in $EquipmentController.get_appraised_weapons():

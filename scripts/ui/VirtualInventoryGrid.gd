@@ -58,6 +58,7 @@ func set_entries(entries: Array, empty_message: String = "") -> void:
 	_entries = entries.duplicate()
 	_empty_message = empty_message
 	_update_host_min_size()
+	## フィルタ切替時は index が残っても中身が変わるため、必ずセルを作り直す。
 	refresh(true)
 
 
@@ -69,7 +70,7 @@ func clear() -> void:
 		_host.custom_minimum_size = Vector2.ZERO
 
 
-func refresh(_force: bool = false) -> void:
+func refresh(force: bool = false) -> void:
 	if _host == null or _scroll == null:
 		return
 	if _entries.is_empty():
@@ -77,6 +78,8 @@ func refresh(_force: bool = false) -> void:
 		_show_empty()
 		return
 	_hide_empty()
+	if force:
+		_clear_cells()
 	var index_range: Vector2i = _visible_index_range()
 	if index_range.x < 0:
 		_clear_cells()

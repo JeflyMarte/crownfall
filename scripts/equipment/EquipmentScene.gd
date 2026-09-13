@@ -505,7 +505,7 @@ func _build_category_chips() -> void:
 		var btn := Button.new()
 		btn.set_anchors_preset(Control.PRESET_FULL_RECT)
 		btn.flat = true
-		btn.pressed.connect(func(): _on_category_selected(cat))
+		btn.pressed.connect(_on_category_selected.bind(cat))
 		wrap.add_child(btn)
 
 func _on_sort_pressed() -> void:

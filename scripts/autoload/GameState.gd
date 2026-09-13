@@ -14,6 +14,8 @@ const _UltimateSkillResolver = preload("res://scripts/combat/UltimateSkillResolv
 var gold: int = 0
 ## タイトル「デバッグ」適用セーブ。βスコープ／章解放をバイパス（永続）。
 var debug_full_unlock: bool = false
+## 拠点デバッグからダンジョン選択へ渡すフォーカス（1回消費・非セーブ）。
+var debug_pending_dungeon_focus_id: String = ""
 ## 検証プローブ用（非セーブ）。ダンジョン開始時にボス部屋へシークする。
 var debug_start_at_boss: bool = false
 

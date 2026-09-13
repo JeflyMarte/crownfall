@@ -137,6 +137,17 @@ static func list_entries() -> Array[Dictionary]:
 		},
 	])
 	out.append({
+		"id": "section_descent",
+		"title": "—— 降臨進入 ——",
+		"hint": "デバッグ常時開放で選択画面へ",
+		"section": true,
+	})
+	out.append({
+		"id": "enter_nereion_flagship",
+		"title": "進入：潮脈王　降臨",
+		"hint": "イベントタブで沈没旗艦下を開く（Boss＝ネレイオン・デプス）",
+	})
+	out.append({
 		"id": "section_parts",
 		"title": "—— 部品単体 ——",
 		"hint": "個別確認用",
@@ -227,6 +238,8 @@ static func run(entry_id: String) -> String:
 			return _reset_nina_rare_flags()
 		"hub_room_guide_flags_reset":
 			return _reset_hub_room_guide_flags()
+		"enter_nereion_flagship":
+			return _enter_nereion_flagship()
 		"clear_pending_story":
 			return _clear_pending_story()
 		## 後方互換
@@ -262,6 +275,18 @@ static func _dungeon_short_name(dungeon_id: String) -> String:
 	if data != null and "display_name" in data and not str(data.display_name).is_empty():
 		return str(data.display_name)
 	return dungeon_id
+
+
+static func _enter_nereion_flagship() -> String:
+	if not GameState.debug_full_unlock:
+		return "デバッグセーブでのみ使えます"
+	const DID := "nereion_flagship"
+	if DataRegistry.get_dungeon_data(DID) == null:
+		return "nereion_flagship がありません"
+	GameState.debug_pending_dungeon_focus_id = DID
+	GameState.current_dungeon_id = DID
+	SceneRouter.change_scene("res://scenes/dungeon/DungeonSelectScene.tscn")
+	return ""
 
 
 static func _biome_chapter5_label(biome_id: String) -> String:
