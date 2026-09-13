@@ -45,3 +45,23 @@ func test_length_threshold_no_longer_shrinks_whisperwood() -> void:
 	assert_gte(str(data.display_name).length(), 12)
 	var sz: int = _BiomeBannerHelper.title_font_size("whisperwood", str(data.display_name), false)
 	assert_eq(sz, UiTypography.SIZE_BODY)
+
+
+func test_route_banner_titles_prefer_large_size() -> void:
+	## 降臨／征討は BODY 以上（長名でも BODY_SMALL 未満にしない）。
+	for dungeon_id: String in [
+		"chronos_mausoleum",
+		"valgard_boundary",
+		"nereion_flagship",
+		"north_reach",
+		"red_forge_depths",
+	]:
+		var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
+		assert_ne(data, null, dungeon_id)
+		assert_true(_BiomeBannerHelper.is_route_banner_dungeon(dungeon_id))
+		var sz: int = _BiomeBannerHelper.title_font_size(
+			dungeon_id, str(data.display_name), false
+		)
+		assert_gte(sz, UiTypography.SIZE_BODY_SMALL, dungeon_id)
+		assert_lte(sz, UiTypography.SIZE_DISPLAY_TITLE, dungeon_id)
+	assert_ne(_BiomeBannerHelper.route_title_font(), null)

@@ -61,11 +61,33 @@ static func load_texture(dungeon_id: String) -> Texture2D:
 
 ## バナー重ねタイトル用フォントサイズ。
 ## メイン帯は同一サイズを優先し、深層／はみ出し時のみ段階縮小（文字数閾値は使わない）。
-## 降臨／征討はボス名込みで長いため幅上限をやや広めに。
+## 降臨／征討はボス名込みで長いが、可読性のため本文以上を優先。
 const TITLE_MAX_WIDTH: float = 560.0
 const TITLE_MAX_WIDTH_WITH_CLEAR: float = 480.0
-const TITLE_MAX_WIDTH_ROUTE: float = 620.0
-const TITLE_MAX_WIDTH_ROUTE_WITH_CLEAR: float = 540.0
+const TITLE_MAX_WIDTH_ROUTE: float = 640.0
+const TITLE_MAX_WIDTH_ROUTE_WITH_CLEAR: float = 560.0
+## 降臨／征討の合成太字（Shippori に軽く掛ける）。
+const ROUTE_TITLE_EMBOLDEN: float = 0.45
+
+
+static func is_route_banner_dungeon(dungeon_id: String) -> bool:
+	return dungeon_id in [
+		"chronos_mausoleum",
+		"valgard_boundary",
+		"nereion_flagship",
+		"north_reach",
+		"red_forge_depths",
+	]
+
+
+static func route_title_font() -> Font:
+	var base: Font = UiTypography.display_font()
+	if base == null:
+		return null
+	var variation := FontVariation.new()
+	variation.base_font = base
+	variation.variation_embolden = ROUTE_TITLE_EMBOLDEN
+	return variation
 
 
 static func title_font_size(
@@ -76,13 +98,7 @@ static func title_font_size(
 	var text: String = title_text.strip_edges()
 	if text.is_empty():
 		text = "？"
-	var is_route: bool = dungeon_id in [
-		"chronos_mausoleum",
-		"valgard_boundary",
-		"nereion_flagship",
-		"north_reach",
-		"red_forge_depths",
-	]
+	var is_route: bool = is_route_banner_dungeon(dungeon_id)
 	var max_w: float
 	if is_route:
 		max_w = TITLE_MAX_WIDTH_ROUTE_WITH_CLEAR if with_clear else TITLE_MAX_WIDTH_ROUTE
@@ -97,9 +113,13 @@ static func title_font_size(
 	## 深層の「無限〜の最果て」は最初から一段小さく。
 	if _AbyssDungeonConfig.is_abyss_dungeon_id(dungeon_id):
 		sizes = [UiTypography.SIZE_BODY_SMALL, UiTypography.SIZE_CAPTION]
-	## 降臨／征討の長名は最初から一段小さく。
+	## 降臨／征討は本文〜タイトル寄りを優先（長すぎるときだけ縮小）。
 	elif is_route:
-		sizes = [UiTypography.SIZE_BODY_SMALL, UiTypography.SIZE_CAPTION]
+		sizes = [
+			UiTypography.SIZE_DISPLAY_TITLE,
+			UiTypography.SIZE_BODY,
+			UiTypography.SIZE_BODY_SMALL,
+		]
 	var font: Font = UiTypography.display_font()
 	if font == null:
 		return sizes[0]

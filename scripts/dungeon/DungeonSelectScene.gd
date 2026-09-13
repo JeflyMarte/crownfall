@@ -1927,14 +1927,16 @@ func _add_dungeon_title_labels(
 				size,
 				_EventDungeonTitleHelper.body_color(dungeon_id, true),
 				_EventDungeonTitleHelper.body_outline_color(dungeon_id),
-				banner_shadow
+				banner_shadow,
+				dungeon_id
 			)
 			var mark_lbl := _make_title_piece_label(
 				suffix,
 				size,
 				_EventDungeonTitleHelper.suffix_color(true),
 				_EventDungeonTitleHelper.suffix_outline_color(),
-				banner_shadow
+				banner_shadow,
+				dungeon_id
 			)
 			host.add_child(body_lbl)
 			host.add_child(mark_lbl)
@@ -1944,7 +1946,8 @@ func _add_dungeon_title_labels(
 			size,
 			_EventDungeonTitleHelper.plain_event_color(true),
 			_EventDungeonTitleHelper.COLOR_EVENT_PLAIN_OUTLINE,
-			banner_shadow
+			banner_shadow,
+			dungeon_id
 		)
 		host.add_child(plain)
 		return
@@ -1953,7 +1956,8 @@ func _add_dungeon_title_labels(
 		size,
 		UiTypography.COLOR_GOLD if unlocked else UiTypography.COLOR_SUB,
 		Color(0, 0, 0, 0.9),
-		banner_shadow and not unlocked
+		banner_shadow and not unlocked,
+		dungeon_id
 	)
 	if not unlocked:
 		label.modulate = Color(0.72, 0.72, 0.76, 1.0)
@@ -1967,7 +1971,8 @@ func _make_title_piece_label(
 	size: int,
 	color: Color,
 	outline: Color,
-	strong_shadow: bool
+	strong_shadow: bool,
+	dungeon_id: String = ""
 ) -> Label:
 	var label := Label.new()
 	label.text = text
@@ -1980,7 +1985,18 @@ func _make_title_piece_label(
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	## バナー上は強シャドウ／大アウトラインを避ける（明るいBANで黒帯に見える）。
 	var outline_size: int = 4 if strong_shadow else UiTypography.OUTLINE_BODY
+	## 降臨／征討は少し太く（合成 embolden）。
+	if _BiomeBannerHelper.is_route_banner_dungeon(dungeon_id):
+		var route_font: Font = _BiomeBannerHelper.route_title_font()
+		if route_font != null:
+			label.add_theme_font_override("font", route_font)
+		outline_size = maxi(outline_size, 5)
 	UiTypography.apply_display(label, size, color, outline_size)
+	## apply_display が font を上書きするので、ルートは再適用。
+	if _BiomeBannerHelper.is_route_banner_dungeon(dungeon_id):
+		var route_font2: Font = _BiomeBannerHelper.route_title_font()
+		if route_font2 != null:
+			label.add_theme_font_override("font", route_font2)
 	label.add_theme_color_override("font_outline_color", outline)
 	if strong_shadow:
 		## 軽いドロップのみ（shadow_outline の塗りつぶし帯を出さない）。
@@ -2035,7 +2051,8 @@ func _set_featured_dungeon_title(data: Resource, unlocked: bool) -> void:
 			child.queue_free()
 		_label_featured_name.visible = false
 		host.visible = true
-		_add_dungeon_title_labels(host, data, unlocked, UiTypography.SIZE_BODY_SMALL, true)
+		var feat_size: int = _banner_title_font_size(dungeon_id, title_text, false)
+		_add_dungeon_title_labels(host, data, unlocked, feat_size, true)
 		return
 	_hide_featured_name_twotone()
 	_label_featured_name.visible = true
@@ -2202,8 +2219,10 @@ func _make_biome_text_header(
 	var name_host := HBoxContainer.new()
 	name_host.add_theme_constant_override("separation", 0)
 	name_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var header_title: String = _dungeon_display_name(data, unlocked)
+	var header_size: int = _banner_title_font_size(str(data.id), header_title, false)
 	_add_dungeon_title_labels(
-		name_host, data, unlocked, UiTypography.SIZE_BODY_SMALL, false
+		name_host, data, unlocked, header_size, false
 	)
 	title_row.add_child(name_host)
 	## テキスト見出しでも CLEAR は出さない（章行のみ）。アビスは最高到達を右寄せ。
