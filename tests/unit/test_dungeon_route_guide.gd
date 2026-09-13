@@ -117,9 +117,10 @@ func test_conquest_guide_mentions_floors_and_sets() -> void:
 		blob += str((page as Dictionary).get("body", ""))
 		blob += str((page as Dictionary).get("title", ""))
 	assert_true(blob.contains("20F") or blob.contains("20"), "20F")
-	assert_true(blob.contains("名拒み"), "名拒みの冠")
-	assert_true(blob.contains("星炉"), "星炉の滓")
+	assert_true(blob.contains("エンシェント"), "エンシェント装備")
 	assert_true(blob.contains("征討"), "征討")
+	assert_false(blob.contains("名拒み"), "セット名は出さない")
+	assert_false(blob.contains("アストラ・スパイア"), "進入名の例は出さない")
 
 
 func test_queue_permit_guide_after_s_rank() -> void:
