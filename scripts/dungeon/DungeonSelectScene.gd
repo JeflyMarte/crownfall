@@ -1978,11 +1978,16 @@ func _make_title_piece_label(
 	label.clip_text = false
 	label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var outline_size: int = EVENT_TITLE_OUTLINE_SIZE if strong_shadow else UiTypography.OUTLINE_BODY
+	## バナー上は強シャドウ／大アウトラインを避ける（明るいBANで黒帯に見える）。
+	var outline_size: int = 4 if strong_shadow else UiTypography.OUTLINE_BODY
 	UiTypography.apply_display(label, size, color, outline_size)
 	label.add_theme_color_override("font_outline_color", outline)
 	if strong_shadow:
-		_apply_banner_title_shadow(label, true)
+		## 軽いドロップのみ（shadow_outline の塗りつぶし帯を出さない）。
+		label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.75))
+		label.add_theme_constant_override("shadow_offset_x", 1)
+		label.add_theme_constant_override("shadow_offset_y", 1)
+		label.add_theme_constant_override("shadow_outline_size", 0)
 	return label
 
 

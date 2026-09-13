@@ -126,6 +126,7 @@ alwaysApply: false
 | 設定画面下に謎の横線（ーーー） | `UI_BG_Commander` 等の罫線テクスチャが空き領域に見える | 設定はテクスチャBG禁止。単色 `ColorRect` のみ |
 | 設定の音声パネルが Header に食い込む | MainScroll `offset_top` が Header 下端に追従していない／余白不足 | Header 実サイズ下端＋`HEADER_CONTENT_GAP`（≧24）へ同期。chrome 前に meta を入れる |
 | キャラ管理オープンで即終了 | `custom_maximum_size` | → **`pitfalls-startup.mdc`**／`gdscript.mdc` |
+| 征討／降臨BAN中央が黒抜け | strip生成の `remove_light_matte` が明るい絵を透明化→UI黒が透ける | `generate_biome_banner` は strip＋名板なし時 `force_opaque`。名板／金枠は征討降臨に載せない |
 | Biome／イベントバナー名消滅・横伸び・サイズ不揃い | FULL_RECT・DISABLED横Scr・文字数閾値・高さ同期 | → **`ui-layout.mdc` Biome／イベントバナー** |
 | HBox 内の数値が消える（アイコンだけ残る） | Label の `clip_text=true` は最小幅 0 → SHRINK の HBox で幅が潰れる | `ui-layout.mdc` — 短い数値は `clip_text=false`。必要なら `EXPAND_FILL` |
 | MAX★付き装備の詳細名が1文字ずつ縦折れ | `_add_item_title` が HBox＋名前 `AUTOWRAP`＋`SHRINK_*`（Autowrap の min幅0で潰れる） | → **`ui-layout.mdc`** タイトルは `AUTOWRAP_OFF`＋名前／★とも `SHRINK_BEGIN`（★は名前直後。`EXPAND_FILL` で行末飛ばし禁止） |

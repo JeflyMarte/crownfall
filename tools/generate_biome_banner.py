@@ -65,6 +65,18 @@ def remove_light_matte(img: Image.Image) -> Image.Image:
 	return img
 
 
+def force_opaque(img: Image.Image) -> Image.Image:
+	"""Strip バナー用。白マット除去で明るい絵が穴あき→後ろの黒が見えるのを防ぐ。"""
+	img = img.convert("RGBA")
+	px = img.load()
+	w, h = img.size
+	for y in range(h):
+		for x in range(w):
+			r, g, b, _a = px[x, y]
+			px[x, y] = (r, g, b, 255)
+	return img
+
+
 def extract_frame_strip(
 	main_path: Path | None = None,
 	atm_path: Path | None = None,
@@ -164,8 +176,13 @@ def normalize_banner(
 	strip_height: int | None = None,
 	with_frame: bool = False,
 	with_nameplate: bool = False,
+	keep_opaque: bool = False,
 ) -> None:
-	img = remove_light_matte(Image.open(src))
+	## strip バナー（征討／降臨等）は白マット除去すると明るい絵が穴あき→UI黒が透ける。
+	if keep_opaque or (strip_height is not None and not with_frame and not with_nameplate):
+		img = force_opaque(Image.open(src))
+	else:
+		img = remove_light_matte(Image.open(src))
 	w, h = img.size
 	scale = TARGET_W / float(w)
 	resized_h = max(1, int(round(h * scale)))
@@ -176,10 +193,11 @@ def normalize_banner(
 			top = (resized_h - target_h) // 2
 			img = img.crop((0, top, TARGET_W, top + target_h))
 		elif resized_h < target_h:
-			canvas = Image.new("RGBA", (TARGET_W, target_h), (0, 0, 0, 0))
+			canvas = Image.new("RGBA", (TARGET_W, target_h), (0, 0, 0, 255))
 			offset_y = (target_h - resized_h) // 2
-			canvas.paste(img, (0, offset_y), img)
+			canvas.paste(img, (0, offset_y))
 			img = canvas
+		img = force_opaque(img)
 	if with_frame:
 		img = apply_frame(img, ensure_frame_strip(img.size[1]))
 	if with_nameplate:
