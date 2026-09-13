@@ -32,6 +32,7 @@ ENTRIES: list[tuple[str, str, str, Path, int]] = [
 	("NinjaOctopus", "ninja_octopus", "ENM", ENEMY_DIR, 96),
 	("AnchorLord", "anchor_lord", "ENM", ENEMY_DIR, 96),
 	("Nereion", "nereion", "BOSS", BOSS_DIR, 96),
+	("NereionDepths", "nereion_depths", "BOSS", BOSS_DIR, 128),
 ]
 
 
@@ -315,6 +316,8 @@ RECOLORERS = {
 	("AnchorLord", "Nightmare"): recolor_anchor_nightmare,
 	("Nereion", "Hard"): recolor_nereion_hard,
 	("Nereion", "Nightmare"): recolor_nereion_nightmare,
+	("NereionDepths", "Hard"): recolor_nereion_hard,
+	("NereionDepths", "Nightmare"): recolor_nereion_nightmare,
 }
 
 

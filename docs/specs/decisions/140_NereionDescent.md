@@ -3,7 +3,7 @@
 **Status:** Decision **承認済**（2026-09-06 — オーナー GO／表示・時間帯・セット推奨一式）  
 **実装レーン:** **アップデート第3弾**（配信は第3弾。先端検証 ON＝`NEREION_FLAGSHIP_PLAYABLE`）
 **実装:** 接続済（DG／Boss帯／潮脈の契／2/5/8/11）  
-**ART（2026-09-12 GO）:** BAN／戦闘BG（Early・Late・Boss）／DG ICO／セットICO7／図鑑 `ART_BOSS_NereionDepths`＋ターンICO を専用化。テーマ＝沈没旗艦断面＋潮碧金属・真珠珊瑚。効果・名前は据置、フレーバーのみ専用文。  
+**ART（2026-09-12〜13 GO）:** BAN／戦闘BG（Early・Late・Boss）／DG ICO／セットICO7／図鑑 `ART_BOSS_NereionDepths`＋ターンICO を専用化。戦闘ドットは PixelLab Depths（128×36・H/NM再色）を接続。テーマ＝沈没旗艦断面＋潮碧金属・真珠珊瑚。効果・名前は据置、フレーバーのみ専用文。  
 **型:** `14_ChronosDescent`／`16_ValgardDescent` と同型（時間帯・7F・N/H/NM・エンシェント）  
 **Boss:** `nereion_depths`（潮脈王ネレイオン・デプス）  
 **Related:** `19_EventDescentSets`／`139_AncientSetPowerPass`／`128`（征討へ戻さない）
@@ -144,7 +144,7 @@ UI: イベントタブ。TabsRow N/H/NM（降臨同型）。降臨名2色（本�
 - 征討 `blackshore_abyss` としての常設20F配信
 - 本編ネレイオン（`nereion`）との同一個体扱い（図鑑は別個体のまま）
 - 曜日イベント化・日次回数制限
-- 専用ボスドット必須化（当面ネレイオン流用可→後続ART）
+- 専用ボスドット必須化（当面ネレイオン流用可→後続ART） — **2026-09-13: Depths 専用戦闘ドット接続済**（流用解除）
 - 午後帯（12時以降）スケジュール
 
 ---
