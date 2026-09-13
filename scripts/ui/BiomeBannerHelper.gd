@@ -61,8 +61,11 @@ static func load_texture(dungeon_id: String) -> Texture2D:
 
 ## バナー重ねタイトル用フォントサイズ。
 ## メイン帯は同一サイズを優先し、深層／はみ出し時のみ段階縮小（文字数閾値は使わない）。
-const TITLE_MAX_WIDTH: float = 520.0
-const TITLE_MAX_WIDTH_WITH_CLEAR: float = 440.0
+## 降臨／征討はボス名込みで長いため幅上限をやや広めに。
+const TITLE_MAX_WIDTH: float = 560.0
+const TITLE_MAX_WIDTH_WITH_CLEAR: float = 480.0
+const TITLE_MAX_WIDTH_ROUTE: float = 620.0
+const TITLE_MAX_WIDTH_ROUTE_WITH_CLEAR: float = 540.0
 
 
 static func title_font_size(
@@ -73,7 +76,18 @@ static func title_font_size(
 	var text: String = title_text.strip_edges()
 	if text.is_empty():
 		text = "？"
-	var max_w: float = TITLE_MAX_WIDTH_WITH_CLEAR if with_clear else TITLE_MAX_WIDTH
+	var is_route: bool = dungeon_id in [
+		"chronos_mausoleum",
+		"valgard_boundary",
+		"nereion_flagship",
+		"north_reach",
+		"red_forge_depths",
+	]
+	var max_w: float
+	if is_route:
+		max_w = TITLE_MAX_WIDTH_ROUTE_WITH_CLEAR if with_clear else TITLE_MAX_WIDTH_ROUTE
+	else:
+		max_w = TITLE_MAX_WIDTH_WITH_CLEAR if with_clear else TITLE_MAX_WIDTH
 	var sizes: Array[int] = [
 		UiTypography.SIZE_BODY,
 		UiTypography.SIZE_BODY_SMALL,
@@ -82,6 +96,9 @@ static func title_font_size(
 	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
 	## 深層の「無限〜の最果て」は最初から一段小さく。
 	if _AbyssDungeonConfig.is_abyss_dungeon_id(dungeon_id):
+		sizes = [UiTypography.SIZE_BODY_SMALL, UiTypography.SIZE_CAPTION]
+	## 降臨／征討の長名は最初から一段小さく。
+	elif is_route:
 		sizes = [UiTypography.SIZE_BODY_SMALL, UiTypography.SIZE_CAPTION]
 	var font: Font = UiTypography.display_font()
 	if font == null:

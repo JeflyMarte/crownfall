@@ -224,7 +224,7 @@ func test_descent_event_line_when_chronos_open() -> void:
 	var line: String = _Helper.descent_event_line()
 	assert_eq(
 		line,
-		"速報です！\n「時環の共鳴龍」が降臨中です！\nイベントから確認してください！"
+		"速報です！\n「時環の共鳴龍クロノス・ウェーブ」が降臨中です！\nイベントから確認してください！"
 	)
 	var rec: String = _Helper.recommend_line()
 	assert_eq(rec, line)
@@ -234,8 +234,9 @@ func test_descent_event_line_when_chronos_open() -> void:
 
 
 func test_descent_short_label_strips_suffix() -> void:
-	assert_eq(_Helper.descent_short_label("【時環の共鳴龍】降臨"), "時環の共鳴龍")
-	assert_eq(_Helper.descent_short_label("【境界の番】降臨"), "境界の番")
+	assert_eq(_Helper.descent_short_label("【時環の共鳴龍クロノス・ウェーブ】降臨"), "時環の共鳴龍クロノス・ウェーブ")
+	assert_eq(_Helper.descent_short_label("【境界の番ヴァルガード】降臨"), "境界の番ヴァルガード")
+	assert_eq(_Helper.descent_short_label("【潮脈王ネレイオン・デプス】降臨"), "潮脈王ネレイオン・デプス")
 
 
 func test_descent_event_line_empty_when_closed() -> void:

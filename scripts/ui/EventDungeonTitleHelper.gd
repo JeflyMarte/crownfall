@@ -45,7 +45,7 @@ const _BODY_THEME: Dictionary = {
 
 
 ## display_name を body / suffix に分割。suffix 空＝2色対象外。
-## 期待形式: 【境界の番】降臨／【地図なき主】征討（】直後の空白は除去）。
+## 期待形式: 【潮脈王ネレイオン・デプス】降臨／【地図なき主アルバーク】征討（】直後の空白は除去）。
 static func split_title(display_name: String) -> Dictionary:
 	var full: String = display_name.strip_edges()
 	if full.is_empty():

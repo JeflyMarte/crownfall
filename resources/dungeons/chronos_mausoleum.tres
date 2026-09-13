@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "chronos_mausoleum"
-display_name = "【時環の共鳴龍】降臨"
+display_name = "【時環の共鳴龍クロノス・ウェーブ】降臨"
 difficulty = 7
 recommended_level = 60
 enemy_level = 58

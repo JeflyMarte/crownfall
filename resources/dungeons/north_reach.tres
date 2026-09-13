@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "north_reach"
-display_name = "【地図なき主】征討"
+display_name = "【地図なき主アルバーク】征討"
 difficulty = 7
 recommended_level = 60
 enemy_level = 58

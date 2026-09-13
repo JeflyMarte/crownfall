@@ -77,17 +77,17 @@ const DUNGEON_CODEX_META: Dictionary = {
 	},
 	"chronos_mausoleum": {
 		"location": "時王の霊廟（モーンゲート未踏査層）",
-		"exploration_theme": "時環の共鳴龍　降臨・時間帯イベント",
+		"exploration_theme": "【時環の共鳴龍クロノス・ウェーブ】降臨・時間帯イベント",
 		"related_history": ["HE-007", "HE-001"],
 	},
 	"valgard_boundary": {
 		"location": "ストームクラウン境界廊",
-		"exploration_theme": "境界の番　降臨・時間帯イベント",
+		"exploration_theme": "【境界の番ヴァルガード】降臨・時間帯イベント",
 		"related_history": ["HE-002", "HE-007"],
 	},
 	"nereion_flagship": {
 		"location": "沈没旗艦下（ブラックショア外洋）",
-		"exploration_theme": "潮脈王　降臨・時間帯イベント",
+		"exploration_theme": "【潮脈王ネレイオン・デプス】降臨・時間帯イベント",
 		"related_history": ["HE-004", "HE-005"],
 	},
 	"red_ridge_mine": {
@@ -112,12 +112,12 @@ const DUNGEON_CODEX_META: Dictionary = {
 	},
 	"red_forge_depths": {
 		"location": "アストラ・カルデラ（レッドフォージ深部）",
-		"exploration_theme": "星炉の寝主　征討・常設20F・星炉の滓",
+		"exploration_theme": "【星炉の寝主フォージ・ドルミエント】征討・常設20F・星炉の滓",
 		"related_history": ["HE-006", "HE-004"],
 	},
 	"north_reach": {
 		"location": "アストラ・スパイア（ノースリーチ）",
-		"exploration_theme": "地図なき主　征討・常設20F・名拒みの冠",
+		"exploration_theme": "【地図なき主アルバーク】征討・常設20F・名拒みの冠",
 		"related_history": ["HE-005", "HE-004"],
 	},
 	"cosmic_rift": {

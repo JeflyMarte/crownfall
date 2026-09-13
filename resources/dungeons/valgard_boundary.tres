@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "valgard_boundary"
-display_name = "【境界の番】降臨"
+display_name = "【境界の番ヴァルガード】降臨"
 difficulty = 6
 recommended_level = 54
 enemy_level = 52

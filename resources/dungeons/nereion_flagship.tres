@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "nereion_flagship"
-display_name = "【潮脈王】降臨"
+display_name = "【潮脈王ネレイオン・デプス】降臨"
 difficulty = 6
 recommended_level = 57
 enemy_level = 55
