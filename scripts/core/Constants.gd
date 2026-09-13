@@ -34,8 +34,8 @@ const CHRONOS_MAUSOLEUM_DUNGEON_ID: String = "chronos_mausoleum"
 const VALGARD_BOUNDARY_DUNGEON_ID: String = "valgard_boundary"
 ## 潮脈王　降臨／沈没旗艦下（P3-DG-NEREION-DESCENT-001）。
 const NEREION_FLAGSHIP_DUNGEON_ID: String = "nereion_flagship"
-## 潮脈王降臨をプレイ対象に含める。第3弾用。第2弾ストア提出（1.0.5）は false。
-const NEREION_FLAGSHIP_PLAYABLE: bool = false
+## 潮脈王降臨をプレイ対象に含める。1.0.7（第3弾）ストア提出で true。
+const NEREION_FLAGSHIP_PLAYABLE: bool = true
 ## 征討パイロット・地図なき主／アストラ・スパイア（P3-DG-APEX-REDEFINE-001）。
 const NORTH_REACH_DUNGEON_ID: String = "north_reach"
 ## 征討2・星炉の寝主／アストラ・カルデラ（P3-DG-APEX-FORGE-001）。

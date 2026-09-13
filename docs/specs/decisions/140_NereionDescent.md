@@ -1,7 +1,7 @@
 # 【潮脈王ネレイオン・デプス】降臨／沈没旗艦下（P3-DG-NEREION-DESCENT-001）
 
 **Status:** Decision **承認済**（2026-09-06 — オーナー GO／表示・時間帯・セット推奨一式）  
-**実装レーン:** **アップデート第3弾**（配信は第3弾。先端検証 ON＝`NEREION_FLAGSHIP_PLAYABLE`）
+**実装レーン:** **アップデート第3弾**（**ストア 1.0.7 で配信**／`NEREION_FLAGSHIP_PLAYABLE=true`）
 **実装:** 接続済（DG／Boss帯／潮脈の契／2/5/8/11）  
 **ART（2026-09-12〜13 GO）:** BAN／戦闘BG（Early・Late・Boss）／DG ICO／セットICO7／図鑑 `ART_BOSS_NereionDepths`＋ターンICO を専用化。戦闘ドットは PixelLab Depths（128×36・H/NM再色）を接続。テーマ＝沈没旗艦断面＋潮碧金属・真珠珊瑚。効果・名前は据置、フレーバーのみ専用文。  
 **型:** `14_ChronosDescent`／`16_ValgardDescent` と同型（時間帯・15F・N/H/NM・エンシェント）  
@@ -14,7 +14,7 @@
 
 未配信 apex `blackshore_abyss` を **時間帯降臨第3本**へ置換する。  
 時環（テンポ）・境界（地力）に対し、**潮＝耐久・回復**のエンシェントを置く。  
-**配信はアップデート第3弾。** 先端は `NEREION_FLAGSHIP_PLAYABLE=true`。第2弾ストア提出では false。
+**配信はアップデート第3弾＝ストア 1.0.7。** `NEREION_FLAGSHIP_PLAYABLE=true`（1.0.5／1.0.6 提出時は false）。
 
 ---
 
@@ -161,7 +161,7 @@ UI: イベントタブ。TabsRow N/H/NM（降臨同型）。降臨名2色（本�
 | B | Boss ステ降臨帯・群れフラグ・手引き文言 |
 | C | セット7＋加護フック＋ドロップ（ICOは仮流用可） |
 | D | BAN／ICO／戦闘BG（潮・旗艦）・図鑑テーマ | ✅ 2026-09-12 専用ART取込（BAN・BG3・DG ICO・セットICO7・図鑑キーアート＋ターンICO） |
-| E | 配信フラグ（第3弾 Constants／オミット解除）＋実機 | 未（`NEREION_FLAGSHIP_PLAYABLE` は提出まで false） |
+| E | 配信フラグ（第3弾 Constants／オミット解除）＋実機 | ✅ 1.0.7 提出で `true`（要 Archive／実機通し） |
 
 ---
 

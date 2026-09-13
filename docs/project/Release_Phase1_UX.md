@@ -1,8 +1,8 @@
 # アップデート第2弾配信 — 1.0.5
 
-**Status:** **第2弾 提出準備**（2026-09-06 — `1.0.5` / build22）  
-**第2弾:** 征討（アストラ・スパイア／カルデラ）・機巧士3・魔晶石発掘  
-**第3弾（予定）:** 潮脈王　降臨（`140`）— Impl 済・提出ビルドでは `NEREION_FLAGSHIP_PLAYABLE=false`
+**Status:** **第3弾 1.0.7 提出準備**（2026-09-13 — 軽量化＋潮脈王ON＋直近UI微修正）  
+**第2弾（1.0.5）:** 征討（アストラ・スパイア／カルデラ）・機巧士3・魔晶石発掘  
+**第3弾（1.0.7）:** 潮脈王　降臨（`140`）＋キャラ画面軽量化／フリーズ系は 1.0.6 済・直近UI微修正。`NEREION_FLAGSHIP_PLAYABLE=true`
 
 ---
 
@@ -29,11 +29,11 @@
 - 魔晶石発掘
 - 征討セット装備・Boss 新規アート・専用 BGM 大量
 
-### 2.1 第2弾で **出さない**（第3弾）
+### 2.1 第3弾（1.0.7）で出す
 
-- **潮脈王　降臨** — コード接続済。第2弾ストア提出時は `Constants.NEREION_FLAGSHIP_PLAYABLE=false`
-- 潮脈の契エンシェントセット（同上フラグで一覧非表示）
-- 旧 `blackshore_abyss` の征討常設化（降臨へ置換済み・apex 未配信維持）
+- **潮脈王　降臨** — `Constants.NEREION_FLAGSHIP_PLAYABLE=true`
+- 潮脈の契エンシェントセット
+- 旧 `blackshore_abyss` の征討常設化はしない（降臨へ置換済み）
 
 ---
 
@@ -49,13 +49,13 @@ const APEX_CONQUEST_PLAYABLE_IDS: Array[String] = []
 const CRYSTAL_EXCAVATE_PLAYABLE: bool = false
 ```
 
-| 定数 | 第1弾 | 第2弾（1.0.5） | 注意 |
+| 定数 | 第1弾 | 第2弾（1.0.5） | 第3弾（1.0.7） |
 |---|---|---|---|
-| `NEREION_FLAGSHIP_PLAYABLE` | `false` | **`false`（提出）** | 第3弾検証時のみ tip で `true` |
-| `APEX_CONQUEST_PLAYABLE_IDS` | `[]` | 天望＋星炉 id | 寄り道オミットは維持 |
-| `CRYSTAL_EXCAVATE_PLAYABLE` | `false` | `true` | — |
-| `GACHA_HELPERS_PLAYABLE` | **`true` 維持** | `true` | false にするとガチャ全体が消える |
-| `GACHA_HELPER_OMITTED_IDS` | **`helper_q/r/s`** | `[]` | 機巧士3をプール・UI から除外（データ残置） |
+| `NEREION_FLAGSHIP_PLAYABLE` | `false` | `false` | **`true`（提出）** |
+| `APEX_CONQUEST_PLAYABLE_IDS` | `[]` | 天望＋星炉 id | 同左 |
+| `CRYSTAL_EXCAVATE_PLAYABLE` | `false` | `true` | `true` |
+| `GACHA_HELPERS_PLAYABLE` | `true` | `true` | `true` |
+| `GACHA_HELPER_OMITTED_IDS` | `helper_q/r/s` | `[]` | `[]` |
 
 ---
 
