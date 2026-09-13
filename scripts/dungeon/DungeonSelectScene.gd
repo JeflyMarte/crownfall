@@ -247,6 +247,7 @@ const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.g
 var _guide_help_row: HBoxContainer
 var _btn_guide_event: Button
 var _btn_guide_descent: Button
+var _btn_guide_conquest: Button
 var _btn_guide_abyss: Button
 
 func _ready() -> void:
@@ -357,6 +358,12 @@ func _setup_route_guide_help() -> void:
 	)
 	_guide_help_row.add_child(_btn_guide_descent)
 
+	_btn_guide_conquest = _make_route_guide_help_button("征討とは？")
+	_btn_guide_conquest.pressed.connect(
+		_on_route_guide_help_pressed.bind(_DungeonRouteGuide.GUIDE_CONQUEST)
+	)
+	_guide_help_row.add_child(_btn_guide_conquest)
+
 	_btn_guide_abyss = _make_route_guide_help_button("無限とは？")
 	_btn_guide_abyss.pressed.connect(_on_route_guide_help_pressed.bind(_DungeonRouteGuide.GUIDE_ABYSS))
 	_guide_help_row.add_child(_btn_guide_abyss)
@@ -382,6 +389,8 @@ func _refresh_route_guide_help() -> void:
 		_btn_guide_event.visible = on_event
 	if _btn_guide_descent != null:
 		_btn_guide_descent.visible = on_event
+	if _btn_guide_conquest != null:
+		_btn_guide_conquest.visible = on_event
 	if _btn_guide_abyss != null:
 		_btn_guide_abyss.visible = on_abyss
 

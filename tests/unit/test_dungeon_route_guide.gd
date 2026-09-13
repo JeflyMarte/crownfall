@@ -10,7 +10,12 @@ func before_each() -> void:
 
 
 func test_guides_have_three_pages_each() -> void:
-	for gid: String in [_Guide.GUIDE_EVENT, _Guide.GUIDE_DESCENT, _Guide.GUIDE_ABYSS]:
+	for gid: String in [
+		_Guide.GUIDE_EVENT,
+		_Guide.GUIDE_DESCENT,
+		_Guide.GUIDE_CONQUEST,
+		_Guide.GUIDE_ABYSS,
+	]:
 		var def: Dictionary = _Guide._all_guides().get(gid, {}) as Dictionary
 		assert_false(def.is_empty(), gid)
 		var pages: Array = def.get("pages", []) as Array
@@ -73,6 +78,7 @@ func test_guide_copy_avoids_dev_terms() -> void:
 	for gid: String in [
 		_Guide.GUIDE_EVENT,
 		_Guide.GUIDE_DESCENT,
+		_Guide.GUIDE_CONQUEST,
 		_Guide.GUIDE_ABYSS,
 		_Guide.GUIDE_SURVEY,
 		_Guide.GUIDE_GACHA_INVITE,
@@ -101,6 +107,19 @@ func test_queue_abyss_auto_only_once() -> void:
 func test_event_guide_has_no_auto_flag() -> void:
 	_Guide.queue_auto_if_unseen(_Guide.GUIDE_EVENT)
 	assert_false(_Guide.has_pending_auto())
+	_Guide.queue_auto_if_unseen(_Guide.GUIDE_CONQUEST)
+	assert_false(_Guide.has_pending_auto())
+
+
+func test_conquest_guide_mentions_floors_and_sets() -> void:
+	var blob: String = ""
+	for page: Variant in (_Guide._all_guides()[_Guide.GUIDE_CONQUEST] as Dictionary).get("pages", []):
+		blob += str((page as Dictionary).get("body", ""))
+		blob += str((page as Dictionary).get("title", ""))
+	assert_true(blob.contains("20F") or blob.contains("20"), "20F")
+	assert_true(blob.contains("名拒み"), "名拒みの冠")
+	assert_true(blob.contains("星炉"), "星炉の滓")
+	assert_true(blob.contains("征討"), "征討")
 
 
 func test_queue_permit_guide_after_s_rank() -> void:

@@ -10,6 +10,7 @@ const _IntroUiAssets := preload("res://scripts/intro/IntroUiAssets.gd")
 
 const GUIDE_EVENT: String = "event"
 const GUIDE_DESCENT: String = "descent"
+const GUIDE_CONQUEST: String = "conquest"
 const GUIDE_ABYSS: String = "abyss"
 const GUIDE_SURVEY: String = "survey"
 const GUIDE_GACHA_INVITE: String = "gacha_invite"
@@ -68,12 +69,12 @@ static func _all_guides() -> Dictionary:
 			{
 				"title": "3. 常設の征討",
 				"body": (
-					"[color=#7A3E12][b]地図なき主[/b][/color]（アストラ・スパイア）と"
-					+ "[color=#7A3E12][b]星炉の寝主[/b][/color]（アストラ・カルデラ）は、"
+					"[color=#7A3E12][b]地図なき主アルバーク[/b][/color]（アストラ・スパイア）と"
+					+ "[color=#7A3E12][b]星炉の寝主フォージ・ドルミエント[/b][/color]（アストラ・カルデラ）は、"
 					+ "メイン⑤ノーマル初回クリア後に常設で挑めます。\n\n"
 					+ "[color=#9A5018][b]20F[/b][/color]固定・専用 Boss。"
 					+ "N／H／NM 自由選択、[color=#9A5018][b]日次回数制限なし[/b][/color]。"
-					+ "専用エンシェント（名拒みの冠／星炉の滓）の入手先です。"
+					+ "詳細は「征討とは？」からも確認できます。"
 					+ "寄り道調査地は、まだ選べません。"
 				),
 			},
@@ -89,7 +90,8 @@ static func _all_guides() -> Dictionary:
 					"[color=#9A5018][b]降臨[/b][/color]は、決まった時間帯だけ門が開く"
 					+ "[color=#9A5018][b]強敵イベント[/b][/color]です。\n\n"
 					+ "例：[color=#7A3E12][b]【時環の共鳴龍クロノス・ウェーブ】降臨[/b][/color]（時王の霊廟）、"
-					+ "[color=#7A3E12][b]【境界の番ヴァルガード】降臨[/b][/color]（ストームクラウン境界廊）。\n\n"
+					+ "[color=#7A3E12][b]【境界の番ヴァルガード】降臨[/b][/color]（ストームクラウン境界廊）、"
+					+ "[color=#7A3E12][b]【潮脈王ネレイオン・デプス】降臨[/b][/color]（沈没旗艦下）。\n\n"
 					+ "曜日の短編イベントとも、探索中の放浪とも別物です。"
 				),
 			},
@@ -111,6 +113,41 @@ static func _all_guides() -> Dictionary:
 					+ "メインや無限の頂点より手前の、特別枠だと思ってください。\n\n"
 					+ "時間勝負になりやすいので、無理な編成は禁物。"
 					+ "準備ができたら、門が開いているうちにどうぞ！"
+				),
+			},
+		],
+	},
+	GUIDE_CONQUEST: {
+		"topic": "征討ダンジョンとは",
+		"flag_key": "",
+		"pages": [
+			{
+				"title": "1. 常設の長編ボス戦",
+				"body": (
+					"[color=#9A5018][b]征討[/b][/color]は、イベントタブに常設で並ぶ"
+					+ "[color=#9A5018][b]長い一本道のボス戦[/b][/color]です。\n\n"
+					+ "例：[color=#7A3E12][b]【地図なき主アルバーク】征討[/b][/color]（アストラ・スパイア）、"
+					+ "[color=#7A3E12][b]【星炉の寝主フォージ・ドルミエント】征討[/b][/color]（アストラ・カルデラ）。\n\n"
+					+ "時間帯の降臨や、曜日の短編とは別枠です。"
+				),
+			},
+			{
+				"title": "2. 解放と遊び方",
+				"body": (
+					"メイン⑤の[color=#9A5018][b]ノーマル初回クリア[/b][/color]後に解放されます。"
+					+ "解放後はいつでも挑戦できます。\n\n"
+					+ "[color=#9A5018][b]20F[/b][/color]固定で、最終階が専用 Boss。"
+					+ "[color=#9A5018][b]ノーマル／ハード／ナイトメア[/b][/color]を自由に選べ、"
+					+ "[color=#9A5018][b]日次回数の制限はありません[/b][/color]。"
+				),
+			},
+			{
+				"title": "3. 専用の装備",
+				"body": (
+					"征討だけの[color=#9A5018][b]エンシェント装備[/b][/color]があります。"
+					+ "地図なき主は[color=#7A3E12][b]名拒みの冠[/b][/color]、"
+					+ "星炉の寝主は[color=#7A3E12][b]星炉の滓[/b][/color]です。\n\n"
+					+ "降臨より長く、無限より区切りがある——戦力を試す常設枠だと思ってください。"
 				),
 			},
 		],
