@@ -1,10 +1,10 @@
-# 潮脈王　降臨／沈没旗艦下（P3-DG-NEREION-DESCENT-001）
+# 【潮脈王】降臨／沈没旗艦下（P3-DG-NEREION-DESCENT-001）
 
 **Status:** Decision **承認済**（2026-09-06 — オーナー GO／表示・時間帯・セット推奨一式）  
 **実装レーン:** **アップデート第3弾**（配信は第3弾。先端検証 ON＝`NEREION_FLAGSHIP_PLAYABLE`）
 **実装:** 接続済（DG／Boss帯／潮脈の契／2/5/8/11）  
 **ART（2026-09-12〜13 GO）:** BAN／戦闘BG（Early・Late・Boss）／DG ICO／セットICO7／図鑑 `ART_BOSS_NereionDepths`＋ターンICO を専用化。戦闘ドットは PixelLab Depths（128×36・H/NM再色）を接続。テーマ＝沈没旗艦断面＋潮碧金属・真珠珊瑚。効果・名前は据置、フレーバーのみ専用文。  
-**型:** `14_ChronosDescent`／`16_ValgardDescent` と同型（時間帯・7F・N/H/NM・エンシェント）  
+**型:** `14_ChronosDescent`／`16_ValgardDescent` と同型（時間帯・15F・N/H/NM・エンシェント）  
 **Boss:** `nereion_depths`（潮脈王ネレイオン・デプス）  
 **Related:** `19_EventDescentSets`／`139_AncientSetPowerPass`／`128`（征討へ戻さない）
 
@@ -22,7 +22,7 @@
 
 | 層 | 文言 |
 |---|---|
-| バナー／タイトル | **潮脈王　降臨** |
+| バナー／タイトル | **【潮脈王】降臨** |
 | 進入行（選択難度） | **沈没旗艦下　{ノーマル／ハード／ナイトメア}** |
 
 UI: イベントタブ。TabsRow N/H/NM（降臨同型）。降臨名2色（本体＝潮碧系＋「降臨」薔薇金）。
@@ -51,7 +51,7 @@ UI: イベントタブ。TabsRow N/H/NM（降臨同型）。降臨名2色（本�
 | Boss | `nereion_depths` |
 | 雑魚 | ブラックショア本編寄り（`ship_eater_crab`／`samurai_fish`／`undertaker_shark`／`tide_lamp`／`abyssal_squid` 等）・強化敵Lv |
 | Elite | `ninja_octopus`／`anchor_lord` 厚め |
-| フロア | **7F**・末尾 Boss |
+| フロア | **15F**・末尾 Boss |
 | 敵Lv（N） | **55** 前後（ヴァル52〜クロノス58の中間） |
 | difficulty／推奨Lv | **6**／**57**（ヴァル寄りの一段上） |
 | Hard/NM | `DungeonTierConfig` 流用。出現中は N/H/NM すべて選択可 |

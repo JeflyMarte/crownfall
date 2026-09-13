@@ -2023,7 +2023,7 @@ func _set_featured_dungeon_title(data: Resource, unlocked: bool) -> void:
 	if (
 		unlocked
 		and _is_event_dungeon(data)
-		and _EventDungeonTitleHelper.is_descent_twotone(title_text)
+		and _EventDungeonTitleHelper.is_route_twotone(title_text)
 	):
 		var host: HBoxContainer = _ensure_featured_name_twotone()
 		for child in host.get_children():

@@ -1,20 +1,25 @@
 class_name EventDungeonTitleHelper
 extends RefCounted
 
-## イベント／降臨タイトルの色分け（P3-UX-EVENT-TITLE-TWOTONE-001 案B）。
-## 「本体　降臨」形式のみ2色。曜日イベント等は単色（既存薔薇金）。
+## イベント／降臨／征討タイトルの色分け（P3-UX-EVENT-TITLE-TWOTONE-001）。
+## 形式: 【本体】降臨／【本体】征討。曜日イベント等は単色。
 
 const DESCENT_SUFFIX: String = "降臨"
+const CONQUEST_SUFFIX: String = "征討"
+const TITLE_SUFFIXES: PackedStringArray = [DESCENT_SUFFIX, CONQUEST_SUFFIX]
 
-## 接尾「降臨」共通色（バッジ）。
-const COLOR_DESCENT_MARK: Color = Color(1.0, 0.74, 0.56, 1.0)
-const COLOR_DESCENT_MARK_OUTLINE: Color = Color(0.78, 0.36, 0.18, 1.0)
+## 接尾「降臨／征討」共通色（バッジ）。
+const COLOR_ROUTE_MARK: Color = Color(1.0, 0.74, 0.56, 1.0)
+const COLOR_ROUTE_MARK_OUTLINE: Color = Color(0.78, 0.36, 0.18, 1.0)
+## 後方互換エイリアス。
+const COLOR_DESCENT_MARK: Color = COLOR_ROUTE_MARK
+const COLOR_DESCENT_MARK_OUTLINE: Color = COLOR_ROUTE_MARK_OUTLINE
 
 ## 曜日イベント等の単色（従来のイベント名色）。
-const COLOR_EVENT_PLAIN: Color = COLOR_DESCENT_MARK
-const COLOR_EVENT_PLAIN_OUTLINE: Color = COLOR_DESCENT_MARK_OUTLINE
+const COLOR_EVENT_PLAIN: Color = COLOR_ROUTE_MARK
+const COLOR_EVENT_PLAIN_OUTLINE: Color = COLOR_ROUTE_MARK_OUTLINE
 
-## 降臨本体のテーマ色（dungeon_id → {color, outline}）。
+## 本体のテーマ色（dungeon_id → {color, outline}）。
 const _BODY_THEME: Dictionary = {
 	"chronos_mausoleum": {
 		"color": Color(0.58, 0.90, 1.0, 1.0),
@@ -28,20 +33,39 @@ const _BODY_THEME: Dictionary = {
 		"color": Color(0.45, 0.78, 0.92, 1.0),
 		"outline": Color(0.06, 0.28, 0.42, 1.0),
 	},
+	"north_reach": {
+		"color": Color(0.72, 0.86, 1.0, 1.0),
+		"outline": Color(0.12, 0.22, 0.40, 1.0),
+	},
+	"red_forge_depths": {
+		"color": Color(1.0, 0.62, 0.38, 1.0),
+		"outline": Color(0.42, 0.12, 0.06, 1.0),
+	},
 }
 
 
 ## display_name を body / suffix に分割。suffix 空＝2色対象外。
+## 期待形式: 【境界の番】降臨／【地図なき主】征討（】直後の空白は除去）。
 static func split_title(display_name: String) -> Dictionary:
 	var full: String = display_name.strip_edges()
-	if full.is_empty() or not full.ends_with(DESCENT_SUFFIX):
-		return {"body": full, "suffix": ""}
-	var body: String = full.substr(0, full.length() - DESCENT_SUFFIX.length())
-	## 直前の全角／半角スペースは本体側に残す（見た目の間隔）。
-	return {"body": body, "suffix": DESCENT_SUFFIX}
+	if full.is_empty():
+		return {"body": "", "suffix": ""}
+	for suffix: String in TITLE_SUFFIXES:
+		if not full.ends_with(suffix):
+			continue
+		var body: String = full.substr(0, full.length() - suffix.length())
+		## 】直後・旧形式の全角空白を除去（strip_edges は半角空白のみ）。
+		body = body.replace("　", " ").strip_edges()
+		## 旧形式「本体　降臨」も許容（移行・テスト互換）。
+		return {"body": body, "suffix": suffix}
+	return {"body": full, "suffix": ""}
 
 
 static func is_descent_twotone(display_name: String) -> bool:
+	return is_route_twotone(display_name)
+
+
+static func is_route_twotone(display_name: String) -> bool:
 	return not str(split_title(display_name).get("suffix", "")).is_empty()
 
 
@@ -62,11 +86,11 @@ static func body_outline_color(dungeon_id: String) -> Color:
 
 
 static func suffix_color(unlocked: bool = true) -> Color:
-	return COLOR_DESCENT_MARK if unlocked else UiTypography.COLOR_SUB
+	return COLOR_ROUTE_MARK if unlocked else UiTypography.COLOR_SUB
 
 
 static func suffix_outline_color() -> Color:
-	return COLOR_DESCENT_MARK_OUTLINE
+	return COLOR_ROUTE_MARK_OUTLINE
 
 
 static func plain_event_color(unlocked: bool = true) -> Color:
@@ -81,7 +105,7 @@ static func color_to_bb_hex(color: Color) -> String:
 	]
 
 
-## 一覧 RichText 用。2色対象なら本体＋降臨、否则単色名。
+## 一覧 RichText 用。2色対象なら本体＋接尾、否则単色名。
 static func title_bbcode(dungeon_id: String, display_name: String, unlocked: bool) -> String:
 	if not unlocked:
 		return "[color=#c9c4b8][b]%s[/b][/color]" % display_name

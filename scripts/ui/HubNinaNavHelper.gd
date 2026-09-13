@@ -286,11 +286,15 @@ static func recommend_line() -> String:
 	return _pick_from(FALLBACK_RECOMMEND_LINES, 23)
 
 
-## 降臨告知用の短い名称（末尾の「降臨」を外し、全角空白で不自然折返ししない）。
+## 降臨告知用の短い名称（【】と末尾の「降臨／征討」を外し、全角空白で不自然折返ししない）。
 static func descent_short_label(display_name: String) -> String:
 	var label: String = display_name.strip_edges().replace("　", "")
-	if label.ends_with("降臨"):
-		label = label.substr(0, label.length() - "降臨".length()).strip_edges()
+	for suffix: String in PackedStringArray(["降臨", "征討"]):
+		if label.ends_with(suffix):
+			label = label.substr(0, label.length() - suffix.length()).strip_edges()
+			break
+	if label.begins_with("【") and label.ends_with("】") and label.length() >= 2:
+		label = label.substr(1, label.length() - 2).strip_edges()
 	if label.is_empty():
 		return display_name.strip_edges()
 	return label

@@ -234,8 +234,8 @@ func test_descent_event_line_when_chronos_open() -> void:
 
 
 func test_descent_short_label_strips_suffix() -> void:
-	assert_eq(_Helper.descent_short_label("時環の共鳴龍　降臨"), "時環の共鳴龍")
-	assert_eq(_Helper.descent_short_label("境界の番　降臨"), "境界の番")
+	assert_eq(_Helper.descent_short_label("【時環の共鳴龍】降臨"), "時環の共鳴龍")
+	assert_eq(_Helper.descent_short_label("【境界の番】降臨"), "境界の番")
 
 
 func test_descent_event_line_empty_when_closed() -> void:

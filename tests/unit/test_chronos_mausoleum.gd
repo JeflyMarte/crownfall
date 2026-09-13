@@ -24,7 +24,7 @@ func test_tres_shape() -> void:
 	assert_eq(str(data.id), DID)
 	assert_eq(str(data.route_type), "event")
 	assert_eq(str(data.boss_id), "chronos_wave")
-	assert_eq(str(data.display_name), "時環の共鳴龍　降臨")
+	assert_eq(str(data.display_name), "【時環の共鳴龍】降臨")
 	assert_eq(int(data.daily_attempt_limit), 0)
 	assert_true(bool(data.disable_wandering))
 	assert_eq(str(data.unlock_after_dungeon_id), "")

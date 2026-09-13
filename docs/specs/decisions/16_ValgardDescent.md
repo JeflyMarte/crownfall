@@ -39,7 +39,7 @@ UI: イベントタブ。難度は上部 **TabsRow（N/H/NM）** で切替（メ
 | Boss | `valgard`（`15_ValgardGolem.md`） |
 | 雑魚 | **ウィスパーウッド寄り**＋岩鉄感（`rock_bison` 重み）・強化敵Lv |
 | Elite | `rock_bison` 厚め＋`mist_wyvern` |
-| フロア | 7F・末尾 Boss |
+| フロア | **15F**・末尾 Boss（降臨統一） |
 | 敵Lv（N） | 52 前後 |
 | Hard/NM | 既存 `DungeonTierConfig` ボーナス流用。出現中は N/H/NM すべて選択可 |
 | 放浪 | 無効（`disable_wandering`） |

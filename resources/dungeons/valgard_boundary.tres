@@ -5,12 +5,12 @@
 [resource]
 script = ExtResource("1")
 id = "valgard_boundary"
-display_name = "境界の番　降臨"
+display_name = "【境界の番】降臨"
 difficulty = 6
 recommended_level = 54
 enemy_level = 52
 room_count = 8
-floor_count = 7
+floor_count = 15
 enemy_pool = Array[String](["moss_boar", "rock_bison", "rock_bison", "moss_shell", "spore_widow", "iron_horn", "blood_bloom", "rune_carcinos"])
 boss_id = "valgard"
 drop_table_id = "storm_crown_ruins_drops"

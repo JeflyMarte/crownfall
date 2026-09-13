@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "red_forge_depths"
-display_name = "星炉の寝主　征討"
+display_name = "【星炉の寝主】征討"
 difficulty = 7
 recommended_level = 60
 enemy_level = 58

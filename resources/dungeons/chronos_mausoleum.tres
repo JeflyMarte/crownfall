@@ -5,12 +5,12 @@
 [resource]
 script = ExtResource("1")
 id = "chronos_mausoleum"
-display_name = "時環の共鳴龍　降臨"
+display_name = "【時環の共鳴龍】降臨"
 difficulty = 7
 recommended_level = 60
 enemy_level = 58
 room_count = 8
-floor_count = 7
+floor_count = 15
 enemy_pool = Array[String](["sepia_hound", "rune_roach", "crystal_hedgehog", "crown_eater_rat", "grave_bell_bat", "crystal_scorpion", "skullface_mantis", "clock_moth", "clock_moth", "clock_moth"])
 boss_id = "chronos_wave"
 drop_table_id = "mourngate_deep_drops"
