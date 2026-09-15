@@ -70,12 +70,13 @@ func test_requires_save() -> void:
 
 
 func test_promo_codes_grant_tokens_and_tickets_no_gold() -> void:
-	## 配布4種: Goldなし・魔晶石＋招待／封蔵。
+	## 配布用: Goldなし・魔晶石＋招待／封蔵。
 	var cases: Array = [
 		{"code": "THANKYOU-1K", "id": "thankyou_1k", "token": 100, "invite": 1, "seal": 0},
 		{"code": "NOTE-CROWN", "id": "note_crown", "token": 200, "invite": 0, "seal": 1},
 		{"code": "YOUTUBE-FALL", "id": "youtube_fall", "token": 100, "invite": 1, "seal": 1},
 		{"code": "NINA-RECORD", "id": "nina_record", "token": 150, "invite": 1, "seal": 1},
+		{"code": "SORRY-DESCENT", "id": "sorry_descent", "token": 200, "invite": 1, "seal": 1},
 	]
 	for c: Variant in cases:
 		var row: Dictionary = c as Dictionary

@@ -51,6 +51,14 @@ static func entries() -> Dictionary:
 			"gacha_token": 150,
 			"tickets": {TicketIds.GACHA_FREE: 1, TicketIds.SEAL_FREE: 1},
 		},
+		## 1.0.8 降臨入場クラッシュお詫び（入力はハイフン無視）。
+		"SORRYDESCENT": {
+			"id": "sorry_descent",
+			"display_name": "降臨不具合のお詫び",
+			"gold": 0,
+			"gacha_token": 200,
+			"tickets": {TicketIds.GACHA_FREE: 1, TicketIds.SEAL_FREE: 1},
+		},
 	}
 
 
