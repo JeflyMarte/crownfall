@@ -3,6 +3,7 @@
 ---
 
 ## Last Update
+2026-09-15（**降臨入場クラッシュ修正**: 長いヘッダー名の font fit が `resized` 再入で Stack overflow。時環（JST 9時台など）で「はい」後に即終了。再入ガード。要 iOS ホットフィックス再エクスポート）
 2026-09-13（**iOS 1.0.7 build29 releaseエクスポート＋Xcode適用**: 軽量化＋潮脈王ON＋直近UI微修正。PCK 529MB・ja.lproj。要 Archive→Upload→Connectで1.0.7作成）
 2026-09-13（**1.0.7 提出範囲 GO**: キャラ画面軽量化＋潮脈王ON（`NEREION_FLAGSHIP_PLAYABLE=true`）＋直近UI微修正。1.0.6 はリリース済）
 2026-09-13（**iOS debug再エクスポート＋Xcode適用**: 征討手引き／BAN黒抜け／タイトル【ボス名】降臨ほか先端。要実機再インストール）

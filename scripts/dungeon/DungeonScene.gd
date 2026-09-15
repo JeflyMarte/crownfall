@@ -921,6 +921,8 @@ var _event_result_telop_override: String = ""
 @onready var _label_dungeon_name: Label = $MainVBox/HeaderBar/LabelDungeonName
 @onready var _label_room: Label = $MainVBox/HeaderBar/LabelRoom
 var _dungeon_header_icon: TextureRect
+## fit 中の font_size 変更が resized を再発火させスタック溢れするのを防ぐ。
+var _fitting_dungeon_header_name: bool = false
 @onready var _label_enemy: Label = $MainVBox/BottomZone/LabelEnemy
 @onready var _room_tile_bg: TextureRect = $MainVBox/BattlefieldArea/RoomTileBg
 @onready var _room_object: TextureRect = $MainVBox/BattlefieldArea/RoomObject
@@ -2769,14 +2771,18 @@ func _update_dungeon_header(dungeon_name: String) -> void:
 
 ## ヘッダー左のダンジョン名は省略せず、幅に収まるまでフォントを縮める。
 func _fit_dungeon_header_name_font() -> void:
+	if _fitting_dungeon_header_name:
+		return
 	if _label_dungeon_name == null or not is_instance_valid(_label_dungeon_name):
 		return
+	_fitting_dungeon_header_name = true
 	const MAX_FS: int = UiTypography.SIZE_CAPTION
 	const MIN_FS: int = 11
 	var avail: float = _label_dungeon_name.size.x
 	if avail < 20.0:
 		avail = 200.0
 	UiTypography.fit_label_font_to_width(_label_dungeon_name, MAX_FS, MIN_FS, avail)
+	_fitting_dungeon_header_name = false
 
 func _setup_combat_sprite_layer() -> void:
 	if _combat_sprites_host != null and is_instance_valid(_combat_sprites_host):
