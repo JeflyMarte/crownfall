@@ -1214,7 +1214,12 @@ func _ready() -> void:
 	_transition_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	call_deferred("_setup_combat_sprite_layer")
 	var dungeon_id: String = GameState.get_active_dungeon_id()
-	if Constants.SUB_STAGES_PLAYABLE:
+	## 導入 0-0 は unlock 対象外。begin_run 済みの stage を優先し resolve の解放判定に落とさない。
+	if _IntroTutorialConfig.is_dungeon_id(dungeon_id) or _IntroTutorialConfig.needs_run():
+		GameState.current_dungeon_id = _IntroTutorialConfig.DUNGEON_ID
+		GameState.current_stage_id = _IntroTutorialConfig.STAGE_ID
+		$DungeonController.start_stage(_IntroTutorialConfig.STAGE_ID)
+	elif Constants.SUB_STAGES_PLAYABLE:
 		var stage_id: String = GameState.resolve_stage_for_run(dungeon_id)
 		if not stage_id.is_empty():
 			GameState.current_stage_id = stage_id
@@ -2770,18 +2775,25 @@ func _update_dungeon_header(dungeon_name: String) -> void:
 	call_deferred("_fit_dungeon_header_name_font")
 
 ## ヘッダー左のダンジョン名は省略せず、幅に収まるまでフォントを縮める。
+## font_size 変更が resized を同期再発火するため、フィット中は再入ガード＋信号切断。
 func _fit_dungeon_header_name_font() -> void:
 	if _fitting_dungeon_header_name:
 		return
 	if _label_dungeon_name == null or not is_instance_valid(_label_dungeon_name):
 		return
 	_fitting_dungeon_header_name = true
+	var was_connected: bool = _label_dungeon_name.resized.is_connected(_fit_dungeon_header_name_font)
+	if was_connected:
+		_label_dungeon_name.resized.disconnect(_fit_dungeon_header_name_font)
 	const MAX_FS: int = UiTypography.SIZE_CAPTION
 	const MIN_FS: int = 11
 	var avail: float = _label_dungeon_name.size.x
 	if avail < 20.0:
 		avail = 200.0
 	UiTypography.fit_label_font_to_width(_label_dungeon_name, MAX_FS, MIN_FS, avail)
+	if was_connected and is_instance_valid(_label_dungeon_name):
+		if not _label_dungeon_name.resized.is_connected(_fit_dungeon_header_name_font):
+			_label_dungeon_name.resized.connect(_fit_dungeon_header_name_font)
 	_fitting_dungeon_header_name = false
 
 func _setup_combat_sprite_layer() -> void:

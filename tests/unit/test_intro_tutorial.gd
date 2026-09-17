@@ -35,6 +35,80 @@ func test_pending_flag_after_starter_pick() -> void:
 	assert_false(_PetSystem.is_starter_pet_granted())
 
 
+func test_resolve_stage_for_intro_ignores_unlock() -> void:
+	## 導入は一覧解放外。unlock 判定に落とさず固定 stage を返す。
+	assert_false(GameState.is_dungeon_unlocked(_IntroTutorialConfig.DUNGEON_ID))
+	assert_false(GameState.is_stage_unlocked(_IntroTutorialConfig.STAGE_ID))
+	GameState.current_stage_id = _IntroTutorialConfig.STAGE_ID
+	assert_eq(
+		GameState.resolve_stage_for_run(_IntroTutorialConfig.DUNGEON_ID),
+		_IntroTutorialConfig.STAGE_ID
+	)
+	GameState.current_stage_id = ""
+	assert_eq(
+		GameState.resolve_stage_for_run(_IntroTutorialConfig.DUNGEON_ID),
+		_IntroTutorialConfig.STAGE_ID
+	)
+
+
+var _fit_label: Label
+var _fit_guard: bool = false
+var _fit_depth: int = 0
+var _fit_max_depth: int = 0
+
+
+func _on_test_header_fit_resized() -> void:
+	_fit_depth += 1
+	_fit_max_depth = maxi(_fit_max_depth, _fit_depth)
+	if _fit_guard:
+		_fit_depth -= 1
+		return
+	_fit_guard = true
+	var was_connected: bool = _fit_label.resized.is_connected(_on_test_header_fit_resized)
+	if was_connected:
+		_fit_label.resized.disconnect(_on_test_header_fit_resized)
+	UiTypography.fit_label_font_to_width(_fit_label, UiTypography.SIZE_CAPTION, 11, 80.0)
+	if was_connected and is_instance_valid(_fit_label):
+		if not _fit_label.resized.is_connected(_on_test_header_fit_resized):
+			_fit_label.resized.connect(_on_test_header_fit_resized)
+	_fit_guard = false
+	_fit_depth -= 1
+
+
+func test_header_font_fit_survives_resized_reentry() -> void:
+	## 狭い幅で font_size 変更→resized が同期再入してもスタックしないこと。
+	_fit_label = Label.new()
+	add_child_autofree(_fit_label)
+	_fit_label.text = "0-0 訓練用模擬水路"
+	_fit_label.custom_minimum_size = Vector2(80, 24)
+	_fit_label.size = Vector2(80, 24)
+	_fit_guard = false
+	_fit_depth = 0
+	_fit_max_depth = 0
+	_fit_label.resized.connect(_on_test_header_fit_resized)
+	_on_test_header_fit_resized()
+	assert_lt(_fit_max_depth, 8, "font fit must not re-enter deeply via resized")
+	assert_false(_fit_guard)
+
+
+func test_intro_dungeon_scene_loads_after_starter_confirm() -> void:
+	## 隊員確定後と同じ GameState で DungeonScene を載せる（導入入場経路のスモーク）。
+	assert_true(GameState.select_intro_starter("adventurer_0"))
+	_IntroTutorialConfig.mark_pending()
+	_IntroTutorialConfig.begin_run()
+	var packed: PackedScene = load("res://scenes/dungeon/DungeonScene.tscn")
+	assert_not_null(packed)
+	var scene: Node = packed.instantiate()
+	add_child_autofree(scene)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	assert_true(is_instance_valid(scene))
+	var dc: Node = scene.get_node_or_null("DungeonController")
+	assert_not_null(dc)
+	assert_true(_IntroTutorialConfig.is_run(dc))
+	assert_eq(str(GameState.current_stage_id), _IntroTutorialConfig.STAGE_ID)
+
+
 func test_existing_save_without_pending_skips_tutorial() -> void:
 	GameState.tutorial_flags["hub_simple_guide_done"] = true
 	assert_false(_IntroTutorialConfig.needs_run())

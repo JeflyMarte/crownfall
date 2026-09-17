@@ -620,6 +620,10 @@ func is_stage_unlocked(stage_id: String) -> bool:
 func resolve_stage_for_run(biome_id: String) -> String:
 	if not Constants.SUB_STAGES_PLAYABLE:
 		return ""
+	## 導入訓練坑は一覧解放外。unlock 判定を通さず固定 stage を返す。
+	const _IntroTutorialConfig := preload("res://scripts/intro/IntroTutorialConfig.gd")
+	if _IntroTutorialConfig.is_dungeon_id(biome_id):
+		return _IntroTutorialConfig.STAGE_ID
 	if not current_stage_id.is_empty():
 		var selected: Resource = DataRegistry.get_stage_data(current_stage_id)
 		if selected != null and str(selected.biome_id) == biome_id and is_stage_unlocked(current_stage_id):
