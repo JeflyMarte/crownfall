@@ -28,6 +28,8 @@ const FEATURED_BLURB_FONT_SIZE: int = 22
 const FEATURED_BLURB_FONT_MIN: int = 15
 ## 封蔵 blurb の最大行（フック＋使いどころ）。招待状の1行も可。
 const FEATURED_BLURB_MAX_LINES: int = 2
+## host.resized → relayout → font_size 変更の同期再入防止。
+static var _featured_relayout_busy: bool = false
 const FEATURED_BLURB_LINE_PAD: float = 4.0
 const FEATURED_BLURB_OUTLINE: int = 6
 const FEATURED_BLURB_COLOR := Color(1.0, 0.92, 0.52, 1.0)
@@ -107,6 +109,14 @@ static func _featured_art_offset_x(shell: Dictionary) -> float:
 static func relayout_featured_shell(shell: Dictionary, host: Control) -> void:
 	if shell.is_empty() or host == null:
 		return
+	if _featured_relayout_busy:
+		return
+	_featured_relayout_busy = true
+	_relayout_featured_shell_inner(shell, host)
+	_featured_relayout_busy = false
+
+
+static func _relayout_featured_shell_inner(shell: Dictionary, host: Control) -> void:
 	var h: float = maxf(host.size.y, 1.0)
 	var idle_px: float = featured_idle_px(h)
 	var foot: float = featured_foot_pad(h)

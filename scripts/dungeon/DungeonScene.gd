@@ -13915,12 +13915,16 @@ func _close_party_member_inspect() -> void:
 		_set_paused(false)
 
 func _fit_all_party_card_name_fonts() -> void:
+	if bool(get_meta("_fitting_party_card_names", false)):
+		return
+	set_meta("_fitting_party_card_names", true)
 	for i in _party_card_name_labels.size():
 		var label: Label = _party_card_name_labels[i]
 		if label == null or not is_instance_valid(label):
 			continue
 		var avail: float = _party_card_name_available_width(i)
 		_fit_party_card_name_font(label, avail)
+	set_meta("_fitting_party_card_names", false)
 
 func _party_card_name_available_width(card_index: int) -> float:
 	if card_index < 0 or card_index >= _party_card_roots.size():

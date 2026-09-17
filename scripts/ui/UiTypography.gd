@@ -160,15 +160,24 @@ static func apply_nav_button(button: BaseButton, size: int = SIZE_NAV) -> void:
 
 ## 可変長テキスト(プレイヤー名・キャラ名等)がレイアウト幅を押し広げないよう、
 ## 収まる範囲でフォントサイズを段階的に縮める（省略・改行はしない）。
+## font_size 変更が Label.resized を同期再発火し得るため、再入ガード必須。
+## ❌ Label.resized → 本関数（ガード無し）／✅ 呼び出し側で再入防止、または本関数の meta ガードに任せる。
 static func fit_label_font_to_width(
 	label: Label, max_size: int, min_size: int, avail_width: float
 ) -> void:
+	if label == null or not is_instance_valid(label):
+		return
+	if bool(label.get_meta("_cf_fitting_font", false)):
+		return
+	label.set_meta("_cf_fitting_font", true)
 	label.add_theme_font_size_override("font_size", max_size)
 	var text: String = label.text
 	if text.is_empty():
+		label.set_meta("_cf_fitting_font", false)
 		return
 	var font: Font = label.get_theme_font("font")
 	if font == null:
+		label.set_meta("_cf_fitting_font", false)
 		return
 	var fs: int = max_size
 	while fs > min_size:
@@ -177,6 +186,7 @@ static func fit_label_font_to_width(
 			break
 		fs -= 1
 	label.add_theme_font_size_override("font_size", fs)
+	label.set_meta("_cf_fitting_font", false)
 
 static func apply_log_rich(entry: RichTextLabel, size: int = SIZE_LOG, color: Color = COLOR_LOG) -> void:
 	var font: Font = body_font()

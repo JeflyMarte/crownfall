@@ -738,13 +738,17 @@ func _on_pool_icon_pressed(btn: BaseButton) -> void:
 func _on_featured_host_resized() -> void:
 	if _featured_shell.is_empty():
 		return
+	## relayout 内でもガードするが、ホスト側でも二重発火を止める。
+	if bool(get_meta("_featured_host_relayout_busy", false)):
+		return
+	set_meta("_featured_host_relayout_busy", true)
 	GachaUiHelper.relayout_featured_shell(_featured_shell, _banner_art_host)
 	if _pool_marquee_active:
 		var strip: Control = _featured_shell.get("pool_strip") as Control
 		var loop_w: float = GachaUiHelper.pool_marquee_loop_width(strip)
 		if loop_w >= 8.0:
 			_pool_marquee_loop_w = loop_w
-
+	set_meta("_featured_host_relayout_busy", false)
 
 ## Featured 枠と説明パネルを再レイアウト（chrome は BottomNavHelper／実機のみ）。
 func _finalize_gacha_layout() -> void:
