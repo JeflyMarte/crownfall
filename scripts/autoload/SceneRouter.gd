@@ -165,6 +165,7 @@ func _resolve_packed_if_ready(path: String) -> PackedScene:
 	var threaded: Resource = ResourceLoader.load_threaded_get(path)
 	if threaded is PackedScene:
 		_packed_cache[path] = threaded
+		_trim_packed_cache_if_needed()
 		return threaded as PackedScene
 	return null
 
