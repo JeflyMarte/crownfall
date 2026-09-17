@@ -3,6 +3,7 @@
 ---
 
 ## Last Update
+2026-09-17（**ChatGPT向け仕様エクスポートを現行実装へ再同期**: `docs/export/chatgpt`＋評価用1本。β①のみ前提を廃止し本編①〜⑤・降臨／征討／深層・機巧・発掘を正に）
 2026-09-17（**iOS 1.0.8 build40 releaseエクスポート＋Xcode適用**: 導入0-0即終了／font-fit再入横展開／旧端末予防＋既存の降臨入場修正＋`SORRY-DESCENT`。PCK 529MB・ja.lproj。要 Archive→Upload→Connectで1.0.8提出）
 2026-09-17（**旧端末予防 hardening**: 導入 Dungeon 裏読み／dive パネル viewport 化／モバイル天候常時抑止／軽量キー欠落時モバイルON／メモリ制約で30fps／SceneRouter キャッシュ soft-cap。要 iPhone 11 級で導入入場確認）
 2026-09-17（**即死同型の総点検＋硬化**: font-fit 再入を横断確認。共有 `fit_label_font_to_width` meta ガード／ガチャ Featured relayout busy／パーティカード名フィット／StarterPick を Control 確認へ。残り=他画面 ConfirmationDialog の Control 化は衛生枠）
