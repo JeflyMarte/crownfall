@@ -3,6 +3,7 @@
 ---
 
 ## Last Update
+2026-09-17（**旧端末予防 hardening**: 導入 Dungeon 裏読み／dive パネル viewport 化／モバイル天候常時抑止／軽量キー欠落時モバイルON／メモリ制約で30fps／SceneRouter キャッシュ soft-cap。要 iPhone 11 級で導入入場確認）
 2026-09-17（**即死同型の総点検＋硬化**: font-fit 再入を横断確認。共有 `fit_label_font_to_width` meta ガード／ガチャ Featured relayout busy／パーティカード名フィット／StarterPick を Control 確認へ。残り=他画面 ConfirmationDialog の Control 化は衛生枠）
 2026-09-17（**導入0-0入場クラッシュ調査＋強化**: ユーザー報告＝隊員確定／つづきから即終了。1.0.7 ヘッダー font fit 再入が最有力。フィット中の `resized` 切断＋導入 stage を unlock 外固定。要 1.0.8 以降で実機確認）
 2026-09-15（**iOS 1.0.8 build39 releaseエクスポート＋Xcode適用**: 降臨入場クラッシュ修正＋`SORRY-DESCENT`。PCK 529MB・ja.lproj。要 Archive→Upload→Connectで1.0.8作成）

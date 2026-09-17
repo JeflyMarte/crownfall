@@ -76,7 +76,11 @@ static func load_from_disk() -> void:
 	_show_damage_numbers = bool(cfg.get_value(SECTION, KEY_DAMAGE_NUMBERS, true))
 	_show_battle_log = bool(cfg.get_value(SECTION, KEY_BATTLE_LOG, true))
 	_vibration_enabled = bool(cfg.get_value(SECTION, KEY_VIBRATION, true))
-	_light_mode = bool(cfg.get_value(SECTION, KEY_LIGHT_MODE, false))
+	## キー未保存の既存 cfg はモバイル既定 ON（発熱／旧端末対策）。明示OFFは尊重。
+	if cfg.has_section_key(SECTION, KEY_LIGHT_MODE):
+		_light_mode = bool(cfg.get_value(SECTION, KEY_LIGHT_MODE, false))
+	else:
+		_light_mode = is_mobile_platform()
 	_auto_dismantle_common_rare = bool(cfg.get_value(SECTION, KEY_AUTO_DISMANTLE_CR, false))
 
 
@@ -118,10 +122,30 @@ static func mobile_throttle_idle_loops() -> bool:
 	return is_mobile_platform()
 
 
+## 物理メモリが薄い端末（目安 <3.5GB）。iPhone 11 級のjetsam／発熱リスク判定。
+static func is_memory_constrained_device() -> bool:
+	if not is_mobile_platform():
+		return false
+	var info: Dictionary = OS.get_memory_info()
+	var physical: int = int(info.get("physical", 0))
+	if physical <= 0:
+		return false
+	return physical < 3_500_000_000
+
+
+## モバイルの粒子天候は常に抑止（軽量OFFでも旧端末で熱・落ちを誘発し得る）。
+static func mobile_use_reduced_weather() -> bool:
+	return is_mobile_platform()
+
+
 ## モバイルは FPS 上限で GPU/CPU 負荷を抑える。軽量モード時は 30fps。
+## メモリ制約端末は軽量OFFでも FPS を一段下げる（ユーザーの見た目設定は尊重）。
 static func apply_performance_settings() -> void:
 	if is_mobile_platform():
-		Engine.max_fps = FPS_MOBILE_LIGHT if _light_mode else FPS_MOBILE_NORMAL
+		if _light_mode or is_memory_constrained_device():
+			Engine.max_fps = FPS_MOBILE_LIGHT
+		else:
+			Engine.max_fps = FPS_MOBILE_NORMAL
 	else:
 		Engine.max_fps = FPS_DESKTOP
 

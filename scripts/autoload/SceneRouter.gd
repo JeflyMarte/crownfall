@@ -17,6 +17,8 @@ var _warmup_started: bool = false
 var _transition_busy: bool = false
 var _loading_layer: CanvasLayer = null
 var _loading_label: Label = null
+## モバイルで無制限キャッシュすると 3GB 級で jetsam しやすい。優先パス以外は刈る。
+const MOBILE_CACHE_SOFT_CAP: int = 6
 
 
 func change_scene(path: String) -> void:
@@ -73,6 +75,18 @@ func hub_warmup_paths() -> PackedStringArray:
 	])
 
 
+## 旧端末向け: 常に温めておく優先シーン（これ以外は soft-cap で落とせる）。
+func _priority_cache_paths() -> PackedStringArray:
+	return PackedStringArray([
+		HOME_SCENE,
+		"res://scenes/equipment/EquipmentScene.tscn",
+		"res://scenes/dungeon/DungeonSelectScene.tscn",
+		"res://scenes/dungeon/DungeonScene.tscn",
+		"res://scenes/result/ResultScene.tscn",
+		TITLE_SCENE,
+	])
+
+
 func cached_packed(path: String) -> PackedScene:
 	return _packed_cache.get(path, null) as PackedScene
 
@@ -110,10 +124,12 @@ func _resolve_packed(path: String) -> PackedScene:
 		var threaded: Resource = ResourceLoader.load_threaded_get(path)
 		if threaded is PackedScene:
 			_packed_cache[path] = threaded
+			_trim_packed_cache_if_needed()
 			return threaded as PackedScene
 	var loaded: Resource = load(path)
 	if loaded is PackedScene:
 		_packed_cache[path] = loaded
+		_trim_packed_cache_if_needed()
 		return loaded as PackedScene
 	return null
 
@@ -131,6 +147,7 @@ func _resolve_packed_async(path: String) -> PackedScene:
 			var threaded: Resource = ResourceLoader.load_threaded_get(path)
 			if threaded is PackedScene:
 				_packed_cache[path] = threaded
+				_trim_packed_cache_if_needed()
 				return threaded as PackedScene
 		if status != ResourceLoader.THREAD_LOAD_IN_PROGRESS:
 			break
@@ -161,6 +178,7 @@ func _harvest_warmup_cache() -> void:
 		var threaded: Resource = ResourceLoader.load_threaded_get(path)
 		if threaded is PackedScene:
 			_packed_cache[path] = threaded
+	_trim_packed_cache_if_needed()
 	## まだ進行中があれば次フレでもう一度取り込む。
 	for path2: String in hub_warmup_paths():
 		if _packed_cache.has(path2):
@@ -168,6 +186,27 @@ func _harvest_warmup_cache() -> void:
 		if ResourceLoader.load_threaded_get_status(path2) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
 			call_deferred("_harvest_warmup_cache")
 			return
+
+
+## モバイルで PackedScene キャッシュが膨らみすぎないよう優先外を落とす。
+func _trim_packed_cache_if_needed() -> void:
+	if not SettingsPrefs.is_mobile_platform():
+		return
+	if _packed_cache.size() <= MOBILE_CACHE_SOFT_CAP:
+		return
+	var priority: Dictionary = {}
+	for p: String in _priority_cache_paths():
+		priority[p] = true
+	var drop: Array[String] = []
+	for path_v: Variant in _packed_cache.keys():
+		var path: String = str(path_v)
+		if priority.has(path):
+			continue
+		drop.append(path)
+	for path2: String in drop:
+		if _packed_cache.size() <= MOBILE_CACHE_SOFT_CAP:
+			break
+		_packed_cache.erase(path2)
 
 
 func _request_threaded(path: String) -> void:

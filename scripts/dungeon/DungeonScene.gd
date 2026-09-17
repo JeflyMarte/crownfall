@@ -1320,7 +1320,7 @@ func _setup_weather() -> void:
 	if SettingsPrefs.is_light_mode():
 		_setup_weather_light_static(layer, weather)
 		return
-	if SettingsPrefs.is_mobile_platform():
+	if SettingsPrefs.mobile_use_reduced_weather():
 		_setup_weather_mobile_reduced(layer, weather)
 		return
 	var view: Vector2 = get_viewport_rect().size
@@ -1987,11 +1987,15 @@ func _init_dungeon_presentation_ui() -> void:
 	_dive_intro_panel.visible = false
 	_dive_intro_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	_dive_intro_panel.set_anchors_preset(Control.PRESET_CENTER)
-	_dive_intro_panel.custom_minimum_size = Vector2(640, 420)
-	_dive_intro_panel.offset_left = -320.0
-	_dive_intro_panel.offset_top = -210.0
-	_dive_intro_panel.offset_right = 320.0
-	_dive_intro_panel.offset_bottom = 210.0
+	## 固定 640×420 は iPhone 幅を超えレイアウト負荷になる。viewport に収める。
+	var view: Vector2 = get_viewport_rect().size
+	var panel_w: float = minf(640.0, maxf(280.0, view.x * 0.92))
+	var panel_h: float = minf(420.0, maxf(240.0, view.y * 0.42))
+	_dive_intro_panel.custom_minimum_size = Vector2(panel_w, panel_h)
+	_dive_intro_panel.offset_left = -panel_w * 0.5
+	_dive_intro_panel.offset_top = -panel_h * 0.5
+	_dive_intro_panel.offset_right = panel_w * 0.5
+	_dive_intro_panel.offset_bottom = panel_h * 0.5
 	_dive_intro_panel.add_theme_stylebox_override("panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_BOSS))
 	_dive_intro_panel.gui_input.connect(_on_dive_intro_gui_input)
 	$TransitionLayer.add_child(_dive_intro_panel)
@@ -2153,7 +2157,10 @@ func _begin_dungeon_dive_intro() -> void:
 	var stage: Resource = $DungeonController.current_stage_data
 	var dungeon_id: String = GameState.get_active_dungeon_id()
 	var banner := TextureRect.new()
-	banner.custom_minimum_size = Vector2(600, 140)
+	var banner_w: float = 600.0
+	if _dive_intro_panel != null:
+		banner_w = maxf(200.0, _dive_intro_panel.custom_minimum_size.x - 40.0)
+	banner.custom_minimum_size = Vector2(banner_w, minf(140.0, banner_w * 0.28))
 	banner.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	banner.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	var stage_id: String = GameState.get_active_stage_id()

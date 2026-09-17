@@ -46,10 +46,25 @@ func test_defaults() -> void:
 	assert_true(_SettingsPrefs.is_vibration_enabled())
 	if _SettingsPrefs.is_mobile_platform():
 		assert_true(_SettingsPrefs.is_light_mode())
+		assert_true(_SettingsPrefs.mobile_use_reduced_weather())
 	else:
 		assert_false(_SettingsPrefs.is_light_mode())
+		assert_false(_SettingsPrefs.mobile_use_reduced_weather())
 	assert_false(_SettingsPrefs.is_muted())
 	assert_false(_SettingsPrefs.is_auto_dismantle_common_rare())
+
+
+func test_missing_light_mode_key_defaults_mobile_on() -> void:
+	## 旧 settings.cfg に light_mode が無い場合、モバイルは ON。
+	var cfg := ConfigFile.new()
+	cfg.set_value(_SettingsPrefs.SECTION, _SettingsPrefs.KEY_MASTER, 1.0)
+	cfg.save(_SettingsPrefs.PATH)
+	_SettingsPrefs._loaded = false
+	_SettingsPrefs.load_from_disk()
+	if _SettingsPrefs.is_mobile_platform():
+		assert_true(_SettingsPrefs.is_light_mode())
+	else:
+		assert_false(_SettingsPrefs.is_light_mode())
 
 
 func test_persist_volume_and_toggles() -> void:

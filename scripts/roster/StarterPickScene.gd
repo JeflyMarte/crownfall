@@ -18,6 +18,8 @@ var _confirm_body_label: Label = null
 func _ready() -> void:
 	## 導入フローの続き（ニーナ吹き出し→隊員選択）。イントロBGMを維持。
 	AudioManager.play_bgm("introduction")
+	## 確定直後の DungeonScene 同期ロードを避ける（旧端末の入場スパイク対策）。
+	SceneRouter.request_warmup(_IntroTutorialConfig.DUNGEON_SCENE)
 	_build_ui()
 
 
@@ -284,5 +286,7 @@ func _on_start_confirmed() -> void:
 		return
 	_IntroTutorialConfig.mark_pending()
 	_IntroTutorialConfig.begin_run()
+	## つづきから復帰用にセーブは必須。SceneRouter は裏読み待ち＋ローディング表示あり。
 	SaveManager.save_game()
+	SceneRouter.request_warmup(_IntroTutorialConfig.DUNGEON_SCENE)
 	SceneRouter.change_scene(_IntroTutorialConfig.DUNGEON_SCENE)

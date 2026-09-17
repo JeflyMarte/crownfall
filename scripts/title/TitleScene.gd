@@ -229,6 +229,8 @@ func _on_continue() -> void:
 		SceneRouter.change_scene(STARTER_PICK_SCENE)
 	elif _IntroTutorialConfig.needs_run():
 		_IntroTutorialConfig.begin_run()
+		## 導入 0-0 直入場は拠点 warmup を通らない。裏読みしてから切替。
+		SceneRouter.request_warmup(_IntroTutorialConfig.DUNGEON_SCENE)
 		SceneRouter.change_scene(_IntroTutorialConfig.DUNGEON_SCENE)
 	else:
 		SceneRouter.change_scene(HOME_SCENE)

@@ -35,6 +35,7 @@ alwaysApply: false
 | 隊長カード全体が赤くなる／ランクアップ閉じで終了 | `PanelContainer` 直下バッジ＋reparent 後の旧パス | → **`ui-layout.mdc` PanelContainer 上の角バッジ** |
 | キャラ画面入場の所持遅延が CI で消える／GUT `entry schedules inventory delay` 失敗 | 壁時計 `Timer`(0.08s) が重い初フレーム delta で即発火 | 入場所持は **フレーム待ち**（`await process_frame`×N）。壁時計禁止 |
 | 鍛冶／ダンジョン入場で即終了（maxf3引・wrap名衝突） | パース失敗 | → **`pitfalls-startup.mdc`**／`gdscript.mdc` |
+| iPhone 11 級で導入入場／長時間探索が落ちやすい | 3GB・狭い幅・初回 Dungeon 同期ロード・粒子天候・キャッシュ肥大 | 導入は Dungeon 裏読み＋viewport dive パネル。モバイル天候常時抑止。軽量キー欠落時モバイルON。物理メモリ<3.5GBは30fps。SceneRouter soft-cap。確認: `PerfHeat_iOS_Checklist.md` |
 | 時環降臨／導入0-0（隊員確定・つづきから）で即終了（Stack overflow） | `_label_dungeon_name.resized` → `_fit_dungeon_header_name_font` → `font_size` 変更が同期で `resized` 再発火。1.0.7 の省略なしフィット＋狭い iPhone ヘッダーで導入名でも起き得る | フィット中は再入ガード＋`resized` 切断。`UiTypography.fit_label_font_to_width` も meta ガード。導入は `intro_0_0` 固定。ガチャ Featured `host.resized→relayout` も busy ガード |
 | Label.resized／host.resized → font fit で即終了（同型横展開） | font_size 変更が同期で resized 再入 | `fit_label_font_to_width` は meta `_cf_fitting_font`。呼び出し側でも busy／切断。装備・拠点名フィットは resized 未接続（接続するなら同ガード必須） |
 | ダンジョン入場 SCRIPT ERROR（`rarity_weight_mult` not found） | preload Script へ静的メソッド呼び出し | → **`pitfalls-startup.mdc`**（定数配列を直接読む） |
