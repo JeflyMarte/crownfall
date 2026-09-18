@@ -778,6 +778,7 @@ const _StatusEffectLinkHelper = preload("res://scripts/ui/StatusEffectLinkHelper
 const _SkillEffectOneLineHelper = preload("res://scripts/ui/SkillEffectOneLineHelper.gd")
 const _CombatMemberInspectHelper = preload("res://scripts/ui/CombatMemberInspectHelper.gd")
 const _UltimateSkillResolver = preload("res://scripts/combat/UltimateSkillResolver.gd")
+const _RoyalMarkSkillModifier = preload("res://scripts/systems/RoyalMarkSkillModifier.gd")
 const EvolutionVisualScript: Script = preload("res://scripts/systems/EvolutionVisual.gd")
 const ElementResolverScript: Script = preload("res://scripts/combat/ElementResolver.gd")
 const AffixStatCalculatorScript: Script = preload("res://scripts/equipment/AffixStatCalculator.gd")
@@ -6242,7 +6243,7 @@ func _conditional_skill_power_mult(skill_data: Resource, target_slot: int, membe
 	if skill_data.tags.has("vs_mark") and $CombatController.get_enemy_status_stacks_at(target_slot, "mark") > 0:
 		return CONDITIONAL_STATUS_POWER_MULT
 	if skill_data.tags.has("vs_armor_break") and $CombatController.get_enemy_status_stacks_at(target_slot, "armor_break") > 0:
-		return 1.35
+		return _RoyalMarkSkillModifier.vs_armor_break_mult_from_skill(skill_data, 1.35)
 	if member_idx >= 0:
 		var long_cd_mult: float = CombatPassives.long_cd_skill_power_mult_for_member(member_idx, skill_data)
 		if long_cd_mult > 1.0:
@@ -6290,7 +6291,8 @@ func _apply_skill_on_hit_self_effects(member_idx: int, skill_data: Resource) -> 
 		_apply_status_to_pet("empower", false)
 		_update_status_icons()
 	if skill_data.tags.has("self_status_crit_surge"):
-		if $CombatController.apply_status("party_%d" % member_idx, "crit_surge", 1, 0):
+		var crit_dur: int = _RoyalMarkSkillModifier.resolve_status_duration(skill_data, "crit_surge")
+		if $CombatController.apply_status("party_%d" % member_idx, "crit_surge", 1, 0, crit_dur):
 			_on_party_status_applied(member_idx, "crit_surge", false)
 			_update_status_icons()
 	for tag: Variant in skill_data.tags:
@@ -6440,9 +6442,10 @@ func _execute_member_aoe_damage_skill(
 	var crit_tag: String = "  CRITICAL!" if skill_is_crit else ""
 	var cascade_trap_log: String = ""
 	if skill_data != null and skill_data.tags.has("eng_cascade"):
+		var cascade_max: int = _RoyalMarkSkillModifier.cascade_max_from_skill(skill_data, 3)
 		cascade_trap_log = _place_engineer_cascade_traps(
 			member_idx,
-			3,
+			cascade_max,
 			3 + CombatPassives.engineer_trap_fires_add(member_idx),
 			EngineerTrapsScript.power_for_kind("spike")
 		)
@@ -6848,6 +6851,10 @@ func _execute_member_skill(
 	cast_index: int = 0,
 	suppress_resolve_label: bool = false
 ) -> String:
+	var member: Resource = null
+	if member_idx >= 0 and member_idx < GameState.party_members.size():
+		member = GameState.party_members[member_idx]
+	skill_data = _RoyalMarkSkillModifier.enhance_for_combat(skill_data, member)
 	if skill_data != null and skill_data.tags.has("trap_place"):
 		return _execute_engineer_trap_place(member_idx, skill_data, cast_index, suppress_resolve_label)
 	match skill_data.effect_type:
@@ -7216,6 +7223,11 @@ func _execute_member_buff(
 	return _member_buff_log_line(str(result["display_name"]), skill_data, summary)
 
 
+func _apply_party_status_from_skill(member_idx: int, status_id: String, skill_data: Resource) -> bool:
+	var dur: int = _RoyalMarkSkillModifier.resolve_status_duration(skill_data, status_id)
+	return $CombatController.apply_status("party_%d" % member_idx, status_id, 1, 0, dur)
+
+
 func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictionary:
 	var wants_taunt: bool = skill_data != null and skill_data.tags.has("taunt")
 	var applied: int = 0
@@ -7249,7 +7261,7 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 		if self_only:
 			if $CombatController.is_member_alive(member_idx):
 				for sid: String in status_ids:
-					if $CombatController.apply_status("party_%d" % member_idx, sid, 1, 0):
+					if _apply_party_status_from_skill(member_idx, sid, skill_data):
 						applied += 1
 						_on_party_status_applied(member_idx, sid, false)
 		elif pet_only:
@@ -7262,7 +7274,7 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 				cover_target_idx = member_idx
 			if cover_target_idx >= 0 and $CombatController.is_member_alive(cover_target_idx):
 				for sid: String in status_ids:
-					if $CombatController.apply_status("party_%d" % cover_target_idx, sid, 1, 0):
+					if _apply_party_status_from_skill(cover_target_idx, sid, skill_data):
 						applied += 1
 						_on_party_status_applied(cover_target_idx, sid, false)
 		elif skill_id == "herd_call" or str(skill_data.target_type) == "all_party":
@@ -7271,7 +7283,7 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 				if not $CombatController.is_member_alive(i):
 					continue
 				for sid: String in status_ids:
-					if $CombatController.apply_status("party_%d" % i, sid, 1, 0):
+					if _apply_party_status_from_skill(i, sid, skill_data):
 						applied += 1
 						_on_party_status_applied(i, sid, false)
 			for sid: String in status_ids:
@@ -7281,7 +7293,7 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 				if not $CombatController.is_member_alive(i):
 					continue
 				for sid: String in status_ids:
-					if $CombatController.apply_status("party_%d" % i, sid, 1, 0):
+					if _apply_party_status_from_skill(i, sid, skill_data):
 						applied += 1
 						_on_party_status_applied(i, sid, false)
 	if wants_taunt and $CombatController.is_member_alive(member_idx):
@@ -7300,6 +7312,7 @@ func _apply_member_buff_effects(member_idx: int, skill_data: Resource) -> Dictio
 			var tag_s: String = str(tag)
 			if tag_s.begins_with("counter_charges_"):
 				var n: int = int(tag_s.get_slice("_", 2))
+				n = _RoyalMarkSkillModifier.counter_charges_from_skill(skill_data, n)
 				if n > 0:
 					CombatPassives.grant_combat_counter_charges(member_idx, n)
 		if skill_data.tags.has("also_empower_pet"):

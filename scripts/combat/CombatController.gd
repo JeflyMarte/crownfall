@@ -1211,7 +1211,8 @@ func apply_status(
 	unit_id: String,
 	effect_id: String,
 	stacks: int = 1,
-	source_attack: int = 0
+	source_attack: int = 0,
+	duration_override: int = -1
 ) -> bool:
 	if unit_id.begins_with("party_"):
 		var member_idx: int = int(unit_id.substr(6))
@@ -1224,36 +1225,39 @@ func apply_status(
 		if not StatusResolver.is_beneficial_status(effect_id):
 			if not _party_passes_incoming_status_roll():
 				return false
-		return _status_resolver.apply_status(unit_id, effect_id, stacks, source_attack)
-	var duration_override: int = -1
+		return _status_resolver.apply_status(
+			unit_id, effect_id, stacks, source_attack, duration_override
+		)
+	var dur: int = duration_override
 	if unit_id.begins_with("enemy_"):
 		var slot: int = int(unit_id.substr(6))
 		## 章テーマ: 敵の incoming_status_chance_mult で付与を減衰（ミスト等）。
 		if not _enemy_passes_incoming_status_roll(slot):
 			return false
 		if effect_id == "stun" and enemy_cc_tier_at(slot) == "boss":
-			duration_override = BalanceConfig.CC_STUN_DURATION_TICKS_BOSS
+			if dur < 0:
+				dur = BalanceConfig.CC_STUN_DURATION_TICKS_BOSS
 		## 名拒みの冠: 敵への有益バフのみ持続短縮（デバフ・CC は対象外）。
 		if _StatusResolver.is_beneficial_status(effect_id):
 			var buff_mult: float = _EquipmentSetBonuses.party_enemy_buff_duration_mult()
 			if buff_mult < 0.999:
 				var effect: Resource = DataRegistry.get_status_effect(effect_id)
-				var base_ticks: int = duration_override
+				var base_ticks: int = dur
 				if base_ticks < 0 and effect != null:
 					base_ticks = int(effect.duration_ticks)
 				if base_ticks > 0:
-					duration_override = maxi(1, int(round(float(base_ticks) * buff_mult)))
+					dur = maxi(1, int(round(float(base_ticks) * buff_mult)))
 		## 星炉の滓: 炎上持続延長（P3-DG-APEX-FORGE-SET-001）。
 		elif effect_id == "ignite":
 			var ign_mult: float = _EquipmentSetBonuses.party_ignite_duration_mult()
 			if ign_mult > 1.001:
 				var ign_effect: Resource = DataRegistry.get_status_effect(effect_id)
-				var ign_base: int = duration_override
+				var ign_base: int = dur
 				if ign_base < 0 and ign_effect != null:
 					ign_base = int(ign_effect.duration_ticks)
 				if ign_base > 0:
-					duration_override = maxi(1, int(round(float(ign_base) * ign_mult)))
-	return _status_resolver.apply_status(unit_id, effect_id, stacks, source_attack, duration_override)
+					dur = maxi(1, int(round(float(ign_base) * ign_mult)))
+	return _status_resolver.apply_status(unit_id, effect_id, stacks, source_attack, dur)
 
 
 func _enemy_passes_incoming_status_roll(slot: int) -> bool:

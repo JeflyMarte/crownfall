@@ -4,6 +4,8 @@ extends Control
 
 const _RoyalMarkConfig := preload("res://scripts/systems/RoyalMarkConfig.gd")
 const _RoyalMarkSystem := preload("res://scripts/systems/RoyalMarkSystem.gd")
+const _RoyalMarkSkillModifier := preload("res://scripts/systems/RoyalMarkSkillModifier.gd")
+const _UltimateSkillResolver := preload("res://scripts/combat/UltimateSkillResolver.gd")
 const _GachaLimitBreak := preload("res://scripts/gacha/GachaLimitBreak.gd")
 const _ChrIdlePortrait := preload("res://scripts/ui/ChrIdlePortrait.gd")
 const _SafeAreaHelper := preload("res://scripts/ui/SafeAreaHelper.gd")
@@ -39,6 +41,8 @@ var _emblem_glow: ColorRect
 var _rank_nodes: Array[Control] = []
 var _rank_labels: Array[Label] = []
 var _label_current_effect: Label
+var _label_skill_enhance: Label
+var _label_ult_enhance: Label
 var _label_next_block: Label
 var _btn_shards: Button
 var _label_gold_cost: Label
@@ -211,6 +215,14 @@ func _build_chrome() -> void:
 	_label_current_effect.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiTypography.apply_body(_label_current_effect, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	cur_v.add_child(_label_current_effect)
+	_label_skill_enhance = Label.new()
+	_label_skill_enhance.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_caption(_label_skill_enhance, COLOR_SUB)
+	cur_v.add_child(_label_skill_enhance)
+	_label_ult_enhance = Label.new()
+	_label_ult_enhance.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_caption(_label_ult_enhance, COLOR_SUB)
+	cur_v.add_child(_label_ult_enhance)
 
 	var next_panel := PanelContainer.new()
 	next_panel.add_theme_stylebox_override(
@@ -285,6 +297,10 @@ func _refresh_all() -> void:
 		_label_level.text = ""
 		_label_rank.text = ""
 		_label_current_effect.text = "—"
+		if _label_skill_enhance != null:
+			_label_skill_enhance.text = ""
+		if _label_ult_enhance != null:
+			_label_ult_enhance.text = ""
 		_label_next_block.text = "—"
 		_btn_shards.text = "王痕片 0 / —"
 		_label_gold_cost.text = "Gold 0 / —"
@@ -301,6 +317,7 @@ func _refresh_all() -> void:
 	_apply_rank_track(rank)
 	var lines: PackedStringArray = _RoyalMarkConfig.effect_stat_lines_for_rank(rank)
 	_label_current_effect.text = "\n".join(lines)
+	_refresh_enhance_labels(member, rank)
 	var shards: int = _RoyalMarkSystem.get_shards()
 	var gold: int = int(GameState.gold)
 	if rank >= _RoyalMarkConfig.MAX_RANK:
@@ -343,6 +360,36 @@ func _refresh_all() -> void:
 			_label_status.text = "未所持"
 		_:
 			_label_status.text = "強化不可"
+
+
+func _refresh_enhance_labels(member: Resource, rank: int) -> void:
+	if _label_skill_enhance == null or _label_ult_enhance == null:
+		return
+	if rank < _RoyalMarkConfig.SKILL_ENHANCE_MIN_RANK:
+		_label_skill_enhance.text = "装備スキル強化: 王痕 III で解放"
+		_label_ult_enhance.text = "必殺技強化: 王痕 V で解放"
+		return
+	var skill_ids: Array[String] = GameState.get_equipped_skill_ids(member)
+	var skill_id: String = skill_ids[0] if not skill_ids.is_empty() else ""
+	var skill_data: Resource = (
+		DataRegistry.get_skill_data(skill_id) if not skill_id.is_empty() else null
+	)
+	var skill_name: String = str(skill_data.display_name) if skill_data != null else "—"
+	var skill_lines: PackedStringArray = _RoyalMarkSkillModifier.describe_job_skill_enhance(skill_data)
+	_label_skill_enhance.text = "王痕 III\n装備スキル強化\n%s\n%s" % [
+		skill_name,
+		"\n".join(skill_lines),
+	]
+	if rank < _RoyalMarkConfig.ULTIMATE_ENHANCE_MIN_RANK:
+		_label_ult_enhance.text = "必殺技強化: 王痕 V で解放"
+		return
+	var ult: Resource = _UltimateSkillResolver.resolve_ultimate_skill(member)
+	var ult_name: String = str(ult.display_name) if ult != null else "—"
+	var ult_lines: PackedStringArray = _RoyalMarkSkillModifier.describe_ultimate_enhance(ult)
+	_label_ult_enhance.text = "王痕 V\n必殺技強化\n%s\n%s" % [
+		ult_name,
+		"\n".join(ult_lines),
+	]
 
 
 func _apply_rank_track(rank: int) -> void:

@@ -21,6 +21,48 @@ const RANK_HP_MULT: Array[float] = [1.00, 1.03, 1.03, 1.03, 1.05, 1.08]
 const RANK_ATK_MULT: Array[float] = [1.00, 1.00, 1.03, 1.03, 1.05, 1.08]
 const RANK_DEF_MULT: Array[float] = [1.00, 1.00, 1.00, 1.03, 1.05, 1.08]
 
+## Phase 2: Job Skill / Ultimate 強化ゲート。
+const SKILL_ENHANCE_MIN_RANK: int = 3
+const ULTIMATE_ENHANCE_MIN_RANK: int = 5
+const JOB_DAMAGE_POWER_MULT: float = 1.10
+const JOB_HEAL_POWER_MULT: float = 1.15
+const JOB_STATUS_CHANCE_ADD: float = 0.10
+const JOB_BUFF_DURATION_ADD: int = 1
+const JOB_TRAP_POWER_MULT: float = 1.10
+const ULT_DAMAGE_POWER_MULT: float = 1.08
+const ULT_HEAL_POWER_ADD: float = 0.03
+const ULT_HEAL_POWER_ADD_SMALL: float = 0.02
+const STATUS_CHANCE_CAP: float = 1.0
+
+## Rank III 対象外スキル。
+const SKILL_ENHANCE_EXCLUDE_IDS: Array[String] = ["trail_ward"]
+
+## Rank V 個別 Ultimate（skill_id → 補正辞書）。巨大 if 連鎖を避ける。
+const ULTIMATE_OVERRIDES: Dictionary = {
+	## ボルグ: 応撃 +1
+	"vg_gate_counter": {"counter_add": 1, "duration_add": 1},
+	## ブリキ: cascade +1
+	"eng_full_arm_cascade": {"cascade_add": 1},
+	## アンヴィ: 甲砕中倍率
+	"eng_armor_gekigeki": {"vs_armor_break_mult": 1.45},
+	## 火鷹: crit_surge 時間（Passive 非変更）
+	"critical_storm": {"duration_add": 1},
+	## ルーシェ: blood_drain 時間
+	"blood_drain": {"duration_add": 1},
+	## ウォール: tag heal +2pp
+	"heartbeat": {"heal_add": 0.02, "duration_add": 1},
+	## エリアス: attune 時間
+	"elemental_boost": {"duration_add": 1},
+	## セリン: heal +3pp
+	"grand_elixir": {"heal_add": 0.03},
+}
+
+
+static func ultimate_override_for(skill_id: String) -> Dictionary:
+	if skill_id.is_empty() or not ULTIMATE_OVERRIDES.has(skill_id):
+		return {}
+	return (ULTIMATE_OVERRIDES[skill_id] as Dictionary).duplicate(true)
+
 
 static func clamp_rank(rank: int) -> int:
 	return clampi(rank, 0, MAX_RANK)
@@ -112,11 +154,11 @@ static func effect_label_for_rank(rank: int) -> String:
 		2:
 			return "HP +3%／ATK +3%"
 		3:
-			return "HP +3%／ATK +3%／DEF +3%"
+			return "HP +3%／ATK +3%／DEF +3%／装備スキル強化"
 		4:
-			return "HP/ATK/DEF +5%"
+			return "HP/ATK/DEF +5%／装備スキル強化"
 		5:
-			return "HP/ATK/DEF +8%"
+			return "HP/ATK/DEF +8%／装備スキル強化／必殺強化"
 		_:
 			return "効果なし"
 
@@ -153,11 +195,11 @@ static func step_effect_label(to_rank: int) -> String:
 		2:
 			return "ATK +3%"
 		3:
-			return "DEF +3%"
+			return "DEF +3%／装備スキル強化"
 		4:
 			return "HP/ATK/DEF +2%"
 		5:
-			return "HP/ATK/DEF +3%"
+			return "HP/ATK/DEF +3%／必殺強化"
 		_:
 			return "—"
 
