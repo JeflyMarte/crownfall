@@ -365,3 +365,34 @@ func test_old_save_without_extreme_key_loads() -> void:
 	else:
 		GameState.extreme_mission_progress = {}
 	assert_eq(GameState.extreme_mission_progress, {})
+
+
+func test_extreme_missions_use_dedicated_route_tab() -> void:
+	## 極限はイベントタブではなく専用「極限任務」タブ。
+	GameState.debug_full_unlock = true
+	var packed: PackedScene = load("res://scenes/dungeon/DungeonSelectScene.tscn")
+	var scene: Control = packed.instantiate()
+	add_child_autofree(scene)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var mid: String = Constants.EX_TOMB_SEAL_DUNGEON_ID
+	scene.call("_set_featured_dungeon", mid)
+	assert_eq(str(scene.get("_route_tab")), "extreme", "極限 Featured は極限タブ")
+	scene.set("_route_tab", "extreme")
+	var extreme_list: Array = scene.call("_dungeons_for_route_tab")
+	var found: bool = false
+	for d in extreme_list:
+		if d != null and str(d.id) == mid:
+			found = true
+			break
+	assert_true(found, "極限タブ一覧に EX-01")
+	scene.set("_route_tab", "event")
+	var event_list: Array = scene.call("_dungeons_for_route_tab")
+	for d2 in event_list:
+		if d2 != null:
+			assert_false(Constants.is_extreme_mission_playable(str(d2.id)), "イベントタブに極限を載せない")
+	var btn: Button = scene.get_node_or_null(
+		"MainColumn/RouteTabsRow/ButtonExtremeMission"
+	) as Button
+	assert_not_null(btn)
+	assert_eq(btn.text, "極限任務")

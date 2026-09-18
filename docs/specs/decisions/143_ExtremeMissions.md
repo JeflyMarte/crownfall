@@ -20,7 +20,7 @@
 | **降臨** | 時間帯・Boss・エンシェントセット | **15F** | 出現ウィンドウ |
 | **征討** | 常設・固定長長編＋Boss・エンシェント専用 | **20F** | イベントタブ常設 |
 | **深層** | 終わりなき到達・マイルストーン | 無限 | 無限タブ |
-| **極限任務** | **特殊条件＋極限指令の制約攻略** | **5F** | イベントタブ常設（メイン5 N 全クリア後） |
+| **極限任務** | **特殊条件＋極限指令の制約攻略** | **5F** | **極限任務タブ**常設（イベント隣・メイン5 N 全クリア後） |
 
 ---
 
@@ -38,6 +38,7 @@
 | P3-DG-EXTREME-001-8 | EX-02〜はデータ追加中心（`MISSIONS`＋tres）。任務専用コード横増殖禁止 |
 | P3-DG-EXTREME-001-9 | 週次／新Boss／新Biome／新通貨／専用装備／ランキング等は本 Decision スコープ外 |
 | P3-DG-EXTREME-001-10 | EX-09「4人全員異なるジョブ」＝人間 `ACTIVE_PARTY_SIZE=4` 必須・全員別職・Jack（`active_pet`）は判定対象外 |
+| P3-DG-EXTREME-001-11 | UI＝**極限任務タブ**常設（イベントダンジョンの隣）。イベントタブからは分離（2026-09-18） |
 
 **Phase 1:** 共通基盤＋EX-01 — Completed  
 **Phase 2:** EX-02〜EX-10＋共通 modifier／指令 — Completed
@@ -50,7 +51,7 @@
 - `resources/dungeons/ex_*.tres`／`resources/stages/ex_*_1_1.tres`（EX-01〜10）
 - Save: `GameState.extreme_mission_progress`
 - Heal／敵与ダメ／群れ／後衛／必殺: CombatController／DungeonController／DungeonScene の共通フック
-- UI: イベントタブ常設／Result に★・指令
+- UI: **極限任務タブ**常設（イベントダンジョンの隣）／Result に★・指令
 
 ---
 

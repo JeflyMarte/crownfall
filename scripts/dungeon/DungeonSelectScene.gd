@@ -64,6 +64,7 @@ const EVENT_TITLE_SHADOW_OUTLINE: int = 8
 const ROUTE_TAB_MAIN: String = "main"
 const ROUTE_TAB_SUB: String = "sub"
 const ROUTE_TAB_EVENT: String = "event"
+const ROUTE_TAB_EXTREME: String = "extreme"
 const ROUTE_TAB_ABYSS: String = "abyss"
 
 const DROP_PREVIEW: Dictionary = {
@@ -206,6 +207,7 @@ const DROP_PREVIEW: Dictionary = {
 @onready var _btn_route_main: Button = $MainColumn/RouteTabsRow/ButtonMainRoute
 @onready var _btn_route_sub: Button = $MainColumn/RouteTabsRow/ButtonSubDungeon
 @onready var _btn_route_event: Button = $MainColumn/RouteTabsRow/ButtonEventDungeon
+@onready var _btn_route_extreme: Button = $MainColumn/RouteTabsRow/ButtonExtremeMission
 @onready var _btn_route_abyss: Button = $MainColumn/RouteTabsRow/ButtonAbyssDungeon
 @onready var _scroll_list: ScrollContainer = $MainColumn/ScrollList
 @onready var _list: VBoxContainer = $MainColumn/ScrollList/ListVBox
@@ -274,6 +276,7 @@ func _ready() -> void:
 	_btn_route_main.pressed.connect(_on_route_tab_pressed.bind(ROUTE_TAB_MAIN))
 	_btn_route_sub.pressed.connect(_on_route_tab_pressed.bind(ROUTE_TAB_SUB))
 	_btn_route_event.pressed.connect(_on_route_tab_pressed.bind(ROUTE_TAB_EVENT))
+	_btn_route_extreme.pressed.connect(_on_route_tab_pressed.bind(ROUTE_TAB_EXTREME))
 	_btn_route_abyss.pressed.connect(_on_route_tab_pressed.bind(ROUTE_TAB_ABYSS))
 	## 寄り道・征討はデータ残置のまま UI から外す（P3-DG-OMIT-001）。
 	_btn_route_sub.visible = Constants.SUB_DUNGEONS_PLAYABLE
@@ -310,6 +313,7 @@ func _ready() -> void:
 	_mark_scroll_safe_button(_btn_route_main)
 	_mark_scroll_safe_button(_btn_route_sub)
 	_mark_scroll_safe_button(_btn_route_event)
+	_mark_scroll_safe_button(_btn_route_extreme)
 	_mark_scroll_safe_button(_btn_route_abyss)
 	_apply_debug_pending_focus()
 	_refresh_all()
@@ -609,6 +613,7 @@ func _apply_typography() -> void:
 	UiTypography.apply_button(_btn_route_main, _route_tab == ROUTE_TAB_MAIN)
 	UiTypography.apply_button(_btn_route_sub, _route_tab == ROUTE_TAB_SUB)
 	UiTypography.apply_button(_btn_route_event, _route_tab == ROUTE_TAB_EVENT)
+	UiTypography.apply_button(_btn_route_extreme, _route_tab == ROUTE_TAB_EXTREME)
 	UiTypography.apply_button(_btn_route_abyss, _route_tab == ROUTE_TAB_ABYSS)
 	HeaderCurrencyHelper.apply_to_row($MainColumn/Header/HeaderRow)
 	UiTypography.apply_display(_label_featured_name, UiTypography.SIZE_BODY_SMALL)
@@ -659,8 +664,20 @@ func _refresh_all() -> void:
 
 
 func _refresh_route_tabs() -> void:
-	var buttons: Array[Button] = [_btn_route_main, _btn_route_sub, _btn_route_event, _btn_route_abyss]
-	var tabs: Array[String] = [ROUTE_TAB_MAIN, ROUTE_TAB_SUB, ROUTE_TAB_EVENT, ROUTE_TAB_ABYSS]
+	var buttons: Array[Button] = [
+		_btn_route_main,
+		_btn_route_sub,
+		_btn_route_event,
+		_btn_route_extreme,
+		_btn_route_abyss,
+	]
+	var tabs: Array[String] = [
+		ROUTE_TAB_MAIN,
+		ROUTE_TAB_SUB,
+		ROUTE_TAB_EVENT,
+		ROUTE_TAB_EXTREME,
+		ROUTE_TAB_ABYSS,
+	]
 	for i in tabs.size():
 		var selected: bool = _route_tab == tabs[i]
 		buttons[i].button_pressed = selected
@@ -673,6 +690,7 @@ func _on_route_tab_pressed(tab: String) -> void:
 		tab != ROUTE_TAB_MAIN
 		and tab != ROUTE_TAB_SUB
 		and tab != ROUTE_TAB_EVENT
+		and tab != ROUTE_TAB_EXTREME
 		and tab != ROUTE_TAB_ABYSS
 	):
 		return
@@ -710,14 +728,14 @@ func _sync_route_tab_to_featured() -> void:
 	elif Constants.is_apex_conquest_playable(dungeon_id):
 		## 征討パイロットはイベントタブ常設（寄り道タブオミット時に main へ落とさない）。
 		_route_tab = ROUTE_TAB_EVENT
-	elif Constants.is_extreme_mission_playable(dungeon_id):
-		_route_tab = ROUTE_TAB_EVENT
+	elif Constants.is_extreme_mission_playable(dungeon_id) or route == "extreme":
+		_route_tab = ROUTE_TAB_EXTREME
 	elif route == "side" or route == "apex":
 		if Constants.SUB_DUNGEONS_PLAYABLE:
 			_route_tab = ROUTE_TAB_SUB
 		else:
 			_route_tab = ROUTE_TAB_MAIN
-	elif route == "event" or route == "extreme":
+	elif route == "event":
 		_route_tab = ROUTE_TAB_EVENT
 	elif route == "abyss":
 		if Constants.ABYSS_DUNGEONS_PLAYABLE:
@@ -748,8 +766,11 @@ func _route_matches_tab(route_type: String, dungeon_id: String = "") -> bool:
 	if _route_tab == ROUTE_TAB_EVENT:
 		return (
 			route_type == "event"
-			or route_type == "extreme"
 			or Constants.is_apex_conquest_playable(dungeon_id)
+		)
+	if _route_tab == ROUTE_TAB_EXTREME:
+		return (
+			route_type == "extreme"
 			or Constants.is_extreme_mission_playable(dungeon_id)
 		)
 	if _route_tab == ROUTE_TAB_ABYSS:
@@ -779,12 +800,15 @@ func _dungeons_for_route_tab() -> Array:
 		return out
 	if _route_tab == ROUTE_TAB_EVENT:
 		return _sorted_open_event_dungeons()
+	if _route_tab == ROUTE_TAB_EXTREME:
+		return _sorted_extreme_missions()
 	if _route_tab == ROUTE_TAB_ABYSS:
 		return _sorted_dungeons("abyss")
 	return _sorted_dungeons("main")
 
 
 ## 開催中のみ。時間帯降臨を最上、続けて難易度昇順。征討パイロットは常設で併載。
+## 極限任務は専用タブ（ROUTE_TAB_EXTREME）へ分離。
 func _sorted_open_event_dungeons() -> Array:
 	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
 	var out: Array = []
@@ -795,10 +819,7 @@ func _sorted_open_event_dungeons() -> Array:
 		var route: String = str(data.route_type)
 		var is_event: bool = route == "event"
 		var is_conquest: bool = route == "apex" and Constants.is_apex_conquest_playable(dungeon_id)
-		var is_extreme: bool = (
-			route == "extreme" and Constants.is_extreme_mission_playable(dungeon_id)
-		)
-		if not is_event and not is_conquest and not is_extreme:
+		if not is_event and not is_conquest:
 			continue
 		if is_event and not Constants.is_playable_dungeon(dungeon_id, route):
 			## 第3弾OFF中もデバッグフル所持なら潮脈王を検証可能に。
@@ -807,18 +828,36 @@ func _sorted_open_event_dungeons() -> Array:
 				and dungeon_id == Constants.NEREION_FLAGSHIP_DUNGEON_ID
 			):
 				continue
-		if is_extreme and not Constants.is_playable_dungeon(dungeon_id, route):
-			continue
 		if not _EventDungeonSchedule.is_open_now(dungeon_id):
 			continue
-		## 未解放の征討／極限は一覧に出さない（⑤クリア後）。
+		## 未解放の征討は一覧に出さない（⑤クリア後）。
 		if is_conquest and not GameState.is_dungeon_unlocked(dungeon_id):
-			continue
-		if is_extreme and not GameState.is_dungeon_unlocked(dungeon_id):
 			continue
 		out.append(data)
 	out.sort_custom(_compare_open_event_dungeons)
 	return out
+
+
+## 極限任務タブ。プレイ可能かつ解放済みのみ。難易度昇順。
+func _sorted_extreme_missions() -> Array:
+	var out: Array = []
+	for data in DataRegistry.get_all_dungeon_data():
+		if data == null:
+			continue
+		var dungeon_id: String = str(data.id)
+		if not Constants.is_extreme_mission_playable(dungeon_id):
+			continue
+		if not Constants.is_playable_dungeon(dungeon_id, "extreme"):
+			continue
+		if not GameState.is_dungeon_unlocked(dungeon_id):
+			continue
+		out.append(data)
+	out.sort_custom(_compare_extreme_missions)
+	return out
+
+
+func _compare_extreme_missions(a: Variant, b: Variant) -> bool:
+	return int(a.difficulty) < int(b.difficulty)
 
 
 func _compare_open_event_dungeons(a: Variant, b: Variant) -> bool:
@@ -1526,6 +1565,8 @@ func _build_list() -> void:
 	var entries: Array = _dungeons_for_route_tab()
 	if entries.is_empty() and _route_tab == ROUTE_TAB_EVENT:
 		_list.add_child(_make_event_tab_placeholder())
+	elif entries.is_empty() and _route_tab == ROUTE_TAB_EXTREME:
+		_list.add_child(_make_extreme_tab_placeholder())
 	else:
 		for data in entries:
 			if data == null:
@@ -1638,6 +1679,22 @@ func _make_event_tab_placeholder() -> Control:
 	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var label := Label.new()
 	label.text = "開催中のイベントダンジョンはありません"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.custom_minimum_size.x = 0.0
+	UiTypography.apply_body(label, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_SUB)
+	margin.add_child(label)
+	return margin
+
+
+func _make_extreme_tab_placeholder() -> Control:
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_top", 24)
+	margin.add_theme_constant_override("margin_bottom", 16)
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var label := Label.new()
+	label.text = "メイン5 Normal クリア後に極限任務が解放されます"
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
