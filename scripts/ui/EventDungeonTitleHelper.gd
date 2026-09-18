@@ -6,7 +6,8 @@ extends RefCounted
 
 const DESCENT_SUFFIX: String = "降臨"
 const CONQUEST_SUFFIX: String = "征討"
-const TITLE_SUFFIXES: PackedStringArray = [DESCENT_SUFFIX, CONQUEST_SUFFIX]
+const EXTREME_SUFFIX: String = "極限任務"
+const TITLE_SUFFIXES: PackedStringArray = [DESCENT_SUFFIX, CONQUEST_SUFFIX, EXTREME_SUFFIX]
 
 ## 接尾「降臨／征討」共通色（バッジ）。
 const COLOR_ROUTE_MARK: Color = Color(1.0, 0.74, 0.56, 1.0)
@@ -40,6 +41,10 @@ const _BODY_THEME: Dictionary = {
 	"red_forge_depths": {
 		"color": Color(1.0, 0.62, 0.38, 1.0),
 		"outline": Color(0.42, 0.12, 0.06, 1.0),
+	},
+	"ex_tomb_seal": {
+		"color": Color(0.92, 0.72, 0.55, 1.0),
+		"outline": Color(0.38, 0.18, 0.10, 1.0),
 	},
 }
 

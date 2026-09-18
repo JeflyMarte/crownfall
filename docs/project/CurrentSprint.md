@@ -64,6 +64,12 @@
 |---|---|---|
 | **P3-DG-NEREION-DESCENT-001** | **潮脈王　降臨**／沈没旗艦下 — JST 2/5/8/11・Boss `nereion_depths`・セット潮脈の契（被ダメ×0.90／回復×1.20） | ✅ Impl（**1.0.7 配信**／`NEREION_FLAGSHIP_PLAYABLE=true`） |
 
+#### C-4. 次回アップデート（極限任務）
+
+| ID | 内容 | 状態 |
+|---|---|---|
+| **P3-DG-EXTREME-001** | **極限任務** Phase 1 — 共通基盤＋EX-01「王墓封鎖」（5F・回復低下・★指令・Save）。Decision `143` | ✅ APPROVED・本線反映（provisional据置／Phase 2未着手） |
+
 #### C（その他アップデート）
 
 | ID | 内容 |

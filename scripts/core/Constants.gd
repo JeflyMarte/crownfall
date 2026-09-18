@@ -46,6 +46,14 @@ const APEX_CONQUEST_PLAYABLE_IDS: Array[String] = [
 	NORTH_REACH_DUNGEON_ID,
 	RED_FORGE_DEPTHS_DUNGEON_ID,
 ]
+## 極限任務 EX-01 王墓封鎖（P3-DG-EXTREME-001）。次回アップデート枠。
+const EX_TOMB_SEAL_DUNGEON_ID: String = "ex_tomb_seal"
+## 極限任務をプレイ対象に含める（route_type=extreme）。
+const EXTREME_MISSIONS_PLAYABLE: bool = true
+## 配信する極限任務 id（データ追加で増やす）。
+const EXTREME_MISSION_PLAYABLE_IDS: Array[String] = [
+	EX_TOMB_SEAL_DUNGEON_ID,
+]
 ## 魔晶石発掘を拠点から出す（P3-UX-CRYSTAL-EXCAVATE-001）。第2弾検証 ON。
 const CRYSTAL_EXCAVATE_PLAYABLE: bool = true
 ## 初期5人ストーリー編成（P3-STORY-STARTER-001）。true=開始1人選択＋章進行で加入。
@@ -118,6 +126,8 @@ static func is_playable_dungeon_route(route_type: String) -> bool:
 		return EVENT_DUNGEONS_PLAYABLE
 	if route_type == "abyss":
 		return ABYSS_DUNGEONS_PLAYABLE
+	if route_type == "extreme":
+		return EXTREME_MISSIONS_PLAYABLE
 	return SUB_DUNGEONS_PLAYABLE
 
 
@@ -125,11 +135,17 @@ static func is_apex_conquest_playable(dungeon_id: String) -> bool:
 	return APEX_CONQUEST_PLAYABLE_IDS.has(dungeon_id)
 
 
+static func is_extreme_mission_playable(dungeon_id: String) -> bool:
+	return EXTREME_MISSIONS_PLAYABLE and EXTREME_MISSION_PLAYABLE_IDS.has(dungeon_id)
+
+
 ## route＋征討パイロット id を見てプレイ可否を判定（P3-DG-APEX-REDEFINE-001）。
 static func is_playable_dungeon(dungeon_id: String, route_type: String) -> bool:
 	if dungeon_id == NEREION_FLAGSHIP_DUNGEON_ID:
 		return NEREION_FLAGSHIP_PLAYABLE
 	if is_apex_conquest_playable(dungeon_id):
+		return true
+	if is_extreme_mission_playable(dungeon_id):
 		return true
 	return is_playable_dungeon_route(route_type)
 

@@ -471,6 +471,7 @@ const BATTLE_BG_MAP: Dictionary = {
 	"golden_nest": "res://assets/dungeon/event/env/BG_Battle_Event.png",
 	"shadow_hunt": "res://assets/dungeon/event/env/BG_Battle_Event.png",
 	"rock_stampede": "res://assets/dungeon/event/env/BG_Battle_Event.png",
+	"ex_tomb_seal": "res://assets/dungeon/mourngate/env/BG_Battle_Mourngate.png",
 }
 ## 本編 Biome の序盤章（x-1〜x-3）。未登録は BATTLE_BG_MAP（x-4〜x-5＝後半）へ。
 const BATTLE_BG_EARLY_MAP: Dictionary = {
@@ -485,6 +486,7 @@ const BATTLE_BG_EARLY_MAP: Dictionary = {
 	"nereion_flagship": "res://assets/dungeon/nereion_flagship/env/BG_Battle_NereionFlagship_Early.png",
 	"red_forge_depths": "res://assets/dungeon/red_forge_depths/env/BG_Battle_RedForge_Early.png",
 	"north_reach": "res://assets/dungeon/north_reach/env/BG_Battle_NorthReach_Early.png",
+	"ex_tomb_seal": "res://assets/dungeon/mourngate/env/BG_Battle_Mourngate_Early.png",
 }
 ## フロストリッジ x-5 ボス戦専用（Hard/NM 含む）。未マップ Biome のフォールバック。
 const BATTLE_BG_FINAL_BOSS: String = "res://assets/dungeon/frostridge/env/BG_Battle_FinalBoss.png"
@@ -1253,6 +1255,7 @@ func _ready() -> void:
 	GameState.last_run_exp_clear_bonus = 0
 	## レリック一覧は begin_run_material_tracking → clear_last_run_relic_drops。
 	GameState.last_run_outcome = ""
+	GameState.begin_extreme_run_tracking(GameState.get_active_dungeon_id())
 	GameState.last_run_starter_recruited_id = ""
 	GameState.last_run_starter_recruited_name = ""
 	GameState.last_run_exploration_policy = ""
@@ -1555,6 +1558,9 @@ func _process(delta: float) -> void:
 	if _request_scroll_to_bottom:
 		_request_scroll_to_bottom = false
 		_battle_log_scroll.scroll_vertical = _battle_log_scroll.get_v_scroll_bar().max_value
+	## 極限任務の規定時間: ポーズ中は積算しない（壁時計だと一時停止が不利になる）。
+	if not _is_paused:
+		GameState.add_extreme_run_elapsed(delta)
 	if $DungeonController.is_combat_room():
 		## 必殺／スキルCD／沈黙＝戦闘クロック（P3-BAL-ULTIMATE-TIME-001／P3-BAL-SKILL-CD-TIME-001）。
 		## 一時停止中は進まない。ゲージ更新は tick 後。
@@ -7046,6 +7052,7 @@ func _execute_member_heal(
 	)
 	if not result.get("executed", false):
 		return ""
+	GameState.note_extreme_heal_skill_used()
 	var is_ultimate: bool = _is_ultimate_skill(skill_data)
 	var target_name: String = ""
 	if not party_heal:
@@ -12254,6 +12261,8 @@ func _on_finish_button_pressed() -> void:
 	DailyMissionSystem.report_progress("dungeon_clear", dungeon_id)
 	GameState.last_run_outcome = GameState.RUN_OUTCOME_CLEAR
 	GameState.last_run_combat_stats = GameState.get_run_combat_stats().snapshot()
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	_ExtremeMissionConfig.commit_clear_result(dungeon_id)
 	_commit_commander_run_stats(GameState.RUN_OUTCOME_CLEAR)
 	GameState.snapshot_last_run_context()
 	SceneRouter.change_scene("res://scenes/result/ResultScene.tscn")
