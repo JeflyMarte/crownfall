@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="DungeonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ex_polar_silence"
+display_name = "【極冠静寂】極限任務"
+difficulty = 5
+recommended_level = 63
+enemy_level = 63
+room_count = 5
+floor_count = 5
+enemy_pool = Array[String](["frost_claw_raptor", "vergaron", "storm_joe", "oldrex", "wind_ripper"])
+boss_id = "eldion"
+drop_table_id = "frostridge_drops"
+discovery_unlocks = {}
+elite_pool = Array[String](["greios", "glacier_warden"])
+favored_element = "fire"
+route_type = "extreme"
+event_room_weight = 10
+min_event_rooms = 0
+room_weight_overrides = {
+"combat": 50,
+"heal": 8,
+"lore": 5,
+"treasure": 12,
+"trap": 5,
+"elite": 20
+}
+weapon_pool = Array[String](["ridge_cleaver", "frostclaw_blades", "snowline_longbow", "cairn_staff", "glacier_greatsword", "rime_bow", "aurora_staff", "shadow_fang_saw", "permafrost_edge", "white_needle", "eldion_frostbrand", "umbra_terminus_staff", "eldion_spine", "eldion_claw", "stormveil_needle", "rime_fang_blades", "duskcord_bow", "umbra_needle", "frostspire_bow", "dusk_lantern_staff", "umbra_orb_staff", "regicide_longbow", "silent_rite_staff", "ridge_maul", "glacier_maul", "permafrost_maul", "seam_breaker_maul", "coil_spring_dual", "pyrebrand_maul"])
+armor_pool = Array[String](["furline_garb", "glacier_plate", "snowdrift_cloak", "dragon_scale_aegis", "aurora_vestment", "drove_wool_coat"])
+accessory_pool = Array[String](["ice_crystal_ring", "frost_fang_charm", "eldion_heart_talisman", "mitten_pin", "rimecrown_seal"])
+unlock_after_dungeon_id = "frostridge"
+daily_attempt_limit = 0
+disable_wandering = true
+forced_swarm_chance = -1.0
+forced_swarm_min = 2
+forced_swarm_max = 3
+flavor_text = "メイン5クリア後の制約任務。
+特殊条件: 必殺使用不可。
+極限指令: 戦闘不能者なし／規定時間以内／全員異なるジョブ。
+フロストリッジを再利用し、攻略せよ。"

@@ -113,6 +113,9 @@ var extreme_mission_progress: Dictionary = {}
 ## 極限任務ラン計測（セッション。セーブしない）。
 var extreme_run_ko_count: int = 0
 var extreme_run_heal_skill_used: bool = false
+var extreme_run_rear_ko_count: int = 0
+var extreme_run_ultimate_uses: int = 0
+var extreme_run_banned_status_used: bool = false
 ## 互換残置（壁時計開始）。正の経過は extreme_run_elapsed_sec。
 var extreme_run_start_msec: int = 0
 ## ポーズ除外のラン経過秒（DungeonScene._process で積算）。
@@ -819,6 +822,9 @@ func begin_extreme_run_tracking(dungeon_id: String) -> void:
 	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
 	extreme_run_ko_count = 0
 	extreme_run_heal_skill_used = false
+	extreme_run_rear_ko_count = 0
+	extreme_run_ultimate_uses = 0
+	extreme_run_banned_status_used = false
 	extreme_run_start_msec = 0
 	extreme_run_elapsed_sec = 0.0
 	last_run_extreme_mission_id = ""
@@ -840,11 +846,13 @@ func add_extreme_run_elapsed(delta_sec: float) -> void:
 	extreme_run_elapsed_sec += delta_sec
 
 
-func note_extreme_run_ko() -> void:
+func note_extreme_run_ko(member_index: int = -1) -> void:
 	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
 	if not _ExtremeMissionConfig.is_extreme_mission(get_active_dungeon_id()):
 		return
 	extreme_run_ko_count += 1
+	if member_index >= 0 and is_member_back_row(member_index):
+		extreme_run_rear_ko_count += 1
 
 
 func note_extreme_heal_skill_used() -> void:
@@ -852,6 +860,22 @@ func note_extreme_heal_skill_used() -> void:
 	if not _ExtremeMissionConfig.is_extreme_mission(get_active_dungeon_id()):
 		return
 	extreme_run_heal_skill_used = true
+
+
+func note_extreme_ultimate_used() -> void:
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	if not _ExtremeMissionConfig.is_extreme_mission(get_active_dungeon_id()):
+		return
+	extreme_run_ultimate_uses += 1
+
+
+func note_extreme_banned_status_used(status_id: String) -> void:
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	if not _ExtremeMissionConfig.is_extreme_mission(get_active_dungeon_id()):
+		return
+	if not _ExtremeMissionConfig.is_banned_status_for_active_run(status_id):
+		return
+	extreme_run_banned_status_used = true
 
 
 func is_extreme_mission_cleared(dungeon_id: String) -> bool:
@@ -1278,7 +1302,10 @@ func is_member_back_row(member_index: int) -> bool:
 
 # 後列の被ダメ軽減倍率（CombatController が乗算）。
 func formation_incoming_multiplier(member_index: int) -> float:
-	return FORMATION_BACK_INCOMING if is_member_back_row(member_index) else 1.0
+	if not is_member_back_row(member_index):
+		return 1.0
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	return FORMATION_BACK_INCOMING * _ExtremeMissionConfig.rear_pressure_incoming_mult_for_active_run()
 
 # 行の Threat 基礎倍率（後列は狙われにくい）。
 func formation_threat_multiplier(member_index: int) -> float:

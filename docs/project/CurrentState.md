@@ -3,6 +3,9 @@
 ---
 
 ## Last Update
+2026-09-18（**極限任務 Phase 2 APPROVED／本線反映**: EX-02〜10＋共通modifier＋EX-09人間4人別職。実機QA完了。provisional据置。`88491273`）
+2026-09-18（**極限任務 Phase 2 REVIEW COMMIT**: EX-02〜10＋共通modifier＋EX-09人間4人別職。provisional据置。**main未統合**・次=Producer実機QA）
+2026-09-18（**極限任務 Phase 2 WIP**: EX-02〜EX-10 データ追加＋共通 modifier。Technical Director レビュー待ち・**未コミット**）
 2026-09-18（**極限任務 Phase 1 APPROVED／本線反映**: EX-01王墓封鎖実機1周完走。基盤＋QA修正を統合＋main。provisional tuning 据置。EX-02〜未着手）
 2026-09-17（**極限任務 Phase 1**: 共通基盤＋EX-01王墓封鎖。`route_type=extreme`／イベントタブ常設／回復低下／★指令Save。Decision `143`。Technical Director レビュー待ち・Phase 2未着手）
 2026-09-17（**ChatGPT向け仕様エクスポートを現行実装へ再同期**: `docs/export/chatgpt`＋評価用1本。β①のみ前提を廃止し本編①〜⑤・降臨／征討／深層・機巧・発掘を正に）

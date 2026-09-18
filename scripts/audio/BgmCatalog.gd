@@ -206,6 +206,7 @@ static func explore_bgm_for_dungeon(dungeon_id: String) -> String:
 
 ## 通常戦闘曲。専用曲が無ければ battle。
 ## 深層（無限）は親 Biome の戦闘曲を流用（P3-AUDIO-ABYSS-BGM-001）。
+## 極限任務も親 Biome を流用。
 static func battle_bgm_for_dungeon(dungeon_id: String) -> String:
 	var lookup_id: String = dungeon_id
 	const _AbyssDungeonConfig := preload("res://scripts/dungeon/AbyssDungeonConfig.gd")
@@ -213,6 +214,11 @@ static func battle_bgm_for_dungeon(dungeon_id: String) -> String:
 		var parent: String = _AbyssDungeonConfig.parent_biome_id(dungeon_id)
 		if not parent.is_empty():
 			lookup_id = parent
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	if _ExtremeMissionConfig.is_extreme_mission(dungeon_id):
+		var art: String = _ExtremeMissionConfig.art_biome_id(dungeon_id)
+		if not art.is_empty():
+			lookup_id = art
 	var mapped: String = str(BATTLE_BY_DUNGEON.get(lookup_id, ""))
 	if not mapped.is_empty() and is_available(mapped):
 		return mapped
@@ -221,10 +227,16 @@ static func battle_bgm_for_dungeon(dungeon_id: String) -> String:
 
 ## ボス戦曲。ダンジョン別 → フロストリッジ本編はラスボス曲 → 共通 boss。
 static func boss_bgm_for_dungeon(dungeon_id: String) -> String:
-	var mapped: String = str(BOSS_BY_DUNGEON.get(dungeon_id, ""))
+	var lookup_id: String = dungeon_id
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	if _ExtremeMissionConfig.is_extreme_mission(dungeon_id):
+		var art: String = _ExtremeMissionConfig.art_biome_id(dungeon_id)
+		if not art.is_empty():
+			lookup_id = art
+	var mapped: String = str(BOSS_BY_DUNGEON.get(lookup_id, ""))
 	if not mapped.is_empty() and is_available(mapped):
 		return mapped
-	if bool(FINAL_BOSS_DUNGEONS.get(dungeon_id, false)) and is_available(ID_FINAL_BOSS):
+	if bool(FINAL_BOSS_DUNGEONS.get(lookup_id, false)) and is_available(ID_FINAL_BOSS):
 		return ID_FINAL_BOSS
 	return ID_BOSS
 

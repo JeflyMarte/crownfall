@@ -31,6 +31,15 @@ const DUNGEON_ICON_PATHS: Dictionary = {
 	"nereion_flagship": "res://assets/dungeon/nereion_flagship/ICO_DG_NereionFlagship.png",
 	"north_reach": "res://assets/dungeon/north_reach/ICO_DG_NorthReach.png",
 	"ex_tomb_seal": "res://assets/dungeon/mourngate/ICO_DG_Mourngate.png",
+	"ex_grave_siege": "res://assets/dungeon/mourngate/ICO_DG_Mourngate.png",
+	"ex_spore_dense": "res://assets/dungeon/whisperwood/ICO_DG_Whisperwood.png",
+	"ex_hunter_woods": "res://assets/dungeon/whisperwood/ICO_DG_Whisperwood.png",
+	"ex_miasma_sat": "res://assets/dungeon/mistfen/ICO_DG_Mistfen.png",
+	"ex_infect_chain": "res://assets/dungeon/mistfen/ICO_DG_Mistfen.png",
+	"ex_wreck_assault": "res://assets/dungeon/blackshore/ICO_DG_Blackshore.png",
+	"ex_tide_siege": "res://assets/dungeon/blackshore/ICO_DG_Blackshore.png",
+	"ex_polar_silence": "res://assets/dungeon/frostridge/ICO_DG_Frostridge.png",
+	"ex_white_night": "res://assets/dungeon/frostridge/ICO_DG_Frostridge.png",
 }
 
 const COLOR_GOLD: Color = Color(0.95, 0.84, 0.4, 1)
