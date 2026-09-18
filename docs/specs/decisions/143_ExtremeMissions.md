@@ -1,7 +1,8 @@
-# 極限任務 Phase 1（P3-DG-EXTREME-001）
+# 極限任務（P3-DG-EXTREME-001）
 
-**Status:** Decision **承認済**（2026-09-17 — Phase 1 実装依頼）  
-**実装:** Phase 1 本線反映済／**Phase 2（EX-02〜10＋EX-09 4人判定）APPROVED・本線反映**  
+**Status:** **Completed**（2026-09-18）  
+**実装:** Phase 1＋Phase 2 **IMPLEMENTATION COMPLETE**／main `e35517f7`  
+**QA:** Producer iPhone 16e 実機 — EX-01〜10 PASS  
 **上書きなし**（役割四分を既存に追加）
 
 ---
@@ -23,7 +24,7 @@
 
 ---
 
-## 2. Phase 1 確定
+## 2. Phase 1／Phase 2（完了）
 
 | # | 決定 |
 |---|---|
@@ -33,23 +34,27 @@
 | P3-DG-EXTREME-001-4 | 特殊条件は原則1つ。出撃前（Featured）で表示 |
 | P3-DG-EXTREME-001-5 | 極限指令3つ＝任意。★＝1（CLEAR）＋達成指令数（最大★4）。最高★と指令達成を Save |
 | P3-DG-EXTREME-001-6 | EX-01「王墓封鎖」＝モーンゲート再利用／Boss=セルディオン／特殊条件=回復効果低下／指令=戦闘不能なし・規定時間以内・回復スキルなし |
-| P3-DG-EXTREME-001-7 | 未確定数値は `ExtremeMissionConfig.TUNING` に provisional 集約（散在禁止） |
+| P3-DG-EXTREME-001-7 | 数値は `ExtremeMissionConfig.TUNING` に一元管理（散在禁止）。**初期リリース値として採用**。将来バランス調整は同辞書のみ |
 | P3-DG-EXTREME-001-8 | EX-02〜はデータ追加中心（`MISSIONS`＋tres）。任務専用コード横増殖禁止 |
-| P3-DG-EXTREME-001-9 | Phase 1 では週次／新Boss／新Biome／新通貨／専用装備／ランキング等は実装しない |
+| P3-DG-EXTREME-001-9 | 週次／新Boss／新Biome／新通貨／専用装備／ランキング等は本 Decision スコープ外 |
+| P3-DG-EXTREME-001-10 | EX-09「4人全員異なるジョブ」＝人間 `ACTIVE_PARTY_SIZE=4` 必須・全員別職・Jack（`active_pet`）は判定対象外 |
+
+**Phase 1:** 共通基盤＋EX-01 — Completed  
+**Phase 2:** EX-02〜EX-10＋共通 modifier／指令 — Completed
 
 ---
 
 ## 3. 実装アンカー
 
-- `scripts/dungeon/ExtremeMissionConfig.gd`
-- `resources/dungeons/ex_tomb_seal.tres` / `resources/stages/ex_tomb_seal_1_1.tres`
+- `scripts/dungeon/ExtremeMissionConfig.gd`（`MISSIONS`＋`TUNING`＋共通 modifier API）
+- `resources/dungeons/ex_*.tres`／`resources/stages/ex_*_1_1.tres`（EX-01〜10）
 - Save: `GameState.extreme_mission_progress`
-- Heal: `CombatController.heal_member` × TUNING heal mult
-- UI: イベントタブ常設（征討と同型）／Result に★・指令
+- Heal／敵与ダメ／群れ／後衛／必殺: CombatController／DungeonController／DungeonScene の共通フック
+- UI: イベントタブ常設／Result に★・指令
 
 ---
 
-## 4. 仮値（provisional）
+## 4. 初期リリース値（`TUNING`・将来調整可）
 
 | キー | 値 | 用途 |
 |---|---|---|
@@ -67,4 +72,4 @@
 | `ultimate_charge_suppress_mult` | 0.35 | 必殺チャージ抑制 |
 | `ultimate_use_limit` | 3 | 必殺使用回数制限 |
 
-正本は `ExtremeMissionConfig.TUNING`。
+正本は `ExtremeMissionConfig.TUNING`（コード外散在禁止）。
