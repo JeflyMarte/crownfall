@@ -3,6 +3,7 @@
 ---
 
 ## Last Update
+2026-09-18（**王痕育成 UI モック再構築**: 専用玉座BG＋青黒/古金パネル／Help・紋章Rank差し替え構造。ロジック不変。GUT royal_mark 60 PASS。feature `cursor/royal-mark-144`・**main未マージ**）
 2026-09-18（**王痕育成 Phase 2 Skill/Ultimate**: Rank III 装備Job Skill／Rank V 固有Ultimate。`RoyalMarkSkillModifier`＋既存育成UI表示。GUT enhance 23／本線27／UI10／Extreme16＋smoke PASS。feature `cursor/royal-mark-144`・**main未マージ**）
 2026-09-18（**王痕育成 Phase 2 専用UI**: `RoyalMarkScene`＋拠点左メニュー導線。Equipment は Rank 参照のみ。GUT UI 10＋本線 27／Extreme 16／smoke PASS。feature `cursor/royal-mark-144`・**main未マージ**）
 2026-09-18（**王痕育成 Phase 1 Implemented**: Decision `144`。極限★差分＋25%周回→王痕片／人間19人 I〜V。Save v18＋既存★遡及。GUT `test_royal_mark` 27 PASS。feature `cursor/royal-mark-144`・**main未マージ**）

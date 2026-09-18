@@ -90,10 +90,11 @@ v17→v18: 既存 `extreme_mission_progress[*].best_stars` から一度だけ遡
 | 切替 | roster 人間のみ左右切替（Jack／pet 除外） |
 | 表示 | Rank I〜V 点灯トラック／累積効果行／次 Rank＋コスト（所持/必要）／**Skill・Ultimate 強化行** |
 | 強化 | 「王痕を刻む」→ `RoyalMarkSystem.can_upgrade`／`apply_upgrade`／save。短演出のみ |
-| 王痕片 Help | タップで説明（極限任務への直接遷移はなし） |
+| 王痕片 Help | 右上 `?`／素材行タップで説明（極限任務への直接遷移はなし） |
+| 背景 | 専用 `UI_BG_RoyalMark`（拠点BGと分離・装飾専用）。動的 UI は Godot Control |
 | Equipment | 強化操作削除。NameRow に `王痕 II` 等の参照ラベルのみ |
 
-ロジック・経済・Save・Extreme 報酬は Phase 1 据置（数値変更なし）。新画面は作らない。
+ロジック・経済・Save・Extreme 報酬は Phase 1 据置（数値変更なし）。Presentation はモック寄せ可（Decision 効果値は不変）。
 
 ---
 
