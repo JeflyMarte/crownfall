@@ -64,6 +64,9 @@ static func set_rank(character_id: String, rank: int) -> void:
 
 
 static func is_content_unlocked() -> bool:
+	## デバッグ全解放時は QA 用にメニュー／強化ゲートを開く。
+	if GameState.debug_full_unlock:
+		return true
 	return _DungeonTierConfig.is_main_campaign_tier_cleared(_DungeonTierConfig.TIER_NORMAL)
 
 
