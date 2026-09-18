@@ -16,6 +16,7 @@ const _EventExclusiveRewards = preload("res://scripts/dungeon/EventExclusiveRewa
 const _ShadowStalkerLoot = preload("res://scripts/dungeon/ShadowStalkerLoot.gd")
 const _BalanceConfig = preload("res://scripts/combat/BalanceConfig.gd")
 const _IntroTutorialConfig = preload("res://scripts/intro/IntroTutorialConfig.gd")
+const _ExtremeMissionConfig = preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
 
 const ROOM_SEQUENCE: Array[int] = [
 	Enums.RoomType.START,
@@ -1828,6 +1829,7 @@ func pick_combat_enemy_group() -> Array[Resource]:
 		swarm_chance *= _early_stage_swarm_chance_mult()
 	swarm_chance *= _DungeonTierConfig.swarm_chance_mult(GameState.current_dungeon_tier)
 	swarm_chance = minf(0.95, swarm_chance * EventSystem.get_swarm_chance_mult())
+	swarm_chance = minf(0.95, swarm_chance + _ExtremeMissionConfig.swarm_chance_bonus_for_active_run())
 	if force_pack_for_wander:
 		swarm_chance = 1.0
 	if randf() >= swarm_chance:
@@ -1847,6 +1849,7 @@ func pick_combat_enemy_group() -> Array[Resource]:
 		lo = 2
 		hi = maxi(2, hi)
 	var size_bonus: int = _DungeonTierConfig.swarm_size_bonus(GameState.current_dungeon_tier)
+	size_bonus += _ExtremeMissionConfig.swarm_size_bonus_for_active_run()
 	hi = mini(_DungeonTierConfig.swarm_size_cap(), hi + size_bonus)
 	## モーンゲート・ノーマル: 群れ最高2体（forced_swarm／降臨は対象外）。
 	if not forced_swarm and not descent_swarm:

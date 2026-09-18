@@ -38,6 +38,15 @@ const SUB_FALLBACK: Dictionary = {
 	"abyss_blackshore": "blackshore",
 	"abyss_frostridge": "frostridge",
 	"ex_tomb_seal": "mourngate",
+	"ex_grave_siege": "mourngate",
+	"ex_spore_dense": "whisperwood",
+	"ex_hunter_woods": "whisperwood",
+	"ex_miasma_sat": "mistfen",
+	"ex_infect_chain": "mistfen",
+	"ex_wreck_assault": "blackshore",
+	"ex_tide_siege": "blackshore",
+	"ex_polar_silence": "frostridge",
+	"ex_white_night": "frostridge",
 }
 
 

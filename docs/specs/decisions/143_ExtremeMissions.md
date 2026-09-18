@@ -1,7 +1,7 @@
 # 極限任務 Phase 1（P3-DG-EXTREME-001）
 
 **Status:** Decision **承認済**（2026-09-17 — Phase 1 実装依頼）  
-**実装:** Phase 1（共通基盤 + EX-01「王墓封鎖」）  
+**実装:** Phase 1 本線反映済／**Phase 2（EX-02〜10＋EX-09 4人判定Fix）REVIEW COMMIT・main未統合**  
 **上書きなし**（役割四分を既存に追加）
 
 ---
@@ -51,8 +51,20 @@
 
 ## 4. 仮値（provisional）
 
-| キー | Phase 1 値 | 用途 |
+| キー | 値 | 用途 |
 |---|---|---|
-| `heal_effectiveness_mult` | 0.50 | 回復効果低下 |
+| `heal_effectiveness_mult` | 0.50 | 回復効果低下（heal_down） |
 | `order_time_limit_sec` | 600 | 規定時間以内（**ポーズ除外のラン経過秒**・戦闘倍速非連動） |
-| `ex01_enemy_level` / recommended | 55 | EX-01 敵／推奨Lv |
+| `ex01`〜`ex10` enemy/recommended | 55〜64 | 各任務敵／推奨Lv |
+| `swarm_chance_bonus` | 0.35 | swarm_pressure / elite_swarm_up |
+| `swarm_size_bonus` | 1 | 同上・群れ体数 |
+| `long_battle_ramp_start_sec` | 180 | 長期戦強化開始 |
+| `long_battle_ramp_per_60sec` | 0.15 | 以降1分あたり +15% |
+| `long_battle_ramp_max_mult` | 2.0 | 上限 |
+| `rear_incoming_mult` | 1.75 | 後衛圧力（陣形軽減に追加乗算） |
+| `status_empower_ids` | poison, bleed | EX-06 対象状態異常 |
+| `status_empower_outgoing_mult` | 1.50 | 対象状態中の敵与ダメ |
+| `ultimate_charge_suppress_mult` | 0.35 | 必殺チャージ抑制 |
+| `ultimate_use_limit` | 3 | 必殺使用回数制限 |
+
+正本は `ExtremeMissionConfig.TUNING`。

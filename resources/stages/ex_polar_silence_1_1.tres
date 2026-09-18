@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="DungeonStageData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/DungeonStageData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ex_polar_silence_1_1"
+biome_id = "ex_polar_silence"
+biome_index = 1
+chapter_index = 1
+display_name = "極冠静寂"
+floor_count = 5
+enemy_level = 63
+recommended_level = 63
+closing_type = "boss"
+boss_id = "eldion"
+requires_elite = true
+spawn_weights = {
+"2": 55,
+"3": 45
+}
+event_room_weight = 10
+min_event_rooms = 0

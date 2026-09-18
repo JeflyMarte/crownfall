@@ -46,13 +46,31 @@ const APEX_CONQUEST_PLAYABLE_IDS: Array[String] = [
 	NORTH_REACH_DUNGEON_ID,
 	RED_FORGE_DEPTHS_DUNGEON_ID,
 ]
-## 極限任務 EX-01 王墓封鎖（P3-DG-EXTREME-001）。次回アップデート枠。
+## 極限任務（P3-DG-EXTREME-001）。初期10任務。
 const EX_TOMB_SEAL_DUNGEON_ID: String = "ex_tomb_seal"
+const EX_GRAVE_SIEGE_DUNGEON_ID: String = "ex_grave_siege"
+const EX_SPORE_DENSE_DUNGEON_ID: String = "ex_spore_dense"
+const EX_HUNTER_WOODS_DUNGEON_ID: String = "ex_hunter_woods"
+const EX_MIASMA_SAT_DUNGEON_ID: String = "ex_miasma_sat"
+const EX_INFECT_CHAIN_DUNGEON_ID: String = "ex_infect_chain"
+const EX_WRECK_ASSAULT_DUNGEON_ID: String = "ex_wreck_assault"
+const EX_TIDE_SIEGE_DUNGEON_ID: String = "ex_tide_siege"
+const EX_POLAR_SILENCE_DUNGEON_ID: String = "ex_polar_silence"
+const EX_WHITE_NIGHT_DUNGEON_ID: String = "ex_white_night"
 ## 極限任務をプレイ対象に含める（route_type=extreme）。
 const EXTREME_MISSIONS_PLAYABLE: bool = true
 ## 配信する極限任務 id（データ追加で増やす）。
 const EXTREME_MISSION_PLAYABLE_IDS: Array[String] = [
 	EX_TOMB_SEAL_DUNGEON_ID,
+	EX_GRAVE_SIEGE_DUNGEON_ID,
+	EX_SPORE_DENSE_DUNGEON_ID,
+	EX_HUNTER_WOODS_DUNGEON_ID,
+	EX_MIASMA_SAT_DUNGEON_ID,
+	EX_INFECT_CHAIN_DUNGEON_ID,
+	EX_WRECK_ASSAULT_DUNGEON_ID,
+	EX_TIDE_SIEGE_DUNGEON_ID,
+	EX_POLAR_SILENCE_DUNGEON_ID,
+	EX_WHITE_NIGHT_DUNGEON_ID,
 ]
 ## 魔晶石発掘を拠点から出す（P3-UX-CRYSTAL-EXCAVATE-001）。第2弾検証 ON。
 const CRYSTAL_EXCAVATE_PLAYABLE: bool = true

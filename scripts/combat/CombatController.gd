@@ -439,7 +439,9 @@ func add_ultimate_charge(member_index: int, amount: float) -> void:
 	## ペットは必殺対象外（P3-PET-ULT-OMIT-001）。
 	if GameState.is_pet_combatant(member_index):
 		return
-	var gained: float = amount * ultimate_charge_gain_mult
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	var extreme_ult_mult: float = _ExtremeMissionConfig.ultimate_charge_gain_mult_for_active_run()
+	var gained: float = amount * ultimate_charge_gain_mult * extreme_ult_mult
 	if gained <= 0.0:
 		return
 	member_ultimate_charge[member_index] = minf(
@@ -469,6 +471,7 @@ func consume_ultimate_charge(member_index: int) -> void:
 	if member_index < 0 or member_index >= member_ultimate_charge.size():
 		return
 	member_ultimate_charge[member_index] = 0.0
+	GameState.note_extreme_ultimate_used()
 
 func get_member_target_slot(member_index: int) -> int:
 	if member_index < 0 or member_index >= member_target_slot.size():
@@ -838,7 +841,7 @@ func apply_damage_to_member(index: int, amount: int) -> void:
 				return
 	party_combat_hp[index] = after
 	if after <= 0 and before > 0:
-		GameState.note_extreme_run_ko()
+		GameState.note_extreme_run_ko(index)
 
 
 ## 後衛被弾をレリック装備者へ振替。振替時 true。
@@ -1649,9 +1652,11 @@ func get_enemy_outgoing_damage_multiplier() -> float:
 	return get_enemy_outgoing_damage_multiplier_at(active_enemy_index)
 
 func get_enemy_outgoing_damage_multiplier_at(slot: int) -> float:
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
 	return (
 		_status_resolver.get_outgoing_damage_multiplier(enemy_status_unit_id(slot))
 		* get_attrition_outgoing_mult()
+		* _ExtremeMissionConfig.enemy_outgoing_modifier_mult_for_active_run(self, slot)
 	)
 
 func get_enemy_status_summary() -> String:

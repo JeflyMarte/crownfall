@@ -4369,6 +4369,7 @@ func _on_enemy_status_applied(slot: int, status_id: String) -> void:
 func _party_applied_enemy_status(member_idx: int, slot: int, status_id: String) -> void:
 	if status_id.is_empty() or slot < 0:
 		return
+	GameState.note_extreme_banned_status_used(status_id)
 	if CombatLinks.is_debuff_mark_status(status_id) and member_idx >= 0:
 		_debuff_marks[slot] = member_idx
 	_on_enemy_status_applied(slot, status_id)
@@ -10226,6 +10227,9 @@ func _build_tactics_status_cover(member_idx: int) -> Dictionary:
 
 # 必殺技がチャージ満タンか（P3-COMBAT-GAUGE-001 / 旧 P3-D108 は CT/CD）。
 func _is_member_ultimate_ready(member_idx: int) -> bool:
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	if _ExtremeMissionConfig.is_ultimate_disabled_for_active_run():
+		return false
 	var ult: Resource = _get_member_ultimate_skill(member_idx)
 	if ult == null:
 		return false
@@ -10249,6 +10253,9 @@ func _any_enemy_has_status(status_id: String) -> bool:
 
 # 必殺技スロット（長CD・高威力）。発動できたら true。
 func _try_member_ultimate(member_idx: int) -> bool:
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	if _ExtremeMissionConfig.is_ultimate_disabled_for_active_run():
+		return false
 	var ult: Resource = _get_member_ultimate_skill(member_idx)
 	if ult == null:
 		return false
@@ -16231,6 +16238,11 @@ func _dungeon_battle_bg_lookup_id(dungeon_id: String) -> String:
 		var parent: String = _AbyssDungeonConfig.parent_biome_id(dungeon_id)
 		if not parent.is_empty():
 			return parent
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	if _ExtremeMissionConfig.is_extreme_mission(dungeon_id):
+		var art: String = _ExtremeMissionConfig.art_biome_id(dungeon_id)
+		if not art.is_empty():
+			return art
 	return dungeon_id
 
 
