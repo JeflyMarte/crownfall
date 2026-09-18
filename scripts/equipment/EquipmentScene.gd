@@ -87,6 +87,7 @@ const EMPTY_SLOT_TEXT: String = "空"
 @onready var _portrait_glyph: Label = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack/Portrait/PortraitGlyph
 @onready var _label_name: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow/LabelName
 @onready var _btn_member_list: Button = $VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow/BtnMemberList
+@onready var _btn_royal_mark_open: Button = $VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow/BtnRoyalMark
 @onready var _label_level: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/LabelLevel
 @onready var _job_icon: TextureRect = $VBoxContainer/CharacterCard/CardRow/InfoBox/JobRow/JobIcon
 @onready var _label_job: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/JobRow/LabelJob
@@ -97,10 +98,10 @@ var _label_evolution_traits: Label = null
 var _lb_ticket_row: HBoxContainer = null
 var _btn_lb_ticket: Button = null
 var _label_lb_ticket: Label = null
-var _royal_mark_row: VBoxContainer = null
-var _label_royal_mark: Label = null
-var _btn_royal_mark: Button = null
-var _label_royal_mark_cost: Label = null
+var _royal_mark_sheet: CanvasLayer = null
+var _label_royal_mark_sheet_body: Label = null
+var _label_royal_mark_sheet_cost: Label = null
+var _btn_royal_mark_upgrade: Button = null
 var _lb_result_overlay: Control = null
 var _lb_result_title_tex: TextureRect = null
 var _lb_result_name_lbl: Label = null
@@ -263,6 +264,7 @@ func _ready() -> void:
 	_btn_member_prev.pressed.connect(_on_member_prev_pressed)
 	_btn_member_next.pressed.connect(_on_member_next_pressed)
 	_btn_member_list.pressed.connect(_on_member_list_pressed)
+	_btn_royal_mark_open.pressed.connect(_on_royal_mark_open_pressed)
 	_btn_promote.pressed.connect(_on_promote_pressed)
 	_btn_sort.pressed.connect(_on_sort_pressed)
 	_btn_filter.pressed.connect(_on_filter_pressed)
@@ -393,6 +395,10 @@ func _setup_equipment_chrome() -> void:
 	_btn_member_list.add_theme_font_size_override("font_size", UiTypography.SIZE_CAPTION)
 	_btn_member_list.custom_minimum_size = Vector2(72, 36)
 	_btn_member_list.clip_text = false
+	UiTypography.apply_menu_button(_btn_royal_mark_open, false)
+	_btn_royal_mark_open.add_theme_font_size_override("font_size", UiTypography.SIZE_CAPTION)
+	_btn_royal_mark_open.custom_minimum_size = Vector2(72, 36)
+	_btn_royal_mark_open.clip_text = false
 	UiTypography.apply_body(_label_level, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
 	UiTypography.apply_body(_label_job, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
 	_configure_job_label_one_line()
@@ -605,7 +611,7 @@ func _apply_panel_styles() -> void:
 	_character_card.add_theme_stylebox_override("panel", EquipmentUiTokens.char_card_style())
 
 func _configure_name_row() -> void:
-	# 名前は実幅で縮み、一覧ボタンが末尾に追従する（EXPAND+ellipsis で名前が切れるのを防ぐ）。
+	# 名前は実幅で縮み、一覧／強化ボタンが末尾に追従する。
 	_label_name.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_label_name.clip_text = false
 	_label_name.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
@@ -613,6 +619,8 @@ func _configure_name_row() -> void:
 	_label_name.max_lines_visible = 1
 	_btn_member_list.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_btn_member_list.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_btn_royal_mark_open.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_btn_royal_mark_open.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 func _fit_name_label_font_to_width() -> void:
 	# 長い名前(限界突破+表記込み)はフォントを下げて1行に収める（省略・改行せずタブ行を押し出さない）。
@@ -642,12 +650,14 @@ func _name_label_available_width() -> float:
 	var btn_w: float = 72.0
 	if _btn_member_list != null:
 		btn_w = maxf(btn_w, _btn_member_list.get_combined_minimum_size().x)
+	if _btn_royal_mark_open != null and _btn_royal_mark_open.visible:
+		btn_w += sep + maxf(72.0, _btn_royal_mark_open.get_combined_minimum_size().x)
 	if name_row != null and name_row.size.x >= 40.0:
 		return maxf(64.0, name_row.size.x - btn_w - sep)
 	if _label_name.size.x >= 40.0:
 		return _label_name.size.x
 	# レイアウト前の安全値（viewport 内 CardRow 想定）。
-	return 160.0
+	return 180.0
 
 func _configure_job_label_one_line() -> void:
 	# 折返しすると InfoBox が高くなり、装備スロット／ステータスが下にずれる。
@@ -974,6 +984,7 @@ func _on_member_list_pressed() -> void:
 func _open_member_list_sheet() -> void:
 	_close_member_list_sheet()
 	_close_effect_family_sheet()
+	_close_royal_mark_sheet()
 	var members: Array = _get_view_members()
 	if members.is_empty():
 		return
@@ -1095,6 +1106,7 @@ func _close_member_list_sheet() -> void:
 func _open_effect_family_sheet() -> void:
 	_close_effect_family_sheet()
 	_close_member_list_sheet()
+	_close_royal_mark_sheet()
 	var layer := CanvasLayer.new()
 	layer.name = "EffectFamilySheet"
 	layer.layer = 60
@@ -1322,6 +1334,8 @@ func _update_character_card() -> void:
 		_portrait_art.modulate = Color.WHITE
 		_label_stars.text = ""
 		_evolution_row.visible = false
+		_btn_royal_mark_open.visible = false
+		_close_royal_mark_sheet()
 		return
 	_label_name.text = _GachaLimitBreak.format_member_name_plus(member)
 	_configure_name_row()
@@ -1346,15 +1360,24 @@ func _update_character_card() -> void:
 	var stats: Dictionary = _compute_member_stats(party_idx if party_idx >= 0 else -1, member)
 	_populate_stat_grid(stats)
 	_update_lb_ticket_row(member)
-	_update_royal_mark_row(member)
+	var show_royal_mark: bool = (
+		not PetSystem.is_pet_member(member)
+		and _RoyalMarkSystem.is_eligible_member(member)
+	)
+	_btn_royal_mark_open.visible = show_royal_mark
+	if not show_royal_mark:
+		_close_royal_mark_sheet()
+	elif _royal_mark_sheet != null and is_instance_valid(_royal_mark_sheet):
+		_refresh_royal_mark_sheet_content()
+	_configure_name_row()
+	_fit_name_label_font_to_width()
+	call_deferred("_fit_name_label_font_to_width")
 	if not Constants.JOB_EVOLUTION_PLAYABLE or PetSystem.is_pet_member(member):
 		_evolution_row.visible = false
 		if _label_evolution_traits != null:
 			_label_evolution_traits.visible = false
 		if PetSystem.is_pet_member(member) and _lb_ticket_row != null:
 			_lb_ticket_row.visible = false
-		if PetSystem.is_pet_member(member) and _royal_mark_row != null:
-			_royal_mark_row.visible = false
 		if PetSystem.is_pet_member(member):
 			return
 	_update_evolution_row(member)
@@ -1383,55 +1406,91 @@ func _ensure_lb_ticket_row() -> void:
 	info_box.move_child(_lb_ticket_row, _evolution_row.get_index() + 1)
 
 
-func _ensure_royal_mark_row() -> void:
-	if _royal_mark_row != null:
-		return
-	_ensure_lb_ticket_row()
-	var info_box: Node = _evolution_row.get_parent()
-	_royal_mark_row = VBoxContainer.new()
-	_royal_mark_row.name = "RoyalMarkRow"
-	_royal_mark_row.add_theme_constant_override("separation", 2)
-	_royal_mark_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var top := HBoxContainer.new()
-	top.add_theme_constant_override("separation", 6)
-	top.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_label_royal_mark = Label.new()
-	_label_royal_mark.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_label_royal_mark.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiTypography.apply_caption(_label_royal_mark)
-	top.add_child(_label_royal_mark)
-	_btn_royal_mark = Button.new()
-	_btn_royal_mark.custom_minimum_size = Vector2(108, 32)
-	UiTypography.apply_menu_button(_btn_royal_mark, false)
-	_btn_royal_mark.add_theme_font_size_override("font_size", UiTypography.SIZE_CAPTION)
-	_btn_royal_mark.pressed.connect(_on_royal_mark_pressed)
-	top.add_child(_btn_royal_mark)
-	_royal_mark_row.add_child(top)
-	_label_royal_mark_cost = Label.new()
-	_label_royal_mark_cost.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_label_royal_mark_cost.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiTypography.apply_caption(_label_royal_mark_cost)
-	_royal_mark_row.add_child(_label_royal_mark_cost)
-	info_box.add_child(_royal_mark_row)
-	var insert_at: int = _lb_ticket_row.get_index() + 1 if _lb_ticket_row != null else _evolution_row.get_index() + 1
-	info_box.move_child(_royal_mark_row, insert_at)
+func _on_royal_mark_open_pressed() -> void:
+	_open_royal_mark_sheet()
 
 
-func _update_royal_mark_row(member: Resource) -> void:
-	_ensure_royal_mark_row()
+func _open_royal_mark_sheet() -> void:
+	_close_royal_mark_sheet()
+	_close_member_list_sheet()
+	_close_effect_family_sheet()
+	var member: Resource = _get_view_adventurer()
 	if member == null or PetSystem.is_pet_member(member):
-		_royal_mark_row.visible = false
 		return
 	if not _RoyalMarkSystem.is_eligible_member(member):
-		_royal_mark_row.visible = false
 		return
-	_royal_mark_row.visible = true
+	var layer := CanvasLayer.new()
+	layer.name = "RoyalMarkSheet"
+	layer.layer = 60
+	add_child(layer)
+	_royal_mark_sheet = layer
+	var root := Control.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.add_child(root)
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.0, 0.0, 0.0, 0.55)
+	dim.gui_input.connect(_on_royal_mark_dim_input)
+	root.add_child(dim)
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.custom_minimum_size = Vector2(520, 420)
+	panel.offset_left = -260
+	panel.offset_right = 260
+	panel.offset_top = -210
+	panel.offset_bottom = 210
+	panel.add_theme_stylebox_override(
+		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
+	)
+	root.add_child(panel)
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+	panel.add_child(vbox)
+	var title := Label.new()
+	title.text = "王痕強化"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_body(title, UiTypography.SIZE_BODY, COLOR_GOLD)
+	vbox.add_child(title)
+	_label_royal_mark_sheet_body = Label.new()
+	_label_royal_mark_sheet_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_label_royal_mark_sheet_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_body(
+		_label_royal_mark_sheet_body, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY
+	)
+	vbox.add_child(_label_royal_mark_sheet_body)
+	_label_royal_mark_sheet_cost = Label.new()
+	_label_royal_mark_sheet_cost.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_label_royal_mark_sheet_cost.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTypography.apply_caption(_label_royal_mark_sheet_cost)
+	vbox.add_child(_label_royal_mark_sheet_cost)
+	_btn_royal_mark_upgrade = Button.new()
+	_btn_royal_mark_upgrade.custom_minimum_size = Vector2(0, 44)
+	UiTypography.apply_menu_button(_btn_royal_mark_upgrade, true)
+	_btn_royal_mark_upgrade.pressed.connect(_on_royal_mark_upgrade_pressed)
+	vbox.add_child(_btn_royal_mark_upgrade)
+	var btn_close := Button.new()
+	btn_close.text = "閉じる"
+	btn_close.custom_minimum_size = Vector2(0, 44)
+	UiTypography.apply_menu_button(btn_close, false)
+	btn_close.pressed.connect(_close_royal_mark_sheet)
+	vbox.add_child(btn_close)
+	_refresh_royal_mark_sheet_content()
+
+
+func _refresh_royal_mark_sheet_content() -> void:
+	if _label_royal_mark_sheet_body == null or _btn_royal_mark_upgrade == null:
+		return
+	var member: Resource = _get_view_adventurer()
+	if member == null:
+		return
 	var rank: int = _RoyalMarkSystem.rank_of_member(member)
 	var shards: int = _RoyalMarkSystem.get_shards()
 	var gold: int = int(GameState.gold)
 	var cur_fx: String = _RoyalMarkConfig.effect_label_for_rank(rank)
 	var next_fx: String = _RoyalMarkConfig.next_rank_effect_label(rank)
-	_label_royal_mark.text = "%s｜現在:%s｜次:%s｜片%d｜G%d" % [
+	_label_royal_mark_sheet_body.text = "%s\n%s\n現在: %s\n次: %s\n所持 王痕片 %d ／ Gold %d" % [
+		_GachaLimitBreak.format_member_name_plus(member),
 		_RoyalMarkConfig.rank_display(rank),
 		cur_fx,
 		next_fx,
@@ -1442,43 +1501,44 @@ func _update_royal_mark_row(member: Resource) -> void:
 	if bool(check.get("ok", false)):
 		var need_s: int = int(check.get("need_shards", 0))
 		var need_g: int = int(check.get("need_gold", 0))
-		_label_royal_mark_cost.text = "強化: 片%d／Gold %d" % [need_s, need_g]
-		_btn_royal_mark.text = "王痕強化"
-		_btn_royal_mark.disabled = false
+		_label_royal_mark_sheet_cost.text = "強化コスト: 王痕片 %d ／ Gold %d" % [need_s, need_g]
+		_btn_royal_mark_upgrade.text = "強化する"
+		_btn_royal_mark_upgrade.disabled = false
 	else:
 		var reason: String = str(check.get("reason", ""))
 		match reason:
 			"locked":
-				_label_royal_mark_cost.text = "LOCKED（メイン1〜5 Normal CLEAR）"
-				_btn_royal_mark.text = "LOCKED"
+				_label_royal_mark_sheet_cost.text = "LOCKED（メイン1〜5 Normal CLEAR）"
+				_btn_royal_mark_upgrade.text = "LOCKED"
 			"level_gate":
-				_label_royal_mark_cost.text = "Lv%d以上で強化可（現在Lv%d）" % [
+				_label_royal_mark_sheet_cost.text = "Lv%d以上で強化可（現在Lv%d）" % [
 					_RoyalMarkConfig.MIN_LEVEL,
 					int(member.level),
 				]
-				_btn_royal_mark.text = "Lv不足"
+				_btn_royal_mark_upgrade.text = "Lv不足"
 			"max_rank":
-				_label_royal_mark_cost.text = "王痕 MAX"
-				_btn_royal_mark.text = "MAX"
+				_label_royal_mark_sheet_cost.text = "王痕 MAX"
+				_btn_royal_mark_upgrade.text = "MAX"
 			"need_shards":
-				_label_royal_mark_cost.text = "王痕片不足（必要%d）" % int(check.get("need_shards", 0))
-				_btn_royal_mark.text = "片不足"
+				_label_royal_mark_sheet_cost.text = "王痕片不足（必要%d）" % int(check.get("need_shards", 0))
+				_btn_royal_mark_upgrade.text = "片不足"
 			"need_gold":
-				_label_royal_mark_cost.text = "Gold不足（必要%d）" % int(check.get("need_gold", 0))
-				_btn_royal_mark.text = "Gold不足"
+				_label_royal_mark_sheet_cost.text = "Gold不足（必要%d）" % int(check.get("need_gold", 0))
+				_btn_royal_mark_upgrade.text = "Gold不足"
 			"not_owned":
-				_label_royal_mark_cost.text = "未所持"
-				_btn_royal_mark.text = "未所持"
+				_label_royal_mark_sheet_cost.text = "未所持"
+				_btn_royal_mark_upgrade.text = "未所持"
 			_:
-				_label_royal_mark_cost.text = "対象外"
-				_btn_royal_mark.text = "対象外"
-		_btn_royal_mark.disabled = true
+				_label_royal_mark_sheet_cost.text = "対象外"
+				_btn_royal_mark_upgrade.text = "対象外"
+		_btn_royal_mark_upgrade.disabled = true
 
 
-func _on_royal_mark_pressed() -> void:
+func _on_royal_mark_upgrade_pressed() -> void:
 	var member: Resource = _get_view_adventurer()
 	var check: Dictionary = _RoyalMarkSystem.can_upgrade(member)
 	if not bool(check.get("ok", false)):
+		_refresh_royal_mark_sheet_content()
 		return
 	var next_rank: int = int(check.get("next_rank", 0))
 	_show_confirm_overlay(
@@ -1503,6 +1563,20 @@ func _on_royal_mark_confirmed() -> void:
 		return
 	SaveManager.save_game()
 	_refresh_display()
+
+
+func _on_royal_mark_dim_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_close_royal_mark_sheet()
+
+
+func _close_royal_mark_sheet() -> void:
+	if _royal_mark_sheet != null and is_instance_valid(_royal_mark_sheet):
+		_royal_mark_sheet.queue_free()
+	_royal_mark_sheet = null
+	_label_royal_mark_sheet_body = null
+	_label_royal_mark_sheet_cost = null
+	_btn_royal_mark_upgrade = null
 
 
 func _update_lb_ticket_row(member: Resource) -> void:
@@ -4962,6 +5036,7 @@ func _on_skill_toggle_pressed(skill_id: String) -> void:
 func _on_back_pressed() -> void:
 	_close_member_list_sheet()
 	_close_effect_family_sheet()
+	_close_royal_mark_sheet()
 	_go_to(HOME_SCENE)
 
 func _go_to(scene_path: String) -> void:
