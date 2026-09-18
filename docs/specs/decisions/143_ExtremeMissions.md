@@ -1,7 +1,7 @@
 # 極限任務 Phase 1（P3-DG-EXTREME-001）
 
 **Status:** Decision **承認済**（2026-09-17 — Phase 1 実装依頼）  
-**実装:** Phase 1 本線反映済／**Phase 2（EX-02〜10＋EX-09 4人判定Fix）REVIEW COMMIT・main未統合**  
+**実装:** Phase 1 本線反映済／**Phase 2（EX-02〜10＋EX-09 4人判定）APPROVED・本線反映**  
 **上書きなし**（役割四分を既存に追加）
 
 ---
