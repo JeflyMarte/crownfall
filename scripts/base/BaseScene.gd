@@ -21,7 +21,6 @@ const BLACKSMITH_SCENE: String = "res://scenes/blacksmith/BlacksmithScene.tscn"
 const SURVEY_SCENE: String = "res://scenes/survey/SurveyScene.tscn"
 const EQUIPMENT_SCENE: String = "res://scenes/equipment/EquipmentScene.tscn"
 const EQUIPMENT_CATALOG_SCENE: String = "res://scenes/equipment/EquipmentCatalogScene.tscn"
-const ROYAL_MARK_SCENE: String = "res://scenes/royal_mark/RoyalMarkScene.tscn"
 const ROSTER_SCENE: String = "res://scenes/roster/RosterScene.tscn"
 const CODEX_SCENE: String = "res://scenes/codex/CodexScene.tscn"
 const GACHA_SCENE: String = "res://scenes/gacha/GachaScene.tscn"
@@ -953,11 +952,6 @@ func _build_left_menu() -> void:
 		var card_entry: Dictionary = entry.duplicate()
 		if str(entry.get("id", "")) == "gacha" and not Constants.are_gacha_helpers_playable():
 			card_entry["locked"] = true
-		if str(entry.get("id", "")) == "royal_mark":
-			const _RoyalMarkSystem := preload("res://scripts/systems/RoyalMarkSystem.gd")
-			if not _RoyalMarkSystem.is_content_unlocked():
-				card_entry["locked"] = true
-				card_entry["lock_tooltip"] = "LOCKED（メイン1〜5 Normal CLEAR）"
 		var card := NavUiTokens.make_side_menu_row(card_entry)
 		var btn := _find_side_menu_button(card)
 		if btn != null and not bool(card_entry.get("locked", false)):
@@ -991,8 +985,6 @@ func _on_menu_entry_pressed(entry_id: String) -> void:
 			_on_dungeon_button_pressed()
 		"equipment":
 			_on_equipment_button_pressed()
-		"royal_mark":
-			_on_royal_mark_button_pressed()
 		"equipment_catalog":
 			_on_equipment_catalog_pressed()
 		"roster":
@@ -1377,13 +1369,6 @@ func _on_daily_go_pressed(scene_path: String) -> void:
 
 func _on_equipment_button_pressed() -> void:
 	SceneRouter.change_scene(EQUIPMENT_SCENE)
-
-
-func _on_royal_mark_button_pressed() -> void:
-	const _RoyalMarkSystem := preload("res://scripts/systems/RoyalMarkSystem.gd")
-	if not _RoyalMarkSystem.is_content_unlocked():
-		return
-	SceneRouter.change_scene(ROYAL_MARK_SCENE)
 
 
 func _on_equipment_catalog_pressed() -> void:

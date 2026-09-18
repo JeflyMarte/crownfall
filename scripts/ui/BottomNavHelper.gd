@@ -129,15 +129,6 @@ const SIDE_MENU_ENTRIES: Array[Dictionary] = [
 		"locked": false,
 	},
 	{
-		"id": "royal_mark",
-		"title": "王痕育成",
-		"node": "NavRoyalMark",
-		"tab": Tab.NONE,
-		"icon_category": "nav",
-		"icon_id": "character",
-		"locked": false,
-	},
-	{
 		"id": "roster",
 		"title": "パーティー編成",
 		"node": "NavParty",

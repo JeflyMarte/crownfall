@@ -320,15 +320,13 @@ size_flags_horizontal = 0
 size_flags_vertical = 4
 text = "一覧"
 
-[node name="LabelRoyalMarkRank" type="Label" parent="VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow"]
+[node name="BtnRoyalMark" type="Button" parent="VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow"]
 visible = false
+custom_minimum_size = Vector2(108, 36)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 4
-theme_override_colors/font_color = Color(0.86, 0.74, 0.45, 1)
-theme_override_font_sizes/font_size = 18
-text = "王痕 —"
-vertical_alignment = 1
+text = "王痕育成"
 
 [node name="LabelLevel" type="Label" parent="VBoxContainer/CharacterCard/CardRow/InfoBox"]
 layout_mode = 2

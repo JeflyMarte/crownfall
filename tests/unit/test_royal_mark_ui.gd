@@ -173,14 +173,16 @@ func test_ui_upgrade_success_refreshes() -> void:
 
 
 func test_equipment_has_no_upgrade_transaction_api() -> void:
-	## EquipmentScene から強化メソッドが消えていること。
+	## EquipmentScene から強化メソッドが消えていること。導線は王痕育成ボタン。
 	var src: String = FileAccess.get_file_as_string("res://scripts/equipment/EquipmentScene.gd")
 	assert_true(src.find("apply_upgrade") < 0)
 	assert_true(src.find("_on_royal_mark_confirmed") < 0)
 	assert_true(src.find("_open_royal_mark_sheet") < 0)
-	assert_true(src.find("_update_royal_mark_rank_label") >= 0)
+	assert_true(src.find("_update_royal_mark_button") >= 0)
+	assert_true(src.find("BtnRoyalMark") >= 0)
 	assert_true(ResourceLoader.exists(EQUIPMENT_SCENE))
-
+	var hub: String = FileAccess.get_file_as_string("res://scripts/ui/BottomNavHelper.gd")
+	assert_true(hub.find('"id": "royal_mark"') < 0)
 
 func test_effect_stat_lines_helper() -> void:
 	var lines0: PackedStringArray = _RoyalMarkConfig.effect_stat_lines_for_rank(0)

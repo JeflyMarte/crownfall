@@ -11,7 +11,7 @@ const _UltimateSkillResolver := preload("res://scripts/combat/UltimateSkillResol
 const _GachaLimitBreak := preload("res://scripts/gacha/GachaLimitBreak.gd")
 const _ChrIdlePortrait := preload("res://scripts/ui/ChrIdlePortrait.gd")
 const _SafeAreaHelper := preload("res://scripts/ui/SafeAreaHelper.gd")
-const HOME_SCENE: String = "res://scenes/base/BaseScene.tscn"
+const HOME_SCENE: String = "res://scenes/equipment/EquipmentScene.tscn"
 
 const SHARD_HELP_BODY: String = (
 	"王痕片\n極限任務の攻略によって獲得できる。\n"
@@ -396,6 +396,13 @@ func _reload_members() -> void:
 		_index = 0
 		return
 	_index = clampi(_index, 0, _members.size() - 1)
+	var focus_id: String = str(GameState.equipment_focus_member_id).strip_edges()
+	if not focus_id.is_empty():
+		for i in _members.size():
+			var fm: Resource = _members[i]
+			if fm != null and str(fm.id) == focus_id:
+				_index = i
+				return
 	for i in _members.size():
 		var m: Resource = _members[i]
 		for p: Variant in GameState.party_members:
@@ -703,6 +710,9 @@ func _on_next_pressed() -> void:
 
 
 func _on_back_pressed() -> void:
+	var member: Resource = _current_member()
+	if member != null:
+		GameState.equipment_focus_member_id = str(member.id)
 	SceneRouter.change_scene(HOME_SCENE)
 
 

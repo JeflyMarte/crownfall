@@ -74,7 +74,7 @@ v17→v18: 既存 `extreme_mission_progress[*].best_stars` から一度だけ遡
 - `GameState`／`SaveManager`（SAVE_VERSION 18）
 - `ExtremeMissionConfig.commit_clear_result`
 - `RosterUiHelper`／`CombatController`／`DamageCalculator`
-- **`RoyalMarkScene`**（Phase 2 専用育成UI）／拠点左メニュー「王痕育成」
+- **`RoyalMarkScene`**（Phase 2 専用育成UI）／**キャラ管理「王痕育成」導線**（拠点メニューはオミット）
 - `EquipmentScene`（Rank 参照表示のみ・強化 transaction なし）／`ResultScene`
 - `DungeonScene._execute_member_skill`（実行直前に `enhance_for_combat`）
 - `tests/unit/test_royal_mark.gd`／`test_royal_mark_ui.gd`／**`test_royal_mark_skill_enhance.gd`**
@@ -86,14 +86,15 @@ v17→v18: 既存 `extreme_mission_progress[*].best_stars` から一度だけ遡
 | 項目 | 内容 |
 |---|---|
 | Scene | `scenes/royal_mark/RoyalMarkScene.tscn` |
-| 導線 | 拠点左メニュー「王痕育成」（キャラ管理の直下）。Main5 Normal 未 CLEAR は LOCKED |
-| 切替 | roster 人間のみ左右切替（Jack／pet 除外） |
+| 導線 | **キャラ管理（Equipment）NameRow「王痕育成」**。拠点左メニューからはオミット。Main5 Normal 未 CLEAR はボタン LOCKED |
+| 切替 | roster 人間のみ左右切替（Jack／pet 除外）。入場時は `equipment_focus_member_id` を優先 |
+| 戻る | キャラ管理へ（フォーカス維持） |
 | 表示 | Rank I〜V（III=◆／V=★）／基礎能力3列／III・V独立カード／次 Rank＋コスト。**MAX時は次Rank・素材・刻む非表示**→「王痕 V」＋「MAX」（既存用語） |
 | 強化 | 「王痕を刻む」→ `RoyalMarkSystem.can_upgrade`／`apply_upgrade`／save。短演出のみ |
 | 王痕片 Help | 右上 `?`／素材行タップで説明（極限任務への直接遷移はなし） |
 | 背景 | 専用 `UI_BG_RoyalMark`（拠点BGと分離・装飾専用）。動的 UI は Godot Control |
 | 色階層 | 金＝見出し／王痕重要情報。本文・数値＝アイボリー〜白。強化値＝淡青白。不足＝赤。未解放＝グレー |
-| Equipment | 強化操作削除。NameRow に `王痕 II` 等の参照ラベルのみ |
+| Equipment | NameRow「王痕育成」導線。Rank 参照ラベルは置かない |
 
 ロジック・経済・Save・Extreme 報酬は Phase 1 据置（数値変更なし）。Presentation はモック寄せ／Polish 可（Decision 効果値は不変）。
 
