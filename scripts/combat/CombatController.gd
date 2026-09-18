@@ -837,6 +837,8 @@ func apply_damage_to_member(index: int, amount: int) -> void:
 					_death_save_shield_until_msec[index] = Time.get_ticks_msec() + int(dur_sec * 1000.0)
 				return
 	party_combat_hp[index] = after
+	if after <= 0 and before > 0:
+		GameState.note_extreme_run_ko()
 
 
 ## 後衛被弾をレリック装備者へ振替。振替時 true。
@@ -913,7 +915,7 @@ func heal_party(amount: int) -> void:
 		_init_party_hp()
 	for i in party_combat_hp.size():
 		if party_combat_hp[i] > 0:
-			party_combat_hp[i] = min(party_combat_hp[i] + amount, party_max_hp[i])
+			heal_member(i, amount, true)
 
 ## 指定メンバーを回復し、実際に回復した量を返す（死亡者は蘇生しない／上限クランプ）。
 func get_member_max_hp(index: int) -> int:
@@ -922,7 +924,8 @@ func get_member_max_hp(index: int) -> int:
 	return maxi(0, int(party_max_hp[index]))
 
 
-## apply_received_mult=false は吸血・致死復帰など「受取回復」扱いしない経路用。
+## apply_received_mult=false は吸血・致死復帰など「装備／天候／状態の受取補正」を通さない経路用。
+## 極限任務の回復低下は特殊条件として、受取補正フラグに依存せず一貫適用する。
 func heal_member(index: int, amount: int, apply_received_mult: bool = true) -> int:
 	if index < 0 or index >= party_combat_hp.size():
 		return 0
@@ -936,6 +939,10 @@ func heal_member(index: int, amount: int, apply_received_mult: bool = true) -> i
 		heal_mult *= _EquipmentSetBonuses.heal_received_mult(index)
 		if not is_equal_approx(heal_mult, 1.0):
 			adjusted = int(round(float(amount) * heal_mult))
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	var extreme_mult: float = _ExtremeMissionConfig.heal_effectiveness_mult_for_active_run()
+	if not is_equal_approx(extreme_mult, 1.0):
+		adjusted = int(round(float(adjusted) * extreme_mult))
 	if adjusted <= 0:
 		return 0
 	var before: int = party_combat_hp[index]

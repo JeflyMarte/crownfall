@@ -144,6 +144,7 @@ func save_game() -> bool:
 		"crystal_excavate_state": GameState.crystal_excavate_state.duplicate(true),
 		"crystal_excavate_history": GameState.crystal_excavate_history.duplicate(true),
 		"event_dungeon_attempts": GameState.event_dungeon_attempts.duplicate(true),
+		"extreme_mission_progress": GameState.extreme_mission_progress.duplicate(true),
 		"current_dungeon_tier": GameState.current_dungeon_tier,
 		"dungeon_tier_cleared": GameState.dungeon_tier_cleared.duplicate(true),
 		"current_stage_id": GameState.current_stage_id,
@@ -994,6 +995,10 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.event_dungeon_attempts = (data["event_dungeon_attempts"] as Dictionary).duplicate(true)
 	else:
 		GameState.event_dungeon_attempts = {}
+	if data.has("extreme_mission_progress") and data["extreme_mission_progress"] is Dictionary:
+		GameState.extreme_mission_progress = (data["extreme_mission_progress"] as Dictionary).duplicate(true)
+	else:
+		GameState.extreme_mission_progress = {}
 	if data.has("commander") and data["commander"] is Dictionary:
 		GameState.commander = (data["commander"] as Dictionary).duplicate(true)
 	_CommanderProfile.ensure_commander()

@@ -30,6 +30,7 @@ const DUNGEON_ICON_PATHS: Dictionary = {
 	"valgard_boundary": "res://assets/dungeon/valgard_boundary/ICO_DG_ValgardBoundary.png",
 	"nereion_flagship": "res://assets/dungeon/nereion_flagship/ICO_DG_NereionFlagship.png",
 	"north_reach": "res://assets/dungeon/north_reach/ICO_DG_NorthReach.png",
+	"ex_tomb_seal": "res://assets/dungeon/mourngate/ICO_DG_Mourngate.png",
 }
 
 const COLOR_GOLD: Color = Color(0.95, 0.84, 0.4, 1)
@@ -700,12 +701,14 @@ func _sync_route_tab_to_featured() -> void:
 	elif Constants.is_apex_conquest_playable(dungeon_id):
 		## 征討パイロットはイベントタブ常設（寄り道タブオミット時に main へ落とさない）。
 		_route_tab = ROUTE_TAB_EVENT
+	elif Constants.is_extreme_mission_playable(dungeon_id):
+		_route_tab = ROUTE_TAB_EVENT
 	elif route == "side" or route == "apex":
 		if Constants.SUB_DUNGEONS_PLAYABLE:
 			_route_tab = ROUTE_TAB_SUB
 		else:
 			_route_tab = ROUTE_TAB_MAIN
-	elif route == "event":
+	elif route == "event" or route == "extreme":
 		_route_tab = ROUTE_TAB_EVENT
 	elif route == "abyss":
 		if Constants.ABYSS_DUNGEONS_PLAYABLE:
@@ -734,7 +737,12 @@ func _route_matches_tab(route_type: String, dungeon_id: String = "") -> bool:
 	if _route_tab == ROUTE_TAB_SUB:
 		return route_type == "side" or route_type == "apex"
 	if _route_tab == ROUTE_TAB_EVENT:
-		return route_type == "event" or Constants.is_apex_conquest_playable(dungeon_id)
+		return (
+			route_type == "event"
+			or route_type == "extreme"
+			or Constants.is_apex_conquest_playable(dungeon_id)
+			or Constants.is_extreme_mission_playable(dungeon_id)
+		)
 	if _route_tab == ROUTE_TAB_ABYSS:
 		return route_type == "abyss"
 	return false
@@ -778,7 +786,10 @@ func _sorted_open_event_dungeons() -> Array:
 		var route: String = str(data.route_type)
 		var is_event: bool = route == "event"
 		var is_conquest: bool = route == "apex" and Constants.is_apex_conquest_playable(dungeon_id)
-		if not is_event and not is_conquest:
+		var is_extreme: bool = (
+			route == "extreme" and Constants.is_extreme_mission_playable(dungeon_id)
+		)
+		if not is_event and not is_conquest and not is_extreme:
 			continue
 		if is_event and not Constants.is_playable_dungeon(dungeon_id, route):
 			## 第3弾OFF中もデバッグフル所持なら潮脈王を検証可能に。
@@ -787,10 +798,14 @@ func _sorted_open_event_dungeons() -> Array:
 				and dungeon_id == Constants.NEREION_FLAGSHIP_DUNGEON_ID
 			):
 				continue
+		if is_extreme and not Constants.is_playable_dungeon(dungeon_id, route):
+			continue
 		if not _EventDungeonSchedule.is_open_now(dungeon_id):
 			continue
-		## 未解放の征討は一覧に出さない（⑤クリア後）。
+		## 未解放の征討／極限は一覧に出さない（⑤クリア後）。
 		if is_conquest and not GameState.is_dungeon_unlocked(dungeon_id):
+			continue
+		if is_extreme and not GameState.is_dungeon_unlocked(dungeon_id):
 			continue
 		out.append(data)
 	out.sort_custom(_compare_open_event_dungeons)
@@ -818,6 +833,7 @@ func _clamp_selected_tier() -> void:
 	if data != null and (
 		str(data.route_type) == "event"
 		or str(data.route_type) == "abyss"
+		or str(data.route_type) == "extreme"
 	):
 		GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
 		return
@@ -836,6 +852,7 @@ func _refresh_tier_tabs() -> void:
 		and (
 			str(data.route_type) == "event"
 			or str(data.route_type) == "abyss"
+			or str(data.route_type) == "extreme"
 		)
 	)
 	var buttons: Array[Button] = [_btn_tier_normal, _btn_tier_hard, _btn_tier_nightmare]
@@ -1275,7 +1292,18 @@ func _refresh_featured() -> void:
 		_set_featured_dungeon_title(data, true)
 	if unlocked_featured:
 		_label_featured_flavor.text = str(data.flavor_text)
-		_label_featured_flavor.visible = not str(data.flavor_text).is_empty()
+		const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+		if _ExtremeMissionConfig.is_extreme_mission(_featured_dungeon_id):
+			var brief: PackedStringArray = _ExtremeMissionConfig.featured_brief_lines(
+				_featured_dungeon_id
+			)
+			if not brief.is_empty():
+				var base_flavor: String = str(data.flavor_text).strip_edges()
+				var brief_text: String = "\n".join(brief)
+				_label_featured_flavor.text = (
+					("%s\n\n%s" % [base_flavor, brief_text]) if not base_flavor.is_empty() else brief_text
+				)
+		_label_featured_flavor.visible = not str(_label_featured_flavor.text).is_empty()
 
 	var meta_parts: Array[String] = []
 	if unlocked_featured:
@@ -1317,9 +1345,19 @@ func _refresh_featured() -> void:
 			and (stage == null or not _uses_stage_cards(_featured_dungeon_id))
 		):
 			meta_parts.append("推奨Lv%d〜" % dungeon_rec)
-		if str(data.route_type) == "event":
+		if str(data.route_type) == "event" or str(data.route_type) == "extreme":
 			const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
 			meta_parts.append(_EventDungeonSchedule.open_schedule_label(_featured_dungeon_id))
+		if str(data.route_type) == "extreme":
+			const _ExtremeMissionConfig2 := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+			var cond: String = _ExtremeMissionConfig2.special_condition_label(_featured_dungeon_id)
+			if not cond.is_empty():
+				meta_parts.append("特殊条件:%s" % cond)
+			var best_stars: int = GameState.get_extreme_mission_best_stars(_featured_dungeon_id)
+			if best_stars > 0:
+				meta_parts.append("最高★%d" % best_stars)
+			if GameState.is_extreme_mission_cleared(_featured_dungeon_id):
+				meta_parts.append("CLEAR")
 		if str(data.route_type) == "abyss":
 			meta_parts.append("無限階")
 		elif not _uses_stage_cards(_featured_dungeon_id) and int(data.floor_count) > 0:
@@ -1366,7 +1404,10 @@ func _refresh_featured() -> void:
 	)
 	var attempt_ok: bool = true
 	if unlocked and data != null and (
-		str(data.route_type) == "event" or Constants.is_apex_conquest_playable(_featured_dungeon_id)
+		str(data.route_type) == "event"
+		or str(data.route_type) == "extreme"
+		or Constants.is_apex_conquest_playable(_featured_dungeon_id)
+		or Constants.is_extreme_mission_playable(_featured_dungeon_id)
 	):
 		const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
 		if not _EventDungeonSchedule.is_open_now(_featured_dungeon_id):
@@ -1912,9 +1953,12 @@ func _make_banner_overlay_title(data: Resource, unlocked: bool, dungeon_id: Stri
 func _is_event_dungeon(data: Resource) -> bool:
 	if data == null:
 		return false
-	if str(data.route_type) == "event":
+	if str(data.route_type) == "event" or str(data.route_type) == "extreme":
 		return true
-	return Constants.is_apex_conquest_playable(str(data.id))
+	return (
+		Constants.is_apex_conquest_playable(str(data.id))
+		or Constants.is_extreme_mission_playable(str(data.id))
+	)
 
 
 ## タイトル Label 群を host に追加（降臨は本体＋「降臨」の2色）。

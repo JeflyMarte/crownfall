@@ -108,6 +108,22 @@ var dungeon_tier_cleared: Dictionary = {}
 # ダンジョン別の発見度・解放状態 { dungeon_id: { discovery: float, hidden_room: bool, hidden_boss: bool } }
 var dungeon_progress: Dictionary = {}
 
+## 極限任務進捗 { dungeon_id: { cleared, best_stars, orders:{id:bool} } }（P3-DG-EXTREME-001）。
+var extreme_mission_progress: Dictionary = {}
+## 極限任務ラン計測（セッション。セーブしない）。
+var extreme_run_ko_count: int = 0
+var extreme_run_heal_skill_used: bool = false
+## 互換残置（壁時計開始）。正の経過は extreme_run_elapsed_sec。
+var extreme_run_start_msec: int = 0
+## ポーズ除外のラン経過秒（DungeonScene._process で積算）。
+var extreme_run_elapsed_sec: float = 0.0
+## 直近ランの極限任務結果（Result 表示用。セーブしない）。
+var last_run_extreme_mission_id: String = ""
+var last_run_extreme_stars: int = 0
+var last_run_extreme_orders: Dictionary = {}
+var last_run_extreme_best_stars: int = 0
+var last_run_extreme_new_record: bool = false
+
 ## 拠点調査ゲージ { dungeon_id: float 0..100 }（P3-HUB-SURVEY-001）。
 var hub_survey_progress: Dictionary = {}
 ## 進行中の調査サイクル（空=なし）。
@@ -752,6 +768,9 @@ func is_dungeon_unlocked(dungeon_id: String) -> bool:
 		if parent_id.is_empty():
 			parent_id = str(data.unlock_after_dungeon_id) if "unlock_after_dungeon_id" in data else ""
 		return not parent_id.is_empty() and is_dungeon_cleared(parent_id)
+	if str(data.route_type) == "extreme":
+		const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+		return _ExtremeMissionConfig.is_mission_unlocked(dungeon_id)
 	if str(data.route_type) != "main":
 		var req: String = str(data.unlock_after_dungeon_id) if "unlock_after_dungeon_id" in data else ""
 		return req.is_empty() or is_dungeon_cleared(req)
@@ -792,6 +811,89 @@ func note_abyss_floor_reached(dungeon_id: String, floor_1based: int) -> void:
 	## 99初回後の10Fマーカー：低確率＋ソフト天井（P3-DG-ABYSS-001-D）。
 	const _AbyssLegendaryDrop := preload("res://scripts/dungeon/AbyssLegendaryDrop.gd")
 	_AbyssLegendaryDrop.try_on_floor(dungeon_id, floor_1based)
+
+
+## ---- 極限任務（P3-DG-EXTREME-001）----
+
+func begin_extreme_run_tracking(dungeon_id: String) -> void:
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	extreme_run_ko_count = 0
+	extreme_run_heal_skill_used = false
+	extreme_run_start_msec = 0
+	extreme_run_elapsed_sec = 0.0
+	last_run_extreme_mission_id = ""
+	last_run_extreme_stars = 0
+	last_run_extreme_orders = {}
+	last_run_extreme_best_stars = 0
+	last_run_extreme_new_record = false
+	if _ExtremeMissionConfig.is_extreme_mission(dungeon_id):
+		extreme_run_start_msec = Time.get_ticks_msec()
+
+
+## ポーズ中は呼ばない（DungeonScene）。戦闘倍速は掛けない実時間 delta。
+func add_extreme_run_elapsed(delta_sec: float) -> void:
+	if delta_sec <= 0.0:
+		return
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	if not _ExtremeMissionConfig.is_extreme_mission(get_active_dungeon_id()):
+		return
+	extreme_run_elapsed_sec += delta_sec
+
+
+func note_extreme_run_ko() -> void:
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	if not _ExtremeMissionConfig.is_extreme_mission(get_active_dungeon_id()):
+		return
+	extreme_run_ko_count += 1
+
+
+func note_extreme_heal_skill_used() -> void:
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	if not _ExtremeMissionConfig.is_extreme_mission(get_active_dungeon_id()):
+		return
+	extreme_run_heal_skill_used = true
+
+
+func is_extreme_mission_cleared(dungeon_id: String) -> bool:
+	if dungeon_id.is_empty():
+		return false
+	var prog: Dictionary = extreme_mission_progress.get(dungeon_id, {})
+	return bool(prog.get("cleared", false))
+
+
+func get_extreme_mission_best_stars(dungeon_id: String) -> int:
+	if dungeon_id.is_empty():
+		return 0
+	var prog: Dictionary = extreme_mission_progress.get(dungeon_id, {})
+	return clampi(int(prog.get("best_stars", 0)), 0, 4)
+
+
+func get_extreme_mission_orders(dungeon_id: String) -> Dictionary:
+	if dungeon_id.is_empty():
+		return {}
+	var prog: Dictionary = extreme_mission_progress.get(dungeon_id, {})
+	var orders: Variant = prog.get("orders", {})
+	return orders.duplicate(true) if orders is Dictionary else {}
+
+
+func record_extreme_mission_clear(dungeon_id: String, stars: int, order_ok: Dictionary) -> void:
+	if dungeon_id.is_empty():
+		return
+	var prog: Dictionary = extreme_mission_progress.get(dungeon_id, {})
+	prog["cleared"] = true
+	var prev_best: int = int(prog.get("best_stars", 0))
+	prog["best_stars"] = maxi(prev_best, clampi(stars, 1, 4))
+	var saved_orders: Dictionary = {}
+	var prev_orders: Variant = prog.get("orders", {})
+	if prev_orders is Dictionary:
+		saved_orders = (prev_orders as Dictionary).duplicate(true)
+	for oid: Variant in order_ok.keys():
+		var key: String = str(oid)
+		if key.is_empty():
+			continue
+		saved_orders[key] = bool(saved_orders.get(key, false)) or bool(order_ok[oid])
+	prog["orders"] = saved_orders
+	extreme_mission_progress[dungeon_id] = prog
 
 
 ## イベントDGの本日残り挑戦回数（無制限DGは -1）。

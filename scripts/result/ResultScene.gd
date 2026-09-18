@@ -1519,6 +1519,35 @@ func _build_info() -> void:
 				str(notice),
 				_load_info_icon(NonCombatNarrativeColors.ICON_MATERIAL)
 			)
+	_build_extreme_mission_info()
+
+
+func _build_extreme_mission_info() -> void:
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	var mission_id: String = str(GameState.last_run_extreme_mission_id)
+	if mission_id.is_empty() or not _ExtremeMissionConfig.is_extreme_mission(mission_id):
+		return
+	if GameState.last_run_outcome == GameState.RUN_OUTCOME_CLEAR:
+		_add_info_pair("極限任務", "CLEAR")
+	var stars: int = int(GameState.last_run_extreme_stars)
+	if stars > 0:
+		_add_info_pair("今回評価", "★%d" % stars)
+	var best: int = int(GameState.last_run_extreme_best_stars)
+	if best > 0:
+		_add_info_pair("過去最高", "★%d" % best)
+	if bool(GameState.last_run_extreme_new_record):
+		_add_info_pair("記録", "NEW RECORD")
+	var orders_run: Dictionary = GameState.last_run_extreme_orders
+	for raw: Variant in _ExtremeMissionConfig.order_defs(mission_id):
+		if not (raw is Dictionary):
+			continue
+		var oid: String = str((raw as Dictionary).get("id", ""))
+		var label: String = str((raw as Dictionary).get("label", oid))
+		if oid.is_empty():
+			continue
+		var ok: bool = bool(orders_run.get(oid, false))
+		_add_info_pair("極限指令", "%s — %s" % [label, "達成" if ok else "未達成"])
+
 
 func _load_info_icon(path: String) -> Texture2D:
 	if path.is_empty() or not ResourceLoader.exists(path):

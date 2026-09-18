@@ -37,6 +37,7 @@ const SUB_FALLBACK: Dictionary = {
 	"abyss_mistfen": "mistfen",
 	"abyss_blackshore": "blackshore",
 	"abyss_frostridge": "frostridge",
+	"ex_tomb_seal": "mourngate",
 }
 
 

@@ -3,6 +3,8 @@
 ---
 
 ## Last Update
+2026-09-18（**極限任務 Phase 1 APPROVED／本線反映**: EX-01王墓封鎖実機1周完走。基盤＋QA修正を統合＋main。provisional tuning 据置。EX-02〜未着手）
+2026-09-17（**極限任務 Phase 1**: 共通基盤＋EX-01王墓封鎖。`route_type=extreme`／イベントタブ常設／回復低下／★指令Save。Decision `143`。Technical Director レビュー待ち・Phase 2未着手）
 2026-09-17（**ChatGPT向け仕様エクスポートを現行実装へ再同期**: `docs/export/chatgpt`＋評価用1本。β①のみ前提を廃止し本編①〜⑤・降臨／征討／深層・機巧・発掘を正に）
 2026-09-17（**iOS 1.0.8 build40 releaseエクスポート＋Xcode適用**: 導入0-0即終了／font-fit再入横展開／旧端末予防＋既存の降臨入場修正＋`SORRY-DESCENT`。PCK 529MB・ja.lproj。要 Archive→Upload→Connectで1.0.8提出）
 2026-09-17（**旧端末予防 hardening**: 導入 Dungeon 裏読み／dive パネル viewport 化／モバイル天候常時抑止／軽量キー欠落時モバイルON／メモリ制約で30fps／SceneRouter キャッシュ soft-cap。要 iPhone 11 級で導入入場確認）

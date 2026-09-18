@@ -117,6 +117,8 @@ static func is_open_today(dungeon_id: String) -> bool:
 		return true
 	if Constants.is_apex_conquest_playable(dungeon_id):
 		return true
+	if Constants.is_extreme_mission_playable(dungeon_id):
+		return true
 	if uses_hourly_windows(dungeon_id):
 		## 時間帯イベントは「今日ある」ではなく is_open_now で判定。
 		return is_open_now(dungeon_id)
@@ -138,6 +140,8 @@ static func is_open_now(dungeon_id: String) -> bool:
 	## 征討パイロットはイベント常設（時間／曜日ゲートなし）。
 	if Constants.is_apex_conquest_playable(dungeon_id):
 		return true
+	if Constants.is_extreme_mission_playable(dungeon_id):
+		return true
 	if uses_hourly_windows(dungeon_id):
 		return _is_in_hourly_window(dungeon_id)
 	return is_open_today(dungeon_id)
@@ -156,6 +160,8 @@ static func open_schedule_label(dungeon_id: String) -> String:
 		return "デバッグ常時開放"
 	if Constants.is_apex_conquest_playable(dungeon_id):
 		return "常設"
+	if Constants.is_extreme_mission_playable(dungeon_id):
+		return "極限・常設"
 	if uses_hourly_windows(dungeon_id):
 		var starts: Array = HOURLY_OPEN_START_HOURS.get(dungeon_id, []) as Array
 		if starts.is_empty():
@@ -214,11 +220,13 @@ static func open_hourly_event_ids() -> Array[String]:
 	return out
 
 
-## 一覧ソート用: 時間帯降臨を先、征討常設を次、続けて難易度昇順。
+## 一覧ソート用: 時間帯降臨を先、征討常設、極限任務、続けて難易度昇順。
 static func list_sort_key(dungeon_id: String, difficulty: int) -> int:
 	var route_boost: int = 1000
 	if uses_hourly_windows(dungeon_id):
 		route_boost = 0
 	elif Constants.is_apex_conquest_playable(dungeon_id):
 		route_boost = 500
+	elif Constants.is_extreme_mission_playable(dungeon_id):
+		route_boost = 600
 	return route_boost + clampi(difficulty, 0, 999)
