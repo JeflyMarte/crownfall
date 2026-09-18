@@ -358,7 +358,8 @@ func _build_chrome() -> void:
 	footer.add_child(_panel_status)
 	_label_status = Label.new()
 	_label_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_label_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	## 短文言ピル。autowrap だと SHRINK 幅で1文字縦積みになるため OFF（案A）。
+	_label_status.autowrap_mode = TextServer.AUTOWRAP_OFF
 	UiTypography.apply_caption(_label_status, _RoyalMarkUiTokens.COLOR_SUB)
 	_panel_status.add_child(_label_status)
 	_btn_upgrade = Button.new()
