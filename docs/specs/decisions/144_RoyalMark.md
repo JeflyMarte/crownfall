@@ -88,13 +88,14 @@ v17→v18: 既存 `extreme_mission_progress[*].best_stars` から一度だけ遡
 | Scene | `scenes/royal_mark/RoyalMarkScene.tscn` |
 | 導線 | 拠点左メニュー「王痕育成」（キャラ管理の直下）。Main5 Normal 未 CLEAR は LOCKED |
 | 切替 | roster 人間のみ左右切替（Jack／pet 除外） |
-| 表示 | Rank I〜V 点灯トラック／累積効果行／次 Rank＋コスト（所持/必要）／**Skill・Ultimate 強化行** |
+| 表示 | Rank I〜V（III=◆／V=★）／基礎能力3列／III・V独立カード／次 Rank＋コスト。**MAX時は次Rank・素材・刻む非表示**→「王痕 V」＋「MAX」（既存用語） |
 | 強化 | 「王痕を刻む」→ `RoyalMarkSystem.can_upgrade`／`apply_upgrade`／save。短演出のみ |
 | 王痕片 Help | 右上 `?`／素材行タップで説明（極限任務への直接遷移はなし） |
 | 背景 | 専用 `UI_BG_RoyalMark`（拠点BGと分離・装飾専用）。動的 UI は Godot Control |
+| 色階層 | 金＝見出し／王痕重要情報。本文・数値＝アイボリー〜白。強化値＝淡青白。不足＝赤。未解放＝グレー |
 | Equipment | 強化操作削除。NameRow に `王痕 II` 等の参照ラベルのみ |
 
-ロジック・経済・Save・Extreme 報酬は Phase 1 据置（数値変更なし）。Presentation はモック寄せ可（Decision 効果値は不変）。
+ロジック・経済・Save・Extreme 報酬は Phase 1 据置（数値変更なし）。Presentation はモック寄せ／Polish 可（Decision 効果値は不変）。
 
 ---
 

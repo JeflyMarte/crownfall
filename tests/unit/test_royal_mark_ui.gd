@@ -120,6 +120,11 @@ func test_ui_rank_v_max() -> void:
 	assert_eq(scene.get_rank_display_for_test(), "王痕 V")
 	assert_eq(scene.get_status_text_for_test(), "王痕 MAX")
 	assert_true(scene.get_upgrade_button_for_test().disabled)
+	assert_false(scene.get_upgrade_button_for_test().visible)
+	assert_true(scene.get_max_panel_visible_for_test())
+	var max_txt: String = scene.get_max_state_text_for_test()
+	assert_true(max_txt.find("王痕 V") >= 0)
+	assert_true(max_txt.find("MAX") >= 0)
 
 
 func test_ui_level_gate() -> void:

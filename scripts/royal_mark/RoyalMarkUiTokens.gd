@@ -1,23 +1,27 @@
 class_name RoyalMarkUiTokens
 extends RefCounted
 
-## 王痕育成画面の見た目トークン（モック寄せ・青黒＋古金）。ロジックは持たない。
+## 王痕育成画面の見た目トークン。金色は見出し／王痕重要情報に限定。
 
-const COLOR_GOLD: Color = Color(0.86, 0.74, 0.45, 1.0)
-const COLOR_GOLD_LIT: Color = Color(0.98, 0.88, 0.42, 1.0)
-const COLOR_GOLD_DIM: Color = Color(0.45, 0.40, 0.30, 1.0)
-const COLOR_NAVY: Color = Color(0.06, 0.08, 0.14, 1.0)
+const COLOR_GOLD: Color = Color(0.82, 0.70, 0.42, 1.0)
+const COLOR_GOLD_LIT: Color = Color(0.96, 0.86, 0.40, 1.0)
+const COLOR_GOLD_DIM: Color = Color(0.48, 0.42, 0.32, 1.0)
 const COLOR_NAVY_PANEL: Color = Color(0.05, 0.07, 0.12, 1.0)
-const COLOR_BODY: Color = Color(0.94, 0.91, 0.85, 1.0)
-const COLOR_SUB: Color = Color(0.72, 0.69, 0.62, 1.0)
-const COLOR_MUTED: Color = Color(0.42, 0.40, 0.36, 1.0)
-const COLOR_SHORTAGE: Color = Color(0.78, 0.42, 0.36, 1.0)
+const COLOR_BODY: Color = Color(0.95, 0.92, 0.86, 1.0)
+const COLOR_SUB: Color = Color(0.78, 0.75, 0.68, 1.0)
+const COLOR_MUTED: Color = Color(0.48, 0.46, 0.42, 1.0)
+const COLOR_SHORTAGE: Color = Color(0.82, 0.40, 0.34, 1.0)
+const COLOR_BOOST: Color = Color(0.82, 0.90, 0.98, 1.0)
 
 const EMBLEM_DIR: String = "res://assets/ui/royal_mark/emblems/"
 const BG_PATH: String = "res://assets/ui/royal_mark/UI_BG_RoyalMark.png"
 
+const EMBLEM_SIZE_BASE: float = 112.0
+const EMBLEM_SIZE_RANK5: float = 132.0
+const EMBLEM_HOST_BASE: float = 148.0
+const EMBLEM_HOST_RANK5: float = 168.0
 
-## Rank 0..5 用紋章パス。欠ける場合は Rank0 へフォールバック。
+
 static func emblem_path_for_rank(rank: int) -> String:
 	var r: int = clampi(rank, 0, 5)
 	var path: String = "%sICO_RoyalMark_Rank%d.png" % [EMBLEM_DIR, r]
@@ -32,7 +36,7 @@ static func emblem_path_for_rank(rank: int) -> String:
 static func info_panel_style() -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = COLOR_NAVY_PANEL
-	sb.border_color = COLOR_GOLD
+	sb.border_color = COLOR_GOLD_DIM
 	sb.set_border_width_all(2)
 	sb.corner_radius_top_left = 4
 	sb.corner_radius_top_right = 4
@@ -42,6 +46,22 @@ static func info_panel_style() -> StyleBoxFlat:
 	sb.content_margin_top = 10.0
 	sb.content_margin_right = 12.0
 	sb.content_margin_bottom = 10.0
+	return sb
+
+
+static func enhance_card_style(is_ultimate: bool = false) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.04, 0.05, 0.09, 1.0)
+	sb.border_color = COLOR_GOLD_LIT if is_ultimate else COLOR_GOLD
+	sb.set_border_width_all(2 if is_ultimate else 1)
+	sb.corner_radius_top_left = 4
+	sb.corner_radius_top_right = 4
+	sb.corner_radius_bottom_left = 4
+	sb.corner_radius_bottom_right = 4
+	sb.content_margin_left = 10.0
+	sb.content_margin_top = 8.0
+	sb.content_margin_right = 10.0
+	sb.content_margin_bottom = 8.0
 	return sb
 
 
@@ -106,8 +126,7 @@ static func status_pill_style() -> StyleBoxFlat:
 
 
 static func apply_chrome_button(btn: Button, enabled: bool = true) -> void:
-	var normal: StyleBoxFlat = chrome_button_style(enabled)
-	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("normal", chrome_button_style(enabled))
 	btn.add_theme_stylebox_override("hover", chrome_button_style(true))
 	btn.add_theme_stylebox_override("pressed", chrome_button_style(true))
 	btn.add_theme_stylebox_override("disabled", chrome_button_style(false))
@@ -123,3 +142,10 @@ static func apply_upgrade_button(btn: Button, enabled: bool = true) -> void:
 	btn.add_theme_color_override("font_color", COLOR_GOLD_LIT if enabled else COLOR_MUTED)
 	btn.add_theme_color_override("font_disabled_color", COLOR_MUTED)
 	btn.add_theme_font_size_override("font_size", UiTypography.SIZE_BUTTON)
+
+
+static func format_stat_bonus(mult: float) -> String:
+	var pct: int = int(round((mult - 1.0) * 100.0))
+	if pct <= 0:
+		return "—"
+	return "+%d%%" % pct
