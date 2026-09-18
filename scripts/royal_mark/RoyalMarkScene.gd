@@ -200,9 +200,7 @@ func _build_chrome() -> void:
 		_rank_labels.append(rl)
 
 	var cur_panel := PanelContainer.new()
-	cur_panel.add_theme_stylebox_override(
-		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
-	)
+	cur_panel.add_theme_stylebox_override("panel", _opaque_info_panel_style())
 	_root.add_child(cur_panel)
 	var cur_v := VBoxContainer.new()
 	cur_v.add_theme_constant_override("separation", 4)
@@ -225,9 +223,7 @@ func _build_chrome() -> void:
 	cur_v.add_child(_label_ult_enhance)
 
 	var next_panel := PanelContainer.new()
-	next_panel.add_theme_stylebox_override(
-		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
-	)
+	next_panel.add_theme_stylebox_override("panel", _opaque_info_panel_style())
 	_root.add_child(next_panel)
 	var next_v := VBoxContainer.new()
 	next_v.add_theme_constant_override("separation", 6)
@@ -503,9 +499,7 @@ func _build_confirm_overlay() -> void:
 	panel.offset_right = 240
 	panel.offset_top = -140
 	panel.offset_bottom = 140
-	panel.add_theme_stylebox_override(
-		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
-	)
+	panel.add_theme_stylebox_override("panel", _opaque_info_panel_style())
 	_confirm_overlay.add_child(panel)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 12)
@@ -583,9 +577,7 @@ func _show_help_overlay() -> void:
 	panel.offset_right = 250
 	panel.offset_top = -130
 	panel.offset_bottom = 130
-	panel.add_theme_stylebox_override(
-		"panel", CombatUiFrames.panel_style(CombatUiFrames.TIER_CARD)
-	)
+	panel.add_theme_stylebox_override("panel", _opaque_info_panel_style())
 	_help_overlay.add_child(panel)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 12)
@@ -612,6 +604,19 @@ func _close_help_overlay() -> void:
 	if _help_overlay != null and is_instance_valid(_help_overlay):
 		_help_overlay.queue_free()
 	_help_overlay = null
+
+
+## 情報パネル用不透明黒。CombatUiFrames の枠テクスチャは中央が透けるため使わない。
+func _opaque_info_panel_style() -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.0, 0.0, 0.0, 1.0)
+	sb.border_color = Color(0.55, 0.48, 0.36, 1.0)
+	sb.set_border_width_all(1)
+	sb.content_margin_left = 10.0
+	sb.content_margin_top = 10.0
+	sb.content_margin_right = 10.0
+	sb.content_margin_bottom = 10.0
+	return sb
 
 
 ## テスト用: 表示中メンバー／切替対象一覧。
