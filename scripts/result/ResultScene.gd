@@ -1542,7 +1542,7 @@ func _build_extreme_mission_info() -> void:
 		if not (raw is Dictionary):
 			continue
 		var oid: String = str((raw as Dictionary).get("id", ""))
-		var label: String = str((raw as Dictionary).get("label", oid))
+		var label: String = _ExtremeMissionConfig.order_display_label(oid)
 		if oid.is_empty():
 			continue
 		var ok: bool = bool(orders_run.get(oid, false))

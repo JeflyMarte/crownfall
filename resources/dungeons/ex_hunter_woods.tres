@@ -37,7 +37,4 @@ disable_wandering = true
 forced_swarm_chance = -1.0
 forced_swarm_min = 2
 forced_swarm_max = 3
-flavor_text = "メイン5クリア後の制約任務。
-特殊条件: 後衛攻撃圧力増加。
-極限指令: 後衛戦闘不能なし／同一ジョブなし／規定時間以内。
-ウィスパーウッドを再利用し、攻略せよ。"
+flavor_text = "特殊制約｜後衛へのダメージ増加"

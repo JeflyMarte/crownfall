@@ -27,6 +27,7 @@ const TUNING := {
 	## 回復効果倍率（1.0=通常）。heal_down 特殊条件。
 	"heal_effectiveness_mult": 0.50,
 	## 極限指令「規定時間以内」のラン経過秒（ポーズ除外・戦闘倍速非連動）。
+## UI 表示は「10分以内にクリア」（600秒と一致）。判定値は変更しない。
 	"order_time_limit_sec": 600,
 	## EX-01 敵／推奨Lv（本編終端〜征討序盤帯の仮置き）。
 	"ex01_enemy_level": 55,
@@ -68,8 +69,22 @@ const TUNING := {
 	"ultimate_use_limit": 3,
 }
 
+## 極限指令のプレイヤー向け表示（id はセーブキーのまま。判定ロジック不変）。
+const ORDER_DISPLAY_LABELS: Dictionary = {
+	"no_ko": "戦闘不能者なし",
+	"time_limit": "10分以内にクリア",
+	"no_heal_skill": "回復スキルを使用しない",
+	"no_same_job": "同じジョブを編成しない",
+	"all_unique_jobs": "4人全員を異なるジョブで編成",
+	"no_rear_ko": "後衛の戦闘不能なし",
+	"ultimate_limit": "必殺技の使用3回以内",
+	"no_ultimate": "必殺技を使用しない",
+	"no_banned_status": "毒・出血を使用しない",
+}
+
 ## 任務メタ（dungeon_id キー）。tres の DungeonData と対になる表示・ルール層。
-## orders[].id はセーブキー。label は UI／Result 用。
+## orders[].id はセーブキー。表示文は ORDER_DISPLAY_LABELS（label は互換用）。
+## special_condition: label=制約名／desc=具体効果／tip=短い攻略補足。
 const MISSIONS: Dictionary = {
 	EX01_DUNGEON_ID: {
 		"code": EX01_CODE,
@@ -79,13 +94,14 @@ const MISSIONS: Dictionary = {
 		"floor_count": 5,
 		"special_condition": {
 			"id": "heal_down",
-			"label": "回復効果低下",
-			"desc": "この任務中、回復効果が大幅に下がる。",
+			"label": "回復効果半減",
+			"desc": "味方が受ける回復効果が50%になります。",
+			"tip": "回復に頼りすぎない編成が重要です。",
 		},
 		"orders": [
-			{"id": "no_ko", "label": "戦闘不能者なし"},
-			{"id": "time_limit", "label": "規定時間以内"},
-			{"id": "no_heal_skill", "label": "回復スキルなし"},
+			{"id": "no_ko"},
+			{"id": "time_limit"},
+			{"id": "no_heal_skill"},
 		],
 	},
 	EX02_DUNGEON_ID: {
@@ -96,13 +112,14 @@ const MISSIONS: Dictionary = {
 		"floor_count": 5,
 		"special_condition": {
 			"id": "swarm_pressure",
-			"label": "敵群れ圧力増加",
-			"desc": "この任務中、敵の群れ出現と規模が増える。",
+			"label": "敵の群れ増加",
+			"desc": "敵の群れが出現しやすくなり、群れの敵数も1体増加します。",
+			"tip": "複数の敵への対策が重要です。",
 		},
 		"orders": [
-			{"id": "no_ko", "label": "戦闘不能者なし"},
-			{"id": "time_limit", "label": "規定時間以内"},
-			{"id": "no_same_job", "label": "同一ジョブなし"},
+			{"id": "no_ko"},
+			{"id": "time_limit"},
+			{"id": "no_same_job"},
 		],
 	},
 	EX03_DUNGEON_ID: {
@@ -113,13 +130,14 @@ const MISSIONS: Dictionary = {
 		"floor_count": 5,
 		"special_condition": {
 			"id": "long_battle_ramp",
-			"label": "長期戦敵強化",
-			"desc": "戦闘が長引くほど敵の攻撃が強くなる。",
+			"label": "長期戦で敵が強化",
+			"desc": "180秒経過後、時間が経つほど敵の攻撃が強力になります。",
+			"tip": "長期戦になるほど危険です。",
 		},
 		"orders": [
-			{"id": "time_limit", "label": "規定時間以内"},
-			{"id": "ultimate_limit", "label": "必殺使用回数制限"},
-			{"id": "no_ko", "label": "戦闘不能者なし"},
+			{"id": "time_limit"},
+			{"id": "ultimate_limit"},
+			{"id": "no_ko"},
 		],
 	},
 	EX04_DUNGEON_ID: {
@@ -130,13 +148,14 @@ const MISSIONS: Dictionary = {
 		"floor_count": 5,
 		"special_condition": {
 			"id": "rear_pressure",
-			"label": "後衛攻撃圧力増加",
-			"desc": "この任務中、後衛への攻撃圧力が増える。",
+			"label": "後衛へのダメージ増加",
+			"desc": "後衛が受けるダメージが大きく増加します。",
+			"tip": "後衛の生存対策が重要です。",
 		},
 		"orders": [
-			{"id": "no_rear_ko", "label": "後衛戦闘不能なし"},
-			{"id": "no_same_job", "label": "同一ジョブなし"},
-			{"id": "time_limit", "label": "規定時間以内"},
+			{"id": "no_rear_ko"},
+			{"id": "no_same_job"},
+			{"id": "time_limit"},
 		],
 	},
 	EX05_DUNGEON_ID: {
@@ -147,13 +166,14 @@ const MISSIONS: Dictionary = {
 		"floor_count": 5,
 		"special_condition": {
 			"id": "heal_down",
-			"label": "回復効果低下",
-			"desc": "この任務中、回復効果が大幅に下がる。",
+			"label": "回復効果半減",
+			"desc": "味方が受ける回復効果が50%になります。",
+			"tip": "回復に頼りすぎない編成が重要です。",
 		},
 		"orders": [
-			{"id": "no_ko", "label": "戦闘不能者なし"},
-			{"id": "no_heal_skill", "label": "回復スキルなし"},
-			{"id": "time_limit", "label": "規定時間以内"},
+			{"id": "no_ko"},
+			{"id": "no_heal_skill"},
+			{"id": "time_limit"},
 		],
 	},
 	EX06_DUNGEON_ID: {
@@ -164,13 +184,14 @@ const MISSIONS: Dictionary = {
 		"floor_count": 5,
 		"special_condition": {
 			"id": "status_empower",
-			"label": "状態異常中の敵強化",
-			"desc": "特定の状態異常中の敵が強化される。",
+			"label": "毒・出血で敵が強化",
+			"desc": "毒・出血状態の敵は、与えるダメージが50%増加します。",
+			"tip": "状態異常の使用には注意が必要です。",
 		},
 		"orders": [
-			{"id": "no_banned_status", "label": "対象状態異常を使用しない"},
-			{"id": "no_ko", "label": "戦闘不能者なし"},
-			{"id": "no_same_job", "label": "同一ジョブなし"},
+			{"id": "no_banned_status"},
+			{"id": "no_ko"},
+			{"id": "no_same_job"},
 		],
 	},
 	EX07_DUNGEON_ID: {
@@ -181,13 +202,14 @@ const MISSIONS: Dictionary = {
 		"floor_count": 5,
 		"special_condition": {
 			"id": "ultimate_suppress",
-			"label": "必殺チャージ抑制",
-			"desc": "この任務中、必殺ゲージのチャージが抑制される。",
+			"label": "必殺チャージ大幅低下",
+			"desc": "必殺ゲージの獲得量が35%になります。",
+			"tip": "必殺技に頼らない戦い方が重要です。",
 		},
 		"orders": [
-			{"id": "no_ultimate", "label": "必殺なし"},
-			{"id": "time_limit", "label": "規定時間以内"},
-			{"id": "no_ko", "label": "戦闘不能者なし"},
+			{"id": "no_ultimate"},
+			{"id": "time_limit"},
+			{"id": "no_ko"},
 		],
 	},
 	EX08_DUNGEON_ID: {
@@ -196,15 +218,17 @@ const MISSIONS: Dictionary = {
 		"parent_biome_id": "blackshore",
 		"boss_id": "nereion",
 		"floor_count": 5,
+		## 表示は実装に合わせる（elite_swarm_up は群れ圧力と同処理。ELITE固有処理なし）。
 		"special_condition": {
 			"id": "elite_swarm_up",
-			"label": "ELITE・群れ構成強化",
-			"desc": "この任務中、ELITEと群れの圧力が増える。",
+			"label": "敵の群れ増加",
+			"desc": "敵の群れが出現しやすくなり、群れの敵数も1体増加します。",
+			"tip": "複数の敵への対策が重要です。",
 		},
 		"orders": [
-			{"id": "no_ko", "label": "戦闘不能者なし"},
-			{"id": "no_same_job", "label": "同一ジョブなし"},
-			{"id": "time_limit", "label": "規定時間以内"},
+			{"id": "no_ko"},
+			{"id": "no_same_job"},
+			{"id": "time_limit"},
 		],
 	},
 	EX09_DUNGEON_ID: {
@@ -215,13 +239,14 @@ const MISSIONS: Dictionary = {
 		"floor_count": 5,
 		"special_condition": {
 			"id": "ultimate_disabled",
-			"label": "必殺使用不可",
-			"desc": "この任務中、必殺技は使用できない。",
+			"label": "必殺技使用不可",
+			"desc": "この任務では必殺技を使用できません。",
+			"tip": "通常攻撃と装備スキルだけで攻略する必要があります。",
 		},
 		"orders": [
-			{"id": "no_ko", "label": "戦闘不能者なし"},
-			{"id": "time_limit", "label": "規定時間以内"},
-			{"id": "all_unique_jobs", "label": "4人全員異なるジョブ"},
+			{"id": "no_ko"},
+			{"id": "time_limit"},
+			{"id": "all_unique_jobs"},
 		],
 	},
 	EX10_DUNGEON_ID: {
@@ -232,13 +257,14 @@ const MISSIONS: Dictionary = {
 		"floor_count": 5,
 		"special_condition": {
 			"id": "long_battle_ramp",
-			"label": "長期戦敵強化",
-			"desc": "戦闘が長引くほど敵の攻撃が強くなる。",
+			"label": "長期戦で敵が強化",
+			"desc": "180秒経過後、時間が経つほど敵の攻撃が強力になります。",
+			"tip": "長期戦になるほど危険です。",
 		},
 		"orders": [
-			{"id": "no_ko", "label": "戦闘不能者なし"},
-			{"id": "time_limit", "label": "規定時間以内"},
-			{"id": "no_same_job", "label": "同一ジョブなし"},
+			{"id": "no_ko"},
+			{"id": "time_limit"},
+			{"id": "no_same_job"},
 		],
 	},
 }
@@ -291,10 +317,42 @@ static func special_condition_desc(dungeon_id: String) -> String:
 	return ""
 
 
+static func special_condition_tip(dungeon_id: String) -> String:
+	var def: Dictionary = mission_def(dungeon_id)
+	var cond: Variant = def.get("special_condition", {})
+	if cond is Dictionary:
+		return str((cond as Dictionary).get("tip", ""))
+	return ""
+
+
 static func order_defs(dungeon_id: String) -> Array:
 	var def: Dictionary = mission_def(dungeon_id)
 	var orders: Variant = def.get("orders", [])
 	return orders if orders is Array else []
+
+
+## 指令 id → プレイヤー向け表示。MISSIONS 内 label より ORDER_DISPLAY_LABELS を優先。
+static func order_display_label(order_id: String) -> String:
+	var oid: String = order_id.strip_edges()
+	if oid.is_empty():
+		return ""
+	if ORDER_DISPLAY_LABELS.has(oid):
+		return str(ORDER_DISPLAY_LABELS[oid])
+	return oid
+
+
+static func order_labels_for_mission(dungeon_id: String) -> PackedStringArray:
+	var out: PackedStringArray = PackedStringArray()
+	for raw: Variant in order_defs(dungeon_id):
+		if not (raw is Dictionary):
+			continue
+		var oid: String = str((raw as Dictionary).get("id", ""))
+		var label: String = order_display_label(oid)
+		if label.is_empty() and raw is Dictionary:
+			label = str((raw as Dictionary).get("label", ""))
+		if not label.is_empty():
+			out.append(label)
+	return out
 
 
 static func _active_condition_id() -> String:
@@ -524,39 +582,81 @@ static func commit_clear_result(
 
 
 static func featured_brief_lines(dungeon_id: String) -> PackedStringArray:
+	## 平文版（テスト／フォールバック）。色付きは featured_brief_bbcode。
 	var lines: PackedStringArray = PackedStringArray()
 	var def: Dictionary = mission_def(dungeon_id)
 	if def.is_empty():
 		return lines
-	var parent: String = str(def.get("parent_biome_id", ""))
-	var boss: String = str(def.get("boss_id", ""))
-	var parent_name: String = parent
-	var boss_name: String = boss
-	var parent_data: Resource = DataRegistry.get_dungeon_data(parent) if not parent.is_empty() else null
-	if parent_data != null:
-		parent_name = str(parent_data.display_name)
-	var boss_data: Resource = DataRegistry.get_enemy_data(boss) if not boss.is_empty() else null
-	if boss_data != null and "display_name" in boss_data:
-		boss_name = str(boss_data.display_name)
-	lines.append("Biome: %s" % parent_name)
-	lines.append("Boss: %s" % boss_name)
 	var cond_label: String = special_condition_label(dungeon_id)
+	var cond_desc: String = special_condition_desc(dungeon_id)
+	var cond_tip: String = special_condition_tip(dungeon_id)
 	if not cond_label.is_empty():
-		lines.append("特殊条件: %s" % cond_label)
-	var order_labels: PackedStringArray = PackedStringArray()
-	for raw: Variant in order_defs(dungeon_id):
-		if raw is Dictionary:
-			order_labels.append(str((raw as Dictionary).get("label", "")))
+		lines.append("特殊制約｜%s" % cond_label)
+	if not cond_desc.is_empty():
+		lines.append(cond_desc)
+	if not cond_tip.is_empty():
+		lines.append(cond_tip)
+	var order_labels: PackedStringArray = order_labels_for_mission(dungeon_id)
 	if not order_labels.is_empty():
-		lines.append("極限指令: %s" % " / ".join(order_labels))
-	var best: int = GameState.get_extreme_mission_best_stars(dungeon_id)
-	if best > 0:
-		lines.append("最高評価: ★%d" % best)
-	else:
-		lines.append("最高評価: —")
-	if GameState.is_extreme_mission_cleared(dungeon_id):
-		lines.append("CLEAR")
+		lines.append("極限指令")
+		for ol: String in order_labels:
+			lines.append("◇ %s" % ol)
+	lines.append("CLEAR ★｜指令1つで★+1｜最大★★★★")
 	return lines
+
+
+## Featured 詳細用 BBCode（色階層）。最高★／CLEAR は Meta 側に任せ重複しない。
+static func featured_brief_bbcode(dungeon_id: String) -> String:
+	const HEX_ACCENT := "e08a4a"
+	const HEX_ACCENT_LIT := "f0b060"
+	const HEX_GOLD := "fae07a"
+	const HEX_BODY := "f2ebe0"
+	const HEX_TIP := "b8b0a4"
+	var parts: PackedStringArray = PackedStringArray()
+	var def: Dictionary = mission_def(dungeon_id)
+	if def.is_empty():
+		return ""
+	var cond_label: String = special_condition_label(dungeon_id)
+	var cond_desc: String = special_condition_desc(dungeon_id)
+	var cond_tip: String = special_condition_tip(dungeon_id)
+	if not cond_label.is_empty():
+		parts.append(
+			"[color=#%s]特殊制約[/color]｜[color=#%s]%s[/color]"
+			% [HEX_ACCENT, HEX_ACCENT_LIT, cond_label]
+		)
+	if not cond_desc.is_empty():
+		parts.append("[color=#%s]%s[/color]" % [HEX_BODY, cond_desc])
+	if not cond_tip.is_empty():
+		parts.append("[color=#%s]%s[/color]" % [HEX_TIP, cond_tip])
+	var order_labels: PackedStringArray = order_labels_for_mission(dungeon_id)
+	if not order_labels.is_empty():
+		parts.append("")
+		parts.append("[color=#%s]極限指令[/color]" % HEX_GOLD)
+		var saved: Dictionary = GameState.get_extreme_mission_orders(dungeon_id)
+		for raw: Variant in order_defs(dungeon_id):
+			if not (raw is Dictionary):
+				continue
+			var oid: String = str((raw as Dictionary).get("id", ""))
+			var ol: String = order_display_label(oid)
+			if ol.is_empty():
+				continue
+			var done: bool = bool(saved.get(oid, false))
+			var hex: String = "73eb8c" if done else "c8c0b4"
+			parts.append("[color=#%s]◇ %s[/color]" % [hex, ol])
+	parts.append("")
+	parts.append(
+		"[color=#%s]CLEAR ★[/color]｜[color=#%s]指令1つで★+1[/color]｜[color=#%s]最大★★★★[/color]"
+		% [HEX_BODY, HEX_BODY, HEX_GOLD]
+	)
+	return "\n".join(parts)
+
+
+static func list_banner_blurb(dungeon_id: String) -> String:
+	## 一覧バナー用の1行。長文にしない。
+	var cond_label: String = special_condition_label(dungeon_id)
+	if cond_label.is_empty():
+		return ""
+	return "特殊制約｜%s" % cond_label
 
 
 static func art_biome_id(dungeon_id: String) -> String:

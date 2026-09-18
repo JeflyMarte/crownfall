@@ -3,6 +3,7 @@
 ---
 
 ## Last Update
+2026-09-18（**極限任務 Featured 説明改善**: 特殊制約の具体文＋指令表示統一＋★ルール。EX-08表示を実装整合（ELITE表記廃止）。ロジック不変。feature `cursor/royal-mark-144`・**main未マージ**）
 2026-09-18（**極限任務タブ**: イベントダンジョンの隣に専用タブ。イベント一覧から分離。Decision `143` UI更新。feature `cursor/royal-mark-144`・**main未マージ**）
 2026-09-18（**王痕育成導線**: 拠点メニューオミット→キャラ管理「王痕育成」ボタン。未覚醒ラベル廃止。feature `cursor/royal-mark-144`・**main未マージ**）
 2026-09-18（**王痕育成 UI Polish**: 色階層／基礎能力3列／III・Vカード／Progress差／MAX専用表示。仕様・数値不変。GUT royal_mark 60 PASS。feature `cursor/royal-mark-144`・**main未マージ**）

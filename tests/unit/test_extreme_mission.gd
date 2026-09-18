@@ -396,3 +396,31 @@ func test_extreme_missions_use_dedicated_route_tab() -> void:
 	) as Button
 	assert_not_null(btn)
 	assert_eq(btn.text, "極限任務")
+
+
+func test_extreme_display_copy_matches_impl() -> void:
+	## 表示文のみ。判定 id・TUNING は不変。
+	assert_eq(_ExtremeMissionConfig.order_display_label("time_limit"), "10分以内にクリア")
+	assert_eq(_ExtremeMissionConfig.order_time_limit_sec(), 600)
+	assert_eq(_ExtremeMissionConfig.special_condition_label("ex_tide_siege"), "敵の群れ増加")
+	assert_true(
+		_ExtremeMissionConfig.special_condition_label("ex_tide_siege").find("ELITE") < 0
+	)
+	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_tide_siege"), "elite_swarm_up")
+	assert_eq(
+		_ExtremeMissionConfig.swarm_chance_bonus_for_active_run(),
+		0.0
+	)  ## 非アクティブ時
+	var brief: PackedStringArray = _ExtremeMissionConfig.featured_brief_lines("ex_tomb_seal")
+	assert_true(brief.size() >= 5)
+	assert_eq(brief[0], "特殊制約｜回復効果半減")
+	assert_true(("\n".join(brief)).find("規定時間") < 0)
+	assert_true(("\n".join(brief)).find("10分以内にクリア") >= 0)
+	assert_eq(
+		_ExtremeMissionConfig.order_display_label("no_banned_status"),
+		"毒・出血を使用しない"
+	)
+	assert_eq(
+		_ExtremeMissionConfig.special_condition_label("ex_polar_silence"),
+		"必殺技使用不可"
+	)

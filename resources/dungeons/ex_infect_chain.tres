@@ -37,7 +37,4 @@ disable_wandering = true
 forced_swarm_chance = -1.0
 forced_swarm_min = 2
 forced_swarm_max = 3
-flavor_text = "メイン5クリア後の制約任務。
-特殊条件: 状態異常中の敵強化。
-極限指令: 対象状態異常を使用しない／戦闘不能者なし／同一ジョブなし。
-ミストフェンを再利用し、攻略せよ。"
+flavor_text = "特殊制約｜毒・出血で敵が強化"

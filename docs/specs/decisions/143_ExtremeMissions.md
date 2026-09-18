@@ -39,6 +39,7 @@
 | P3-DG-EXTREME-001-9 | 週次／新Boss／新Biome／新通貨／専用装備／ランキング等は本 Decision スコープ外 |
 | P3-DG-EXTREME-001-10 | EX-09「4人全員異なるジョブ」＝人間 `ACTIVE_PARTY_SIZE=4` 必須・全員別職・Jack（`active_pet`）は判定対象外 |
 | P3-DG-EXTREME-001-11 | UI＝**極限任務タブ**常設（イベントダンジョンの隣）。イベントタブからは分離（2026-09-18） |
+| P3-DG-EXTREME-001-12 | Featured 表示＝制約の具体説明＋指令3＋★ルール。`elite_swarm_up` 表示は実装どおり「敵の群れ増加」（ELITE表記しない）。判定・TUNING 不変（2026-09-18） |
 
 **Phase 1:** 共通基盤＋EX-01 — Completed  
 **Phase 2:** EX-02〜EX-10＋共通 modifier／指令 — Completed
@@ -51,7 +52,8 @@
 - `resources/dungeons/ex_*.tres`／`resources/stages/ex_*_1_1.tres`（EX-01〜10）
 - Save: `GameState.extreme_mission_progress`
 - Heal／敵与ダメ／群れ／後衛／必殺: CombatController／DungeonController／DungeonScene の共通フック
-- UI: **極限任務タブ**常設（イベントダンジョンの隣）／Result に★・指令
+- UI: **極限任務タブ**常設（イベント隣）／Featured＝制約具体文＋指令＋★ルール／Result に★・指令
+- 表示文 SSOT: `ExtremeMissionConfig`（`special_condition` label/desc/tip・`ORDER_DISPLAY_LABELS`）
 
 ---
 

@@ -37,7 +37,4 @@ disable_wandering = true
 forced_swarm_chance = -1.0
 forced_swarm_min = 2
 forced_swarm_max = 3
-flavor_text = "メイン5クリア後の制約任務。
-特殊条件: 回復効果低下。
-極限指令: 戦闘不能者なし／規定時間以内／回復スキルなし。
-モーンゲートを再利用し、セルディオンを封じよ。"
+flavor_text = "特殊制約｜回復効果半減"

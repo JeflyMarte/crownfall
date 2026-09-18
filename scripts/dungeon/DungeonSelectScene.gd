@@ -198,7 +198,7 @@ const DROP_PREVIEW: Dictionary = {
 @onready var _featured_vbox: VBoxContainer = $MainColumn/FeaturedPanel/FeaturedVBox
 @onready var _featured_banner_host: Control = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedBannerHost
 @onready var _label_featured_name: Label = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedName
-@onready var _label_featured_flavor: Label = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedFlavor
+@onready var _label_featured_flavor: RichTextLabel = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedFlavor
 @onready var _label_featured_meta: Label = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedMeta
 @onready var _label_featured_discovery: Label = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedDiscovery
 @onready var _featured_drop_row: HBoxContainer = $MainColumn/FeaturedPanel/FeaturedVBox/FeaturedDropRow
@@ -618,7 +618,7 @@ func _apply_typography() -> void:
 	HeaderCurrencyHelper.apply_to_row($MainColumn/Header/HeaderRow)
 	UiTypography.apply_display(_label_featured_name, UiTypography.SIZE_BODY_SMALL)
 	_label_featured_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UiTypography.apply_body(_label_featured_flavor, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
+	_configure_featured_flavor_rich()
 	UiTypography.apply_body(_label_featured_meta, UiTypography.SIZE_CAPTION, UiTypography.COLOR_SUB)
 	UiTypography.apply_body(_label_featured_abyss_best, UiTypography.SIZE_CAPTION, COLOR_ABYSS_BEST)
 	UiTypography.apply_body(_label_featured_discovery, UiTypography.SIZE_BODY_SMALL, COLOR_CLEAR)
@@ -631,7 +631,6 @@ func _apply_typography() -> void:
 func _constrain_featured_text_labels() -> void:
 	var labels: Array[Label] = [
 		_label_featured_name,
-		_label_featured_flavor,
 		_label_featured_meta,
 		_label_featured_discovery,
 	]
@@ -643,6 +642,21 @@ func _constrain_featured_text_labels() -> void:
 		label.clip_text = false
 		label.custom_minimum_size.x = 0.0
 		label.visible = true
+	if _label_featured_flavor != null:
+		_label_featured_flavor.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_label_featured_flavor.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_label_featured_flavor.custom_minimum_size.x = 0.0
+		_label_featured_flavor.fit_content = true
+		_label_featured_flavor.scroll_active = false
+
+
+func _configure_featured_flavor_rich() -> void:
+	if _label_featured_flavor == null:
+		return
+	_label_featured_flavor.bbcode_enabled = true
+	_label_featured_flavor.fit_content = true
+	_label_featured_flavor.scroll_active = false
+	UiTypography.apply_log_rich(_label_featured_flavor, UiTypography.SIZE_CAPTION, UiTypography.COLOR_BODY)
 
 func _refresh_all() -> void:
 	_featured_dungeon_id = _resolve_featured_dungeon_id()
@@ -1338,19 +1352,24 @@ func _refresh_featured() -> void:
 	else:
 		## 名横バッジ（CLEAR／挑戦済み）は一覧バナー側で緑表示。降臨は本体／「降臨」の2色。
 		_set_featured_dungeon_title(data, true)
+		const _ExtremeMissionConfigTitle := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+		if (
+			_ExtremeMissionConfigTitle.is_extreme_mission(_featured_dungeon_id)
+			and _label_featured_name.visible
+		):
+			## 極限: Mission名は象牙色（制約見出しに金／アクセントを残す）。
+			UiTypography.apply_display(
+				_label_featured_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY
+			)
 	if unlocked_featured:
-		_label_featured_flavor.text = str(data.flavor_text)
 		const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
 		if _ExtremeMissionConfig.is_extreme_mission(_featured_dungeon_id):
-			var brief: PackedStringArray = _ExtremeMissionConfig.featured_brief_lines(
+			## 制約・指令は ExtremeMissionConfig 表示層のみ（tres flavor の抽象文は使わない）。
+			_label_featured_flavor.text = _ExtremeMissionConfig.featured_brief_bbcode(
 				_featured_dungeon_id
 			)
-			if not brief.is_empty():
-				var base_flavor: String = str(data.flavor_text).strip_edges()
-				var brief_text: String = "\n".join(brief)
-				_label_featured_flavor.text = (
-					("%s\n\n%s" % [base_flavor, brief_text]) if not base_flavor.is_empty() else brief_text
-				)
+		else:
+			_label_featured_flavor.text = str(data.flavor_text)
 		_label_featured_flavor.visible = not str(_label_featured_flavor.text).is_empty()
 
 	var meta_parts: Array[String] = []
@@ -1398,9 +1417,7 @@ func _refresh_featured() -> void:
 			meta_parts.append(_EventDungeonSchedule.open_schedule_label(_featured_dungeon_id))
 		if str(data.route_type) == "extreme":
 			const _ExtremeMissionConfig2 := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
-			var cond: String = _ExtremeMissionConfig2.special_condition_label(_featured_dungeon_id)
-			if not cond.is_empty():
-				meta_parts.append("特殊条件:%s" % cond)
+			## 特殊制約の詳細は FeaturedFlavor。Meta は最高★／CLEAR のみ（重複回避）。
 			var best_stars: int = GameState.get_extreme_mission_best_stars(_featured_dungeon_id)
 			if best_stars > 0:
 				meta_parts.append("最高★%d" % best_stars)
@@ -2432,7 +2449,21 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 			UiTypography.apply_caption(progress)
 			info.add_child(progress)
 
-	if unlocked and not str(data.flavor_text).is_empty():
+	const _ExtremeMissionConfigList := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	if unlocked and _ExtremeMissionConfigList.is_extreme_mission(dungeon_id):
+		var blurb: String = _ExtremeMissionConfigList.list_banner_blurb(dungeon_id)
+		if not blurb.is_empty():
+			var flavor := Label.new()
+			flavor.text = blurb
+			flavor.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			flavor.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+			flavor.max_lines_visible = 1
+			flavor.clip_text = true
+			flavor.custom_minimum_size.x = 0.0
+			flavor.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			UiTypography.apply_caption(flavor, UiTypography.COLOR_MUTED)
+			info.add_child(flavor)
+	elif unlocked and not str(data.flavor_text).is_empty():
 		var flavor := Label.new()
 		flavor.text = str(data.flavor_text)
 		flavor.size_flags_horizontal = Control.SIZE_EXPAND_FILL

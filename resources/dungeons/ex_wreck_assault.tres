@@ -37,7 +37,4 @@ disable_wandering = true
 forced_swarm_chance = -1.0
 forced_swarm_min = 2
 forced_swarm_max = 3
-flavor_text = "メイン5クリア後の制約任務。
-特殊条件: 必殺チャージ抑制。
-極限指令: 必殺なし／規定時間以内／戦闘不能者なし。
-ブラックショアを再利用し、攻略せよ。"
+flavor_text = "特殊制約｜必殺チャージ大幅低下"

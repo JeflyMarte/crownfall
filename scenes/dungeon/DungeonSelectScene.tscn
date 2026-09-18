@@ -196,14 +196,16 @@ text = "—"
 autowrap_mode = 1
 max_lines_visible = 2
 
-[node name="LabelFeaturedFlavor" type="Label" parent="MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo"]
+[node name="LabelFeaturedFlavor" type="RichTextLabel" parent="MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.72, 0.7, 0.62, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_colors/default_color = Color(0.95, 0.92, 0.86, 1)
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+autowrap_mode = 3
 text = ""
-autowrap_mode = 1
-max_lines_visible = 2
 
 [node name="LabelFeaturedMeta" type="Label" parent="MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo"]
 layout_mode = 2
