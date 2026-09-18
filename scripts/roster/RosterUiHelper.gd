@@ -404,6 +404,8 @@ static func compute_member_stats(member: Resource, _party_index: int = -1) -> Di
 	hp += int(affix.get("hp_flat", 0))
 	hp += LevelSystem.level_hp_bonus(level, member)
 	hp = int(round(float(hp) * float(job.get("hp_multiplier", 1.0))))
+	const _RoyalMarkSystem := preload("res://scripts/systems/RoyalMarkSystem.gd")
+	hp = _RoyalMarkSystem.apply_hp_multiplier(hp, member)
 	var attack: int = 0
 	if weapon != null:
 		attack = _EquipmentEnhancer.get_effective_attack(weapon)
@@ -419,6 +421,7 @@ static func compute_member_stats(member: Resource, _party_index: int = -1) -> Di
 			member, DataRegistry.get_weapon_data(str(weapon.weapon_id))
 		)
 	attack = int(round(float(attack) * atk_mult))
+	attack = _RoyalMarkSystem.apply_attack_multiplier(attack, member)
 	var defense: int = 0
 	if armor != null:
 		defense = EquipmentEnhancer.effective_armor_defense(armor)
@@ -431,6 +434,7 @@ static func compute_member_stats(member: Resource, _party_index: int = -1) -> Di
 		defense += int(member.base_stats.defense)
 	defense += LevelSystem.level_defense_bonus(level, member)
 	defense = int(round(float(defense) * float(job.get("defense_multiplier", 1.0))))
+	defense = _RoyalMarkSystem.apply_defense_multiplier(defense, member)
 	var speed: float = weapon.attack_speed if weapon != null else 1.0
 	var crit: float = (weapon.critical_rate if weapon != null else 0.0)
 	if acc_data != null and accessory != null:

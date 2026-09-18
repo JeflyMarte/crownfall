@@ -21,6 +21,8 @@ const _ElementResolver = preload("res://scripts/combat/ElementResolver.gd")
 const _SkillIconHelper = preload("res://scripts/ui/SkillIconHelper.gd")
 const _ChrIdlePortrait = preload("res://scripts/ui/ChrIdlePortrait.gd")
 const _GachaLimitBreak = preload("res://scripts/gacha/GachaLimitBreak.gd")
+const _RoyalMarkConfig = preload("res://scripts/systems/RoyalMarkConfig.gd")
+const _RoyalMarkSystem = preload("res://scripts/systems/RoyalMarkSystem.gd")
 const _CharacterStatPages = preload("res://scripts/roster/CharacterStatPages.gd")
 const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuses.gd")
 const _UltimateSkillResolver = preload("res://scripts/combat/UltimateSkillResolver.gd")
@@ -95,6 +97,10 @@ var _label_evolution_traits: Label = null
 var _lb_ticket_row: HBoxContainer = null
 var _btn_lb_ticket: Button = null
 var _label_lb_ticket: Label = null
+var _royal_mark_row: VBoxContainer = null
+var _label_royal_mark: Label = null
+var _btn_royal_mark: Button = null
+var _label_royal_mark_cost: Label = null
 var _lb_result_overlay: Control = null
 var _lb_result_title_tex: TextureRect = null
 var _lb_result_name_lbl: Label = null
@@ -1340,12 +1346,15 @@ func _update_character_card() -> void:
 	var stats: Dictionary = _compute_member_stats(party_idx if party_idx >= 0 else -1, member)
 	_populate_stat_grid(stats)
 	_update_lb_ticket_row(member)
+	_update_royal_mark_row(member)
 	if not Constants.JOB_EVOLUTION_PLAYABLE or PetSystem.is_pet_member(member):
 		_evolution_row.visible = false
 		if _label_evolution_traits != null:
 			_label_evolution_traits.visible = false
 		if PetSystem.is_pet_member(member) and _lb_ticket_row != null:
 			_lb_ticket_row.visible = false
+		if PetSystem.is_pet_member(member) and _royal_mark_row != null:
+			_royal_mark_row.visible = false
 		if PetSystem.is_pet_member(member):
 			return
 	_update_evolution_row(member)
@@ -1372,6 +1381,129 @@ func _ensure_lb_ticket_row() -> void:
 	_lb_ticket_row.add_child(_btn_lb_ticket)
 	info_box.add_child(_lb_ticket_row)
 	info_box.move_child(_lb_ticket_row, _evolution_row.get_index() + 1)
+
+
+func _ensure_royal_mark_row() -> void:
+	if _royal_mark_row != null:
+		return
+	_ensure_lb_ticket_row()
+	var info_box: Node = _evolution_row.get_parent()
+	_royal_mark_row = VBoxContainer.new()
+	_royal_mark_row.name = "RoyalMarkRow"
+	_royal_mark_row.add_theme_constant_override("separation", 2)
+	_royal_mark_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var top := HBoxContainer.new()
+	top.add_theme_constant_override("separation", 6)
+	top.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_label_royal_mark = Label.new()
+	_label_royal_mark.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_label_royal_mark.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_caption(_label_royal_mark)
+	top.add_child(_label_royal_mark)
+	_btn_royal_mark = Button.new()
+	_btn_royal_mark.custom_minimum_size = Vector2(108, 32)
+	UiTypography.apply_menu_button(_btn_royal_mark, false)
+	_btn_royal_mark.add_theme_font_size_override("font_size", UiTypography.SIZE_CAPTION)
+	_btn_royal_mark.pressed.connect(_on_royal_mark_pressed)
+	top.add_child(_btn_royal_mark)
+	_royal_mark_row.add_child(top)
+	_label_royal_mark_cost = Label.new()
+	_label_royal_mark_cost.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_label_royal_mark_cost.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_caption(_label_royal_mark_cost)
+	_royal_mark_row.add_child(_label_royal_mark_cost)
+	info_box.add_child(_royal_mark_row)
+	var insert_at: int = _lb_ticket_row.get_index() + 1 if _lb_ticket_row != null else _evolution_row.get_index() + 1
+	info_box.move_child(_royal_mark_row, insert_at)
+
+
+func _update_royal_mark_row(member: Resource) -> void:
+	_ensure_royal_mark_row()
+	if member == null or PetSystem.is_pet_member(member):
+		_royal_mark_row.visible = false
+		return
+	if not _RoyalMarkSystem.is_eligible_member(member):
+		_royal_mark_row.visible = false
+		return
+	_royal_mark_row.visible = true
+	var rank: int = _RoyalMarkSystem.rank_of_member(member)
+	var shards: int = _RoyalMarkSystem.get_shards()
+	var gold: int = int(GameState.gold)
+	var cur_fx: String = _RoyalMarkConfig.effect_label_for_rank(rank)
+	var next_fx: String = _RoyalMarkConfig.next_rank_effect_label(rank)
+	_label_royal_mark.text = "%s｜現在:%s｜次:%s｜片%d｜G%d" % [
+		_RoyalMarkConfig.rank_display(rank),
+		cur_fx,
+		next_fx,
+		shards,
+		gold,
+	]
+	var check: Dictionary = _RoyalMarkSystem.can_upgrade(member)
+	if bool(check.get("ok", false)):
+		var need_s: int = int(check.get("need_shards", 0))
+		var need_g: int = int(check.get("need_gold", 0))
+		_label_royal_mark_cost.text = "強化: 片%d／Gold %d" % [need_s, need_g]
+		_btn_royal_mark.text = "王痕強化"
+		_btn_royal_mark.disabled = false
+	else:
+		var reason: String = str(check.get("reason", ""))
+		match reason:
+			"locked":
+				_label_royal_mark_cost.text = "LOCKED（メイン1〜5 Normal CLEAR）"
+				_btn_royal_mark.text = "LOCKED"
+			"level_gate":
+				_label_royal_mark_cost.text = "Lv%d以上で強化可（現在Lv%d）" % [
+					_RoyalMarkConfig.MIN_LEVEL,
+					int(member.level),
+				]
+				_btn_royal_mark.text = "Lv不足"
+			"max_rank":
+				_label_royal_mark_cost.text = "王痕 MAX"
+				_btn_royal_mark.text = "MAX"
+			"need_shards":
+				_label_royal_mark_cost.text = "王痕片不足（必要%d）" % int(check.get("need_shards", 0))
+				_btn_royal_mark.text = "片不足"
+			"need_gold":
+				_label_royal_mark_cost.text = "Gold不足（必要%d）" % int(check.get("need_gold", 0))
+				_btn_royal_mark.text = "Gold不足"
+			"not_owned":
+				_label_royal_mark_cost.text = "未所持"
+				_btn_royal_mark.text = "未所持"
+			_:
+				_label_royal_mark_cost.text = "対象外"
+				_btn_royal_mark.text = "対象外"
+		_btn_royal_mark.disabled = true
+
+
+func _on_royal_mark_pressed() -> void:
+	var member: Resource = _get_view_adventurer()
+	var check: Dictionary = _RoyalMarkSystem.can_upgrade(member)
+	if not bool(check.get("ok", false)):
+		return
+	var next_rank: int = int(check.get("next_rank", 0))
+	_show_confirm_overlay(
+		"王痕強化",
+		"%s を %s へ強化しますか？\n片%d／Gold %d" % [
+			str(member.display_name),
+			_RoyalMarkConfig.rank_display(next_rank),
+			int(check.get("need_shards", 0)),
+			int(check.get("need_gold", 0)),
+		],
+		"強化する",
+		"やめる",
+		_on_royal_mark_confirmed
+	)
+
+
+func _on_royal_mark_confirmed() -> void:
+	var member: Resource = _get_view_adventurer()
+	var result: Dictionary = _RoyalMarkSystem.apply_upgrade(member)
+	if not bool(result.get("ok", false)):
+		_refresh_display()
+		return
+	SaveManager.save_game()
+	_refresh_display()
+
 
 func _update_lb_ticket_row(member: Resource) -> void:
 	_ensure_lb_ticket_row()

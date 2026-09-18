@@ -23,7 +23,7 @@ const SLOT_DEBUG: String = "debug"
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 17
+const SAVE_VERSION: int = 18
 
 ## セッション中の読み書き先。タイトルで本編／デバッグを切り替える。
 var _active_slot: String = SLOT_NORMAL
@@ -145,6 +145,8 @@ func save_game() -> bool:
 		"crystal_excavate_history": GameState.crystal_excavate_history.duplicate(true),
 		"event_dungeon_attempts": GameState.event_dungeon_attempts.duplicate(true),
 		"extreme_mission_progress": GameState.extreme_mission_progress.duplicate(true),
+		"royal_mark_shards": int(GameState.royal_mark_shards),
+		"royal_mark_ranks": GameState.royal_mark_ranks.duplicate(true),
 		"current_dungeon_tier": GameState.current_dungeon_tier,
 		"dungeon_tier_cleared": GameState.dungeon_tier_cleared.duplicate(true),
 		"current_stage_id": GameState.current_stage_id,
@@ -275,7 +277,28 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 		data = _migrate_save_v15_to_v16(data)
 	if version < 17:
 		data = _migrate_save_v16_to_v17(data)
+	if version < 18:
+		data = _migrate_save_v17_to_v18(data)
 	data["save_version"] = SAVE_VERSION
+	return data
+
+
+## P3-DG-ROYAL-MARK-001: 王痕片／Rank。既存★評価から一度だけ遡及付与。
+func _migrate_save_v17_to_v18(data: Dictionary) -> Dictionary:
+	const _RoyalMarkSystem := preload("res://scripts/systems/RoyalMarkSystem.gd")
+	var shards: int = 0
+	if data.has("royal_mark_shards"):
+		shards = _RoyalMarkSystem.sanitize_shards(data.get("royal_mark_shards", 0))
+	var ranks: Dictionary = {}
+	if data.has("royal_mark_ranks") and data["royal_mark_ranks"] is Dictionary:
+		ranks = _RoyalMarkSystem.sanitize_ranks(data["royal_mark_ranks"])
+	var progress: Dictionary = {}
+	if data.has("extreme_mission_progress") and data["extreme_mission_progress"] is Dictionary:
+		progress = data["extreme_mission_progress"] as Dictionary
+	## version < 18 のときのみ呼ばれる → 遡及は一回限り。
+	shards += _RoyalMarkSystem.compute_retroactive_shards_from_progress(progress)
+	data["royal_mark_shards"] = shards
+	data["royal_mark_ranks"] = ranks
 	return data
 
 
@@ -999,6 +1022,15 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.extreme_mission_progress = (data["extreme_mission_progress"] as Dictionary).duplicate(true)
 	else:
 		GameState.extreme_mission_progress = {}
+	const _RoyalMarkSystem := preload("res://scripts/systems/RoyalMarkSystem.gd")
+	if data.has("royal_mark_shards"):
+		GameState.royal_mark_shards = _RoyalMarkSystem.sanitize_shards(data.get("royal_mark_shards", 0))
+	else:
+		GameState.royal_mark_shards = 0
+	if data.has("royal_mark_ranks") and data["royal_mark_ranks"] is Dictionary:
+		GameState.royal_mark_ranks = _RoyalMarkSystem.sanitize_ranks(data["royal_mark_ranks"])
+	else:
+		GameState.royal_mark_ranks = {}
 	if data.has("commander") and data["commander"] is Dictionary:
 		GameState.commander = (data["commander"] as Dictionary).duplicate(true)
 	_CommanderProfile.ensure_commander()

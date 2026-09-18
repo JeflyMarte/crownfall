@@ -3,6 +3,7 @@
 ---
 
 ## Last Update
+2026-09-18（**王痕育成 Phase 1 Implemented**: Decision `144`。極限★差分＋25%周回→王痕片／人間19人 I〜V。Save v18＋既存★遡及。GUT `test_royal_mark` 27 PASS。feature `cursor/royal-mark-144`・**main未マージ**）
 2026-09-18（**極限任務 IMPLEMENTATION COMPLETE**: EX-01〜10・Producer実機QA PASS・Decision `143` Completed。main `e35517f7`。TUNING＝初期リリース値（将来調整はデータ側維持））
 2026-09-18（**極限任務 Phase 2 APPROVED／本線反映**: EX-02〜10＋共通modifier＋EX-09人間4人別職。実機QA完了。provisional据置。`88491273`）
 2026-09-18（**極限任務 Phase 2 REVIEW COMMIT**: EX-02〜10＋共通modifier＋EX-09人間4人別職。provisional据置。**main未統合**・次=Producer実機QA）

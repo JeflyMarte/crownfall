@@ -135,7 +135,9 @@ static func apply_job_attack_multiplier(base_damage: int, member_index: int) -> 
 	if weapon_inst != null and not weapon_inst.weapon_id.is_empty():
 		var weapon_data: Resource = DataRegistry.get_weapon_data(weapon_inst.weapon_id)
 		atk_mult *= JobStatCalculator.get_preferred_weapon_multiplier(member, weapon_data)
-	return maxi(0, int(round(float(base_damage) * atk_mult)))
+	var scaled: int = maxi(0, int(round(float(base_damage) * atk_mult)))
+	const _RoyalMarkSystem := preload("res://scripts/systems/RoyalMarkSystem.gd")
+	return _RoyalMarkSystem.apply_attack_multiplier(scaled, member)
 
 # ── 敵側軽減（属性/特効/シナジー/地形/天候/防御） ────────────────────────
 
@@ -353,6 +355,8 @@ static func enemy_damage_to_member(
 			var job_mods: Dictionary = JobStatCalculator.get_member_modifiers(member)
 			var def_mult: float = float(job_mods.get("defense_multiplier", JobStatCalculator.DEFAULT_MULTIPLIER))
 			defense = maxi(0, int(round(float(defense) * def_mult)))
+			const _RoyalMarkSystem := preload("res://scripts/systems/RoyalMarkSystem.gd")
+			defense = _RoyalMarkSystem.apply_defense_multiplier(defense, member)
 			if GameState.is_pet_combatant(target_index):
 				defense = maxi(0, int(round(float(defense) * CombatPassives.pet_defense_mult_from_party())))
 	## 防御DOWN（armor_break）: 味方側も敵と同型に実効 DEF を下げる（P3-FIX-STATUS-AUDIT-001）。

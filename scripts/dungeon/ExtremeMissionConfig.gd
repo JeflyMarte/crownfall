@@ -497,14 +497,24 @@ static func _run_elapsed_sec() -> float:
 	return maxf(0.0, float(GameState.extreme_run_elapsed_sec))
 
 
-## CLEAR 時に呼び出し。進捗保存＋ last_run_* を埋める。
-static func commit_clear_result(dungeon_id: String) -> void:
+## CLEAR 時に呼び出し。王痕片付与 → 進捗保存 → last_run_*。
+## 同一ランの二重 commit は GameState.extreme_run_reward_committed で防止。
+static func commit_clear_result(
+	dungeon_id: String,
+	rng: RandomNumberGenerator = null,
+	force_repeat_roll: float = -1.0
+) -> void:
 	if not is_extreme_mission(dungeon_id):
 		return
+	const _RoyalMarkSystem := preload("res://scripts/systems/RoyalMarkSystem.gd")
 	var order_ok: Dictionary = evaluate_orders_for_run(dungeon_id)
 	var stars: int = stars_for_clear(order_ok)
 	var prev_best: int = GameState.get_extreme_mission_best_stars(dungeon_id)
 	var new_record: bool = stars > prev_best
+	## prev_best 取得後・progress 更新前に報酬確定（二重 commit は System 側で遮断）。
+	_RoyalMarkSystem.grant_extreme_clear_rewards(
+		dungeon_id, prev_best, stars, rng, force_repeat_roll
+	)
 	GameState.record_extreme_mission_clear(dungeon_id, stars, order_ok)
 	GameState.last_run_extreme_mission_id = dungeon_id
 	GameState.last_run_extreme_stars = stars

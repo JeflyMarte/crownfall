@@ -110,6 +110,9 @@ var dungeon_progress: Dictionary = {}
 
 ## 極限任務進捗 { dungeon_id: { cleared, best_stars, orders:{id:bool} } }（P3-DG-EXTREME-001）。
 var extreme_mission_progress: Dictionary = {}
+## 王痕片（アカウント共通）／王痕 Rank { Adventurer.id: 0..5 }（P3-DG-ROYAL-MARK-001）。
+var royal_mark_shards: int = 0
+var royal_mark_ranks: Dictionary = {}
 ## 極限任務ラン計測（セッション。セーブしない）。
 var extreme_run_ko_count: int = 0
 var extreme_run_heal_skill_used: bool = false
@@ -120,12 +123,18 @@ var extreme_run_banned_status_used: bool = false
 var extreme_run_start_msec: int = 0
 ## ポーズ除外のラン経過秒（DungeonScene._process で積算）。
 var extreme_run_elapsed_sec: float = 0.0
+## 同一極限ランの CLEAR 報酬 commit 済み（二重付与防止。セーブしない）。
+var extreme_run_reward_committed: bool = false
 ## 直近ランの極限任務結果（Result 表示用。セーブしない）。
 var last_run_extreme_mission_id: String = ""
 var last_run_extreme_stars: int = 0
 var last_run_extreme_orders: Dictionary = {}
 var last_run_extreme_best_stars: int = 0
 var last_run_extreme_new_record: bool = false
+## 直近ランの王痕片内訳（Result 表示用。セーブしない）。
+var last_run_royal_mark_shards_star: int = 0
+var last_run_royal_mark_shards_repeat: int = 0
+var last_run_royal_mark_shards_total: int = 0
 
 ## 拠点調査ゲージ { dungeon_id: float 0..100 }（P3-HUB-SURVEY-001）。
 var hub_survey_progress: Dictionary = {}
@@ -827,11 +836,15 @@ func begin_extreme_run_tracking(dungeon_id: String) -> void:
 	extreme_run_banned_status_used = false
 	extreme_run_start_msec = 0
 	extreme_run_elapsed_sec = 0.0
+	extreme_run_reward_committed = false
 	last_run_extreme_mission_id = ""
 	last_run_extreme_stars = 0
 	last_run_extreme_orders = {}
 	last_run_extreme_best_stars = 0
 	last_run_extreme_new_record = false
+	last_run_royal_mark_shards_star = 0
+	last_run_royal_mark_shards_repeat = 0
+	last_run_royal_mark_shards_total = 0
 	if _ExtremeMissionConfig.is_extreme_mission(dungeon_id):
 		extreme_run_start_msec = Time.get_ticks_msec()
 
@@ -1953,6 +1966,13 @@ func reset_for_new_game() -> void:
 	crystal_excavate_history = []
 	crystal_excavate_session = {}
 	event_dungeon_attempts = {}
+	extreme_mission_progress = {}
+	royal_mark_shards = 0
+	royal_mark_ranks = {}
+	extreme_run_reward_committed = false
+	last_run_royal_mark_shards_star = 0
+	last_run_royal_mark_shards_repeat = 0
+	last_run_royal_mark_shards_total = 0
 	commander = {}
 	current_exploration_policy = ""
 	current_weather = ""

@@ -706,7 +706,10 @@ func _init_party_hp() -> void:
 		max_hp += LevelSystem.level_hp_bonus(member.level, member)
 		var job_mods: Dictionary = _JobStatCalculator.get_member_modifiers(member)
 		var hp_mult: float = float(job_mods.get("hp_multiplier", _JobStatCalculator.DEFAULT_MULTIPLIER))
-		hp_mult *= _EquipmentSetBonuses.hp_mult(i)
+		max_hp = maxi(1, int(round(float(max_hp) * hp_mult)))
+		const _RoyalMarkSystem := preload("res://scripts/systems/RoyalMarkSystem.gd")
+		max_hp = _RoyalMarkSystem.apply_hp_multiplier(max_hp, member)
+		hp_mult = _EquipmentSetBonuses.hp_mult(i)
 		hp_mult *= _CommanderPermitBoost.hp_mult()
 		max_hp = maxi(1, int(round(float(max_hp) * hp_mult)))
 		## ペットは編成パッシブのステ倍率を最大HPにも適用。

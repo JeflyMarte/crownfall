@@ -1547,6 +1547,9 @@ func _build_extreme_mission_info() -> void:
 			continue
 		var ok: bool = bool(orders_run.get(oid, false))
 		_add_info_pair("極限指令", "%s — %s" % [label, "達成" if ok else "未達成"])
+	_add_info_pair("王痕片（★到達）", "%d" % int(GameState.last_run_royal_mark_shards_star))
+	_add_info_pair("王痕片（周回）", "%d" % int(GameState.last_run_royal_mark_shards_repeat))
+	_add_info_pair("王痕片 合計", "%d" % int(GameState.last_run_royal_mark_shards_total))
 
 
 func _load_info_icon(path: String) -> Texture2D:
