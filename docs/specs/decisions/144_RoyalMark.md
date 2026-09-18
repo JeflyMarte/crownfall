@@ -1,6 +1,6 @@
 # 王痕育成（P3-DG-ROYAL-MARK-001）
 
-**Status:** **Implemented**（2026-09-18）— Phase 1／feature `cursor/royal-mark-144`（**main 未マージ**）  
+**Status:** **Implemented**（2026-09-18）— Phase 1＋**Phase 2 専用UI**／feature `cursor/royal-mark-144`（**main 未マージ**）  
 **上書きなし**（極限任務 Decision 143 は Completed のまま）
 
 ---
@@ -74,11 +74,28 @@ v17→v18: 既存 `extreme_mission_progress[*].best_stars` から一度だけ遡
 - `GameState`／`SaveManager`（SAVE_VERSION 18）
 - `ExtremeMissionConfig.commit_clear_result`
 - `RosterUiHelper`／`CombatController`／`DamageCalculator`
-- `EquipmentScene`（限凸近傍）／`ResultScene`
-- `tests/unit/test_royal_mark.gd`
+- **`RoyalMarkScene`**（Phase 2 専用育成UI）／拠点左メニュー「王痕育成」
+- `EquipmentScene`（Rank 参照表示のみ・強化 transaction なし）／`ResultScene`
+- `tests/unit/test_royal_mark.gd`／`test_royal_mark_ui.gd`
+
+---
+
+## 5.1 Phase 2 UI（専用画面）
+
+| 項目 | 内容 |
+|---|---|
+| Scene | `scenes/royal_mark/RoyalMarkScene.tscn` |
+| 導線 | 拠点左メニュー「王痕育成」（キャラ管理の直下）。Main5 Normal 未 CLEAR は LOCKED |
+| 切替 | roster 人間のみ左右切替（Jack／pet 除外） |
+| 表示 | Rank I〜V 点灯トラック／累積効果行／次 Rank＋コスト（所持/必要） |
+| 強化 | 「王痕を刻む」→ `RoyalMarkSystem.can_upgrade`／`apply_upgrade`／save。短演出のみ |
+| 王痕片 Help | タップで説明（極限任務への直接遷移はなし） |
+| Equipment | 強化操作削除。NameRow に `王痕 II` 等の参照ラベルのみ |
+
+ロジック・経済・Save・Extreme 報酬は Phase 1 据置（数値変更なし）。
 
 ---
 
 ## 6. 非スコープ
 
-王痕 VI+／Passive 変更／限凸変更／新キャラ・装備・ダンジョン／極限 TUNING 変更／Decision 143 変更。
+王痕 VI+／Passive 変更／限凸変更／新キャラ・装備・ダンジョン／極限 TUNING 変更／Decision 143 変更／新大型アート。

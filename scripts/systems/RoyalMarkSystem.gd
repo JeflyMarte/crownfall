@@ -88,6 +88,18 @@ static func is_eligible_member(member: Resource) -> bool:
 	return not id.is_empty()
 
 
+## roster 内の王痕対象人間のみ（Jack／pet 除外）。表示順は roster 順。
+static func list_owned_eligible_members() -> Array:
+	var out: Array = []
+	for m: Variant in GameState.roster:
+		if m == null:
+			continue
+		if not is_eligible_member(m as Resource):
+			continue
+		out.append(m)
+	return out
+
+
 ## UI／戦闘共通。member から累積 HP/ATK/DEF 倍率。
 static func stat_multipliers_for_member(member: Resource) -> Dictionary:
 	return _Config.stat_multipliers_for_rank(rank_of_member(member))

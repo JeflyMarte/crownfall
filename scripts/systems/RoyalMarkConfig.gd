@@ -121,6 +121,30 @@ static func effect_label_for_rank(rank: int) -> String:
 			return "効果なし"
 
 
+## UI 用: 累積効果を HP/ATK/DEF 行に分解（未付与は "—"）。
+static func effect_stat_lines_for_rank(rank: int) -> PackedStringArray:
+	var r: int = clamp_rank(rank)
+	return PackedStringArray([
+		_stat_line("HP", hp_mult_for_rank(r)),
+		_stat_line("ATK", atk_mult_for_rank(r)),
+		_stat_line("DEF", def_mult_for_rank(r)),
+	])
+
+
+static func _stat_line(label: String, mult: float) -> String:
+	var pct: int = int(round((mult - 1.0) * 100.0))
+	if pct <= 0:
+		return "%s —" % label
+	return "%s +%d%%" % [label, pct]
+
+
+static func roman_for_rank(rank: int) -> String:
+	var r: int = clamp_rank(rank)
+	if r <= 0:
+		return "—"
+	return ["I", "II", "III", "IV", "V"][r - 1]
+
+
 ## Rank 昇格ステップの効果（表の1段階分）。
 static func step_effect_label(to_rank: int) -> String:
 	match clamp_rank(to_rank):

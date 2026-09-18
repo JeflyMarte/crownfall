@@ -174,7 +174,7 @@ static func make_side_menu_row(entry: Dictionary) -> Control:
 	var btn := Button.new()
 	btn.flat = true
 	btn.disabled = locked
-	btn.tooltip_text = "準備中" if locked else full_title
+	btn.tooltip_text = str(entry.get("lock_tooltip", "準備中")) if locked else full_title
 	btn.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
 		btn.add_theme_stylebox_override(state, flat_button_style())
