@@ -1,8 +1,8 @@
 class_name RoyalMarkSystem
 extends RefCounted
 
-## 王痕育成 API（P3-DG-ROYAL-MARK-001 / Decision 144）。
-## 強化・★到達片・周回抽選・ステ倍率。Save は呼び出し側。
+## 王痕育成 API（P3-DG-ROYAL-MARK-001 / Decision 144＋146 分岐）。
+## 強化・方針・★到達片・周回抽選・ステ倍率。Save は呼び出し側。
 
 const _Config := preload("res://scripts/systems/RoyalMarkConfig.gd")
 const _DungeonTierConfig := preload("res://scripts/dungeon/DungeonTierConfig.gd")
@@ -21,6 +21,27 @@ static func sanitize_ranks(raw: Variant) -> Dictionary:
 		if id.is_empty():
 			continue
 		out[id] = _Config.clamp_rank(int((raw as Dictionary)[k]))
+	return out
+
+
+## Decision 146: path 辞書。不正値は unselected。rank≥III 欠落は unselected を補完。
+static func sanitize_paths(raw: Variant, ranks: Dictionary = {}) -> Dictionary:
+	var out: Dictionary = {}
+	if raw is Dictionary:
+		for k: Variant in (raw as Dictionary).keys():
+			var id: String = _Config.normalize_character_id(str(k))
+			if id.is_empty():
+				continue
+			out[id] = _Config.normalize_path((raw as Dictionary)[k])
+	## Rank III+ で欠落しているキーは unselected（migration／欠損救済）
+	for rk: Variant in ranks.keys():
+		var rid: String = _Config.normalize_character_id(str(rk))
+		if rid.is_empty():
+			continue
+		if _Config.clamp_rank(int(ranks[rk])) < _Config.PATH_MIN_RANK:
+			continue
+		if not out.has(rid):
+			out[rid] = _Config.PATH_UNSELECTED
 	return out
 
 
@@ -59,8 +80,114 @@ static func set_rank(character_id: String, rank: int) -> void:
 	var r: int = _Config.clamp_rank(rank)
 	if r <= 0:
 		GameState.royal_mark_ranks.erase(id)
+		GameState.royal_mark_paths.erase(id)
 	else:
 		GameState.royal_mark_ranks[id] = r
+		if r >= _Config.PATH_MIN_RANK and not GameState.royal_mark_paths.has(id):
+			GameState.royal_mark_paths[id] = _Config.PATH_UNSELECTED
+
+
+static func path_of_id(character_id: String) -> String:
+	var id: String = _Config.normalize_character_id(character_id)
+	if id.is_empty():
+		return _Config.PATH_UNSELECTED
+	return _Config.normalize_path(GameState.royal_mark_paths.get(id, _Config.PATH_UNSELECTED))
+
+
+static func path_of_member(member: Resource) -> String:
+	if member == null:
+		return _Config.PATH_UNSELECTED
+	return path_of_id(str(member.id))
+
+
+## Job Skill 強化モード: none / legacy / technique
+static func job_skill_mode_for_member(member: Resource) -> String:
+	if member == null:
+		return "none"
+	var rank: int = rank_of_member(member)
+	if rank < _Config.SKILL_ENHANCE_MIN_RANK:
+		return "none"
+	var path: String = path_of_member(member)
+	if path == _Config.PATH_UNSELECTED:
+		return "legacy"
+	if path == _Config.PATH_TECHNIQUE:
+		return "technique"
+	return "none"
+
+
+static func offense_outgoing_mult_for_member(member: Resource) -> float:
+	if member == null:
+		return 1.0
+	var rank: int = rank_of_member(member)
+	if rank < _Config.PATH_MIN_RANK:
+		return 1.0
+	if path_of_member(member) != _Config.PATH_OFFENSE:
+		return 1.0
+	return _Config.offense_outgoing_mult_for_rank(rank)
+
+
+static func defense_incoming_mult_for_member(member: Resource) -> float:
+	if member == null:
+		return 1.0
+	var rank: int = rank_of_member(member)
+	if rank < _Config.PATH_MIN_RANK:
+		return 1.0
+	if path_of_member(member) != _Config.PATH_DEFENSE:
+		return 1.0
+	return _Config.defense_incoming_mult_for_rank(rank)
+
+
+## ダンジョン攻略中は方針変更不可（current_dungeon_id または DungeonScene）。
+static func is_path_change_allowed() -> bool:
+	if not str(GameState.current_dungeon_id).is_empty():
+		return false
+	var tree: SceneTree = Engine.get_main_loop() as SceneTree
+	if tree == null or tree.current_scene == null:
+		return true
+	var scene_path: String = str(tree.current_scene.scene_file_path)
+	if scene_path.ends_with("DungeonScene.tscn"):
+		return false
+	return true
+
+
+static func can_set_path(member: Resource, new_path: String) -> Dictionary:
+	if not is_eligible_member(member):
+		return {"ok": false, "reason": "not_eligible"}
+	var id: String = _Config.normalize_character_id(str(member.id))
+	var rank: int = rank_of_id(id)
+	if rank < _Config.PATH_MIN_RANK:
+		return {"ok": false, "reason": "rank_gate", "character_id": id, "rank": rank}
+	if not is_path_change_allowed():
+		return {"ok": false, "reason": "dungeon_lock", "character_id": id}
+	var normalized: String = _Config.normalize_path(new_path)
+	if not _Config.is_selected_path(normalized):
+		## unselected への復帰は不可（初回未選択以外）
+		return {"ok": false, "reason": "cannot_unselect", "character_id": id}
+	return {
+		"ok": true,
+		"character_id": id,
+		"rank": rank,
+		"path": normalized,
+		"prev_path": path_of_id(id),
+	}
+
+
+## 無料・何度でも可。unselected へは戻せない。
+static func apply_path(member: Resource, new_path: String) -> Dictionary:
+	var check: Dictionary = can_set_path(member, new_path)
+	if not bool(check.get("ok", false)):
+		return check
+	var id: String = str(check.get("character_id", ""))
+	var path: String = str(check.get("path", ""))
+	if id.is_empty() or path.is_empty():
+		return {"ok": false, "reason": "recheck_failed", "character_id": id}
+	GameState.royal_mark_paths[id] = path
+	return {
+		"ok": true,
+		"character_id": id,
+		"path": path,
+		"prev_path": str(check.get("prev_path", _Config.PATH_UNSELECTED)),
+	}
 
 
 static func is_content_unlocked() -> bool:
@@ -211,7 +338,11 @@ static func apply_upgrade(member: Resource) -> Dictionary:
 		return {"ok": false, "reason": "recheck_failed", "character_id": id}
 	GameState.royal_mark_shards = shards_now - need_shards
 	GameState.gold = gold_now - need_gold
-	GameState.royal_mark_ranks[id] = _Config.clamp_rank(next_rank)
+	var clamped_next: int = _Config.clamp_rank(next_rank)
+	GameState.royal_mark_ranks[id] = clamped_next
+	## III 到達時: path 未設定なら unselected（初回選択待ち）
+	if clamped_next >= _Config.PATH_MIN_RANK and not GameState.royal_mark_paths.has(id):
+		GameState.royal_mark_paths[id] = _Config.PATH_UNSELECTED
 	return {
 		"ok": true,
 		"character_id": id,

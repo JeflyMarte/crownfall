@@ -113,6 +113,8 @@ var extreme_mission_progress: Dictionary = {}
 ## 王痕片（アカウント共通）／王痕 Rank { Adventurer.id: 0..5 }（P3-DG-ROYAL-MARK-001）。
 var royal_mark_shards: int = 0
 var royal_mark_ranks: Dictionary = {}
+## Decision 146: Adventurer.id → unselected|offense|defense|technique
+var royal_mark_paths: Dictionary = {}
 ## 極限任務ラン計測（セッション。セーブしない）。
 var extreme_run_ko_count: int = 0
 var extreme_run_heal_skill_used: bool = false
@@ -1969,6 +1971,7 @@ func reset_for_new_game() -> void:
 	extreme_mission_progress = {}
 	royal_mark_shards = 0
 	royal_mark_ranks = {}
+	royal_mark_paths = {}
 	extreme_run_reward_committed = false
 	last_run_royal_mark_shards_star = 0
 	last_run_royal_mark_shards_repeat = 0

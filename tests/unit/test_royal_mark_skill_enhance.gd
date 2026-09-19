@@ -13,9 +13,11 @@ func before_each() -> void:
 	GameState.debug_full_unlock = false
 	GameState.royal_mark_shards = 0
 	GameState.royal_mark_ranks = {}
+	GameState.royal_mark_paths = {}
 	GameState.roster.clear()
 	GameState.party_members.clear()
 	GameState.gold = 0
+	GameState.current_dungeon_id = ""
 
 
 func _set_equipped(member: Resource, skill_ids: Array) -> void:
@@ -248,6 +250,8 @@ func test_rank_v_crit_surge_duration() -> void:
 	)
 	var out: Resource = _RoyalMarkSkillModifier.enhance_for_combat(ult, m)
 	assert_eq(_RoyalMarkSkillModifier.duration_add_from_skill(out), 1)
+	## Decision 146: 威力最低保証
+	assert_almost_eq(float(out.power_multiplier), 2.7 * 1.08, 0.001)
 
 
 func test_rank_v_blood_drain_duration() -> void:

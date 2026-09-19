@@ -1,8 +1,9 @@
 class_name RoyalMarkSkillModifier
 extends RefCounted
 
-## 王痕 Rank III（装備 Job Skill）／Rank V（固有 Ultimate）の実行時補正。
-## Decision 144 Phase 2。ステ倍率は RoyalMarkConfig／System 側（変更しない）。
+## 王痕 Job Skill／Ultimate 実行時補正（Decision 144＋146）。
+## 排他: unselected=legacy III／technique=新技巧／offense|defense=Job強化なし。
+## Ultimate は Rank≥V なら path 不問。ステ倍率は Config／System 側。
 
 const _Config := preload("res://scripts/systems/RoyalMarkConfig.gd")
 const _System := preload("res://scripts/systems/RoyalMarkSystem.gd")
@@ -62,12 +63,22 @@ static func enhance_for_combat(skill_data: Resource, member: Resource) -> Resour
 		_apply_ultimate_enhance(ult_copy)
 		ult_copy.set_meta(META_ENHANCED, true)
 		return ult_copy
+	## Weapon Skill は技巧／legacy 対象外
+	if str(skill_data.slot_type) == "weapon":
+		return skill_data
 	if not skill_enhance_active(rank):
 		return skill_data
 	if not is_equipped_job_skill(member, str(skill_data.id)):
 		return skill_data
+	var mode: String = _System.job_skill_mode_for_member(member)
+	if mode == "none":
+		return skill_data
 	var job_copy: Resource = skill_data.duplicate(true)
-	_apply_job_skill_enhance(job_copy)
+	if mode == "technique":
+		_apply_technique_enhance(job_copy, rank)
+	else:
+		## unselected → 旧 III 固定値
+		_apply_job_skill_enhance(job_copy)
 	job_copy.set_meta(META_ENHANCED, true)
 	return job_copy
 
@@ -97,6 +108,7 @@ static func _add_status_chances(skill_data: Resource, add: float) -> void:
 		skill_data.apply_status_chance3 = _clamp_chance(float(skill_data.apply_status_chance3) + add)
 
 
+## 旧 unselected 専用（Decision 144 固定値）。
 static func _apply_job_skill_enhance(skill_data: Resource) -> void:
 	if skill_data.tags.has("trap_place"):
 		skill_data.power_multiplier = float(skill_data.power_multiplier) * _Config.JOB_TRAP_POWER_MULT
@@ -116,6 +128,36 @@ static func _apply_job_skill_enhance(skill_data: Resource) -> void:
 			for raw_tag: Variant in skill_data.tags:
 				if str(raw_tag).begins_with("counter_charges_"):
 					skill_data.set_meta(META_COUNTER_ADD, 1)
+					break
+		_:
+			pass
+
+
+## Decision 146 技巧（Rank 段階）。Status 付き damage は chance のみ。
+static func _apply_technique_enhance(skill_data: Resource, rank: int) -> void:
+	var r: int = _Config.clamp_rank(rank)
+	if skill_data.tags.has("trap_place"):
+		skill_data.power_multiplier = (
+			float(skill_data.power_multiplier) * _Config.tech_trap_mult_for_rank(r)
+		)
+		return
+	match str(skill_data.effect_type):
+		"heal":
+			skill_data.power_multiplier = (
+				float(skill_data.power_multiplier) * _Config.tech_heal_mult_for_rank(r)
+			)
+		"damage":
+			if _has_offensive_status(skill_data):
+				_add_status_chances(skill_data, _Config.tech_status_add_for_rank(r))
+			else:
+				skill_data.power_multiplier = (
+					float(skill_data.power_multiplier) * _Config.tech_damage_mult_for_rank(r)
+				)
+		"buff":
+			skill_data.set_meta(META_DURATION_ADD, _Config.TECH_BUFF_DURATION_ADD)
+			for raw_tag: Variant in skill_data.tags:
+				if str(raw_tag).begins_with("counter_charges_"):
+					skill_data.set_meta(META_COUNTER_ADD, _Config.TECH_COUNTER_ADD)
 					break
 		_:
 			pass
@@ -202,12 +244,23 @@ static func vs_armor_break_mult_from_skill(skill_data: Resource, default_mult: f
 	return default_mult
 
 
-## UI 用: 装備 Job Skill の強化説明行。
-static func describe_job_skill_enhance(skill_data: Resource) -> PackedStringArray:
+## UI 用: 装備 Job Skill の強化説明行（path／rank 考慮）。
+static func describe_job_skill_enhance(skill_data: Resource, member: Resource = null) -> PackedStringArray:
 	var lines: PackedStringArray = PackedStringArray()
 	if skill_data == null or is_excluded_skill(skill_data):
 		lines.append("対象外")
 		return lines
+	var mode: String = "legacy"
+	var rank: int = _Config.SKILL_ENHANCE_MIN_RANK
+	if member != null:
+		mode = _System.job_skill_mode_for_member(member)
+		rank = _System.rank_of_member(member)
+		if mode == "none":
+			lines.append("方針により未適用")
+			return lines
+	if mode == "technique":
+		return _describe_technique(skill_data, rank)
+	## legacy
 	if skill_data.tags.has("trap_place"):
 		lines.append("罠威力 +10%")
 		return lines
@@ -219,6 +272,31 @@ static func describe_job_skill_enhance(skill_data: Resource) -> PackedStringArra
 				lines.append("状態異常付与 +10%")
 			else:
 				lines.append("ダメージ +10%")
+		"buff":
+			lines.append("バフ持続 +1")
+		_:
+			lines.append("強化なし")
+	return lines
+
+
+static func _describe_technique(skill_data: Resource, rank: int) -> PackedStringArray:
+	var lines: PackedStringArray = PackedStringArray()
+	var r: int = _Config.clamp_rank(rank)
+	if skill_data.tags.has("trap_place"):
+		var tpct: int = int(round((_Config.tech_trap_mult_for_rank(r) - 1.0) * 100.0))
+		lines.append("罠威力 +%d%%" % tpct)
+		return lines
+	match str(skill_data.effect_type):
+		"heal":
+			var hpct: int = int(round((_Config.tech_heal_mult_for_rank(r) - 1.0) * 100.0))
+			lines.append("回復量 +%d%%" % hpct)
+		"damage":
+			if _has_offensive_status(skill_data):
+				var spct: int = int(round(_Config.tech_status_add_for_rank(r) * 100.0))
+				lines.append("状態異常付与 +%d%%" % spct)
+			else:
+				var dpct: int = int(round((_Config.tech_damage_mult_for_rank(r) - 1.0) * 100.0))
+				lines.append("ダメージ +%d%%" % dpct)
 		"buff":
 			lines.append("バフ持続 +1")
 		_:

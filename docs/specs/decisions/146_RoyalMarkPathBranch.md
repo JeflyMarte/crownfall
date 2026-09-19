@@ -1,6 +1,6 @@
 # 分岐型王痕（P3-DG-ROYAL-MARK-002）
 
-**Status:** **Approved**（2026-09-19）— 仕様確定。**Gameplay／Save／UI 実装は未着手**  
+**Status:** **Approved**（2026-09-19）／**Implemented**（2026-09-19）  
 **上書き:** Decision `144` の Rank III〜V「全員共通 Job Skill／維持」構造を本 Decision が正とする（ステ倍率・コスト・極限片経済・対象・解放ゲートは `144` 据置）  
 **目的:** 王痕 I〜V を **攻勢／守勢／技巧** の方針分岐へ変え、極限任務の準備選択と V 完成感を両立する
 
@@ -168,6 +168,8 @@ Ultimate 覚醒 → Rank ≥ V なら path 不問（unselected 含む）
 | 項目 | 状態 |
 |---|---|
 | Decision／SSOT | **Approved（本ファイル）** |
-| Gameplay／Combat | 未着手 |
-| Save migration | 未着手 |
-| UI | 未着手 |
+| Gameplay／Combat | **Implemented**（攻勢 outgoing／守勢 incoming／技巧 Job／排他） |
+| Save migration | **Implemented**（SAVE_VERSION 19・`royal_mark_paths`） |
+| UI | **Implemented**（RoyalMarkScene 方針パネル） |
+| Ult 最低保証 | **Implemented**（レノール／火鷹） |
+| Tests | **Implemented**（`test_royal_mark*`） |

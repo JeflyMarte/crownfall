@@ -19,6 +19,7 @@ func before_each() -> void:
 	GameState.extreme_mission_progress.clear()
 	GameState.royal_mark_shards = 0
 	GameState.royal_mark_ranks = {}
+	GameState.royal_mark_paths = {}
 	GameState.extreme_run_reward_committed = false
 	GameState.last_run_royal_mark_shards_star = 0
 	GameState.last_run_royal_mark_shards_repeat = 0
@@ -89,9 +90,10 @@ func test_v17_migration_retroactive_zero() -> void:
 		"extreme_mission_progress": {},
 	}
 	data = SaveManager._migrate_save_data(data)
-	assert_eq(int(data.get("save_version", 0)), 18)
+	assert_eq(int(data.get("save_version", 0)), 19)
 	assert_eq(int(data.get("royal_mark_shards", -1)), 0)
 	assert_true(data.get("royal_mark_ranks", null) is Dictionary)
+	assert_true(data.get("royal_mark_paths", null) is Dictionary)
 
 
 func test_v17_migration_retroactive_star1() -> void:

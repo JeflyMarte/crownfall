@@ -23,7 +23,7 @@ const SLOT_DEBUG: String = "debug"
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 18
+const SAVE_VERSION: int = 19
 
 ## セッション中の読み書き先。タイトルで本編／デバッグを切り替える。
 var _active_slot: String = SLOT_NORMAL
@@ -147,6 +147,7 @@ func save_game() -> bool:
 		"extreme_mission_progress": GameState.extreme_mission_progress.duplicate(true),
 		"royal_mark_shards": int(GameState.royal_mark_shards),
 		"royal_mark_ranks": GameState.royal_mark_ranks.duplicate(true),
+		"royal_mark_paths": GameState.royal_mark_paths.duplicate(true),
 		"current_dungeon_tier": GameState.current_dungeon_tier,
 		"dungeon_tier_cleared": GameState.dungeon_tier_cleared.duplicate(true),
 		"current_stage_id": GameState.current_stage_id,
@@ -279,6 +280,8 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 		data = _migrate_save_v16_to_v17(data)
 	if version < 18:
 		data = _migrate_save_v17_to_v18(data)
+	if version < 19:
+		data = _migrate_save_v18_to_v19(data)
 	data["save_version"] = SAVE_VERSION
 	return data
 
@@ -299,6 +302,18 @@ func _migrate_save_v17_to_v18(data: Dictionary) -> Dictionary:
 	shards += _RoyalMarkSystem.compute_retroactive_shards_from_progress(progress)
 	data["royal_mark_shards"] = shards
 	data["royal_mark_ranks"] = ranks
+	return data
+
+
+## Decision 146: royal_mark_paths。既存 Rank III〜V は unselected。
+func _migrate_save_v18_to_v19(data: Dictionary) -> Dictionary:
+	const _RoyalMarkSystem := preload("res://scripts/systems/RoyalMarkSystem.gd")
+	var ranks: Dictionary = {}
+	if data.has("royal_mark_ranks") and data["royal_mark_ranks"] is Dictionary:
+		ranks = _RoyalMarkSystem.sanitize_ranks(data["royal_mark_ranks"])
+	var raw_paths: Variant = data.get("royal_mark_paths", {})
+	data["royal_mark_ranks"] = ranks
+	data["royal_mark_paths"] = _RoyalMarkSystem.sanitize_paths(raw_paths, ranks)
 	return data
 
 
@@ -1031,6 +1046,12 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.royal_mark_ranks = _RoyalMarkSystem.sanitize_ranks(data["royal_mark_ranks"])
 	else:
 		GameState.royal_mark_ranks = {}
+	if data.has("royal_mark_paths") and data["royal_mark_paths"] is Dictionary:
+		GameState.royal_mark_paths = _RoyalMarkSystem.sanitize_paths(
+			data["royal_mark_paths"], GameState.royal_mark_ranks
+		)
+	else:
+		GameState.royal_mark_paths = _RoyalMarkSystem.sanitize_paths({}, GameState.royal_mark_ranks)
 	if data.has("commander") and data["commander"] is Dictionary:
 		GameState.commander = (data["commander"] as Dictionary).duplicate(true)
 	_CommanderProfile.ensure_commander()

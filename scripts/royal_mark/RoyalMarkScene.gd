@@ -64,6 +64,14 @@ var _panel_status: PanelContainer
 var _label_status: Label
 var _btn_upgrade: Button
 var _panel_special: PanelContainer
+var _panel_path: PanelContainer
+var _label_path_current: Label
+var _label_path_hint: Label
+var _label_path_excluded: Label
+var _path_btn_row: HBoxContainer
+var _btn_path_offense: Button
+var _btn_path_defense: Button
+var _btn_path_technique: Button
 
 var _confirm_overlay: Control
 var _confirm_title: Label
@@ -253,6 +261,39 @@ func _build_chrome() -> void:
 	_label_current_stats.visible = false
 	cur_v.add_child(_label_current_stats)
 
+	## --- 方針（Decision 146・Rank III+） ---
+	_panel_path = PanelContainer.new()
+	_panel_path.visible = false
+	_panel_path.add_theme_stylebox_override("panel", _RoyalMarkUiTokens.enhance_card_style(false))
+	_panel_path.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_root.add_child(_panel_path)
+	var path_v := VBoxContainer.new()
+	path_v.add_theme_constant_override("separation", 6)
+	_panel_path.add_child(path_v)
+	var path_title := Label.new()
+	path_title.text = "王痕方針"
+	UiTypography.apply_caption(path_title, _RoyalMarkUiTokens.COLOR_GOLD)
+	path_v.add_child(path_title)
+	_label_path_current = Label.new()
+	_label_path_current.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_body(_label_path_current, UiTypography.SIZE_BODY_SMALL, _RoyalMarkUiTokens.COLOR_BODY)
+	path_v.add_child(_label_path_current)
+	_label_path_hint = Label.new()
+	_label_path_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_caption(_label_path_hint, _RoyalMarkUiTokens.COLOR_SUB)
+	path_v.add_child(_label_path_hint)
+	_path_btn_row = HBoxContainer.new()
+	_path_btn_row.add_theme_constant_override("separation", 6)
+	path_v.add_child(_path_btn_row)
+	_btn_path_offense = _make_path_button("攻勢", _RoyalMarkConfig.PATH_OFFENSE)
+	_btn_path_defense = _make_path_button("守勢", _RoyalMarkConfig.PATH_DEFENSE)
+	_btn_path_technique = _make_path_button("技巧", _RoyalMarkConfig.PATH_TECHNIQUE)
+	_label_path_excluded = Label.new()
+	_label_path_excluded.visible = false
+	_label_path_excluded.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_caption(_label_path_excluded, _RoyalMarkUiTokens.COLOR_SHORTAGE)
+	path_v.add_child(_label_path_excluded)
+
 	## --- 5〜7. 次の王痕 → コスト → CTA（Reward→Cost→Action）／MAX 同スロット ---
 	_panel_next = PanelContainer.new()
 	_panel_next.add_theme_stylebox_override("panel", _RoyalMarkUiTokens.info_panel_style())
@@ -351,6 +392,18 @@ func _build_chrome() -> void:
 	sp_v.add_child(_label_special_v)
 
 
+func _make_path_button(label: String, path_id: String) -> Button:
+	var btn := Button.new()
+	btn.text = label
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn.custom_minimum_size = Vector2(0, 40)
+	_RoyalMarkUiTokens.apply_chrome_button(btn, true)
+	btn.pressed.connect(_on_path_pressed.bind(path_id))
+	_path_btn_row.add_child(btn)
+	return btn
+
+
 func _make_stat_inline(parent: HBoxContainer, key: String) -> Label:
 	var col := HBoxContainer.new()
 	col.add_theme_constant_override("separation", 4)
@@ -409,6 +462,7 @@ func _refresh_all() -> void:
 		_set_emblem_for_rank(0)
 		_set_stat_bonuses(0)
 		_refresh_enhance_labels(null, 0)
+		_refresh_path_panel(null, 0)
 		_show_non_max_footer()
 		_label_next_rank.text = "—"
 		_label_next_effect.text = "—"
@@ -431,6 +485,7 @@ func _refresh_all() -> void:
 	_apply_rank_track(rank)
 	_set_stat_bonuses(rank)
 	_refresh_enhance_labels(member, rank)
+	_refresh_path_panel(member, rank)
 	var shards: int = _RoyalMarkSystem.get_shards()
 	var gold: int = int(GameState.gold)
 	if rank >= _RoyalMarkConfig.MAX_RANK:
@@ -581,12 +636,20 @@ func _refresh_enhance_labels(member: Resource, rank: int) -> void:
 			DataRegistry.get_skill_data(skill_id) if not skill_id.is_empty() else null
 		)
 		var skill_name: String = str(skill_data.display_name) if skill_data != null else "—"
-		var skill_lines: PackedStringArray = _RoyalMarkSkillModifier.describe_job_skill_enhance(skill_data)
+		var skill_lines: PackedStringArray = _RoyalMarkSkillModifier.describe_job_skill_enhance(
+			skill_data, member
+		)
 		var boost: String = _format_boost_lines(skill_lines)
+		var path: String = _RoyalMarkSystem.path_of_member(member) if member != null else ""
+		var iii_prefix: String = "III　装備スキル強化"
+		if path == _RoyalMarkConfig.PATH_TECHNIQUE:
+			iii_prefix = "III　技巧"
+		elif path == _RoyalMarkConfig.PATH_OFFENSE or path == _RoyalMarkConfig.PATH_DEFENSE:
+			iii_prefix = "III　方針（装備強化なし）"
 		if boost.is_empty() or boost == "—":
-			_label_special_iii.text = "III　装備スキル強化　%s" % skill_name
+			_label_special_iii.text = "%s　%s" % [iii_prefix, skill_name]
 		else:
-			_label_special_iii.text = "III　装備スキル強化　%s\n%s" % [skill_name, boost]
+			_label_special_iii.text = "%s　%s\n%s" % [iii_prefix, skill_name, boost]
 		_label_special_iii.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_BODY)
 	## V
 	if rank < _RoyalMarkConfig.ULTIMATE_ENHANCE_MIN_RANK:
@@ -604,6 +667,83 @@ func _refresh_enhance_labels(member: Resource, rank: int) -> void:
 		else:
 			_label_special_v.text = "V　必殺技強化　%s\n%s" % [ult_name, ult_boost]
 		_label_special_v.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_BODY)
+
+
+func _refresh_path_panel(member: Resource, rank: int) -> void:
+	if _panel_path == null:
+		return
+	if member == null or rank < _RoyalMarkConfig.PATH_MIN_RANK:
+		_panel_path.visible = false
+		return
+	_panel_path.visible = true
+	var path: String = _RoyalMarkSystem.path_of_member(member)
+	var path_name: String = _RoyalMarkConfig.path_display_name(path)
+	var summary: String = _RoyalMarkConfig.path_effect_summary(path, rank)
+	if path == _RoyalMarkConfig.PATH_UNSELECTED:
+		_label_path_current.text = "現在: 未選択"
+		_label_path_hint.text = "方針を選んでください（無料・何度でも変更可）"
+		_label_path_current.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_GOLD_LIT)
+	else:
+		_label_path_current.text = "現在: %s　%s" % [path_name, summary]
+		_label_path_hint.text = "攻勢: 与ダメ／守勢: 被ダメ減／技巧: Job強化"
+		_label_path_current.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_BODY)
+	var allowed: bool = _RoyalMarkSystem.is_path_change_allowed()
+	_btn_path_offense.disabled = not allowed
+	_btn_path_defense.disabled = not allowed
+	_btn_path_technique.disabled = not allowed
+	_RoyalMarkUiTokens.apply_chrome_button(_btn_path_offense, allowed)
+	_RoyalMarkUiTokens.apply_chrome_button(_btn_path_defense, allowed)
+	_RoyalMarkUiTokens.apply_chrome_button(_btn_path_technique, allowed)
+	if not allowed:
+		_label_path_hint.text = "ダンジョン中は方針変更不可"
+	## 技巧＋excluded 警告
+	var show_ex: bool = false
+	if path == _RoyalMarkConfig.PATH_TECHNIQUE or path == _RoyalMarkConfig.PATH_UNSELECTED:
+		var skill_ids: Array[String] = GameState.get_equipped_skill_ids(member)
+		var skill_id: String = skill_ids[0] if not skill_ids.is_empty() else ""
+		var skill_data: Resource = (
+			DataRegistry.get_skill_data(skill_id) if not skill_id.is_empty() else null
+		)
+		if path == _RoyalMarkConfig.PATH_TECHNIQUE and _RoyalMarkSkillModifier.is_excluded_skill(skill_data):
+			show_ex = true
+	_label_path_excluded.visible = show_ex
+	if show_ex:
+		_label_path_excluded.text = "現在の装備スキルは技巧強化の対象外です"
+
+
+func _on_path_pressed(path_id: String) -> void:
+	if _busy:
+		return
+	var member: Resource = _current_member()
+	if member == null:
+		return
+	var check: Dictionary = _RoyalMarkSystem.can_set_path(member, path_id)
+	if not bool(check.get("ok", false)):
+		_refresh_all()
+		return
+	var pname: String = _RoyalMarkConfig.path_display_name(path_id)
+	_show_confirm(
+		"方針を変更",
+		"%s を「%s」にしますか？\n（無料・いつでも変更可／未選択には戻せません）" % [
+			str(member.display_name),
+			pname,
+		],
+		_on_path_confirmed.bind(path_id)
+	)
+
+
+func _on_path_confirmed(path_id: String) -> void:
+	if _busy:
+		return
+	_busy = true
+	var member: Resource = _current_member()
+	var result: Dictionary = _RoyalMarkSystem.apply_path(member, path_id)
+	_busy = false
+	if not bool(result.get("ok", false)):
+		_refresh_all()
+		return
+	SaveManager.save_game()
+	_refresh_all()
 
 
 func _format_boost_lines(lines: PackedStringArray) -> String:
@@ -933,6 +1073,26 @@ func get_special_preview_for_test() -> String:
 	var a: String = _label_special_iii.text if _label_special_iii != null else ""
 	var b: String = _label_special_v.text if _label_special_v != null else ""
 	return "%s\n%s" % [a, b]
+
+
+func get_path_panel_visible_for_test() -> bool:
+	return _panel_path != null and _panel_path.visible
+
+
+func get_path_current_text_for_test() -> String:
+	return _label_path_current.text if _label_path_current != null else ""
+
+
+func get_path_excluded_text_for_test() -> String:
+	if _label_path_excluded == null or not _label_path_excluded.visible:
+		return ""
+	return _label_path_excluded.text
+
+
+func get_path_buttons_disabled_for_test() -> bool:
+	if _btn_path_offense == null:
+		return true
+	return _btn_path_offense.disabled
 
 
 func get_max_panel_visible_for_test() -> bool:

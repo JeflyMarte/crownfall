@@ -1554,6 +1554,11 @@ func get_member_outgoing_damage_multiplier(
 	if target_slot >= 0:
 		const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
 		mult *= _ExtremeMissionConfig.status_require_outgoing_mult_for_active_run(self, target_slot)
+	## Decision 146: 攻勢方針（既存 outgoing 共通経路のみ）。
+	if member_index >= 0 and member_index < GameState.party_members.size():
+		const _RoyalMarkSystemOut := preload("res://scripts/systems/RoyalMarkSystem.gd")
+		var out_member: Resource = GameState.party_members[member_index]
+		mult *= _RoyalMarkSystemOut.offense_outgoing_mult_for_member(out_member)
 	return mult
 
 # 被ダメ補正（防御=guard 等）。1.0=等倍。P3-D085 で配線。遺物 incoming_mult も乗算（P3-D090）。
@@ -1600,6 +1605,11 @@ func get_member_incoming_damage_multiplier(member_index: int, attacker_slot: int
 			if get_enemy_status_stacks_at(attacker_slot, status_id) > 0:
 				attacker_statuses.append(status_id)
 		mult *= CombatPassives.incoming_vs_attacker_status_mult(member_index, attacker_statuses)
+	## Decision 146: 守勢方針（既存 incoming 共通経路のみ）。
+	if member_index >= 0 and member_index < GameState.party_members.size():
+		const _RoyalMarkSystemIn := preload("res://scripts/systems/RoyalMarkSystem.gd")
+		var in_member: Resource = GameState.party_members[member_index]
+		mult *= _RoyalMarkSystemIn.defense_incoming_mult_for_member(in_member)
 	return mult
 
 

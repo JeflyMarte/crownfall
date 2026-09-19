@@ -18,10 +18,12 @@ func before_each() -> void:
 	GameState.dungeon_tier_cleared.clear()
 	GameState.royal_mark_shards = 0
 	GameState.royal_mark_ranks = {}
+	GameState.royal_mark_paths = {}
 	GameState.gold = 0
 	GameState.roster.clear()
 	GameState.party_members.clear()
 	GameState.active_pet = null
+	GameState.current_dungeon_id = ""
 
 
 func _clear_main_normal() -> void:
