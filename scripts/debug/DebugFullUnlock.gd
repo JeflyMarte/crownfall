@@ -2,7 +2,7 @@ class_name DebugFullUnlock
 extends RefCounted
 
 ## タイトル「デバッグ」用フル所持プリセット。
-## 金 999999 / 魔晶石 9999・全装備（武／防／装）・装備LvMAX・全キャラ LvMAX・
+## 金 999999 / 魔晶石 9999 / 王痕片 9999・全装備（武／防／装）・装備LvMAX・全キャラ LvMAX・
 ## 指揮官 S+99・図鑑全開放・進行解放。
 
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
@@ -20,6 +20,8 @@ const _DebugAccess = preload("res://scripts/debug/DebugAccess.gd")
 
 const DEBUG_GOLD: int = 999_999
 const DEBUG_GACHA_TOKEN: int = 9_999
+## 王痕片。人間19人×Rank V 累計100＝1900 を十分上回る検証用。
+const DEBUG_ROYAL_MARK_SHARDS: int = 9_999
 ## owned_helpers 所持数（1=未凸、6=+5 頭打ち）。
 ## 上限-1（+4）にして限界突破券を1枚試せる余地を残す。
 const DEBUG_HELPER_OWNED_COUNT: int = _GachaLimitBreak.MAX_BREAKTHROUGH
@@ -39,6 +41,7 @@ static func apply() -> void:
 	GameState.pending_nonoka_survey_join = false
 	GameState.gold = DEBUG_GOLD
 	GameState.gacha_token = DEBUG_GACHA_TOKEN
+	GameState.royal_mark_shards = DEBUG_ROYAL_MARK_SHARDS
 	_unlock_all_starters_and_helpers()
 	_max_all_character_levels()
 	_grant_all_equipment()
@@ -69,6 +72,18 @@ static func apply() -> void:
 	GameState.normalize_all_equipped_skills()
 	GameState.normalize_all_equipped_passives()
 	GameState.migrate_formation_slots_if_needed()
+
+
+## 既存デバッグセーブ向け。片が DEBUG 未満なら MAX まで補充。変更したら true。
+static func ensure_royal_mark_shards() -> bool:
+	if not _DebugAccess.is_allowed():
+		return false
+	if not GameState.debug_full_unlock:
+		return false
+	if GameState.royal_mark_shards >= DEBUG_ROYAL_MARK_SHARDS:
+		return false
+	GameState.royal_mark_shards = DEBUG_ROYAL_MARK_SHARDS
+	return true
 
 
 static func _unlock_all_starters_and_helpers() -> void:

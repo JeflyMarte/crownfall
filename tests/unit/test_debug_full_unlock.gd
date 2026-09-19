@@ -29,6 +29,7 @@ func test_debug_full_unlock_grants_currency_roster_and_gear() -> void:
 	_DebugFullUnlock.apply()
 	assert_eq(GameState.gold, _DebugFullUnlock.DEBUG_GOLD)
 	assert_eq(GameState.gacha_token, _DebugFullUnlock.DEBUG_GACHA_TOKEN)
+	assert_eq(GameState.royal_mark_shards, _DebugFullUnlock.DEBUG_ROYAL_MARK_SHARDS)
 	assert_true(GameState.debug_full_unlock)
 	assert_false(GameState.needs_starter_pick())
 	assert_eq(GameState.starter_unlocked_ids.size(), GameState.BASE_ROSTER_DEFS.size())
@@ -53,6 +54,18 @@ func test_debug_full_unlock_grants_currency_roster_and_gear() -> void:
 	for hid: String in ["helper_q", "helper_r", "helper_s"]:
 		assert_gte(int(GameState.owned_helpers.get(hid, 0)), 1, "機巧士 %s 所持" % hid)
 		assert_not_null(GameState.find_roster_member_by_id("gacha_" + hid), "機巧士 %s ロスター" % hid)
+
+
+func test_ensure_royal_mark_shards_tops_up_existing_debug() -> void:
+	_DebugFullUnlock.apply()
+	GameState.royal_mark_shards = 3
+	assert_true(_DebugFullUnlock.ensure_royal_mark_shards())
+	assert_eq(GameState.royal_mark_shards, _DebugFullUnlock.DEBUG_ROYAL_MARK_SHARDS)
+	assert_false(_DebugFullUnlock.ensure_royal_mark_shards())
+	GameState.debug_full_unlock = false
+	GameState.royal_mark_shards = 0
+	assert_false(_DebugFullUnlock.ensure_royal_mark_shards())
+	assert_eq(GameState.royal_mark_shards, 0)
 
 
 func test_debug_full_unlock_max_levels_and_codex() -> void:

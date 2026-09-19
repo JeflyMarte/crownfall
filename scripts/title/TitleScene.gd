@@ -256,7 +256,7 @@ func _on_new_game_confirmed() -> void:
 func _debug_fresh_dialog_text() -> String:
 	return (
 		"デバッグ専用セーブで開始します（本編のセーブは消えません）。\n"
-		+ "（図鑑全開放・全装備・キャラLvMAX・金999999・魔晶石9999・進行解放）\nよろしいですか？"
+		+ "（図鑑全開放・全装備・キャラLvMAX・金999999・魔晶石9999・王痕片9999・進行解放）\nよろしいですか？"
 	)
 
 
@@ -291,8 +291,13 @@ func _on_debug_confirmed() -> void:
 			)
 			SaveManager.use_normal_slot()
 			return
-		## 旧デバッグセーブに機巧士が無い場合は補完して保存。
+		## 旧デバッグセーブに機巧士／王痕片が無い場合は補完して保存。
+		var patched: bool = false
 		if _DebugFullUnlock.ensure_engineer_helpers():
+			patched = true
+		if _DebugFullUnlock.ensure_royal_mark_shards():
+			patched = true
+		if patched:
 			SaveManager.save_game()
 	else:
 		_DebugFullUnlock.apply()
