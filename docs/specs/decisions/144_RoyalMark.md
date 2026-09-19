@@ -89,7 +89,7 @@ v17→v18: 既存 `extreme_mission_progress[*].best_stars` から一度だけ遡
 | 導線 | **キャラ管理（Equipment）NameRow「王痕育成」**。拠点左メニューからはオミット。Main5 Normal 未 CLEAR はボタン LOCKED |
 | 切替 | roster 人間のみ左右切替（Jack／pet 除外）。入場時は `equipment_focus_member_id` を優先 |
 | 戻る | キャラ管理へ（フォーカス維持） |
-| 表示 | Rank I〜V（III=◆／V=★）／基礎能力3列／III・V独立カード／次 Rank＋コスト。**MAX時は次Rank・素材・刻む非表示**→「王痕 V」＋「MAX」（既存用語） |
+| 表示 | Rank I〜V（III=◆／V=★）。**情報階層**＝現在効果1行 → **次の王痕（主情報）** → コスト →「王痕を刻む」→ 特殊王痕 III/V 2行コンパクト。**MAX時は次Rank・素材・刻む非表示**→同スロットに「王痕 V」＋「MAX」（既存用語）。ゲーム効果・コスト不変 |
 | 強化 | 「王痕を刻む」→ `RoyalMarkSystem.can_upgrade`／`apply_upgrade`／save。短演出のみ |
 | 王痕片 Help | 右上 `?`／素材行タップで説明（極限任務への直接遷移はなし） |
 | 背景 | 専用 `UI_BG_RoyalMark`（拠点BGと分離・装飾専用）。動的 UI は Godot Control |

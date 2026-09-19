@@ -1,7 +1,7 @@
 extends Control
 
 ## 王痕育成専用画面（Decision 144 Phase 2）。Presentation のみ。transaction は RoyalMarkSystem。
-## UI Polish: 情報階層・Rank III/V カード・MAX専用表示。
+## UI: 次の王痕を主情報に。現在効果コンパクト／特殊王痕2行予告。
 
 const _RoyalMarkConfig := preload("res://scripts/systems/RoyalMarkConfig.gd")
 const _RoyalMarkSystem := preload("res://scripts/systems/RoyalMarkSystem.gd")
@@ -45,19 +45,14 @@ var _rank_connectors: Array[Control] = []
 var _label_stat_hp: Label
 var _label_stat_atk: Label
 var _label_stat_def: Label
-var _skill_card: PanelContainer
-var _label_skill_gate: Label
-var _label_skill_kind: Label
-var _label_skill_name: Label
-var _label_skill_boost: Label
-var _ult_card: PanelContainer
-var _label_ult_gate: Label
-var _label_ult_kind: Label
-var _label_ult_name: Label
-var _label_ult_boost: Label
+var _label_current_stats: Label
+var _label_special_iii: Label
+var _label_special_v: Label
 
 var _panel_next: PanelContainer
 var _label_next_title: Label
+var _label_next_rank: Label
+var _label_next_effect: Label
 var _label_next_block: Label
 var _btn_shards: Button
 var _label_gold_cost: Label
@@ -68,6 +63,7 @@ var _label_max_sub: Label
 var _panel_status: PanelContainer
 var _label_status: Label
 var _btn_upgrade: Button
+var _panel_special: PanelContainer
 
 var _confirm_overlay: Control
 var _confirm_title: Label
@@ -77,6 +73,7 @@ var _help_overlay: Control
 
 
 func _ready() -> void:
+	_root.add_theme_constant_override("separation", 6)
 	_apply_safe_area()
 	_build_chrome()
 	_build_confirm_overlay()
@@ -129,7 +126,7 @@ func _build_chrome() -> void:
 	_root.add_child(char_row)
 	_btn_prev = Button.new()
 	_btn_prev.text = "◀"
-	_btn_prev.custom_minimum_size = Vector2(44, 160)
+	_btn_prev.custom_minimum_size = Vector2(44, int(_RoyalMarkUiTokens.PORTRAIT_SIZE))
 	_btn_prev.focus_mode = Control.FOCUS_NONE
 	_RoyalMarkUiTokens.apply_chrome_button(_btn_prev, true)
 	_btn_prev.pressed.connect(_on_prev_pressed)
@@ -139,7 +136,9 @@ func _build_chrome() -> void:
 	char_col.add_theme_constant_override("separation", 4)
 	char_row.add_child(char_col)
 	_portrait = TextureRect.new()
-	_portrait.custom_minimum_size = Vector2(160, 160)
+	_portrait.custom_minimum_size = Vector2(
+		_RoyalMarkUiTokens.PORTRAIT_SIZE, _RoyalMarkUiTokens.PORTRAIT_SIZE
+	)
 	_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -158,7 +157,7 @@ func _build_chrome() -> void:
 	char_col.add_child(_label_rank)
 	_btn_next = Button.new()
 	_btn_next.text = "▶"
-	_btn_next.custom_minimum_size = Vector2(44, 160)
+	_btn_next.custom_minimum_size = Vector2(44, int(_RoyalMarkUiTokens.PORTRAIT_SIZE))
 	_btn_next.focus_mode = Control.FOCUS_NONE
 	_RoyalMarkUiTokens.apply_chrome_button(_btn_next, true)
 	_btn_next.pressed.connect(_on_next_pressed)
@@ -190,7 +189,7 @@ func _build_chrome() -> void:
 	_emblem_frame.add_child(_emblem)
 
 	var track := VBoxContainer.new()
-	track.add_theme_constant_override("separation", 4)
+	track.add_theme_constant_override("separation", 2)
 	_root.add_child(track)
 	var dots := HBoxContainer.new()
 	dots.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -207,7 +206,7 @@ func _build_chrome() -> void:
 		if i > 1:
 			var bar := Label.new()
 			bar.text = "—"
-			bar.custom_minimum_size = Vector2(28, 28)
+			bar.custom_minimum_size = Vector2(28, 24)
 			bar.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			UiTypography.apply_caption(bar, _RoyalMarkUiTokens.COLOR_MUTED)
 			dots.add_child(bar)
@@ -217,26 +216,26 @@ func _build_chrome() -> void:
 			romans.add_child(gap)
 		var node := Label.new()
 		node.text = "○"
-		node.custom_minimum_size = Vector2(40, 28)
+		node.custom_minimum_size = Vector2(40, 24)
 		node.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		UiTypography.apply_body(node, UiTypography.SIZE_BODY, _RoyalMarkUiTokens.COLOR_MUTED)
+		UiTypography.apply_body(node, UiTypography.SIZE_BODY_SMALL, _RoyalMarkUiTokens.COLOR_MUTED)
 		dots.add_child(node)
 		_rank_nodes.append(node)
 		var rl := Label.new()
 		rl.text = _RoyalMarkConfig.roman_for_rank(i)
-		rl.custom_minimum_size = Vector2(40, 22)
+		rl.custom_minimum_size = Vector2(40, 20)
 		rl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		UiTypography.apply_caption(rl, _RoyalMarkUiTokens.COLOR_SUB)
 		romans.add_child(rl)
 		_rank_labels.append(rl)
 
-	## --- 現在の効果 ---
+	## --- 4. 現在の効果（1行コンパクト） ---
 	var cur_panel := PanelContainer.new()
 	cur_panel.add_theme_stylebox_override("panel", _RoyalMarkUiTokens.info_panel_style())
 	cur_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_root.add_child(cur_panel)
 	var cur_v := VBoxContainer.new()
-	cur_v.add_theme_constant_override("separation", 8)
+	cur_v.add_theme_constant_override("separation", 4)
 	cur_panel.add_child(cur_v)
 	var cur_title := Label.new()
 	cur_title.text = "現在の効果"
@@ -244,74 +243,40 @@ func _build_chrome() -> void:
 	cur_v.add_child(cur_title)
 	var stats_row := HBoxContainer.new()
 	stats_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	stats_row.add_theme_constant_override("separation", 16)
+	stats_row.add_theme_constant_override("separation", 12)
 	stats_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cur_v.add_child(stats_row)
-	_label_stat_hp = _make_stat_cell(stats_row, "HP")
-	_label_stat_atk = _make_stat_cell(stats_row, "ATK")
-	_label_stat_def = _make_stat_cell(stats_row, "DEF")
+	_label_stat_hp = _make_stat_inline(stats_row, "HP")
+	_label_stat_atk = _make_stat_inline(stats_row, "ATK")
+	_label_stat_def = _make_stat_inline(stats_row, "DEF")
+	_label_current_stats = Label.new()
+	_label_current_stats.visible = false
+	cur_v.add_child(_label_current_stats)
 
-	_skill_card = PanelContainer.new()
-	_skill_card.add_theme_stylebox_override("panel", _RoyalMarkUiTokens.enhance_card_style(false))
-	_skill_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	cur_v.add_child(_skill_card)
-	var skill_v := VBoxContainer.new()
-	skill_v.add_theme_constant_override("separation", 2)
-	_skill_card.add_child(skill_v)
-	_label_skill_gate = Label.new()
-	UiTypography.apply_caption(_label_skill_gate, _RoyalMarkUiTokens.COLOR_GOLD)
-	skill_v.add_child(_label_skill_gate)
-	_label_skill_kind = Label.new()
-	UiTypography.apply_caption(_label_skill_kind, _RoyalMarkUiTokens.COLOR_GOLD)
-	skill_v.add_child(_label_skill_kind)
-	_label_skill_name = Label.new()
-	_label_skill_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiTypography.apply_body(_label_skill_name, UiTypography.SIZE_BODY_SMALL, _RoyalMarkUiTokens.COLOR_BODY)
-	skill_v.add_child(_label_skill_name)
-	_label_skill_boost = Label.new()
-	_label_skill_boost.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiTypography.apply_caption(_label_skill_boost, _RoyalMarkUiTokens.COLOR_BOOST)
-	skill_v.add_child(_label_skill_boost)
-
-	_ult_card = PanelContainer.new()
-	_ult_card.add_theme_stylebox_override("panel", _RoyalMarkUiTokens.enhance_card_style(true))
-	_ult_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	cur_v.add_child(_ult_card)
-	var ult_v := VBoxContainer.new()
-	ult_v.add_theme_constant_override("separation", 2)
-	_ult_card.add_child(ult_v)
-	_label_ult_gate = Label.new()
-	UiTypography.apply_caption(_label_ult_gate, _RoyalMarkUiTokens.COLOR_GOLD)
-	ult_v.add_child(_label_ult_gate)
-	_label_ult_kind = Label.new()
-	UiTypography.apply_caption(_label_ult_kind, _RoyalMarkUiTokens.COLOR_GOLD)
-	ult_v.add_child(_label_ult_kind)
-	_label_ult_name = Label.new()
-	_label_ult_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiTypography.apply_body(_label_ult_name, UiTypography.SIZE_BODY_SMALL, _RoyalMarkUiTokens.COLOR_BODY)
-	ult_v.add_child(_label_ult_name)
-	_label_ult_boost = Label.new()
-	_label_ult_boost.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiTypography.apply_caption(_label_ult_boost, _RoyalMarkUiTokens.COLOR_BOOST)
-	ult_v.add_child(_label_ult_boost)
-
-	## --- 次の王痕（非MAX） ---
+	## --- 5〜7. 次の王痕 → コスト → CTA（Reward→Cost→Action）／MAX 同スロット ---
 	_panel_next = PanelContainer.new()
 	_panel_next.add_theme_stylebox_override("panel", _RoyalMarkUiTokens.info_panel_style())
 	_panel_next.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_root.add_child(_panel_next)
 	var next_v := VBoxContainer.new()
-	next_v.add_theme_constant_override("separation", 6)
+	next_v.add_theme_constant_override("separation", 8)
 	_panel_next.add_child(next_v)
 	_label_next_title = Label.new()
 	_label_next_title.text = "次の王痕"
 	UiTypography.apply_caption(_label_next_title, _RoyalMarkUiTokens.COLOR_GOLD)
 	next_v.add_child(_label_next_title)
+	_label_next_rank = Label.new()
+	_label_next_rank.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiTypography.apply_display(_label_next_rank, UiTypography.SIZE_DISPLAY_TITLE, _RoyalMarkUiTokens.COLOR_GOLD_LIT)
+	next_v.add_child(_label_next_rank)
+	_label_next_effect = Label.new()
+	_label_next_effect.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_label_next_effect.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_display(_label_next_effect, UiTypography.SIZE_DISPLAY, _RoyalMarkUiTokens.COLOR_BODY)
+	next_v.add_child(_label_next_effect)
+	## テスト互換: 結合文言
 	_label_next_block = Label.new()
-	_label_next_block.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiTypography.apply_body(
-		_label_next_block, UiTypography.SIZE_BODY_SMALL, _RoyalMarkUiTokens.COLOR_BODY
-	)
+	_label_next_block.visible = false
 	next_v.add_child(_label_next_block)
 	_btn_shards = Button.new()
 	_btn_shards.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -329,8 +294,24 @@ func _build_chrome() -> void:
 	_label_gold_cost = Label.new()
 	UiTypography.apply_caption(_label_gold_cost, _RoyalMarkUiTokens.COLOR_SUB)
 	_gold_row_panel.add_child(_label_gold_cost)
+	_panel_status = PanelContainer.new()
+	_panel_status.add_theme_stylebox_override("panel", _RoyalMarkUiTokens.status_pill_style())
+	_panel_status.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	next_v.add_child(_panel_status)
+	_label_status = Label.new()
+	_label_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_label_status.autowrap_mode = TextServer.AUTOWRAP_OFF
+	UiTypography.apply_caption(_label_status, _RoyalMarkUiTokens.COLOR_SUB)
+	_panel_status.add_child(_label_status)
+	_btn_upgrade = Button.new()
+	_btn_upgrade.text = "王痕を刻む"
+	_btn_upgrade.custom_minimum_size = Vector2(0, 52)
+	_btn_upgrade.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_btn_upgrade.focus_mode = Control.FOCUS_NONE
+	_RoyalMarkUiTokens.apply_upgrade_button(_btn_upgrade, false)
+	_btn_upgrade.pressed.connect(_on_upgrade_pressed)
+	next_v.add_child(_btn_upgrade)
 
-	## --- MAX 専用（既存用語: 王痕 V / MAX） ---
 	_panel_max = PanelContainer.new()
 	_panel_max.visible = false
 	_panel_max.add_theme_stylebox_override("panel", _RoyalMarkUiTokens.enhance_card_style(true))
@@ -341,50 +322,46 @@ func _build_chrome() -> void:
 	_panel_max.add_child(max_v)
 	_label_max_title = Label.new()
 	_label_max_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UiTypography.apply_body(_label_max_title, UiTypography.SIZE_BODY, _RoyalMarkUiTokens.COLOR_GOLD_LIT)
+	UiTypography.apply_display(_label_max_title, UiTypography.SIZE_DISPLAY_TITLE, _RoyalMarkUiTokens.COLOR_GOLD_LIT)
 	max_v.add_child(_label_max_title)
 	_label_max_sub = Label.new()
 	_label_max_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_caption(_label_max_sub, _RoyalMarkUiTokens.COLOR_GOLD)
 	max_v.add_child(_label_max_sub)
 
-	var footer := VBoxContainer.new()
-	footer.add_theme_constant_override("separation", 8)
-	footer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_root.add_child(footer)
-	_panel_status = PanelContainer.new()
-	_panel_status.add_theme_stylebox_override("panel", _RoyalMarkUiTokens.status_pill_style())
-	_panel_status.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	footer.add_child(_panel_status)
-	_label_status = Label.new()
-	_label_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	## 短文言ピル。autowrap だと SHRINK 幅で1文字縦積みになるため OFF（案A）。
-	_label_status.autowrap_mode = TextServer.AUTOWRAP_OFF
-	UiTypography.apply_caption(_label_status, _RoyalMarkUiTokens.COLOR_SUB)
-	_panel_status.add_child(_label_status)
-	_btn_upgrade = Button.new()
-	_btn_upgrade.text = "王痕を刻む"
-	_btn_upgrade.custom_minimum_size = Vector2(0, 56)
-	_btn_upgrade.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_btn_upgrade.focus_mode = Control.FOCUS_NONE
-	_RoyalMarkUiTokens.apply_upgrade_button(_btn_upgrade, false)
-	_btn_upgrade.pressed.connect(_on_upgrade_pressed)
-	footer.add_child(_btn_upgrade)
+	## --- 8. 特殊王痕 III / V（2行コンパクト） ---
+	_panel_special = PanelContainer.new()
+	_panel_special.add_theme_stylebox_override("panel", _RoyalMarkUiTokens.info_panel_style())
+	_panel_special.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_root.add_child(_panel_special)
+	var sp_v := VBoxContainer.new()
+	sp_v.add_theme_constant_override("separation", 4)
+	_panel_special.add_child(sp_v)
+	var sp_title := Label.new()
+	sp_title.text = "特殊王痕"
+	UiTypography.apply_caption(sp_title, _RoyalMarkUiTokens.COLOR_GOLD)
+	sp_v.add_child(sp_title)
+	_label_special_iii = Label.new()
+	_label_special_iii.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_caption(_label_special_iii, _RoyalMarkUiTokens.COLOR_MUTED)
+	sp_v.add_child(_label_special_iii)
+	_label_special_v = Label.new()
+	_label_special_v.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTypography.apply_caption(_label_special_v, _RoyalMarkUiTokens.COLOR_MUTED)
+	sp_v.add_child(_label_special_v)
 
 
-func _make_stat_cell(parent: HBoxContainer, key: String) -> Label:
-	var col := VBoxContainer.new()
-	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	col.add_theme_constant_override("separation", 0)
+func _make_stat_inline(parent: HBoxContainer, key: String) -> Label:
+	var col := HBoxContainer.new()
+	col.add_theme_constant_override("separation", 4)
+	col.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	parent.add_child(col)
 	var k := Label.new()
 	k.text = key
-	k.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_caption(k, _RoyalMarkUiTokens.COLOR_SUB)
 	col.add_child(k)
 	var v := Label.new()
 	v.text = "—"
-	v.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiTypography.apply_body(v, UiTypography.SIZE_BODY_SMALL, _RoyalMarkUiTokens.COLOR_BODY)
 	col.add_child(v)
 	return v
@@ -433,6 +410,8 @@ func _refresh_all() -> void:
 		_set_stat_bonuses(0)
 		_refresh_enhance_labels(null, 0)
 		_show_non_max_footer()
+		_label_next_rank.text = "—"
+		_label_next_effect.text = "—"
 		_label_next_block.text = "—"
 		_btn_shards.text = "王痕片 0 / —"
 		_label_gold_cost.text = "Gold 0 / —"
@@ -460,8 +439,11 @@ func _refresh_all() -> void:
 	_show_non_max_footer()
 	var next_rank: int = rank + 1
 	var step: String = _RoyalMarkConfig.step_effect_label(next_rank)
-	_label_next_block.text = "%s\n%s" % [_RoyalMarkConfig.rank_display(next_rank), step]
-	_label_next_block.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_BODY)
+	_label_next_rank.text = _RoyalMarkConfig.rank_display(next_rank)
+	_label_next_effect.text = step
+	_label_next_block.text = "%s\n%s" % [_label_next_rank.text, step]
+	_label_next_rank.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_GOLD_LIT)
+	_label_next_effect.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_BODY)
 	var need_s: int = _RoyalMarkConfig.upgrade_shard_cost(rank)
 	var need_g: int = _RoyalMarkConfig.upgrade_gold_cost(rank)
 	var short_s: bool = shards < need_s
@@ -584,59 +566,44 @@ func _set_emblem_for_rank(rank: int) -> void:
 
 
 func _refresh_enhance_labels(member: Resource, rank: int) -> void:
-	if _skill_card == null or _ult_card == null:
+	if _label_special_iii == null or _label_special_v == null:
 		return
+	## III
 	if rank < _RoyalMarkConfig.SKILL_ENHANCE_MIN_RANK:
-		_label_skill_gate.text = "王痕 III"
-		_label_skill_kind.text = "装備スキル強化"
-		_label_skill_name.text = "解放待ち"
-		_label_skill_boost.text = ""
-		_label_skill_gate.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_MUTED)
-		_label_skill_kind.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_MUTED)
-		_label_skill_name.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_MUTED)
-		_label_ult_gate.text = "王痕 V"
-		_label_ult_kind.text = "必殺技強化"
-		_label_ult_name.text = "解放待ち"
-		_label_ult_boost.text = ""
-		_label_ult_gate.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_MUTED)
-		_label_ult_kind.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_MUTED)
-		_label_ult_name.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_MUTED)
-		return
-	var skill_ids: Array[String] = GameState.get_equipped_skill_ids(member)
-	var skill_id: String = skill_ids[0] if not skill_ids.is_empty() else ""
-	var skill_data: Resource = (
-		DataRegistry.get_skill_data(skill_id) if not skill_id.is_empty() else null
-	)
-	var skill_name: String = str(skill_data.display_name) if skill_data != null else "—"
-	var skill_lines: PackedStringArray = _RoyalMarkSkillModifier.describe_job_skill_enhance(skill_data)
-	_label_skill_gate.text = "王痕 III"
-	_label_skill_kind.text = "装備スキル強化"
-	_label_skill_name.text = skill_name
-	_label_skill_boost.text = _format_boost_lines(skill_lines)
-	_label_skill_gate.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_GOLD)
-	_label_skill_kind.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_GOLD)
-	_label_skill_name.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_BODY)
-	_label_skill_boost.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_BOOST)
+		_label_special_iii.text = "III　装備スキル強化　🔒"
+		_label_special_iii.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_MUTED)
+	else:
+		var skill_ids: Array[String] = []
+		if member != null:
+			skill_ids = GameState.get_equipped_skill_ids(member)
+		var skill_id: String = skill_ids[0] if not skill_ids.is_empty() else ""
+		var skill_data: Resource = (
+			DataRegistry.get_skill_data(skill_id) if not skill_id.is_empty() else null
+		)
+		var skill_name: String = str(skill_data.display_name) if skill_data != null else "—"
+		var skill_lines: PackedStringArray = _RoyalMarkSkillModifier.describe_job_skill_enhance(skill_data)
+		var boost: String = _format_boost_lines(skill_lines)
+		if boost.is_empty() or boost == "—":
+			_label_special_iii.text = "III　装備スキル強化　%s" % skill_name
+		else:
+			_label_special_iii.text = "III　装備スキル強化　%s\n%s" % [skill_name, boost]
+		_label_special_iii.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_BODY)
+	## V
 	if rank < _RoyalMarkConfig.ULTIMATE_ENHANCE_MIN_RANK:
-		_label_ult_gate.text = "王痕 V"
-		_label_ult_kind.text = "必殺技強化"
-		_label_ult_name.text = "解放待ち"
-		_label_ult_boost.text = ""
-		_label_ult_gate.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_MUTED)
-		_label_ult_kind.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_MUTED)
-		_label_ult_name.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_MUTED)
-		return
-	var ult: Resource = _UltimateSkillResolver.resolve_ultimate_skill(member)
-	var ult_name: String = str(ult.display_name) if ult != null else "—"
-	var ult_lines: PackedStringArray = _RoyalMarkSkillModifier.describe_ultimate_enhance(ult)
-	_label_ult_gate.text = "王痕 V"
-	_label_ult_kind.text = "必殺技強化"
-	_label_ult_name.text = ult_name
-	_label_ult_boost.text = _format_boost_lines(ult_lines)
-	_label_ult_gate.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_GOLD)
-	_label_ult_kind.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_GOLD)
-	_label_ult_name.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_BODY)
-	_label_ult_boost.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_BOOST)
+		_label_special_v.text = "V　必殺技強化　🔒"
+		_label_special_v.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_MUTED)
+	else:
+		var ult: Resource = null
+		if member != null:
+			ult = _UltimateSkillResolver.resolve_ultimate_skill(member)
+		var ult_name: String = str(ult.display_name) if ult != null else "—"
+		var ult_lines: PackedStringArray = _RoyalMarkSkillModifier.describe_ultimate_enhance(ult)
+		var ult_boost: String = _format_boost_lines(ult_lines)
+		if ult_boost.is_empty() or ult_boost == "—":
+			_label_special_v.text = "V　必殺技強化　%s" % ult_name
+		else:
+			_label_special_v.text = "V　必殺技強化　%s\n%s" % [ult_name, ult_boost]
+		_label_special_v.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_BODY)
 
 
 func _format_boost_lines(lines: PackedStringArray) -> String:
@@ -646,9 +613,11 @@ func _format_boost_lines(lines: PackedStringArray) -> String:
 
 
 func _apply_rank_track(rank: int) -> void:
+	var next_r: int = rank + 1 if rank < _RoyalMarkConfig.MAX_RANK else -1
 	for i in _rank_nodes.size():
 		var r: int = i + 1
 		var lit: bool = r <= rank
+		var is_next: bool = r == next_r
 		var is_skill: bool = r == _RoyalMarkConfig.SKILL_ENHANCE_MIN_RANK
 		var is_ult: bool = r == _RoyalMarkConfig.ULTIMATE_ENHANCE_MIN_RANK
 		var node: Label = _rank_nodes[i]
@@ -656,6 +625,8 @@ func _apply_rank_track(rank: int) -> void:
 			node.text = "★" if lit else "☆"
 		elif is_skill:
 			node.text = "◆" if lit else "◇"
+		elif is_next:
+			node.text = "◎"
 		else:
 			node.text = "●" if lit else "○"
 		var col: Color = _RoyalMarkUiTokens.COLOR_MUTED
@@ -665,25 +636,34 @@ func _apply_rank_track(rank: int) -> void:
 				if (is_skill or is_ult)
 				else _RoyalMarkUiTokens.COLOR_GOLD
 			)
+		elif is_next:
+			col = _RoyalMarkUiTokens.COLOR_GOLD_LIT
 		elif is_skill or is_ult:
 			col = _RoyalMarkUiTokens.COLOR_GOLD_DIM
 		node.add_theme_color_override("font_color", col)
 		if i < _rank_labels.size():
-			var lc: Color = _RoyalMarkUiTokens.COLOR_SUB
+			var lc: Color = _RoyalMarkUiTokens.COLOR_MUTED
 			if lit:
 				lc = (
 					_RoyalMarkUiTokens.COLOR_GOLD_LIT
 					if (is_skill or is_ult)
 					else _RoyalMarkUiTokens.COLOR_GOLD
 				)
+			elif is_next:
+				lc = _RoyalMarkUiTokens.COLOR_GOLD_LIT
 			elif is_skill or is_ult:
 				lc = _RoyalMarkUiTokens.COLOR_GOLD
 			_rank_labels[i].add_theme_color_override("font_color", lc)
 	for i in _rank_connectors.size():
 		var lit_c: bool = (i + 1) < rank
+		var next_c: bool = (i + 1) == rank and next_r > 0
 		(_rank_connectors[i] as Label).add_theme_color_override(
 			"font_color",
-			_RoyalMarkUiTokens.COLOR_GOLD if lit_c else _RoyalMarkUiTokens.COLOR_MUTED
+			(
+				_RoyalMarkUiTokens.COLOR_GOLD
+				if lit_c
+				else (_RoyalMarkUiTokens.COLOR_GOLD_DIM if next_c else _RoyalMarkUiTokens.COLOR_MUTED)
+			)
 		)
 
 
@@ -941,6 +921,18 @@ func get_current_effect_for_test() -> String:
 	if _label_stat_def != null:
 		parts.append("DEF %s" % _label_stat_def.text)
 	return "\n".join(parts)
+
+
+func get_next_reward_for_test() -> String:
+	if _label_next_rank == null:
+		return ""
+	return "%s\n%s" % [_label_next_rank.text, _label_next_effect.text]
+
+
+func get_special_preview_for_test() -> String:
+	var a: String = _label_special_iii.text if _label_special_iii != null else ""
+	var b: String = _label_special_v.text if _label_special_v != null else ""
+	return "%s\n%s" % [a, b]
 
 
 func get_max_panel_visible_for_test() -> bool:

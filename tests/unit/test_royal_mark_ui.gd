@@ -82,11 +82,18 @@ func test_ui_rank_zero_and_switch() -> void:
 	var b: Resource = _make_human("adventurer_serin", 50)
 	GameState.roster = [a, b, _make_pet()]
 	GameState.royal_mark_ranks = {}
+	GameState.royal_mark_shards = 10
+	GameState.gold = 5000
 	var scene: Node = load(ROYAL_MARK_SCENE).instantiate()
 	add_child_autofree(scene)
 	await get_tree().process_frame
 	assert_eq(scene.get_view_members_for_test().size(), 2)
 	assert_eq(scene.get_rank_display_for_test(), "未覚醒")
+	var next0: String = scene.get_next_reward_for_test()
+	assert_true(next0.find("王痕 I") >= 0)
+	assert_true(next0.find("HP +3%") >= 0)
+	var special0: String = scene.get_special_preview_for_test()
+	assert_true(special0.find("🔒") >= 0)
 	scene.select_index_for_test(1)
 	assert_eq(scene.get_selected_index_for_test(), 1)
 	assert_eq(str((scene.get_view_members_for_test()[1] as Resource).id), "adventurer_serin")
@@ -97,6 +104,8 @@ func test_ui_rank_ii_and_effect_lines() -> void:
 	var a: Resource = _make_human("adventurer_aldric", 50)
 	GameState.roster = [a]
 	GameState.royal_mark_ranks = {"adventurer_aldric": 2}
+	GameState.royal_mark_shards = 20
+	GameState.gold = 15000
 	var scene: Node = load(ROYAL_MARK_SCENE).instantiate()
 	add_child_autofree(scene)
 	await get_tree().process_frame
@@ -105,6 +114,34 @@ func test_ui_rank_ii_and_effect_lines() -> void:
 	assert_true(effect.find("HP +3%") >= 0)
 	assert_true(effect.find("ATK +3%") >= 0)
 	assert_true(effect.find("DEF —") >= 0)
+	## II→III: 次の王痕が主情報
+	var next_txt: String = scene.get_next_reward_for_test()
+	assert_true(next_txt.find("王痕 III") >= 0)
+	assert_true(next_txt.find("DEF +3%") >= 0)
+	var special: String = scene.get_special_preview_for_test()
+	assert_true(special.find("装備スキル強化") >= 0)
+	assert_true(special.find("🔒") >= 0)
+	assert_true(special.find("必殺技強化") >= 0)
+	assert_false(scene.get_upgrade_button_for_test().disabled)
+
+
+func test_ui_rank_iv_to_v_preview() -> void:
+	_clear_main_normal()
+	var a: Resource = _make_human("adventurer_aldric", 50)
+	GameState.roster = [a]
+	GameState.royal_mark_ranks = {"adventurer_aldric": 4}
+	GameState.royal_mark_shards = 30
+	GameState.gold = 45000
+	var scene: Node = load(ROYAL_MARK_SCENE).instantiate()
+	add_child_autofree(scene)
+	await get_tree().process_frame
+	var next_txt: String = scene.get_next_reward_for_test()
+	assert_true(next_txt.find("王痕 V") >= 0)
+	assert_true(next_txt.find("必殺強化") >= 0)
+	var special: String = scene.get_special_preview_for_test()
+	assert_true(special.find("III") >= 0)
+	assert_true(special.find("V　必殺技強化　🔒") >= 0 or special.find("必殺技強化　🔒") >= 0)
+	assert_false(scene.get_upgrade_button_for_test().disabled)
 
 
 func test_ui_rank_v_max() -> void:

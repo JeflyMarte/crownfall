@@ -3,6 +3,7 @@
 ---
 
 ## Last Update
+2026-09-19（**王痕育成 UI階層改善**: 「次の王痕」主情報＋Reward→Cost→CTA／現在効果1行／III・Vコンパクト。Decision `144` ゲーム仕様不変。GUT UI11＋本線27＋enhance23 PASS。DEBUG shot `review/royal_mark_ui_hierarchy/after/`。feature `cursor/royal-mark-144`・**main反映は報告後**）
 2026-09-19（**極限任務10種 制約再設計 Implemented**: Decision `145`。05/06/08/10 新規 modifier・UI整合・GUT 22 PASS。統合＋`main` 反映 `b0354e9f`。同梱で王痕育成 `144` も main 入り）
 2026-09-18（**極限任務 Featured 説明改善**: 特殊制約の具体文＋指令表示統一＋★ルール。EX-08表示を実装整合（ELITE表記廃止）。ロジック不変。feature `cursor/royal-mark-144`・**main未マージ**）
 2026-09-18（**極限任務タブ**: イベントダンジョンの隣に専用タブ。イベント一覧から分離。Decision `143` UI更新。feature `cursor/royal-mark-144`・**main未マージ**）

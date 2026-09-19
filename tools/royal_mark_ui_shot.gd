@@ -4,7 +4,7 @@ extends Node
 
 const _DebugFullUnlock := preload("res://scripts/debug/DebugFullUnlock.gd")
 const SCENE: String = "res://scenes/royal_mark/RoyalMarkScene.tscn"
-const OUT_DIR: String = "res://review/royal_mark_ui_polish/after/"
+const OUT_DIR: String = "res://review/royal_mark_ui_hierarchy/after/"
 
 
 func _ready() -> void:

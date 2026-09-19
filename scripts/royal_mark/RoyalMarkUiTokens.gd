@@ -16,10 +16,11 @@ const COLOR_BOOST: Color = Color(0.82, 0.90, 0.98, 1.0)
 const EMBLEM_DIR: String = "res://assets/ui/royal_mark/emblems/"
 const BG_PATH: String = "res://assets/ui/royal_mark/UI_BG_RoyalMark.png"
 
-const EMBLEM_SIZE_BASE: float = 112.0
-const EMBLEM_SIZE_RANK5: float = 132.0
-const EMBLEM_HOST_BASE: float = 148.0
-const EMBLEM_HOST_RANK5: float = 168.0
+const EMBLEM_SIZE_BASE: float = 80.0
+const EMBLEM_SIZE_RANK5: float = 96.0
+const EMBLEM_HOST_BASE: float = 100.0
+const EMBLEM_HOST_RANK5: float = 112.0
+const PORTRAIT_SIZE: float = 120.0
 
 
 static func emblem_path_for_rank(rank: int) -> String:

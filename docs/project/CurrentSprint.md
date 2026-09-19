@@ -13,7 +13,7 @@
 **メイン5 Biome の通常直列解放を有効化**（β封鎖解除）。②は①クリアのみ（調査ゲージは解放非関与）。  
 寄り道はオミット継続（`SUB_DUNGEONS_PLAYABLE=false`）。征討はイベント常設で配信中（天望＋星炉・`APEX_CONQUEST_PLAYABLE_IDS`）。
 
-**直近:** 極限任務制約再設計（Decision `145`）Implemented。王痕育成 Phase 2 は feature `cursor/royal-mark-144` 上（実機 QA 推奨）。
+**直近:** 極限任務制約再設計（Decision `145`）Implemented。王痕育成 UI階層改善（次効果主情報・仕様不変）は feature `cursor/royal-mark-144`・報告後に main。実機 QA 推奨。
 
 ---
 
