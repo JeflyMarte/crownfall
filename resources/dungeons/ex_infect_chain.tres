@@ -37,4 +37,4 @@ disable_wandering = true
 forced_swarm_chance = -1.0
 forced_swarm_min = 2
 forced_swarm_max = 3
-flavor_text = "特殊制約｜毒・出血で敵が強化"
+flavor_text = "特殊制約｜状態異常必須"

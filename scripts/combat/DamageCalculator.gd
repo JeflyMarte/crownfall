@@ -173,6 +173,13 @@ static func enemy_mitigation(
 		damage = maxi(1, int(float(damage) * elem_mult))
 		if not elem_name.is_empty():
 			element_tag = "  [耐性:%s]" % elem_name
+	## 極限 EX-10: 非弱点（無属性含む）の与ダメ低下。弱点未設定敵は対象外。
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	var extreme_elem: float = _ExtremeMissionConfig.element_match_outgoing_mult_for_active_run(
+		attack_element, enemy_data
+	)
+	if not is_equal_approx(extreme_elem, 1.0):
+		damage = maxi(1, int(round(float(damage) * extreme_elem)))
 	# 属性値（P3-EQ-STAT-005 案A）: 属性あり時 damage × (1 + power × K)
 	if member_index >= 0 and not attack_element.is_empty():
 		var elem_power: int = weapon_element_power(member_index)
@@ -236,6 +243,9 @@ static func member_attack_damage(
 	damage = maxi(1, int(float(damage) * combat.get_member_outgoing_damage_multiplier(
 		member_index, action_range, false, weapon_element(member_index), target_slot
 	)))
+	## 極限 EX-08: 非クリティカルのヒット与ダメ低下（DoT除外・通常攻撃経路）。
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	damage = maxi(1, int(round(float(damage) * _ExtremeMissionConfig.hit_outgoing_mult_for_active_run(is_critical))))
 	var elem_result: Dictionary = enemy_mitigation(
 		combat, dungeon_data, damage, weapon_element(member_index), member_index, target_slot, rng
 	)

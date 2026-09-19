@@ -1,15 +1,17 @@
 # 極限任務（P3-DG-EXTREME-001）
 
-**Status:** **Completed**（2026-09-18）  
+**Status:** **Completed**（2026-09-18）／**制約表は Decision `145` が上書き**（2026-09-19）  
 **実装:** Phase 1＋Phase 2 **IMPLEMENTATION COMPLETE**／main `e35517f7`  
-**QA:** Producer iPhone 16e 実機 — EX-01〜10 PASS  
-**上書きなし**（役割四分を既存に追加）
+**QA:** Producer iPhone 16e 実機 — EX-01〜10 PASS（Phase 2 時点）  
+**上書きなし**（役割四分を既存に追加）※特殊条件の中身は `145` 参照
 
 ---
 
 ## 0. 一言
 
 極限任務は **5F 制約攻略**の常設エンドコンテンツ。降臨（時間帯15F）／征討（常設20F）／深層（無限）と役割を分ける。
+
+**制約再設計（2026-09-19）:** 重複制約を解消しビルド多様性へ — Decision **`145`**。
 
 ---
 
@@ -39,10 +41,12 @@
 | P3-DG-EXTREME-001-9 | 週次／新Boss／新Biome／新通貨／専用装備／ランキング等は本 Decision スコープ外 |
 | P3-DG-EXTREME-001-10 | EX-09「4人全員異なるジョブ」＝人間 `ACTIVE_PARTY_SIZE=4` 必須・全員別職・Jack（`active_pet`）は判定対象外 |
 | P3-DG-EXTREME-001-11 | UI＝**極限任務タブ**常設（イベントダンジョンの隣）。イベントタブからは分離（2026-09-18） |
-| P3-DG-EXTREME-001-12 | Featured 表示＝制約の具体説明＋指令3＋★ルール。`elite_swarm_up` 表示は実装どおり「敵の群れ増加」（ELITE表記しない）。判定・TUNING 不変（2026-09-18） |
+| P3-DG-EXTREME-001-12 | Featured 表示＝制約の具体説明＋指令3＋★ルール（2026-09-18） |
+| P3-DG-EXTREME-001-13 | **制約再設計** — 10種の特殊条件をビルド軸ごとに再割当。詳細・TUNING 追加は Decision **`145`**（2026-09-19） |
 
 **Phase 1:** 共通基盤＋EX-01 — Completed  
-**Phase 2:** EX-02〜EX-10＋共通 modifier／指令 — Completed
+**Phase 2:** EX-02〜EX-10＋共通 modifier／指令 — Completed  
+**制約再設計:** Decision `145` — Implemented
 
 ---
 
@@ -51,7 +55,7 @@
 - `scripts/dungeon/ExtremeMissionConfig.gd`（`MISSIONS`＋`TUNING`＋共通 modifier API）
 - `resources/dungeons/ex_*.tres`／`resources/stages/ex_*_1_1.tres`（EX-01〜10）
 - Save: `GameState.extreme_mission_progress`
-- Heal／敵与ダメ／群れ／後衛／必殺: CombatController／DungeonController／DungeonScene の共通フック
+- Heal／敵与ダメ／群れ／後衛／必殺／HP・DoT／状態必須／非クリ／弱点: CombatController／DamageCalculator／DungeonController／DungeonScene の共通フック
 - UI: **極限任務タブ**常設（イベント隣）／Featured＝制約具体文＋指令＋★ルール／Result に★・指令
 - 表示文 SSOT: `ExtremeMissionConfig`（`special_condition` label/desc/tip・`ORDER_DISPLAY_LABELS`）
 
@@ -64,15 +68,20 @@
 | `heal_effectiveness_mult` | 0.50 | 回復効果低下（heal_down） |
 | `order_time_limit_sec` | 600 | 規定時間以内（**ポーズ除外のラン経過秒**・戦闘倍速非連動） |
 | `ex01`〜`ex10` enemy/recommended | 55〜64 | 各任務敵／推奨Lv |
-| `swarm_chance_bonus` | 0.35 | swarm_pressure / elite_swarm_up |
-| `swarm_size_bonus` | 1 | 同上・群れ体数 |
+| `swarm_chance_bonus` | 0.35 | swarm_pressure |
+| `swarm_size_bonus` | 1 | 同上・群れ時体数 |
 | `long_battle_ramp_start_sec` | 180 | 長期戦強化開始 |
 | `long_battle_ramp_per_60sec` | 0.15 | 以降1分あたり +15% |
 | `long_battle_ramp_max_mult` | 2.0 | 上限 |
 | `rear_incoming_mult` | 1.75 | 後衛圧力（陣形軽減に追加乗算） |
-| `status_empower_ids` | poison, bleed | EX-06 対象状態異常 |
-| `status_empower_outgoing_mult` | 1.50 | 対象状態中の敵与ダメ |
+| `miasma_enemy_hp_mult` | 1.25 | EX-05 敵HP（`145`） |
+| `miasma_dot_duration_mult` | 1.35 | EX-05 DoT持続（`145`） |
+| `status_require_outgoing_mult` | 0.70 | EX-06 無状態与ダメ（`145`） |
+| `non_crit_hit_outgoing_mult` | 0.70 | EX-08 非クリヒット（`145`） |
+| `non_weakness_outgoing_mult` | 0.70 | EX-10 非弱点（`145`） |
 | `ultimate_charge_suppress_mult` | 0.35 | 必殺チャージ抑制 |
 | `ultimate_use_limit` | 3 | 必殺使用回数制限 |
 
-正本は `ExtremeMissionConfig.TUNING`（コード外散在禁止）。
+**廃止（`145`）:** `status_empower_*`／`elite_swarm_up`／EX-05 二重 heal_down／EX-10 二重 long_battle_ramp。
+
+正本は `ExtremeMissionConfig.TUNING`（コード外散在禁止）。制約の正は Decision **`145`**。

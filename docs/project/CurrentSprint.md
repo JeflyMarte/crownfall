@@ -13,7 +13,7 @@
 **メイン5 Biome の通常直列解放を有効化**（β封鎖解除）。②は①クリアのみ（調査ゲージは解放非関与）。  
 寄り道はオミット継続（`SUB_DUNGEONS_PLAYABLE=false`）。征討はイベント常設で配信中（天望＋星炉・`APEX_CONQUEST_PLAYABLE_IDS`）。
 
-**直近:** 王痕育成 Phase 2（専用UI＋Skill/Ultimate 強化・Decision `144`）— feature `cursor/royal-mark-144`・**main 未マージ**・実機 QA 待ち。
+**直近:** 極限任務制約再設計（Decision `145`）Implemented。王痕育成 Phase 2 は feature `cursor/royal-mark-144` 上（実機 QA 推奨）。
 
 ---
 
@@ -70,7 +70,7 @@
 
 | ID | 内容 | 状態 |
 |---|---|---|
-| **P3-DG-EXTREME-001** | **極限任務** EX-01〜10 — 共通基盤＋特殊条件 modifier＋★指令 Save。Decision `143` | ✅ **Completed**（Phase1+2／実機QA PASS／main `e35517f7`） |
+| **P3-DG-EXTREME-001** | **極限任務** EX-01〜10 — 共通基盤＋特殊条件 modifier＋★指令 Save。Decision `143`／**制約再設計 `145`** | ✅ **Completed**（Phase1+2／制約再設計 2026-09-19） |
 
 #### C（その他アップデート）
 

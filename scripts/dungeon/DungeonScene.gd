@@ -6426,6 +6426,7 @@ func _execute_member_aoe_damage_skill(
 				member_idx, action_range, true, attack_element, slot
 			))
 		)
+		skill_dmg = _apply_extreme_hit_outgoing_mult(skill_dmg, is_critical)
 		skill_dmg = maxi(1, int(round(float(skill_dmg) * weapon_skill_mult)))
 		skill_dmg = maxi(1, int(round(float(skill_dmg) * _conditional_skill_power_mult(skill_data, slot, member_idx))))
 		var elem_result: Dictionary = _apply_enemy_mitigation(skill_dmg, attack_element, member_idx, slot)
@@ -6892,6 +6893,7 @@ func _execute_member_skill(
 			member_idx, action_range, true, attack_element, target_slot
 		))
 	)
+	skill_dmg = _apply_extreme_hit_outgoing_mult(skill_dmg, bool(result.get("is_critical", false)))
 	var wpn_skill_mods: Dictionary = CombatPassives.skill_stat_modifiers_for_member(member_idx)
 	var weapon_skill_mult: float = 1.0
 	if _is_ultimate_skill(skill_data):
@@ -7476,6 +7478,7 @@ func _try_cast_player_skill() -> String:
 			member_idx, action_range, true, attack_element, player_target
 		))
 	)
+	skill_dmg = _apply_extreme_hit_outgoing_mult(skill_dmg, bool(result.get("is_critical", false)))
 	var wpn_skill_mods: Dictionary = CombatPassives.skill_stat_modifiers_for_member(member_idx)
 	var weapon_skill_mult: float = 1.0
 	if _is_ultimate_skill(skill_data):
@@ -7569,6 +7572,7 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 			member_idx, action_range, true, attack_element, sec_target
 		))
 	)
+	skill_dmg = _apply_extreme_hit_outgoing_mult(skill_dmg, bool(result.get("is_critical", false)))
 	var wpn_skill_mods: Dictionary = CombatPassives.skill_stat_modifiers_for_member(member_idx)
 	var weapon_skill_mult: float = 1.0
 	if _is_ultimate_skill(skill_data):
@@ -7644,6 +7648,15 @@ func _apply_enemy_mitigation(
 	return DamageCalculator.enemy_mitigation(
 		$CombatController, $DungeonController.current_dungeon_data,
 		damage, attack_element, member_index, target_slot
+	)
+
+
+## 極限 EX-08: 非クリのヒット与ダメ低下。DoT 経路では呼ばない。
+func _apply_extreme_hit_outgoing_mult(damage: int, is_critical: bool) -> int:
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	return maxi(
+		1,
+		int(round(float(damage) * _ExtremeMissionConfig.hit_outgoing_mult_for_active_run(is_critical)))
 	)
 
 # 状態異常コンボ起爆（P3-D089）。味方の攻撃ヒット時、アクティブ敵に前提状態が

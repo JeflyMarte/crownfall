@@ -242,12 +242,14 @@ func _scale_enemy_combat_stats(enemy_data: Resource) -> Dictionary:
 	var trash_atk_mult: float = (
 		BalanceConfig.TRASH_ENEMY_ATK_MULT if is_trash else 1.0
 	)
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
 	var hp: int = maxi(1, int(round(
 		float(enemy_data.max_hp)
 		* (1.0 + ENEMY_LEVEL_HP_K * lf)
 		* party_hp_mult
 		* BalanceConfig.ENEMY_GLOBAL_HP_MULT
 		* _swarm_density_hp_mult
+		* _ExtremeMissionConfig.enemy_hp_mult_for_active_run()
 	)))
 	var atk: int = maxi(1, int(round(
 		float(enemy_data.attack)
@@ -1257,6 +1259,17 @@ func apply_status(
 					ign_base = int(ign_effect.duration_ticks)
 				if ign_base > 0:
 					dur = maxi(1, int(round(float(ign_base) * ign_mult)))
+		## 極限 EX-05: 敵への poison/bleed/ignite 持続延長。
+		if unit_id.begins_with("enemy_"):
+			const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+			var miasma_mult: float = _ExtremeMissionConfig.enemy_dot_duration_mult_for_active_run(effect_id)
+			if miasma_mult > 1.001:
+				var miasma_effect: Resource = DataRegistry.get_status_effect(effect_id)
+				var miasma_base: int = dur
+				if miasma_base < 0 and miasma_effect != null:
+					miasma_base = int(miasma_effect.duration_ticks)
+				if miasma_base > 0:
+					dur = maxi(1, int(round(float(miasma_base) * miasma_mult)))
 	return _status_resolver.apply_status(unit_id, effect_id, stacks, source_attack, dur)
 
 
@@ -1537,6 +1550,10 @@ func get_member_outgoing_damage_multiplier(
 			mult *= boss_mult
 	mult *= _AbyssWeaponEffects.outgoing_multiplier(member_index, target_slot, hp_ratio)
 	mult *= _EquipmentSetBonuses.outgoing_mult(member_index)
+	## 極限 EX-06: 状態異常なしの敵への与ダメ低下。
+	if target_slot >= 0:
+		const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+		mult *= _ExtremeMissionConfig.status_require_outgoing_mult_for_active_run(self, target_slot)
 	return mult
 
 # 被ダメ補正（防御=guard 等）。1.0=等倍。P3-D085 で配線。遺物 incoming_mult も乗算（P3-D090）。

@@ -60,9 +60,16 @@ const TUNING := {
 	"long_battle_ramp_max_mult": 2.0,
 	## rear_pressure: 後衛被ダメ倍率（陣形軽減に追加乗算）。
 	"rear_incoming_mult": 1.75,
-	## status_empower: 対象状態異常中の敵与ダメ倍率。
-	"status_empower_ids": ["poison", "bleed"],
-	"status_empower_outgoing_mult": 1.50,
+	## miasma_saturate (EX-05): 敵HP倍率（控えめ初期値）／DoT持続延長。
+	"miasma_enemy_hp_mult": 1.25,
+	"miasma_dot_duration_mult": 1.35,
+	"miasma_dot_status_ids": ["poison", "bleed", "ignite"],
+	## status_require (EX-06): 状態異常なしの敵への味方与ダメ倍率。
+	"status_require_outgoing_mult": 0.70,
+	## non_crit_pressure (EX-08): 非クリティカルのヒット与ダメ倍率（DoT除外）。
+	"non_crit_hit_outgoing_mult": 0.70,
+	## element_weakness_pressure (EX-10): 非弱点（無属性含む）の与ダメ倍率。
+	"non_weakness_outgoing_mult": 0.70,
 	## ultimate_suppress: 必殺チャージ獲得倍率。
 	"ultimate_charge_suppress_mult": 0.35,
 	## 指令「必殺使用回数制限」上限。
@@ -113,8 +120,8 @@ const MISSIONS: Dictionary = {
 		"special_condition": {
 			"id": "swarm_pressure",
 			"label": "敵の群れ増加",
-			"desc": "敵の群れが出現しやすくなり、群れの敵数も1体増加します。",
-			"tip": "複数の敵への対策が重要です。",
+			"desc": "敵の群れが出現しやすくなり、群れ出現時の敵数が1体増えます。",
+			"tip": "範囲攻撃や群れ処理を用意しましょう。",
 		},
 		"orders": [
 			{"id": "no_ko"},
@@ -132,7 +139,7 @@ const MISSIONS: Dictionary = {
 			"id": "long_battle_ramp",
 			"label": "長期戦で敵が強化",
 			"desc": "180秒経過後、時間が経つほど敵の攻撃が強力になります。",
-			"tip": "長期戦になるほど危険です。",
+			"tip": "短時間で決着をつけましょう。",
 		},
 		"orders": [
 			{"id": "time_limit"},
@@ -149,8 +156,8 @@ const MISSIONS: Dictionary = {
 		"special_condition": {
 			"id": "rear_pressure",
 			"label": "後衛へのダメージ増加",
-			"desc": "後衛が受けるダメージが大きく増加します。",
-			"tip": "後衛の生存対策が重要です。",
+			"desc": "編成の後衛位置が受けるダメージが大きく増加します。",
+			"tip": "前衛を厚くし、後衛の被弾を減らしましょう。",
 		},
 		"orders": [
 			{"id": "no_rear_ko"},
@@ -165,10 +172,10 @@ const MISSIONS: Dictionary = {
 		"boss_id": "moldgar",
 		"floor_count": 5,
 		"special_condition": {
-			"id": "heal_down",
-			"label": "回復効果半減",
-			"desc": "味方が受ける回復効果が50%になります。",
-			"tip": "回復に頼りすぎない編成が重要です。",
+			"id": "miasma_saturate",
+			"label": "敵耐久とDoT延長",
+			"desc": "敵のHPが上昇し、敵に付与した毒・出血・炎上の持続が延びます。",
+			"tip": "DoTや持続火力で削りましょう。",
 		},
 		"orders": [
 			{"id": "no_ko"},
@@ -183,14 +190,14 @@ const MISSIONS: Dictionary = {
 		"boss_id": "moldgar",
 		"floor_count": 5,
 		"special_condition": {
-			"id": "status_empower",
-			"label": "毒・出血で敵が強化",
-			"desc": "毒・出血状態の敵は、与えるダメージが50%増加します。",
-			"tip": "状態異常の使用には注意が必要です。",
+			"id": "status_require",
+			"label": "状態異常必須",
+			"desc": "状態異常のない敵への与ダメージが低下します。",
+			"tip": "先に毒・出血などの状態異常を付与しましょう。",
 		},
 		"orders": [
-			{"id": "no_banned_status"},
 			{"id": "no_ko"},
+			{"id": "time_limit"},
 			{"id": "no_same_job"},
 		],
 	},
@@ -218,12 +225,11 @@ const MISSIONS: Dictionary = {
 		"parent_biome_id": "blackshore",
 		"boss_id": "nereion",
 		"floor_count": 5,
-		## 表示は実装に合わせる（elite_swarm_up は群れ圧力と同処理。ELITE固有処理なし）。
 		"special_condition": {
-			"id": "elite_swarm_up",
-			"label": "敵の群れ増加",
-			"desc": "敵の群れが出現しやすくなり、群れの敵数も1体増加します。",
-			"tip": "複数の敵への対策が重要です。",
+			"id": "non_crit_pressure",
+			"label": "非クリティカル弱体",
+			"desc": "クリティカルでないヒット攻撃の与ダメージが低下します（DoTは対象外）。",
+			"tip": "クリティカル率・クリティカルダメージを高めましょう。",
 		},
 		"orders": [
 			{"id": "no_ko"},
@@ -241,7 +247,7 @@ const MISSIONS: Dictionary = {
 			"id": "ultimate_disabled",
 			"label": "必殺技使用不可",
 			"desc": "この任務では必殺技を使用できません。",
-			"tip": "通常攻撃と装備スキルだけで攻略する必要があります。",
+			"tip": "通常攻撃と装備スキルだけで攻略しましょう。",
 		},
 		"orders": [
 			{"id": "no_ko"},
@@ -256,10 +262,10 @@ const MISSIONS: Dictionary = {
 		"boss_id": "eldion",
 		"floor_count": 5,
 		"special_condition": {
-			"id": "long_battle_ramp",
-			"label": "長期戦で敵が強化",
-			"desc": "180秒経過後、時間が経つほど敵の攻撃が強力になります。",
-			"tip": "長期戦になるほど危険です。",
+			"id": "element_weakness_pressure",
+			"label": "弱点属性必須",
+			"desc": "敵の弱点以外の属性攻撃（無属性を含む）の与ダメージが低下します。",
+			"tip": "ボスは炎弱点。弱点属性の武器・スキルで攻めましょう。",
 		},
 		"orders": [
 			{"id": "no_ko"},
@@ -369,15 +375,13 @@ static func heal_effectiveness_mult_for_active_run() -> float:
 
 
 static func swarm_chance_bonus_for_active_run() -> float:
-	var cid: String = _active_condition_id()
-	if cid != "swarm_pressure" and cid != "elite_swarm_up":
+	if _active_condition_id() != "swarm_pressure":
 		return 0.0
 	return float(TUNING.get("swarm_chance_bonus", 0.0))
 
 
 static func swarm_size_bonus_for_active_run() -> int:
-	var cid: String = _active_condition_id()
-	if cid != "swarm_pressure" and cid != "elite_swarm_up":
+	if _active_condition_id() != "swarm_pressure":
 		return 0
 	return maxi(0, int(TUNING.get("swarm_size_bonus", 0)))
 
@@ -401,7 +405,95 @@ static func is_ultimate_disabled_for_active_run() -> bool:
 	return _active_condition_id() == "ultimate_disabled"
 
 
-## combat: CombatController（status_empower 判定用）。null 可。
+## EX-05: 敵HP倍率。非該当時 1.0。
+static func enemy_hp_mult_for_active_run() -> float:
+	if _active_condition_id() != "miasma_saturate":
+		return 1.0
+	return maxf(1.0, float(TUNING.get("miasma_enemy_hp_mult", 1.0)))
+
+
+## EX-05: 敵への DoT（poison/bleed/ignite）持続倍率。非該当・対象外 id は 1.0。
+static func enemy_dot_duration_mult_for_active_run(status_id: String) -> float:
+	if _active_condition_id() != "miasma_saturate":
+		return 1.0
+	var sid: String = status_id.strip_edges()
+	if sid.is_empty():
+		return 1.0
+	for raw: Variant in miasma_dot_status_ids():
+		if str(raw) == sid:
+			return maxf(1.0, float(TUNING.get("miasma_dot_duration_mult", 1.0)))
+	return 1.0
+
+
+static func miasma_dot_status_ids() -> Array:
+	var raw: Variant = TUNING.get("miasma_dot_status_ids", [])
+	return raw if raw is Array else []
+
+
+## combat: CombatController。null 可。EX-06: デバフなしなら与ダメ低下。
+static func status_require_outgoing_mult_for_active_run(
+	combat: Object = null, target_slot: int = -1
+) -> float:
+	if _active_condition_id() != "status_require":
+		return 1.0
+	if combat == null or target_slot < 0:
+		return maxf(0.01, float(TUNING.get("status_require_outgoing_mult", 1.0)))
+	if enemy_has_non_beneficial_status(combat, target_slot):
+		return 1.0
+	return maxf(0.01, float(TUNING.get("status_require_outgoing_mult", 1.0)))
+
+
+## EX-08: ヒット攻撃のみ。クリティカル時は 1.0。DoT 経路からは呼ばないこと。
+static func hit_outgoing_mult_for_active_run(is_critical: bool) -> float:
+	if _active_condition_id() != "non_crit_pressure":
+		return 1.0
+	if is_critical:
+		return 1.0
+	return maxf(0.01, float(TUNING.get("non_crit_hit_outgoing_mult", 1.0)))
+
+
+## EX-10: 弱点一致なら 1.0。弱点未設定の敵はペナルティなし（攻略不能回避）。
+static func element_match_outgoing_mult_for_active_run(
+	attack_element: String, enemy_data: Resource
+) -> float:
+	if _active_condition_id() != "element_weakness_pressure":
+		return 1.0
+	if enemy_data == null:
+		return 1.0
+	var weakness: Array = []
+	if "element_weakness" in enemy_data:
+		var raw_w: Variant = enemy_data.element_weakness
+		if raw_w is Array:
+			weakness = raw_w as Array
+	if weakness.is_empty():
+		return 1.0
+	var resist: Array = []
+	if "element_resist" in enemy_data:
+		var raw_r: Variant = enemy_data.element_resist
+		if raw_r is Array:
+			resist = raw_r as Array
+	## PackedStringArray / Array[String] を Array[String] に寄せる。
+	var weak_ids: Array[String] = []
+	for w: Variant in weakness:
+		var ws: String = str(w).strip_edges()
+		if not ws.is_empty():
+			weak_ids.append(ws)
+	var resist_ids: Array[String] = []
+	for r: Variant in resist:
+		var rs: String = str(r).strip_edges()
+		if not rs.is_empty():
+			resist_ids.append(rs)
+	if weak_ids.is_empty():
+		return 1.0
+	var elem_mult: float = ElementResolver.get_damage_multiplier(
+		attack_element, weak_ids, resist_ids
+	)
+	if elem_mult > 1.0:
+		return 1.0
+	return maxf(0.01, float(TUNING.get("non_weakness_outgoing_mult", 1.0)))
+
+
+## combat: CombatController（long_battle_ramp のみ使用。status_empower は廃止）。
 static func enemy_outgoing_modifier_mult_for_active_run(
 	combat: Object = null, attacker_slot: int = -1
 ) -> float:
@@ -409,9 +501,9 @@ static func enemy_outgoing_modifier_mult_for_active_run(
 	var cid: String = _active_condition_id()
 	if cid == "long_battle_ramp":
 		mult *= _long_battle_ramp_mult()
-	if cid == "status_empower" and combat != null and attacker_slot >= 0:
-		if enemy_has_empower_status(combat, attacker_slot):
-			mult *= status_empower_outgoing_mult()
+	## attacker_slot / combat は将来拡張用にシグネチャ維持。
+	if combat != null and attacker_slot >= 0:
+		pass
 	return mult
 
 
@@ -427,37 +519,29 @@ static func _long_battle_ramp_mult() -> float:
 	return clampf(ramp, 1.0, maxf(1.0, cap))
 
 
-static func status_empower_ids() -> Array:
-	var raw: Variant = TUNING.get("status_empower_ids", [])
-	return raw if raw is Array else []
-
-
-static func status_empower_outgoing_mult() -> float:
-	return maxf(1.0, float(TUNING.get("status_empower_outgoing_mult", 1.0)))
-
-
-static func enemy_has_empower_status(combat: Object, slot: int) -> bool:
+static func enemy_has_non_beneficial_status(combat: Object, slot: int) -> bool:
 	if combat == null or slot < 0:
 		return false
-	if not combat.has_method("get_enemy_status_stacks_at"):
+	if not combat.has_method("get_enemy_status_list_at"):
 		return false
-	for raw: Variant in status_empower_ids():
-		var sid: String = str(raw)
+	var list: Variant = combat.call("get_enemy_status_list_at", slot)
+	if list is not Array:
+		return false
+	const _StatusResolver := preload("res://scripts/combat/StatusResolver.gd")
+	for raw: Variant in list:
+		if raw is not Dictionary:
+			continue
+		var sid: String = str((raw as Dictionary).get("effect_id", ""))
 		if sid.is_empty():
 			continue
-		if int(combat.call("get_enemy_status_stacks_at", slot, sid)) > 0:
-			return true
+		if _StatusResolver.is_beneficial_status(sid):
+			continue
+		return true
 	return false
 
 
-static func is_banned_status_for_active_run(status_id: String) -> bool:
-	if status_id.is_empty():
-		return false
-	if _active_condition_id() != "status_empower":
-		return false
-	for raw: Variant in status_empower_ids():
-		if str(raw) == status_id:
-			return true
+## 旧 EX-06 status_empower 指令用。制約再設計後は常に false（互換スタブ）。
+static func is_banned_status_for_active_run(_status_id: String) -> bool:
 	return false
 
 

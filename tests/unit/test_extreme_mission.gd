@@ -12,12 +12,12 @@ const EXPECTED_MISSIONS: Array[Dictionary] = [
 	{"id": "ex_grave_siege", "boss": "serdion", "floors": 5, "cond": "swarm_pressure"},
 	{"id": "ex_spore_dense", "boss": "granvel", "floors": 5, "cond": "long_battle_ramp"},
 	{"id": "ex_hunter_woods", "boss": "granvel", "floors": 5, "cond": "rear_pressure"},
-	{"id": "ex_miasma_sat", "boss": "moldgar", "floors": 5, "cond": "heal_down"},
-	{"id": "ex_infect_chain", "boss": "moldgar", "floors": 5, "cond": "status_empower"},
+	{"id": "ex_miasma_sat", "boss": "moldgar", "floors": 5, "cond": "miasma_saturate"},
+	{"id": "ex_infect_chain", "boss": "moldgar", "floors": 5, "cond": "status_require"},
 	{"id": "ex_wreck_assault", "boss": "nereion", "floors": 5, "cond": "ultimate_suppress"},
-	{"id": "ex_tide_siege", "boss": "nereion", "floors": 5, "cond": "elite_swarm_up"},
+	{"id": "ex_tide_siege", "boss": "nereion", "floors": 5, "cond": "non_crit_pressure"},
 	{"id": "ex_polar_silence", "boss": "eldion", "floors": 5, "cond": "ultimate_disabled"},
-	{"id": "ex_white_night", "boss": "eldion", "floors": 5, "cond": "long_battle_ramp"},
+	{"id": "ex_white_night", "boss": "eldion", "floors": 5, "cond": "element_weakness_pressure"},
 ]
 
 
@@ -106,12 +106,9 @@ func test_heal_mult_only_on_heal_down_missions() -> void:
 		_ExtremeMissionConfig.heal_effectiveness_mult_for_active_run(),
 		float(_ExtremeMissionConfig.TUNING["heal_effectiveness_mult"])
 	)
+	## EX-05 は miasma_saturate（heal_down ではない）
 	GameState.current_dungeon_id = Constants.EX_MIASMA_SAT_DUNGEON_ID
-	assert_eq(
-		_ExtremeMissionConfig.heal_effectiveness_mult_for_active_run(),
-		float(_ExtremeMissionConfig.TUNING["heal_effectiveness_mult"])
-	)
-	## heal_down 以外の極限では低下しない
+	assert_eq(_ExtremeMissionConfig.heal_effectiveness_mult_for_active_run(), 1.0)
 	GameState.current_dungeon_id = Constants.EX_GRAVE_SIEGE_DUNGEON_ID
 	assert_eq(_ExtremeMissionConfig.heal_effectiveness_mult_for_active_run(), 1.0)
 
@@ -119,8 +116,12 @@ func test_heal_mult_only_on_heal_down_missions() -> void:
 func test_modifier_scope_does_not_leak_to_main() -> void:
 	GameState.current_dungeon_id = Constants.EX_GRAVE_SIEGE_DUNGEON_ID
 	assert_gt(_ExtremeMissionConfig.swarm_chance_bonus_for_active_run(), 0.0)
-	assert_gt(_ExtremeMissionConfig.swarm_size_bonus_for_active_run(), 0)
+	assert_eq(_ExtremeMissionConfig.swarm_size_bonus_for_active_run(), 1)
 	GameState.current_dungeon_id = "mourngate"
+	assert_eq(_ExtremeMissionConfig.swarm_chance_bonus_for_active_run(), 0.0)
+	assert_eq(_ExtremeMissionConfig.swarm_size_bonus_for_active_run(), 0)
+	## EX-08 は非クリ制約。群れボーナスなし
+	GameState.current_dungeon_id = Constants.EX_TIDE_SIEGE_DUNGEON_ID
 	assert_eq(_ExtremeMissionConfig.swarm_chance_bonus_for_active_run(), 0.0)
 	assert_eq(_ExtremeMissionConfig.swarm_size_bonus_for_active_run(), 0)
 	GameState.current_dungeon_id = Constants.EX_HUNTER_WOODS_DUNGEON_ID
@@ -137,7 +138,7 @@ func test_modifier_scope_does_not_leak_to_main() -> void:
 	assert_eq(_ExtremeMissionConfig.ultimate_charge_gain_mult_for_active_run(), 1.0)
 
 
-func test_long_battle_ramp_and_status_empower() -> void:
+func test_long_battle_ramp_only_on_ex03() -> void:
 	GameState.current_dungeon_id = Constants.EX_SPORE_DENSE_DUNGEON_ID
 	GameState.begin_extreme_run_tracking(Constants.EX_SPORE_DENSE_DUNGEON_ID)
 	GameState.extreme_run_elapsed_sec = 10.0
@@ -145,16 +146,125 @@ func test_long_battle_ramp_and_status_empower() -> void:
 	var start_sec: float = float(_ExtremeMissionConfig.TUNING["long_battle_ramp_start_sec"])
 	GameState.extreme_run_elapsed_sec = start_sec + 60.0
 	assert_gt(_ExtremeMissionConfig.enemy_outgoing_modifier_mult_for_active_run(), 1.0)
+	## EX-10 は element_weakness_pressure（長期戦ランプなし）
+	GameState.current_dungeon_id = Constants.EX_WHITE_NIGHT_DUNGEON_ID
+	GameState.begin_extreme_run_tracking(Constants.EX_WHITE_NIGHT_DUNGEON_ID)
+	GameState.extreme_run_elapsed_sec = start_sec + 60.0
+	assert_eq(_ExtremeMissionConfig.enemy_outgoing_modifier_mult_for_active_run(), 1.0)
 	GameState.current_dungeon_id = "mourngate"
 	assert_eq(_ExtremeMissionConfig.enemy_outgoing_modifier_mult_for_active_run(), 1.0)
-	## status_empower: banned status 判定
+	## 旧 status_empower の banned は廃止
 	GameState.current_dungeon_id = Constants.EX_INFECT_CHAIN_DUNGEON_ID
-	assert_true(_ExtremeMissionConfig.is_banned_status_for_active_run("poison"))
-	assert_true(_ExtremeMissionConfig.is_banned_status_for_active_run("bleed"))
-	assert_false(_ExtremeMissionConfig.is_banned_status_for_active_run("stun"))
-	GameState.current_dungeon_id = "mistfen"
 	assert_false(_ExtremeMissionConfig.is_banned_status_for_active_run("poison"))
+	assert_false(_ExtremeMissionConfig.is_banned_status_for_active_run("bleed"))
 
+
+func test_miasma_saturate_hp_and_dot_duration() -> void:
+	GameState.current_dungeon_id = Constants.EX_MIASMA_SAT_DUNGEON_ID
+	assert_eq(
+		_ExtremeMissionConfig.enemy_hp_mult_for_active_run(),
+		float(_ExtremeMissionConfig.TUNING["miasma_enemy_hp_mult"])
+	)
+	assert_eq(
+		_ExtremeMissionConfig.enemy_dot_duration_mult_for_active_run("poison"),
+		float(_ExtremeMissionConfig.TUNING["miasma_dot_duration_mult"])
+	)
+	assert_eq(
+		_ExtremeMissionConfig.enemy_dot_duration_mult_for_active_run("bleed"),
+		float(_ExtremeMissionConfig.TUNING["miasma_dot_duration_mult"])
+	)
+	assert_eq(
+		_ExtremeMissionConfig.enemy_dot_duration_mult_for_active_run("ignite"),
+		float(_ExtremeMissionConfig.TUNING["miasma_dot_duration_mult"])
+	)
+	assert_eq(_ExtremeMissionConfig.enemy_dot_duration_mult_for_active_run("stun"), 1.0)
+	GameState.current_dungeon_id = "mistfen"
+	assert_eq(_ExtremeMissionConfig.enemy_hp_mult_for_active_run(), 1.0)
+	assert_eq(_ExtremeMissionConfig.enemy_dot_duration_mult_for_active_run("poison"), 1.0)
+
+	## 実付与で持続が延びる（ベース duration_ticks × 倍率）
+	GameState.current_dungeon_id = Constants.EX_MIASMA_SAT_DUNGEON_ID
+	var poison_fx: Resource = DataRegistry.get_status_effect("poison")
+	assert_not_null(poison_fx)
+	var base_ticks: int = int(poison_fx.duration_ticks)
+	assert_gt(base_ticks, 0)
+	var cc: CombatController = CombatController.new()
+	add_child_autofree(cc)
+	cc.swarm_data = [DataRegistry.get_enemy_data("sepia_hound")]
+	cc.swarm_hp = [1000]
+	cc.swarm_max_hp = [1000]
+	cc.active_enemy_index = 0
+	assert_true(cc.apply_status_to_enemy_slot(0, "poison", 1, 50))
+	var list: Array = cc.get_enemy_status_list_at(0)
+	assert_false(list.is_empty())
+	var expected_ticks: int = maxi(
+		1,
+		int(round(float(base_ticks) * float(_ExtremeMissionConfig.TUNING["miasma_dot_duration_mult"])))
+	)
+	assert_eq(int(list[0].get("remaining_ticks", 0)), expected_ticks)
+
+
+func test_status_require_outgoing_with_and_without_status() -> void:
+	GameState.current_dungeon_id = Constants.EX_INFECT_CHAIN_DUNGEON_ID
+	var expect_down: float = float(_ExtremeMissionConfig.TUNING["status_require_outgoing_mult"])
+	var cc: CombatController = CombatController.new()
+	add_child_autofree(cc)
+	cc.swarm_data = [DataRegistry.get_enemy_data("sepia_hound")]
+	cc.swarm_hp = [1000]
+	cc.swarm_max_hp = [1000]
+	cc.active_enemy_index = 0
+	assert_eq(
+		_ExtremeMissionConfig.status_require_outgoing_mult_for_active_run(cc, 0),
+		expect_down
+	)
+	assert_true(cc.apply_status_to_enemy_slot(0, "poison", 1, 50))
+	assert_eq(
+		_ExtremeMissionConfig.status_require_outgoing_mult_for_active_run(cc, 0),
+		1.0
+	)
+	GameState.current_dungeon_id = "mistfen"
+	assert_eq(_ExtremeMissionConfig.status_require_outgoing_mult_for_active_run(cc, 0), 1.0)
+
+
+func test_non_crit_hit_outgoing_mult() -> void:
+	GameState.current_dungeon_id = Constants.EX_TIDE_SIEGE_DUNGEON_ID
+	var expect: float = float(_ExtremeMissionConfig.TUNING["non_crit_hit_outgoing_mult"])
+	assert_eq(_ExtremeMissionConfig.hit_outgoing_mult_for_active_run(false), expect)
+	assert_eq(_ExtremeMissionConfig.hit_outgoing_mult_for_active_run(true), 1.0)
+	GameState.current_dungeon_id = "blackshore"
+	assert_eq(_ExtremeMissionConfig.hit_outgoing_mult_for_active_run(false), 1.0)
+
+
+func test_element_weakness_pressure_match_mismatch_empty() -> void:
+	GameState.current_dungeon_id = Constants.EX_WHITE_NIGHT_DUNGEON_ID
+	var expect: float = float(_ExtremeMissionConfig.TUNING["non_weakness_outgoing_mult"])
+	var eldion: Resource = DataRegistry.get_enemy_data("eldion")
+	assert_not_null(eldion)
+	assert_eq(
+		_ExtremeMissionConfig.element_match_outgoing_mult_for_active_run("fire", eldion),
+		1.0
+	)
+	assert_eq(
+		_ExtremeMissionConfig.element_match_outgoing_mult_for_active_run("ice", eldion),
+		expect
+	)
+	assert_eq(
+		_ExtremeMissionConfig.element_match_outgoing_mult_for_active_run("", eldion),
+		expect
+	)
+	## 弱点未設定の敵はペナルティなし
+	const _EnemyData := preload("res://scripts/data/EnemyData.gd")
+	var blank: Resource = _EnemyData.new()
+	blank.element_weakness = [] as Array[String]
+	assert_eq(
+		_ExtremeMissionConfig.element_match_outgoing_mult_for_active_run("fire", blank),
+		1.0
+	)
+	GameState.current_dungeon_id = "frostridge"
+	assert_eq(
+		_ExtremeMissionConfig.element_match_outgoing_mult_for_active_run("", eldion),
+		1.0
+	)
 
 func test_star_evaluation_and_orders_ex01() -> void:
 	GameState.current_dungeon_id = Constants.EX_TOMB_SEAL_DUNGEON_ID
@@ -238,7 +348,7 @@ func test_phase2_order_evaluations() -> void:
 	orders = _ExtremeMissionConfig.evaluate_orders_for_run(Constants.EX_WRECK_ASSAULT_DUNGEON_ID)
 	assert_false(bool(orders.get("no_ultimate", true)))
 
-	## no_rear_ko / no_banned_status
+	## no_rear_ko（EX-04）／EX-06 は time_limit（旧 no_banned_status 廃止）
 	GameState.current_dungeon_id = Constants.EX_HUNTER_WOODS_DUNGEON_ID
 	GameState.begin_extreme_run_tracking(Constants.EX_HUNTER_WOODS_DUNGEON_ID)
 	orders = _ExtremeMissionConfig.evaluate_orders_for_run(Constants.EX_HUNTER_WOODS_DUNGEON_ID)
@@ -249,11 +359,14 @@ func test_phase2_order_evaluations() -> void:
 
 	GameState.current_dungeon_id = Constants.EX_INFECT_CHAIN_DUNGEON_ID
 	GameState.begin_extreme_run_tracking(Constants.EX_INFECT_CHAIN_DUNGEON_ID)
+	GameState.extreme_run_elapsed_sec = 30.0
 	orders = _ExtremeMissionConfig.evaluate_orders_for_run(Constants.EX_INFECT_CHAIN_DUNGEON_ID)
-	assert_true(bool(orders.get("no_banned_status", false)))
-	GameState.note_extreme_banned_status_used("poison")
+	assert_true(bool(orders.has("time_limit")))
+	assert_false(bool(orders.has("no_banned_status")))
+	assert_true(bool(orders.get("time_limit", false)))
+	GameState.extreme_run_elapsed_sec = float(_ExtremeMissionConfig.order_time_limit_sec()) + 1.0
 	orders = _ExtremeMissionConfig.evaluate_orders_for_run(Constants.EX_INFECT_CHAIN_DUNGEON_ID)
-	assert_false(bool(orders.get("no_banned_status", true)))
+	assert_false(bool(orders.get("time_limit", true)))
 
 
 func test_time_order_uses_accumulated_not_wall_clock() -> void:
@@ -399,14 +512,30 @@ func test_extreme_missions_use_dedicated_route_tab() -> void:
 
 
 func test_extreme_display_copy_matches_impl() -> void:
-	## 表示文のみ。判定 id・TUNING は不変。
+	## 表示文と special_condition id が実挙動と一致すること。
 	assert_eq(_ExtremeMissionConfig.order_display_label("time_limit"), "10分以内にクリア")
 	assert_eq(_ExtremeMissionConfig.order_time_limit_sec(), 600)
-	assert_eq(_ExtremeMissionConfig.special_condition_label("ex_tide_siege"), "敵の群れ増加")
+	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_tide_siege"), "non_crit_pressure")
+	assert_eq(_ExtremeMissionConfig.special_condition_label("ex_tide_siege"), "非クリティカル弱体")
 	assert_true(
-		_ExtremeMissionConfig.special_condition_label("ex_tide_siege").find("ELITE") < 0
+		_ExtremeMissionConfig.special_condition_desc("ex_tide_siege").find("DoT") >= 0
 	)
-	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_tide_siege"), "elite_swarm_up")
+	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_grave_siege"), "swarm_pressure")
+	assert_true(
+		_ExtremeMissionConfig.special_condition_desc("ex_grave_siege").find("群れ出現時") >= 0
+	)
+	assert_true(
+		_ExtremeMissionConfig.special_condition_desc("ex_hunter_woods").find("編成") >= 0
+	)
+	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_miasma_sat"), "miasma_saturate")
+	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_infect_chain"), "status_require")
+	assert_eq(
+		_ExtremeMissionConfig.special_condition_id("ex_white_night"),
+		"element_weakness_pressure"
+	)
+	assert_true(
+		_ExtremeMissionConfig.special_condition_tip("ex_white_night").find("炎") >= 0
+	)
 	assert_eq(
 		_ExtremeMissionConfig.swarm_chance_bonus_for_active_run(),
 		0.0
@@ -417,10 +546,9 @@ func test_extreme_display_copy_matches_impl() -> void:
 	assert_true(("\n".join(brief)).find("規定時間") < 0)
 	assert_true(("\n".join(brief)).find("10分以内にクリア") >= 0)
 	assert_eq(
-		_ExtremeMissionConfig.order_display_label("no_banned_status"),
-		"毒・出血を使用しない"
-	)
-	assert_eq(
 		_ExtremeMissionConfig.special_condition_label("ex_polar_silence"),
 		"必殺技使用不可"
 	)
+	## UI ラベルと modifier API の対応（EX-02 群れサイズ）
+	GameState.current_dungeon_id = Constants.EX_GRAVE_SIEGE_DUNGEON_ID
+	assert_eq(_ExtremeMissionConfig.swarm_size_bonus_for_active_run(), 1)
