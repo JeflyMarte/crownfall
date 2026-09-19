@@ -1345,6 +1345,7 @@
 | **β推奨** | — | P3-AUDIO-SE-002 | SE 未配線（skill/death/cancel/error 等） | ✅ Impl（要実機） |
 | **β推奨** | — | **P3-AUDIO-BGM-001** | BGM 配置＋配線（title〜result） | ✅ Impl（要実機） |
 | **β推奨** | — | P3-DAILY-B / 権利表記 | 日課 polish・Kenney/BGM クレジット | 任意 |
+| **Update** | — | **P3-DG-ROYAL-MARK-002** | 分岐型王痕（攻勢／守勢／技巧・`146`） | ✅ Decision／**Impl 未着手** |
 | **Update** | — | ②〜⑤解禁＋磨き | 旧 BETA-B1〜004 の実機・資産 | 後続 |
 | **Update** | — | P3-EQ-LEG-002 | 防具・装飾★ ②〜⑤ | 後続（旧キュー4） |
 | **Update** | — | P3-ENEMY-002 | ②+4／③④⑤+12 済（本番ドット後差し） | アート待ち |
