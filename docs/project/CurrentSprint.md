@@ -13,7 +13,7 @@
 **メイン5 Biome の通常直列解放を有効化**（β封鎖解除）。②は①クリアのみ（調査ゲージは解放非関与）。  
 寄り道はオミット継続（`SUB_DUNGEONS_PLAYABLE=false`）。征討はイベント常設で配信中（天望＋星炉・`APEX_CONQUEST_PLAYABLE_IDS`）。
 
-**直近:** 極限任務制約再設計（Decision `145`）Implemented。王痕育成 UI階層改善（次効果主情報・仕様不変）は feature `cursor/royal-mark-144`・報告後に main。実機 QA 推奨。
+**直近:** 分岐型王痕 Decision **`146` Approved**（仕様のみ・実装未着手）。極限制約再設計 `145` Implemented。次 Impl＝`146`（Combat／Save／UI）。
 
 ---
 
@@ -71,6 +71,12 @@
 | ID | 内容 | 状態 |
 |---|---|---|
 | **P3-DG-EXTREME-001** | **極限任務** EX-01〜10 — 共通基盤＋特殊条件 modifier＋★指令 Save。Decision `143`／**制約再設計 `145`** | ✅ **Completed**（Phase1+2／制約再設計 2026-09-19） |
+
+#### C-5. 王痕分岐（仕様確定・実装待ち）
+
+| ID | 内容 | 状態 |
+|---|---|---|
+| **P3-DG-ROYAL-MARK-002** | **分岐型王痕** — IIIで攻勢／守勢／技巧。VでUlt覚醒＋最低保証（レノール／火鷹）。`unselected` migration。Decision **`146`** | ✅ **Approved**／**Impl 未着手** |
 
 #### C（その他アップデート）
 

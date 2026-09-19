@@ -1,13 +1,15 @@
 # 王痕育成（P3-DG-ROYAL-MARK-001）
 
-**Status:** **Implemented**（2026-09-18）— Phase 1＋Phase 2（専用UI＋**Rank III Job Skill／Rank V Ultimate 強化**）／feature `cursor/royal-mark-144`（**main 未マージ**）  
-**上書きなし**（極限任務 Decision 143 は Completed のまま）
+**Status:** **Implemented**（2026-09-18）— Phase 1＋Phase 2（専用UI＋Rank III Job Skill／Rank V Ultimate 強化）  
+**上書き:** Rank III〜V の「全員共通 Job Skill 強化」構造は Decision **`146`（分岐型王痕）** が正。ステ倍率・コスト・極限片経済・対象・解放は本 Decision 据置。`146` 実装前は現行コード＝本 Decision Phase 2 のまま。  
+**上書きなし（他）:** 極限任務 Decision 143／145
 
 ---
 
 ## 0. 一言
 
-極限任務の恒久目的として、人間キャラクターに **王痕 I〜V**（ステ倍率）を付与する。固有 Passive／限凸とは独立。
+極限任務の恒久目的として、人間キャラクターに **王痕 I〜V**（ステ倍率）を付与する。固有 Passive／限凸とは独立。  
+**方針分岐（攻勢／守勢／技巧）は `146`。**
 
 ---
 
@@ -117,4 +119,5 @@ v17→v18: 既存 `extreme_mission_progress[*].best_stars` から一度だけ遡
 
 ## 6. 非スコープ
 
-王痕 VI+／Passive 変更／限凸変更／新キャラ・装備・ダンジョン／極限 TUNING 変更／Decision 143 変更／新大型アート／Phase 1 経済・★・25%周回の再調整。
+王痕 VI+／Passive 変更／限凸変更／新キャラ・装備・ダンジョン／極限 TUNING 変更／Decision 143 変更／新大型アート／Phase 1 経済・★・25%周回の再調整。  
+※方針分岐・Ult 最低保証・`unselected` migration は **`146`**（本節の「VI+」禁止は `146` も継承）。
