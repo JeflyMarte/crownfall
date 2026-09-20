@@ -72,6 +72,11 @@ func test_guide_no_outdated_combat_or_gacha_copy() -> void:
 	assert_true(str(by_id.get("SYS-G013", "")).contains("魔晶石発掘"), "発掘手引き")
 	assert_true(str(by_id.get("SYS-G014", "")).contains("機巧士"), "機巧士手引き")
 	assert_true(str(by_id.get("SYS-G015", "")).contains("極限任務"), "極限任務手引き")
+	assert_true(
+		str(by_id.get("SYS-G015", "")).contains("日替わり")
+		or str(by_id.get("SYS-G015", "")).contains("毎日"),
+		"極限日替わり"
+	)
 	assert_true(str(by_id.get("SYS-G008", "")).contains("決定") or str(by_id.get("SYS-G008", "")).contains("−"), "特権強化の操作")
 
 	var eq001: String = str(by_id.get("EQUIP-G001", ""))

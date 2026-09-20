@@ -23,6 +23,7 @@ const EXPECTED_MISSIONS: Array[Dictionary] = [
 
 func before_each() -> void:
 	GameState.debug_full_unlock = false
+	_ExtremeMissionConfig.debug_day_key_override = ""
 	GameState.dungeon_progress.clear()
 	GameState.stage_progress.clear()
 	GameState.dungeon_tier_cleared.clear()
@@ -93,12 +94,30 @@ func test_unlock_requires_main5_normal_for_all() -> void:
 	assert_true(_ExtremeMissionConfig.is_content_unlocked())
 	for mid: String in Constants.EXTREME_MISSION_PLAYABLE_IDS:
 		assert_true(GameState.is_dungeon_unlocked(mid), mid)
-		assert_true(_EventDungeonSchedule.is_open_now(mid), mid)
-
-
-func test_always_open_schedule() -> void:
+	## 日替わり: アンカー日は EX-01 のみ開放
+	_ExtremeMissionConfig.debug_day_key_override = _ExtremeMissionConfig.DAILY_ROTATION_ANCHOR_DAY_KEY
 	assert_true(_EventDungeonSchedule.is_open_now(Constants.EX_TOMB_SEAL_DUNGEON_ID))
-	assert_eq(_EventDungeonSchedule.open_schedule_label(Constants.EX_TOMB_SEAL_DUNGEON_ID), "極限・常設")
+	assert_false(_EventDungeonSchedule.is_open_now(Constants.EX_GRAVE_SIEGE_DUNGEON_ID))
+
+
+func test_daily_rotation_one_mission_per_day() -> void:
+	_ExtremeMissionConfig.debug_day_key_override = "2026-09-20"
+	assert_eq(_ExtremeMissionConfig.todays_mission_id(), "ex_tomb_seal")
+	assert_true(_ExtremeMissionConfig.is_open_now("ex_tomb_seal"))
+	assert_false(_ExtremeMissionConfig.is_open_now("ex_grave_siege"))
+	assert_eq(_EventDungeonSchedule.open_schedule_label("ex_tomb_seal"), "日替わり（朝5時更新）")
+	assert_eq(_ExtremeMissionConfig.next_open_label("ex_grave_siege"), "明日 5:00〜")
+	_ExtremeMissionConfig.debug_day_key_override = "2026-09-21"
+	assert_eq(_ExtremeMissionConfig.todays_mission_id(), "ex_grave_siege")
+	assert_true(_ExtremeMissionConfig.is_open_now("ex_grave_siege"))
+	assert_false(_ExtremeMissionConfig.is_open_now("ex_tomb_seal"))
+	## 10日で一周
+	_ExtremeMissionConfig.debug_day_key_override = "2026-09-30"
+	assert_eq(_ExtremeMissionConfig.todays_mission_id(), "ex_tomb_seal")
+	## debug_full_unlock は全日
+	GameState.debug_full_unlock = true
+	assert_true(_EventDungeonSchedule.is_open_now("ex_white_night"))
+	GameState.debug_full_unlock = false
 
 
 func test_heal_mult_only_on_heal_down_missions() -> void:
@@ -444,6 +463,7 @@ func test_missions_progress_isolated() -> void:
 
 func test_vertical_slice_unlock_select_clear_save() -> void:
 	var mid: String = Constants.EX_TOMB_SEAL_DUNGEON_ID
+	_ExtremeMissionConfig.debug_day_key_override = _ExtremeMissionConfig.DAILY_ROTATION_ANCHOR_DAY_KEY
 	assert_false(GameState.is_dungeon_unlocked(mid))
 	_clear_all_main_normal()
 	assert_true(GameState.is_dungeon_unlocked(mid))

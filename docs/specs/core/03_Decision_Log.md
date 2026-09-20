@@ -8345,3 +8345,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-EXTREME-002-REVISE-1 | EX-03 `damage_reflect`（flat+pct／DoT除外）。旧 `long_battle_ramp` 廃止 | 多段 vs 一撃 |
 | P3-DG-EXTREME-002-REVISE-2 | EX-08 `shell_pressure`（×0.65。pierce／破甲で無視）。旧 `non_crit_pressure` 廃止 | 貫通・破甲ビルド |
 | P3-DG-EXTREME-002-REVISE-3 | SSOT — Decision `145` 更新。TUNING／表示／Combat フック同期 | 正本一本化 |
+
+## 極限任務 日替わり1任務（2026-09-20 — P3-DG-EXTREME-DAILY-001）
+
+> **オーナー GO**（案A）: 毎日1任務のみ出現。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-EXTREME-DAILY-001-1 | 朝5時 JST で EX-01〜10 を固定ローテ（アンカー day_key=`2026-09-20`＝EX-01） | 曜日イベントと同境界 |
+| P3-DG-EXTREME-DAILY-001-2 | 出現中は回数無制限。一覧は本日1件のみ | 案A |
+| P3-DG-EXTREME-DAILY-001-3 | `debug_full_unlock` 時は全日開放（検証用） | 既存デバッグ方針 |
+| P3-DG-EXTREME-DAILY-001-4 | SSOT — Decision `143` 001-14。実装=`ExtremeMissionConfig`＋`EventDungeonSchedule` | 正本一本化 |

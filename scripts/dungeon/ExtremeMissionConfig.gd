@@ -20,6 +20,25 @@ const EX08_DUNGEON_ID: String = "ex_tide_siege"
 const EX09_DUNGEON_ID: String = "ex_polar_silence"
 const EX10_DUNGEON_ID: String = "ex_white_night"
 
+## 日替わり1任務（朝5時 JST）。固定ローテ EX-01→…→EX-10→繰返し。
+const DAILY_ROTATION_IDS: Array[String] = [
+	EX01_DUNGEON_ID,
+	EX02_DUNGEON_ID,
+	EX03_DUNGEON_ID,
+	EX04_DUNGEON_ID,
+	EX05_DUNGEON_ID,
+	EX06_DUNGEON_ID,
+	EX07_DUNGEON_ID,
+	EX08_DUNGEON_ID,
+	EX09_DUNGEON_ID,
+	EX10_DUNGEON_ID,
+]
+## ギルド日境界の day_key。この日＝EX-01。
+const DAILY_ROTATION_ANCHOR_DAY_KEY: String = "2026-09-20"
+
+## テスト用。空なら DailyMissionSystem.current_day_key()。
+static var debug_day_key_override: String = ""
+
 ## ---------------------------------------------------------------------------
 ## TUNING / provisional — ProjectDocs 未確定の数値。完了報告で列挙。散在禁止。
 ## ---------------------------------------------------------------------------
@@ -655,6 +674,73 @@ static func is_mission_unlocked(dungeon_id: String) -> bool:
 	if not is_playable(dungeon_id):
 		return false
 	return is_content_unlocked()
+
+
+## ギルド日（朝5時JST）の day_key。
+static func current_rotation_day_key() -> String:
+	var ov: String = str(debug_day_key_override).strip_edges()
+	if not ov.is_empty():
+		return ov
+	return DailyMissionSystem.current_day_key()
+
+
+static func day_index_for_day_key(day_key: String) -> int:
+	const _Schedule := preload("res://scripts/event/EventScheduleHelper.gd")
+	var key: String = day_key.strip_edges()
+	if key.is_empty():
+		return 0
+	var n: int = DAILY_ROTATION_IDS.size()
+	if n <= 0:
+		return 0
+	var anchor_unix: int = _Schedule.jst_day_start_unix(DAILY_ROTATION_ANCHOR_DAY_KEY)
+	var day_unix: int = _Schedule.jst_day_start_unix(key)
+	var delta_days: int = int(floor(float(day_unix - anchor_unix) / 86400.0))
+	return posmod(delta_days, n)
+
+
+static func mission_id_for_day_key(day_key: String) -> String:
+	var idx: int = day_index_for_day_key(day_key)
+	if idx < 0 or idx >= DAILY_ROTATION_IDS.size():
+		return ""
+	return DAILY_ROTATION_IDS[idx]
+
+
+static func todays_mission_id() -> String:
+	return mission_id_for_day_key(current_rotation_day_key())
+
+
+## 本日出現中か。debug_full_unlock 中は全日開放（検証用）。
+static func is_open_now(dungeon_id: String) -> bool:
+	if not is_extreme_mission(dungeon_id):
+		return false
+	if GameState != null and GameState.debug_full_unlock:
+		return true
+	return dungeon_id == todays_mission_id()
+
+
+static func open_schedule_label(_dungeon_id: String = "") -> String:
+	return "日替わり（朝5時更新）"
+
+
+## 本日以外の任務向け。「次は N 日後」または本日なら空。
+static func next_open_label(dungeon_id: String) -> String:
+	if not is_extreme_mission(dungeon_id):
+		return ""
+	if is_open_now(dungeon_id):
+		return ""
+	var n: int = DAILY_ROTATION_IDS.size()
+	if n <= 0:
+		return ""
+	var today_idx: int = day_index_for_day_key(current_rotation_day_key())
+	var target_idx: int = DAILY_ROTATION_IDS.find(dungeon_id)
+	if target_idx < 0:
+		return ""
+	var days_until: int = posmod(target_idx - today_idx, n)
+	if days_until <= 0:
+		return ""
+	if days_until == 1:
+		return "明日 5:00〜"
+	return "%d日後 5:00〜" % days_until
 
 
 static func stars_for_clear(order_ok: Dictionary) -> int:

@@ -873,9 +873,10 @@ func _sorted_open_event_dungeons() -> Array:
 	return out
 
 
-## 極限任務タブ。プレイ可能かつ解放済みのみ。難易度昇順。
+## 極限任務タブ。本日出現かつ解放済みのみ（日替わり1任務）。
 func _sorted_extreme_missions() -> Array:
 	var out: Array = []
+	const _EventDungeonScheduleEx := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
 	for data in DataRegistry.get_all_dungeon_data():
 		if data == null:
 			continue
@@ -886,7 +887,10 @@ func _sorted_extreme_missions() -> Array:
 			continue
 		if not GameState.is_dungeon_unlocked(dungeon_id):
 			continue
+		if not _EventDungeonScheduleEx.is_open_now(dungeon_id):
+			continue
 		out.append(data)
+	## 通常は1件。debug 全日開放時は難易度昇順。
 	out.sort_custom(_compare_extreme_missions)
 	return out
 

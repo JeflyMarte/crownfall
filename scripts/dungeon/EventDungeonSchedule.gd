@@ -118,7 +118,8 @@ static func is_open_today(dungeon_id: String) -> bool:
 	if Constants.is_apex_conquest_playable(dungeon_id):
 		return true
 	if Constants.is_extreme_mission_playable(dungeon_id):
-		return true
+		const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+		return _ExtremeMissionConfig.is_open_now(dungeon_id)
 	if uses_hourly_windows(dungeon_id):
 		## 時間帯イベントは「今日ある」ではなく is_open_now で判定。
 		return is_open_now(dungeon_id)
@@ -141,7 +142,8 @@ static func is_open_now(dungeon_id: String) -> bool:
 	if Constants.is_apex_conquest_playable(dungeon_id):
 		return true
 	if Constants.is_extreme_mission_playable(dungeon_id):
-		return true
+		const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+		return _ExtremeMissionConfig.is_open_now(dungeon_id)
 	if uses_hourly_windows(dungeon_id):
 		return _is_in_hourly_window(dungeon_id)
 	return is_open_today(dungeon_id)
@@ -161,7 +163,8 @@ static func open_schedule_label(dungeon_id: String) -> String:
 	if Constants.is_apex_conquest_playable(dungeon_id):
 		return "常設"
 	if Constants.is_extreme_mission_playable(dungeon_id):
-		return "極限・常設"
+		const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+		return _ExtremeMissionConfig.open_schedule_label(dungeon_id)
 	if uses_hourly_windows(dungeon_id):
 		var starts: Array = HOURLY_OPEN_START_HOURS.get(dungeon_id, []) as Array
 		if starts.is_empty():
@@ -190,8 +193,11 @@ static func _is_in_hourly_window(dungeon_id: String) -> bool:
 	return false
 
 
-## 「次の出現 HH:00」（出現中は空文字）。
+## 「次の出現 HH:00」（出現中は空文字）。極限は「明日 5:00〜」等。
 static func next_open_label(dungeon_id: String) -> String:
+	if Constants.is_extreme_mission_playable(dungeon_id):
+		const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+		return _ExtremeMissionConfig.next_open_label(dungeon_id)
 	if not uses_hourly_windows(dungeon_id):
 		return ""
 	if is_open_now(dungeon_id):
