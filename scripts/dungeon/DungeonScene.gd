@@ -3301,9 +3301,11 @@ func _make_status_icon_row() -> HBoxContainer:
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return row
 
-func _build_status_icon(entry: Dictionary) -> Control:
+func _build_status_icon(entry: Dictionary, for_legend: bool = false) -> Control:
 	var effect_id: String = entry.get("effect_id", "")
 	if effect_id.begins_with("eng_trap_"):
+		if for_legend:
+			return _build_engineer_trap_legend_icon(entry)
 		return _build_engineer_trap_status_icon(entry)
 	var def: Dictionary = STATUS_ICON_DEF.get(effect_id, {"abbrev": "?", "color": Color(0.45, 0.45, 0.45)})
 	var stacks: int = int(entry.get("stacks", 1))
@@ -3450,6 +3452,63 @@ func _build_engineer_trap_status_icon(entry: Dictionary) -> Control:
 	var display_name: String = str(entry.get("display_name", effect_id))
 	root.tooltip_text = "%s 残%d" % [display_name, fires]
 	return root
+
+
+## 右下レジェンド用: 他ステと同じ1枠（残発は角バッジ）。頭上用 VBox は縦ずれの原因になる。
+func _build_engineer_trap_legend_icon(entry: Dictionary) -> Control:
+	var effect_id: String = str(entry.get("effect_id", ""))
+	var def: Dictionary = STATUS_ICON_DEF.get(
+		effect_id, {"abbrev": "?", "color": Color(0.75, 0.65, 0.35)}
+	)
+	var fires: int = maxi(1, int(entry.get("stacks", 1)))
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var trap_style := StyleBoxFlat.new()
+	trap_style.bg_color = Color(0.08, 0.08, 0.1, 0.92)
+	trap_style.set_corner_radius_all(4)
+	trap_style.set_border_width_all(1)
+	var accent: Color = def.get("color", Color(0.75, 0.65, 0.35))
+	trap_style.border_color = Color(accent.r, accent.g, accent.b, 0.95)
+	trap_style.content_margin_left = 0.0
+	trap_style.content_margin_top = 0.0
+	trap_style.content_margin_right = 0.0
+	trap_style.content_margin_bottom = 0.0
+	panel.add_theme_stylebox_override("panel", trap_style)
+	var icon_tex: Texture2D = IconPaths.get_icon_texture(effect_id, "status")
+	if icon_tex != null:
+		var icon := TextureRect.new()
+		icon.texture = IconPaths.display_texture_for_engineer_trap(effect_id, icon_tex)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.custom_minimum_size = Vector2(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		panel.add_child(icon)
+	else:
+		var abbrev_lbl := Label.new()
+		abbrev_lbl.text = str(def.get("abbrev", "?"))
+		abbrev_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		abbrev_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		abbrev_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		abbrev_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		abbrev_lbl.add_theme_font_size_override("font_size", 14)
+		abbrev_lbl.add_theme_color_override("font_color", Color.WHITE)
+		abbrev_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		panel.add_child(abbrev_lbl)
+	if fires > 1:
+		var stack_lbl := Label.new()
+		stack_lbl.text = str(fires)
+		stack_lbl.add_theme_font_size_override("font_size", 10)
+		stack_lbl.add_theme_color_override("font_color", Color.WHITE)
+		stack_lbl.add_theme_constant_override("outline_size", 1)
+		stack_lbl.add_theme_color_override("font_outline_color", Color.BLACK)
+		stack_lbl.position = Vector2(STATUS_ICON_SIZE - 12.0, 0.0)
+		stack_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		panel.add_child(stack_lbl)
+	var display_name: String = str(entry.get("display_name", effect_id))
+	panel.tooltip_text = "%s 残%d" % [display_name, fires]
+	return panel
 
 
 func _status_icon_entry_size(entry: Dictionary) -> Vector2:
@@ -4115,8 +4174,9 @@ func _make_status_legend_row(status_id: String) -> HBoxContainer:
 		"effect_id": status_id,
 		"stacks": 1,
 		"display_name": _StatusEffectLinkHelper.display_name_for(status_id),
-	})
+	}, true)
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon.custom_minimum_size = Vector2(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
 	row.add_child(icon)
 	var line: String = _StatusEffectLinkHelper.effect_one_line(status_id)
 	if line.is_empty():
