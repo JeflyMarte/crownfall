@@ -3,6 +3,7 @@
 ---
 
 ## Last Update
+2026-09-20（**王痕育成 可読性**: スキルアイコン表示／固有名＝緑・数値＝水色・「旧仕様」文言削除。Gameplay・Save不変。GUT royal_mark* PASS）
 2026-09-20（**王痕育成 UI Polish**: 方針ボタン選択状態明確化／具体効果を方針パネルへ／必殺技覚醒分離／V MAX圧縮。Gameplay・Save不変）
 2026-09-20（**王痕片表示×10**: コスト／★報酬／周回を同倍率。難易度比据置。SAVE v20で所持×10。Gold不変）
 2026-09-19（**分岐型王痕 `146` Implemented**: 攻勢／守勢／技巧・排他 Job・Ult最低保証（レノール／火鷹）・Save v19 `royal_mark_paths`・RoyalMarkScene方針UI。GUT `test_royal_mark*` 90 PASS＋Extreme22／combat_audit40／smoke PASS）
