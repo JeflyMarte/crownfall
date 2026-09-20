@@ -94,30 +94,21 @@ func test_unlock_requires_main5_normal_for_all() -> void:
 	assert_true(_ExtremeMissionConfig.is_content_unlocked())
 	for mid: String in Constants.EXTREME_MISSION_PLAYABLE_IDS:
 		assert_true(GameState.is_dungeon_unlocked(mid), mid)
-	## 日替わり: アンカー日は EX-01 のみ開放
-	_ExtremeMissionConfig.debug_day_key_override = _ExtremeMissionConfig.DAILY_ROTATION_ANCHOR_DAY_KEY
+	## 解放後は全任務が常時出現（日替わり廃止）。
 	assert_true(_EventDungeonSchedule.is_open_now(Constants.EX_TOMB_SEAL_DUNGEON_ID))
-	assert_false(_EventDungeonSchedule.is_open_now(Constants.EX_GRAVE_SIEGE_DUNGEON_ID))
+	assert_true(_EventDungeonSchedule.is_open_now(Constants.EX_GRAVE_SIEGE_DUNGEON_ID))
+	assert_true(_EventDungeonSchedule.is_open_now(Constants.EX_WHITE_NIGHT_DUNGEON_ID))
 
 
-func test_daily_rotation_one_mission_per_day() -> void:
-	_ExtremeMissionConfig.debug_day_key_override = "2026-09-20"
-	assert_eq(_ExtremeMissionConfig.todays_mission_id(), "ex_tomb_seal")
+func test_extreme_always_open_after_content_unlock() -> void:
+	## 出現は日に依存しない。未登録 id だけ false。
 	assert_true(_ExtremeMissionConfig.is_open_now("ex_tomb_seal"))
-	assert_false(_ExtremeMissionConfig.is_open_now("ex_grave_siege"))
-	assert_eq(_EventDungeonSchedule.open_schedule_label("ex_tomb_seal"), "日替わり（朝5時更新）")
-	assert_eq(_ExtremeMissionConfig.next_open_label("ex_grave_siege"), "明日 5:00〜")
-	_ExtremeMissionConfig.debug_day_key_override = "2026-09-21"
-	assert_eq(_ExtremeMissionConfig.todays_mission_id(), "ex_grave_siege")
 	assert_true(_ExtremeMissionConfig.is_open_now("ex_grave_siege"))
-	assert_false(_ExtremeMissionConfig.is_open_now("ex_tomb_seal"))
-	## 10日で一周
-	_ExtremeMissionConfig.debug_day_key_override = "2026-09-30"
-	assert_eq(_ExtremeMissionConfig.todays_mission_id(), "ex_tomb_seal")
-	## debug_full_unlock は全日
-	GameState.debug_full_unlock = true
-	assert_true(_EventDungeonSchedule.is_open_now("ex_white_night"))
-	GameState.debug_full_unlock = false
+	assert_true(_ExtremeMissionConfig.is_open_now("ex_white_night"))
+	assert_false(_ExtremeMissionConfig.is_open_now("mourngate"))
+	assert_eq(_EventDungeonSchedule.open_schedule_label("ex_tomb_seal"), "常設（解放後いつでも）")
+	assert_eq(_ExtremeMissionConfig.next_open_label("ex_grave_siege"), "")
+	assert_eq(_ExtremeMissionConfig.next_open_label("ex_tomb_seal"), "")
 
 
 func test_heal_mult_only_on_heal_down_missions() -> void:

@@ -134,7 +134,9 @@ func test_extreme_guide_mentions_constraints_and_rewards() -> void:
 	assert_true(blob.contains("制約"), "制約")
 	assert_true(blob.contains("王痕"), "王痕")
 	assert_true(blob.contains("極限"), "極限")
-	assert_true(blob.contains("毎日") or blob.contains("日替わり") or blob.contains("1任務"), "日替わり")
+	assert_false(blob.contains("毎日"), "日替わり廃止")
+	assert_false(blob.contains("日替わり"), "日替わり廃止")
+	assert_true(blob.contains("いつでも") or blob.contains("常設") or blob.contains("全任務"), "常設解放")
 	assert_false(blob.contains("DoT"), "内部語を出さない")
 	assert_false(blob.contains("ex_"), "内部 id を出さない")
 

@@ -125,8 +125,8 @@ func test_extreme_select_clears_featured_when_locked() -> void:
 		assert_true(btn.disabled)
 
 
-func test_extreme_select_features_todays_mission_when_unlocked() -> void:
-	_ExtremeMissionConfig.debug_day_key_override = _ExtremeMissionConfig.DAILY_ROTATION_ANCHOR_DAY_KEY
+func test_extreme_select_features_first_mission_when_unlocked() -> void:
+	## 解放後は全任務出現。Featured は EX 番号先頭（EX-01）。
 	_clear_all_main_normal()
 	var select: Node = _instantiate_scene(SELECT_SCENE)
 	await _await_stable(select)
@@ -134,13 +134,15 @@ func test_extreme_select_features_todays_mission_when_unlocked() -> void:
 	await get_tree().process_frame
 	assert_eq(str(select.get("_featured_dungeon_id")), "ex_tomb_seal")
 	assert_true(GameState.can_attempt_event_dungeon("ex_tomb_seal"))
-	assert_false(GameState.can_attempt_event_dungeon("ex_grave_siege"))
+	assert_true(GameState.can_attempt_event_dungeon("ex_grave_siege"))
+	assert_true(GameState.can_attempt_event_dungeon("ex_white_night"))
 
 
-func test_can_attempt_blocks_closed_extreme_after_day_roll() -> void:
+func test_can_attempt_extreme_open_regardless_of_day() -> void:
 	_clear_all_main_normal()
 	_ExtremeMissionConfig.debug_day_key_override = "2026-09-20"
 	assert_true(GameState.can_attempt_event_dungeon("ex_tomb_seal"))
+	assert_true(GameState.can_attempt_event_dungeon("ex_grave_siege"))
 	_ExtremeMissionConfig.debug_day_key_override = "2026-09-21"
-	assert_false(GameState.can_attempt_event_dungeon("ex_tomb_seal"))
+	assert_true(GameState.can_attempt_event_dungeon("ex_tomb_seal"))
 	assert_true(GameState.can_attempt_event_dungeon("ex_grave_siege"))

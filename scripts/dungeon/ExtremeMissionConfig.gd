@@ -20,7 +20,7 @@ const EX08_DUNGEON_ID: String = "ex_tide_siege"
 const EX09_DUNGEON_ID: String = "ex_polar_silence"
 const EX10_DUNGEON_ID: String = "ex_white_night"
 
-## 日替わり1任務（朝5時 JST）。固定ローテ EX-01→…→EX-10→繰返し。
+## 一覧の EX 番号順（旧日替わりローテの並びを流用）。
 const DAILY_ROTATION_IDS: Array[String] = [
 	EX01_DUNGEON_ID,
 	EX02_DUNGEON_ID,
@@ -33,10 +33,10 @@ const DAILY_ROTATION_IDS: Array[String] = [
 	EX09_DUNGEON_ID,
 	EX10_DUNGEON_ID,
 ]
-## ギルド日境界の day_key。この日＝EX-01。
+## 旧日替わりアンカー（互換残置。出現判定には未使用）。
 const DAILY_ROTATION_ANCHOR_DAY_KEY: String = "2026-09-20"
 
-## テスト用。空なら DailyMissionSystem.current_day_key()。
+## テスト用。空なら DailyMissionSystem.current_day_key()。旧ローテ検証用残置。
 static var debug_day_key_override: String = ""
 
 ## ---------------------------------------------------------------------------
@@ -809,38 +809,18 @@ static func todays_mission_id() -> String:
 	return mission_id_for_day_key(current_rotation_day_key())
 
 
-## 本日出現中か。debug_full_unlock 中は全日開放（検証用）。
+## 出現中か。解放条件を満たせば常時出現（日替わり廃止）。
 static func is_open_now(dungeon_id: String) -> bool:
-	if not is_extreme_mission(dungeon_id):
-		return false
-	if GameState != null and GameState.debug_full_unlock:
-		return true
-	return dungeon_id == todays_mission_id()
+	return is_extreme_mission(dungeon_id)
 
 
 static func open_schedule_label(_dungeon_id: String = "") -> String:
-	return "日替わり（朝5時更新）"
+	return "常設（解放後いつでも）"
 
 
-## 本日以外の任務向け。「次は N 日後」または本日なら空。
-static func next_open_label(dungeon_id: String) -> String:
-	if not is_extreme_mission(dungeon_id):
-		return ""
-	if is_open_now(dungeon_id):
-		return ""
-	var n: int = DAILY_ROTATION_IDS.size()
-	if n <= 0:
-		return ""
-	var today_idx: int = day_index_for_day_key(current_rotation_day_key())
-	var target_idx: int = DAILY_ROTATION_IDS.find(dungeon_id)
-	if target_idx < 0:
-		return ""
-	var days_until: int = posmod(target_idx - today_idx, n)
-	if days_until <= 0:
-		return ""
-	if days_until == 1:
-		return "明日 5:00〜"
-	return "%d日後 5:00〜" % days_until
+## 旧日替わり向け。常時出現のため常に空。
+static func next_open_label(_dungeon_id: String) -> String:
+	return ""
 
 
 static func stars_for_clear(order_ok: Dictionary) -> int:

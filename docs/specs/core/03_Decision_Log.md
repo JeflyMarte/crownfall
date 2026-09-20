@@ -8399,3 +8399,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-EXTREME-DISPLAY-001-1 | 正式表示＝`{code}　極限任務　【{short_name}】`（全角スペース） | オーナー指定 |
 | P3-DG-EXTREME-DISPLAY-001-2 | 戦闘ヘッダー短文＝`{code}　極限任務` | 本編の章番号枠に対応 |
 | P3-DG-EXTREME-DISPLAY-001-3 | SSOT＝`ExtremeMissionConfig.format_mission_*`。選択／戦闘／結果／DungeonData.display_name を同期 | 表記散在防止 |
+
+## 極限任務 常設出現（2026-09-20 — P3-DG-EXTREME-ALWAYS-OPEN-001）
+
+> **オーナー GO**: 日替わりを廃止。解放条件達成後は全 EX を常時挑戦可。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-EXTREME-ALWAYS-OPEN-001-1 | `is_open_now` は極限 id なら常に true（日キー非依存） | オーナー指定 |
+| P3-DG-EXTREME-ALWAYS-OPEN-001-2 | 一覧は解放済み全任務を EX 番号順で表示 | 日替わり1件制限を撤廃 |
+| P3-DG-EXTREME-ALWAYS-OPEN-001-3 | 手引き／図鑑 SYS-G015／Decision `143` 001-14 を常設に更新 | 文言整合 |
+| P3-DG-EXTREME-ALWAYS-OPEN-001-4 | 旧ローテ API（day_key／todays_mission）は互換残置・出現判定未使用 | 破壊的削除を避ける |

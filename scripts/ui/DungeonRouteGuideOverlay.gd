@@ -154,13 +154,12 @@ static func _all_guides() -> Dictionary:
 		"flag_key": FLAG_EXTREME,
 		"pages": [
 			{
-				"title": "1. 日替わりの制約任務",
+				"title": "1. 常設の制約任務",
 				"body": (
 					"[color=#9A5018][b]極限任務[/b][/color]は、ダンジョン選択の"
 					+ "[color=#9A5018][b]極限任務[/b][/color]タブに並ぶ"
 					+ "[color=#9A5018][b]制約攻略[/b][/color]です。\n\n"
-					+ "[color=#9A5018][b]毎日1任務[/b][/color]だけ出現します"
-					+ "（朝5時・日本時間で更新）。"
+					+ "解放後は[color=#9A5018][b]全任務がいつでも挑戦[/b][/color]できます。"
 					+ "曜日の短編や時間帯の[color=#9A5018][b]降臨[/b][/color]、"
 					+ "常設の[color=#9A5018][b]征討[/b][/color]、"
 					+ "[color=#9A5018][b]無限[/b][/color]とは別物です。"
@@ -170,7 +169,7 @@ static func _all_guides() -> Dictionary:
 				"title": "2. 解放と遊び方",
 				"body": (
 					"メインの調査地を[color=#9A5018][b]ノーマルで一通りクリア[/b][/color]すると解放されます。"
-					+ "出現中の任務は回数制限なく再挑戦できます。\n\n"
+					+ "回数制限なく再挑戦できます。\n\n"
 					+ "1任務は[color=#9A5018][b]10F[/b][/color]（最後が Boss）。"
 					+ "任務ごとに[color=#9A5018][b]特殊な制約[/b][/color]があり、"
 					+ "さらに[color=#9A5018][b]極限指令[/b][/color]を任意で狙えます。"
