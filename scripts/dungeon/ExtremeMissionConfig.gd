@@ -103,7 +103,7 @@ const MISSIONS: Dictionary = {
 		"short_name": "王墓封鎖",
 		"parent_biome_id": "mourngate",
 		"boss_id": "serdion",
-		"floor_count": 5,
+		"floor_count": 10,
 		"special_condition": {
 			"id": "heal_down",
 			"label": "回復効果半減",
@@ -122,7 +122,7 @@ const MISSIONS: Dictionary = {
 		"short_name": "墓守の包囲",
 		"parent_biome_id": "mourngate",
 		"boss_id": "serdion",
-		"floor_count": 5,
+		"floor_count": 10,
 		"special_condition": {
 			"id": "swarm_pressure",
 			"label": "敵の群れ増加",
@@ -141,7 +141,7 @@ const MISSIONS: Dictionary = {
 		"short_name": "胞子過密域",
 		"parent_biome_id": "whisperwood",
 		"boss_id": "granvel",
-		"floor_count": 5,
+		"floor_count": 10,
 		"special_condition": {
 			"id": "long_battle_ramp",
 			"label": "長期戦で敵が強化",
@@ -160,7 +160,7 @@ const MISSIONS: Dictionary = {
 		"short_name": "狩人の森",
 		"parent_biome_id": "whisperwood",
 		"boss_id": "granvel",
-		"floor_count": 5,
+		"floor_count": 10,
 		"special_condition": {
 			"id": "rear_pressure",
 			"label": "後衛へのダメージ増加",
@@ -179,7 +179,7 @@ const MISSIONS: Dictionary = {
 		"short_name": "瘴気飽和",
 		"parent_biome_id": "mistfen",
 		"boss_id": "moldgar",
-		"floor_count": 5,
+		"floor_count": 10,
 		"special_condition": {
 			"id": "miasma_saturate",
 			"label": "敵耐久とDoT延長",
@@ -198,7 +198,7 @@ const MISSIONS: Dictionary = {
 		"short_name": "感染連鎖",
 		"parent_biome_id": "mistfen",
 		"boss_id": "moldgar",
-		"floor_count": 5,
+		"floor_count": 10,
 		"special_condition": {
 			"id": "status_require",
 			"label": "状態異常必須",
@@ -217,7 +217,7 @@ const MISSIONS: Dictionary = {
 		"short_name": "沈船強襲",
 		"parent_biome_id": "blackshore",
 		"boss_id": "nereion",
-		"floor_count": 5,
+		"floor_count": 10,
 		"special_condition": {
 			"id": "ultimate_suppress",
 			"label": "必殺チャージ大幅低下",
@@ -236,7 +236,7 @@ const MISSIONS: Dictionary = {
 		"short_name": "潮圧包囲",
 		"parent_biome_id": "blackshore",
 		"boss_id": "nereion",
-		"floor_count": 5,
+		"floor_count": 10,
 		"special_condition": {
 			"id": "non_crit_pressure",
 			"label": "非クリティカル弱体",
@@ -255,7 +255,7 @@ const MISSIONS: Dictionary = {
 		"short_name": "極冠静寂",
 		"parent_biome_id": "frostridge",
 		"boss_id": "eldion",
-		"floor_count": 5,
+		"floor_count": 10,
 		"special_condition": {
 			"id": "ultimate_disabled",
 			"label": "必殺技使用不可",
@@ -274,7 +274,7 @@ const MISSIONS: Dictionary = {
 		"short_name": "白夜決戦",
 		"parent_biome_id": "frostridge",
 		"boss_id": "eldion",
-		"floor_count": 5,
+		"floor_count": 10,
 		"special_condition": {
 			"id": "element_weakness_pressure",
 			"label": "弱点属性必須",

@@ -8314,3 +8314,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-APEX-NR-BG-001-3 | SSOT — `141_ApexNorthReachBattleBg.md` | Decision 本体 |
 | P3-DG-APEX-NR-BG-001-4 | Impl — `north_reach/env` 3枚＋`BATTLE_BG_BOSS_MAP`＋征討フロア帯 | 2026-09-06 |
 
+
+## 極限任務フロア長（2026-09-20 — P3-DG-EXTREME-001-FLOOR）
+
+> **オーナー GO**（案A）: EX-01〜10 一律 **10F**（末尾 Boss）。Decision `143` の 5F を上書き。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-EXTREME-001-FLOOR-1 | 極限任務は一律 `floor_count=10`（1〜9F 中間／10F Boss） | オーナー指定 |
+| P3-DG-EXTREME-001-FLOOR-2 | `ExtremeMissionConfig`／`ex_*.tres`／`ex_*_1_1.tres` を同期 | データ＋config 一致 |
+| P3-DG-EXTREME-001-FLOOR-3 | SSOT — `143_ExtremeMissions.md`（001-3 更新） | Decision 本体 |
+| P3-DG-EXTREME-001-FLOOR-4 | 指令タイム 600 秒・TUNING／報酬は据置（別途調整可） | 今回スコープ外 |

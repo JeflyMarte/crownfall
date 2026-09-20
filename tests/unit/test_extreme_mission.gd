@@ -8,16 +8,16 @@ const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedu
 const _Adventurer := preload("res://scripts/domain/Adventurer.gd")
 
 const EXPECTED_MISSIONS: Array[Dictionary] = [
-	{"id": "ex_tomb_seal", "boss": "serdion", "floors": 5, "cond": "heal_down"},
-	{"id": "ex_grave_siege", "boss": "serdion", "floors": 5, "cond": "swarm_pressure"},
-	{"id": "ex_spore_dense", "boss": "granvel", "floors": 5, "cond": "long_battle_ramp"},
-	{"id": "ex_hunter_woods", "boss": "granvel", "floors": 5, "cond": "rear_pressure"},
-	{"id": "ex_miasma_sat", "boss": "moldgar", "floors": 5, "cond": "miasma_saturate"},
-	{"id": "ex_infect_chain", "boss": "moldgar", "floors": 5, "cond": "status_require"},
-	{"id": "ex_wreck_assault", "boss": "nereion", "floors": 5, "cond": "ultimate_suppress"},
-	{"id": "ex_tide_siege", "boss": "nereion", "floors": 5, "cond": "non_crit_pressure"},
-	{"id": "ex_polar_silence", "boss": "eldion", "floors": 5, "cond": "ultimate_disabled"},
-	{"id": "ex_white_night", "boss": "eldion", "floors": 5, "cond": "element_weakness_pressure"},
+	{"id": "ex_tomb_seal", "boss": "serdion", "floors": 10, "cond": "heal_down"},
+	{"id": "ex_grave_siege", "boss": "serdion", "floors": 10, "cond": "swarm_pressure"},
+	{"id": "ex_spore_dense", "boss": "granvel", "floors": 10, "cond": "long_battle_ramp"},
+	{"id": "ex_hunter_woods", "boss": "granvel", "floors": 10, "cond": "rear_pressure"},
+	{"id": "ex_miasma_sat", "boss": "moldgar", "floors": 10, "cond": "miasma_saturate"},
+	{"id": "ex_infect_chain", "boss": "moldgar", "floors": 10, "cond": "status_require"},
+	{"id": "ex_wreck_assault", "boss": "nereion", "floors": 10, "cond": "ultimate_suppress"},
+	{"id": "ex_tide_siege", "boss": "nereion", "floors": 10, "cond": "non_crit_pressure"},
+	{"id": "ex_polar_silence", "boss": "eldion", "floors": 10, "cond": "ultimate_disabled"},
+	{"id": "ex_white_night", "boss": "eldion", "floors": 10, "cond": "element_weakness_pressure"},
 ]
 
 
@@ -82,7 +82,7 @@ func test_all_ten_mission_ids_valid() -> void:
 		var stage: Resource = DataRegistry.get_stage_data("%s_1_1" % mid)
 		assert_not_null(stage, mid)
 		assert_eq(str(stage.boss_id), str(raw["boss"]), mid)
-		assert_eq(int(stage.floor_count), 5, mid)
+		assert_eq(int(stage.floor_count), 10, mid)
 		assert_eq(str(stage.closing_type), "boss", mid)
 
 
@@ -433,7 +433,7 @@ func test_vertical_slice_unlock_select_clear_save() -> void:
 	var stage: Resource = DataRegistry.get_stage_data("ex_tomb_seal_1_1")
 	assert_not_null(stage)
 	assert_eq(str(stage.boss_id), "serdion")
-	assert_eq(int(stage.floor_count), 5)
+	assert_eq(int(stage.floor_count), 10)
 	GameState.current_dungeon_id = mid
 	GameState.begin_extreme_run_tracking(mid)
 	GameState.extreme_run_elapsed_sec = 120.0
