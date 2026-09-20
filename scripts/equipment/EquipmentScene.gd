@@ -1429,6 +1429,8 @@ func _on_royal_mark_pressed() -> void:
 	var member: Resource = _get_view_adventurer()
 	if member == null or not _RoyalMarkSystem.is_eligible_member(member):
 		return
+	const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
+	GameState.tutorial_flags.erase(_DungeonRouteGuide.RETURN_HUB_AFTER_ROYAL_MARK)
 	GameState.equipment_focus_member_id = str(member.id)
 	SceneRouter.change_scene(ROYAL_MARK_SCENE)
 

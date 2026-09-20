@@ -133,7 +133,7 @@ static func list_entries() -> Array[Dictionary]:
 		{
 			"id": "hub_room_guide_flags_reset",
 			"title": "部屋ガイドフラグをリセット",
-			"hint": "調査／招き／封蔵／展示／特権強化の初回手引きを再度出せる",
+			"hint": "調査／招き／封蔵／展示／特権強化／王痕の初回手引きを再度出せる",
 		},
 	])
 	out.append({
@@ -185,6 +185,11 @@ static func list_entries() -> Array[Dictionary]:
 			"hint": "書籍手引きをプレビュー表示（セーブ済みフラグは触らない）",
 		},
 		{
+			"id": "royal_mark_guide",
+			"title": "王痕育成の手引き",
+			"hint": "書籍手引きをプレビュー表示（セーブ済みフラグは触らない）",
+		},
+		{
 			"id": "clear_pending_story",
 			"title": "加入ストーリー待ちをクリア",
 			"hint": "pending の功績／予告／候補を破棄",
@@ -229,6 +234,9 @@ static func run(entry_id: String) -> String:
 		"hub_guide":
 			return _queue_hub_guide()
 		"privilege_guide":
+			## 表示は BaseScene 側（preview・フラグ非接触）。
+			return ""
+		"royal_mark_guide":
 			## 表示は BaseScene 側（preview・フラグ非接触）。
 			return ""
 		"survey_claim_result":
@@ -511,6 +519,7 @@ static func _reset_hub_room_guide_flags() -> String:
 		_RoomGuide.FLAG_GACHA_SEAL,
 		_RoomGuide.FLAG_SHOWCASE,
 		_RoomGuide.FLAG_PERMIT,
+		_RoomGuide.FLAG_ROYAL_MARK,
 	]:
 		GameState.tutorial_flags[key] = false
 	SaveManager.save_game()

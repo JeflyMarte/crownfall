@@ -28,6 +28,7 @@ const COMMANDER_SCENE: String = "res://scenes/commander/CommanderScene.tscn"
 const SETTINGS_SCENE: String = "res://scenes/settings/SettingsScene.tscn"
 const EVENT_SCENE: String = "res://scenes/event/EventScene.tscn"
 const EXCAVATE_SELECT_SCENE: String = "res://scenes/excavate/CrystalExcavateSelectScene.tscn"
+const ROYAL_MARK_SCENE: String = "res://scenes/royal_mark/RoyalMarkScene.tscn"
 const EXCAVATE_RESULT_SCENE: String = "res://scenes/excavate/CrystalExcavateResultScene.tscn"
 const _GOLD_ICON_PATH: String = "res://assets/ui/batch2/ICO_Gold.png"
 ## 拠点左上の等級アイコン。枠 content_margin を詰めて本体を大きく見せる。
@@ -232,7 +233,51 @@ func _maybe_show_rank_up() -> void:
 		var overlay: CanvasLayer = _CommanderRankUpOverlay.show_on(self, pending)
 		overlay.dismissed.connect(_on_rank_up_dismissed)
 		return
+	if _maybe_open_royal_mark_guide_scene():
+		return
 	_maybe_show_clear_nina_teaser()
+
+
+## 初回王痕片入手後: 拠点演出が空いたら王痕画面へ強制遷移（手引きは画面側）。
+func _maybe_open_royal_mark_guide_scene() -> bool:
+	const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
+	const _RoyalMarkSystem := preload("res://scripts/systems/RoyalMarkSystem.gd")
+	const _ContentUnlockNotice := preload("res://scripts/ui/ContentUnlockNotice.gd")
+	const _NinaRareAcquireGuide := preload("res://scripts/ui/NinaRareAcquireGuide.gd")
+	if not _DungeonRouteGuide.has_pending_royal_mark_scene():
+		return false
+	if _hub_overlay_blocking("DungeonUnlockOverlay"):
+		return false
+	if _hub_overlay_blocking("DungeonRouteGuideOverlay"):
+		return false
+	if _hub_overlay_blocking("NinaDialogueOverlay"):
+		return false
+	if _hub_overlay_blocking("CommanderRankUpOverlay"):
+		return false
+	if _hub_overlay_blocking("StarterJoinOverlay"):
+		return false
+	if _hub_overlay_blocking("HubSimpleGuideOverlay"):
+		return false
+	if _ContentUnlockNotice.has_pending():
+		return false
+	if _DungeonRouteGuide.has_pending_auto():
+		return false
+	if _NinaRareAcquireGuide.has_pending_guide():
+		return false
+	if GameState.pending_clear_nina_merit or GameState.pending_clear_nina_teaser:
+		return false
+	if not GameState.pending_starter_recruit_id.strip_edges().is_empty():
+		return false
+	if GameState.pending_nonoka_survey_join:
+		return false
+	_DungeonRouteGuide.clear_pending_royal_mark_scene()
+	_DungeonRouteGuide.mark_return_hub_after_royal_mark()
+	var focus_id: String = _RoyalMarkSystem.party_leader_focus_id()
+	if not focus_id.is_empty():
+		GameState.equipment_focus_member_id = focus_id
+	SaveManager.save_game()
+	SceneRouter.change_scene(ROYAL_MARK_SCENE)
+	return true
 
 
 func _continue_hub_clear_flow() -> void:
@@ -1024,6 +1069,9 @@ func _on_debug_event_requested(entry_id: String) -> void:
 	if entry_id == "privilege_guide":
 		call_deferred("_debug_show_privilege_guide")
 		return
+	if entry_id == "royal_mark_guide":
+		call_deferred("_debug_show_royal_mark_guide")
+		return
 	## 調査室サイクル受取ポップも即表示（付与なしプレビュー）。
 	if entry_id == "survey_claim_result":
 		call_deferred("_debug_show_survey_claim_result")
@@ -1045,6 +1093,12 @@ func _debug_show_privilege_guide() -> void:
 	## preview のみ。済みフラグは触らない。
 	const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
 	_DungeonRouteGuide.show_on(self, _DungeonRouteGuide.GUIDE_PERMIT, true)
+
+
+func _debug_show_royal_mark_guide() -> void:
+	## preview のみ。済みフラグは触らない（強制遷移しない）。
+	const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
+	_DungeonRouteGuide.show_on(self, _DungeonRouteGuide.GUIDE_ROYAL_MARK, true)
 
 
 func _debug_show_survey_claim_result() -> void:

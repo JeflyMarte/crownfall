@@ -8410,3 +8410,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-EXTREME-ALWAYS-OPEN-001-2 | 一覧は解放済み全任務を EX 番号順で表示 | 日替わり1件制限を撤廃 |
 | P3-DG-EXTREME-ALWAYS-OPEN-001-3 | 手引き／図鑑 SYS-G015／Decision `143` 001-14 を常設に更新 | 文言整合 |
 | P3-DG-EXTREME-ALWAYS-OPEN-001-4 | 旧ローテ API（day_key／todays_mission）は互換残置・出現判定未使用 | 破壊的削除を避ける |
+
+## 王痕初回片入手の手引き（2026-09-21 — P3-DG-ROYAL-MARK-GUIDE-001）
+
+> **オーナー GO**: 王痕片初入手後、拠点戻りで王痕強化画面へ強制遷移し、ニーナ書籍手引き（特権強化型）。初期キャラ＝パーティ先頭。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-ROYAL-MARK-GUIDE-001-1 | トリガー＝所持片 0→1以上。拠点演出消化後に `RoyalMarkScene` 強制遷移→書籍手引き | 画面を見ながらの説明 |
+| P3-DG-ROYAL-MARK-GUIDE-001-2 | 形式＝書籍3ページ（`GUIDE_ROYAL_MARK`）。`?` で再表示。フラグ `hub_guide_royal_mark_seen` | 特権強化と同型 |
+| P3-DG-ROYAL-MARK-GUIDE-001-3 | 入場時フォーカス＝パーティ先頭の王痕対象 | オーナー指定 |
+| P3-DG-ROYAL-MARK-GUIDE-001-4 | 既存セーブで片>0 は既読 heal（強制しない） | ベテラン巻き戻し防止 |
+| P3-DG-ROYAL-MARK-GUIDE-001-5 | SSOT — Decision `144` §5.3 | 正本一本化 |

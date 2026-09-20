@@ -252,6 +252,15 @@ func test_equipment_has_no_upgrade_transaction_api() -> void:
 	var hub: String = FileAccess.get_file_as_string("res://scripts/ui/BottomNavHelper.gd")
 	assert_true(hub.find('"id": "royal_mark"') < 0)
 
+
+func test_royal_mark_scene_wires_book_guide() -> void:
+	var src: String = FileAccess.get_file_as_string("res://scripts/royal_mark/RoyalMarkScene.gd")
+	assert_true(src.find("GUIDE_ROYAL_MARK") >= 0)
+	assert_true(src.find("_maybe_auto_show_guide") >= 0)
+	assert_true(src.find("_on_guide_help_pressed") >= 0)
+	assert_true(src.find("HUB_SCENE") >= 0)
+
+
 func test_effect_stat_lines_helper() -> void:
 	var lines0: PackedStringArray = _RoyalMarkConfig.effect_stat_lines_for_rank(0)
 	assert_eq(lines0[0], "HP —")

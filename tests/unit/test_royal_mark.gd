@@ -40,6 +40,7 @@ func before_each() -> void:
 	GameState.party_members.clear()
 	GameState.current_dungeon_id = ""
 	GameState.active_pet = null
+	GameState.tutorial_flags.clear()
 
 
 func _clear_main_normal() -> void:
@@ -348,6 +349,30 @@ func test_repeat_miss() -> void:
 	assert_false(bool(g.get("repeat_hit", false)))
 	assert_eq(int(g.get("repeat_shards", 0)), 0)
 	assert_eq(_RoyalMarkSystem.get_shards(), 0)
+
+
+func test_first_shard_queues_royal_mark_guide_scene() -> void:
+	const _Guide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
+	assert_false(_Guide.has_pending_royal_mark_scene())
+	_RoyalMarkSystem.add_shards(30)
+	assert_eq(_RoyalMarkSystem.get_shards(), 30)
+	assert_true(_Guide.has_pending_royal_mark_scene())
+	_RoyalMarkSystem.add_shards(10)
+	assert_true(_Guide.has_pending_royal_mark_scene())
+	_Guide.mark_seen(_Guide.GUIDE_ROYAL_MARK)
+	_Guide.clear_pending_royal_mark_scene()
+	_RoyalMarkSystem.set_shards(0)
+	_RoyalMarkSystem.add_shards(5)
+	assert_false(_Guide.has_pending_royal_mark_scene())
+
+
+func test_party_leader_focus_skips_pet() -> void:
+	var lead: Resource = _make_human("adventurer_aldric")
+	var other: Resource = _make_human("adventurer_serin")
+	var pet: Resource = _make_pet()
+	GameState.roster = [other, lead]
+	GameState.party_members = [pet, lead, other]
+	assert_eq(_RoyalMarkSystem.party_leader_focus_id(), "adventurer_aldric")
 
 
 func test_double_commit_no_extra_shards_or_reroll() -> void:

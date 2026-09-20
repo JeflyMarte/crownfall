@@ -49,11 +49,20 @@ func test_hub_room_guides_defined() -> void:
 		(_Guide._all_guides()[_Guide.GUIDE_PERMIT] as Dictionary).get("pages", []).size(),
 		3
 	)
+	assert_eq(
+		(_Guide._all_guides()[_Guide.GUIDE_ROYAL_MARK] as Dictionary).get("pages", []).size(),
+		3
+	)
 	var permit_blob: String = ""
 	for page: Variant in (_Guide._all_guides()[_Guide.GUIDE_PERMIT] as Dictionary).get("pages", []):
 		permit_blob += str((page as Dictionary).get("body", ""))
 	assert_true(permit_blob.find("特権強化") >= 0)
 	assert_true(permit_blob.find("許可点") >= 0)
+	var royal_blob: String = ""
+	for page: Variant in (_Guide._all_guides()[_Guide.GUIDE_ROYAL_MARK] as Dictionary).get("pages", []):
+		royal_blob += str((page as Dictionary).get("body", ""))
+	assert_true(royal_blob.find("王痕") >= 0)
+	assert_true(royal_blob.find("極限") >= 0)
 	var survey_blob: String = ""
 	for page: Variant in (_Guide._all_guides()[_Guide.GUIDE_SURVEY] as Dictionary).get("pages", []):
 		survey_blob += str((page as Dictionary).get("body", ""))
@@ -87,6 +96,7 @@ func test_guide_copy_avoids_dev_terms() -> void:
 		_Guide.GUIDE_GACHA_SEAL,
 		_Guide.GUIDE_SHOWCASE,
 		_Guide.GUIDE_PERMIT,
+		_Guide.GUIDE_ROYAL_MARK,
 	]:
 		var def: Dictionary = _Guide._all_guides().get(gid, {}) as Dictionary
 		blob += str(def.get("topic", ""))
@@ -149,6 +159,31 @@ func test_queue_permit_guide_after_s_rank() -> void:
 	_Guide.mark_seen(_Guide.GUIDE_PERMIT)
 	_Guide.queue_auto_if_unseen(_Guide.GUIDE_PERMIT)
 	assert_false(_Guide.has_pending_auto())
+
+
+func test_royal_mark_first_shard_queues_scene() -> void:
+	assert_false(_Guide.has_pending_royal_mark_scene())
+	_Guide.queue_royal_mark_scene_if_unseen()
+	assert_true(_Guide.has_pending_royal_mark_scene())
+	_Guide.mark_seen(_Guide.GUIDE_ROYAL_MARK)
+	_Guide.queue_royal_mark_scene_if_unseen()
+	assert_false(_Guide.has_pending_royal_mark_scene())
+
+
+func test_royal_mark_heal_from_shards_skips_veterans() -> void:
+	## pending 無し・片あり＝既存セーブ。既読にして強制遷移しない。
+	assert_false(_Guide.has_pending_royal_mark_scene())
+	_Guide.heal_royal_mark_from_shards(30)
+	assert_true(_Guide.is_seen(_Guide.GUIDE_ROYAL_MARK))
+	assert_false(_Guide.has_pending_royal_mark_scene())
+
+
+func test_royal_mark_heal_preserves_pending() -> void:
+	_Guide.queue_royal_mark_scene_if_unseen()
+	assert_true(_Guide.has_pending_royal_mark_scene())
+	_Guide.heal_royal_mark_from_shards(30)
+	assert_false(_Guide.is_seen(_Guide.GUIDE_ROYAL_MARK))
+	assert_true(_Guide.has_pending_royal_mark_scene())
 
 
 func test_abyss_unlock_queues_guide() -> void:

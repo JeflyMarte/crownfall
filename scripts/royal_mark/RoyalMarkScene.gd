@@ -14,6 +14,7 @@ const _SafeAreaHelper := preload("res://scripts/ui/SafeAreaHelper.gd")
 const _SkillIconHelper := preload("res://scripts/ui/SkillIconHelper.gd")
 const _RosterUiHelper := preload("res://scripts/roster/RosterUiHelper.gd")
 const HOME_SCENE: String = "res://scenes/equipment/EquipmentScene.tscn"
+const HUB_SCENE: String = "res://scenes/base/BaseScene.tscn"
 const PATH_ICON_SIZE: Vector2 = Vector2(40, 40)
 const PATH_ICON_OFFENSE_SKILL: String = "slash_attack"
 const PATH_ICON_DEFENSE_SKILL: String = "iron_guard"
@@ -103,6 +104,13 @@ func _ready() -> void:
 	_build_confirm_overlay()
 	_reload_members()
 	_refresh_all()
+	call_deferred("_maybe_auto_show_guide")
+
+
+func _maybe_auto_show_guide() -> void:
+	const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
+	_DungeonRouteGuide.clear_pending_royal_mark_scene()
+	_DungeonRouteGuide.try_auto_show(self, _DungeonRouteGuide.GUIDE_ROYAL_MARK)
 
 
 func _apply_safe_area() -> void:
@@ -141,7 +149,7 @@ func _build_chrome() -> void:
 	_btn_help.custom_minimum_size = Vector2(48, 48)
 	_btn_help.focus_mode = Control.FOCUS_NONE
 	_RoyalMarkUiTokens.apply_chrome_button(_btn_help, true)
-	_btn_help.pressed.connect(_on_shards_help_pressed)
+	_btn_help.pressed.connect(_on_guide_help_pressed)
 	header.add_child(_btn_help)
 
 	var char_row := HBoxContainer.new()
@@ -1057,7 +1065,18 @@ func _on_back_pressed() -> void:
 	var member: Resource = _current_member()
 	if member != null:
 		GameState.equipment_focus_member_id = str(member.id)
+	const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
+	if _DungeonRouteGuide.consume_return_hub_after_royal_mark():
+		SaveManager.save_game()
+		SceneRouter.change_scene(HUB_SCENE)
+		return
 	SceneRouter.change_scene(HOME_SCENE)
+
+
+func _on_guide_help_pressed() -> void:
+	AudioManager.play_sfx("ui_click")
+	const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
+	_DungeonRouteGuide.show_on(self, _DungeonRouteGuide.GUIDE_ROYAL_MARK, true)
 
 
 func _on_shards_help_pressed() -> void:

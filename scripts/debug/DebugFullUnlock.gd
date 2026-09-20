@@ -42,6 +42,8 @@ static func apply() -> void:
 	GameState.gold = DEBUG_GOLD
 	GameState.gacha_token = DEBUG_GACHA_TOKEN
 	GameState.royal_mark_shards = DEBUG_ROYAL_MARK_SHARDS
+	const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
+	_DungeonRouteGuide.heal_royal_mark_from_shards(DEBUG_ROYAL_MARK_SHARDS)
 	_unlock_all_starters_and_helpers()
 	_max_all_character_levels()
 	_grant_all_equipment()
@@ -83,6 +85,8 @@ static func ensure_royal_mark_shards() -> bool:
 	if GameState.royal_mark_shards >= DEBUG_ROYAL_MARK_SHARDS:
 		return false
 	GameState.royal_mark_shards = DEBUG_ROYAL_MARK_SHARDS
+	const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
+	_DungeonRouteGuide.heal_royal_mark_from_shards(DEBUG_ROYAL_MARK_SHARDS)
 	return true
 
 

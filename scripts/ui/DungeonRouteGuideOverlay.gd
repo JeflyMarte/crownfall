@@ -18,6 +18,7 @@ const GUIDE_GACHA_INVITE: String = "gacha_invite"
 const GUIDE_GACHA_SEAL: String = "gacha_seal"
 const GUIDE_SHOWCASE: String = "showcase"
 const GUIDE_PERMIT: String = "permit"
+const GUIDE_ROYAL_MARK: String = "royal_mark"
 
 const FLAG_DESCENT: String = "dungeon_guide_descent_seen"
 const FLAG_EXTREME: String = "dungeon_guide_extreme_seen"
@@ -27,7 +28,10 @@ const FLAG_GACHA_INVITE: String = "hub_guide_gacha_invite_seen"
 const FLAG_GACHA_SEAL: String = "hub_guide_gacha_seal_seen"
 const FLAG_SHOWCASE: String = "hub_guide_showcase_seen"
 const FLAG_PERMIT: String = "hub_guide_privilege_boost_seen"
+const FLAG_ROYAL_MARK: String = "hub_guide_royal_mark_seen"
 const PENDING_KEY: String = "pending_dungeon_route_guide"
+const PENDING_ROYAL_MARK_OPEN: String = "pending_royal_mark_guide_open"
+const RETURN_HUB_AFTER_ROYAL_MARK: String = "royal_mark_return_hub"
 
 const BG_PATH: String = "res://assets/ui/UI_BG_HubSimpleGuide.png"
 const PANEL_MIN: Vector2 = Vector2(700, 680)
@@ -370,6 +374,39 @@ static func _all_guides() -> Dictionary:
 			},
 		],
 	},
+	GUIDE_ROYAL_MARK: {
+		"topic": "王痕育成とは",
+		"flag_key": FLAG_ROYAL_MARK,
+		"pages": [
+			{
+				"title": "1. 極限の恒久目的",
+				"body": (
+					"隊長、[color=#9A5018][b]王痕片[/b][/color]を手に入れましたね！"
+					+ "[color=#9A5018][b]極限任務[/b][/color]の高い★評価や周回で貯まります。\n\n"
+					+ "片は人間の隊員に[color=#9A5018][b]王痕[/b][/color]を刻むための素材です。"
+					+ "限凸やパッシブとは別の、永続の育成枠だと思ってください。"
+				),
+			},
+			{
+				"title": "2. この画面でできること",
+				"body": (
+					"ここで隊員を選び、[color=#9A5018][b]王痕 I〜V[/b][/color]へ強化できます。"
+					+ "片とゴールドが必要です。対象は[color=#9A5018][b]Lv50以上[/b][/color]の所持キャラです。\n\n"
+					+ "III 以降は方針（攻勢／守勢／技巧）やスキル強化も絡みます。"
+					+ "まずは片が足りるところまで刻んでみてください。"
+				),
+			},
+			{
+				"title": "3. あとからの開き方",
+				"body": (
+					"拠点の[color=#9A5018][b]キャラ管理[/b][/color]から、"
+					+ "対象キャラの[color=#9A5018][b]王痕[/b][/color]ボタンでいつでも戻れます。\n\n"
+					+ "また読みたくなったら、この画面の"
+					+ "[color=#9A5018][b]？[/b][/color]で同じ手引きを開けます。"
+				),
+			},
+		],
+	},
 }
 
 
@@ -441,6 +478,49 @@ static func peek_pending_auto() -> String:
 
 static func clear_pending_auto() -> void:
 	GameState.tutorial_flags.erase(PENDING_KEY)
+
+
+static func queue_royal_mark_scene_if_unseen() -> void:
+	if is_seen(GUIDE_ROYAL_MARK):
+		return
+	GameState.tutorial_flags[PENDING_ROYAL_MARK_OPEN] = true
+
+
+static func has_pending_royal_mark_scene() -> bool:
+	if not bool(GameState.tutorial_flags.get(PENDING_ROYAL_MARK_OPEN, false)):
+		return false
+	if is_seen(GUIDE_ROYAL_MARK):
+		clear_pending_royal_mark_scene()
+		return false
+	return true
+
+
+static func clear_pending_royal_mark_scene() -> void:
+	GameState.tutorial_flags.erase(PENDING_ROYAL_MARK_OPEN)
+
+
+static func mark_return_hub_after_royal_mark() -> void:
+	GameState.tutorial_flags[RETURN_HUB_AFTER_ROYAL_MARK] = true
+
+
+static func consume_return_hub_after_royal_mark() -> bool:
+	if not bool(GameState.tutorial_flags.get(RETURN_HUB_AFTER_ROYAL_MARK, false)):
+		return false
+	GameState.tutorial_flags.erase(RETURN_HUB_AFTER_ROYAL_MARK)
+	return true
+
+
+## 既存セーブで既に片がある場合は既読扱い（強制遷移しない）。
+## pending 中（初回付与直後のセーブ）は潰さない。
+static func heal_royal_mark_from_shards(shards: int) -> void:
+	if shards <= 0:
+		return
+	if bool(GameState.tutorial_flags.get(PENDING_ROYAL_MARK_OPEN, false)):
+		return
+	if is_seen(GUIDE_ROYAL_MARK):
+		return
+	GameState.tutorial_flags[FLAG_ROYAL_MARK] = true
+	GameState.tutorial_flags.erase(RETURN_HUB_AFTER_ROYAL_MARK)
 
 
 static func _flag_for(guide_id: String) -> String:

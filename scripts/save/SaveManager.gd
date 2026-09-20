@@ -1053,6 +1053,8 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.royal_mark_shards = _RoyalMarkSystem.sanitize_shards(data.get("royal_mark_shards", 0))
 	else:
 		GameState.royal_mark_shards = 0
+	const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
+	_DungeonRouteGuide.heal_royal_mark_from_shards(GameState.royal_mark_shards)
 	if data.has("royal_mark_ranks") and data["royal_mark_ranks"] is Dictionary:
 		GameState.royal_mark_ranks = _RoyalMarkSystem.sanitize_ranks(data["royal_mark_ranks"])
 	else:

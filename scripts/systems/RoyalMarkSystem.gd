@@ -56,8 +56,29 @@ static func set_shards(amount: int) -> void:
 static func add_shards(amount: int) -> int:
 	if amount == 0:
 		return get_shards()
-	set_shards(get_shards() + amount)
-	return get_shards()
+	var before: int = get_shards()
+	set_shards(before + amount)
+	var after: int = get_shards()
+	if before <= 0 and after > 0:
+		const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
+		_DungeonRouteGuide.queue_royal_mark_scene_if_unseen()
+	return after
+
+
+static func party_leader_focus_id() -> String:
+	## パーティ先頭の王痕対象。いなければ roster 先頭の対象。
+	for p: Variant in GameState.party_members:
+		if p == null:
+			continue
+		if is_eligible_member(p as Resource):
+			return str((p as Resource).id)
+	var owned: Array = list_owned_eligible_members()
+	if owned.is_empty():
+		return ""
+	var first: Resource = owned[0] as Resource
+	if first == null:
+		return ""
+	return str(first.id)
 
 
 static func rank_of_id(character_id: String) -> int:
