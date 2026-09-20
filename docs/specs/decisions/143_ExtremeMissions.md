@@ -78,8 +78,7 @@
 | `miasma_enemy_hp_mult` | 1.25 | EX-05 敵HP（`145`） |
 | `miasma_dot_duration_mult` | 1.35 | EX-05 DoT持続（`145`） |
 | `status_require_outgoing_mult` | 0.70 | EX-06 無状態与ダメ（`145`） |
-| `damage_reflect_flat_per_hit` | 35 | EX-03 ヒット固定反射（`145`） |
-| `damage_reflect_pct` | 0.12 | EX-03 与ダメ割合反射（`145`） |
+| `skill_resist_outgoing_mult` | 0.40 | EX-03 スキル攻撃与ダメ（`145`） |
 | `shell_incoming_mult` | 0.65 | EX-08 障壁被ダメ（`145`） |
 | `non_weakness_outgoing_mult` | 0.70 | EX-10 非弱点（`145`） |
 | `ultimate_charge_suppress_mult` | 0.35 | 必殺チャージ抑制 |
@@ -87,6 +86,6 @@
 | `equip_legendary_chance_bonus` | 0.10 | **極限のみ** LEGENDARY 別枠＋10pt（2026-09-20） |
 | `boss_mythic_chance_bonus` | 0.10 | **極限のみ** ボス再クリア神話 1%→11%（2026-09-20） |
 
-**廃止（`145`）:** `status_empower_*`／`elite_swarm_up`／EX-05 二重 heal_down／EX-10 二重 long_battle_ramp／EX-03 `long_battle_ramp`／EX-08 `non_crit_pressure`（互換キーはコード残置・未使用）。
+**廃止（`145`）:** `status_empower_*`／`elite_swarm_up`／EX-05 二重 heal_down／EX-10 二重 long_battle_ramp／EX-03 `long_battle_ramp`／EX-03 `damage_reflect`／EX-08 `non_crit_pressure`（互換キーはコード残置・未使用）。
 
 正本は `ExtremeMissionConfig.TUNING`（コード外散在禁止）。制約の正は Decision **`145`**。

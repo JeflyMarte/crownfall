@@ -37,4 +37,4 @@ disable_wandering = true
 forced_swarm_chance = -1.0
 forced_swarm_min = 2
 forced_swarm_max = 3
-flavor_text = "特殊制約｜長期戦で敵が強化"
+flavor_text = "特殊制約｜スキル耐性（通常攻撃・罠・状態異常は有効）"

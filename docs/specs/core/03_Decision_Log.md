@@ -8366,3 +8366,14 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-EXTREME-002-SWARM-FULL-1 | EX-02 `swarm_pressure` は通常 COMBAT を常時群れ（探索方針・序盤緩和より優先）。体数+1は据置 | オーナー指定 |
 | P3-DG-EXTREME-002-SWARM-FULL-2 | 旧 `swarm_chance_bonus`（+0.35）は未使用化。`forces_combat_swarm_for_active_run` が正 | 誤爆・薄さの再発防止 |
 | P3-DG-EXTREME-002-SWARM-FULL-3 | SSOT — Decision `145`／`143` TUNING 更新 | 正本一本化 |
+
+## 極限 EX-03 スキル耐性（2026-09-20 — P3-DG-EXTREME-002-SKILL-RESIST）
+
+> **オーナー GO**: 反射廃止。スキル攻撃は通りにくく、通常攻撃・罠・状態異常は有効。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-EXTREME-002-SKILL-RESIST-1 | EX-03 `skill_resist`（スキル与ダメ×0.40）。通常攻撃・罠作動・状態／DoT 据置 | オーナー指定 |
+| P3-DG-EXTREME-002-SKILL-RESIST-2 | 旧 `damage_reflect` 廃止（互換 API 残置・常に0） | 難易度過大の解消 |
+| P3-DG-EXTREME-002-SKILL-RESIST-3 | 配線=`CombatController.get_member_outgoing_damage_multiplier(is_skill)` | 罠／DoT経路と分離 |
+| P3-DG-EXTREME-002-SKILL-RESIST-4 | SSOT — Decision `145`／`143` 更新 | 正本一本化 |

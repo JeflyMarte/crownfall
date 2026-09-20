@@ -74,13 +74,15 @@ const TUNING := {
 	"swarm_chance_bonus": 0.0,
 	"swarm_size_bonus": 1,
 	"swarm_force_all_combat": true,
-	## long_battle_ramp: 廃止（EX-03 は damage_reflect へ）。キーは互換のため残置。
+	## long_battle_ramp: 廃止（キーは互換のため残置）。
 	"long_battle_ramp_start_sec": 180,
 	"long_battle_ramp_per_60sec": 0.15,
 	"long_battle_ramp_max_mult": 2.0,
-	## damage_reflect (EX-03): ヒット1回ごとに固定＋与ダメ割合が攻撃者へ返る（DoT除外）。
+	## damage_reflect: 廃止（EX-03 は skill_resist へ）。キーは互換のため残置。
 	"damage_reflect_flat_per_hit": 35,
 	"damage_reflect_pct": 0.12,
+	## skill_resist (EX-03): ダメージスキル与ダメ倍率。通常攻撃・罠作動・状態／DoTは対象外。
+	"skill_resist_outgoing_mult": 0.40,
 	## rear_pressure: 後衛被ダメ倍率（陣形軽減に追加乗算）。
 	"rear_incoming_mult": 1.75,
 	## miasma_saturate (EX-05): 敵HP倍率（控えめ初期値）／DoT持続延長。
@@ -172,11 +174,11 @@ const MISSIONS: Dictionary = {
 		"boss_id": "granvel",
 		"floor_count": 10,
 		"special_condition": {
-			"id": "damage_reflect",
-			"label": "被ダメージ反射",
-			"hud_label": "攻撃反射",
-			"desc": "敵へのヒットごとに、固定ダメージと与ダメの一部が攻撃者に返ります（DoTは対象外）。",
-			"tip": "多段攻撃より、一撃の重い攻撃が有利です。",
+			"id": "skill_resist",
+			"label": "スキル耐性",
+			"hud_label": "スキル耐性",
+			"desc": "スキル攻撃の与ダメージが大きく下がります。通常攻撃・罠・状態異常は普通に効きます。",
+			"tip": "通常攻撃で削り、罠や状態異常で補助しましょう。",
 		},
 		"orders": [
 			{"id": "time_limit"},
@@ -569,7 +571,17 @@ static func attack_pierces_shell(
 	return wtags is Array and (wtags as Array).has("pierce")
 
 
-## EX-03: ヒット1回分の反射ダメージ（攻撃者へ）。0 なら無し。
+## EX-03: ダメージスキル与ダメ倍率。通常攻撃（is_skill=false）・非該当は 1.0。
+## 罠作動／DoT はこの API を通らない（経路分離）。
+static func skill_resist_outgoing_mult_for_active_run(is_skill: bool) -> float:
+	if _active_condition_id() != "skill_resist":
+		return 1.0
+	if not is_skill:
+		return 1.0
+	return maxf(0.01, float(TUNING.get("skill_resist_outgoing_mult", 1.0)))
+
+
+## EX-03 旧: ヒット1回分の反射ダメージ（攻撃者へ）。制約差し替え後は常に 0。
 static func reflect_damage_for_hit(dealt_damage: int) -> int:
 	if _active_condition_id() != "damage_reflect":
 		return 0

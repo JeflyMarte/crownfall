@@ -10,7 +10,7 @@ const _Adventurer := preload("res://scripts/domain/Adventurer.gd")
 const EXPECTED_MISSIONS: Array[Dictionary] = [
 	{"id": "ex_tomb_seal", "boss": "serdion", "floors": 10, "cond": "heal_down"},
 	{"id": "ex_grave_siege", "boss": "serdion", "floors": 10, "cond": "swarm_pressure"},
-	{"id": "ex_spore_dense", "boss": "granvel", "floors": 10, "cond": "damage_reflect"},
+	{"id": "ex_spore_dense", "boss": "granvel", "floors": 10, "cond": "skill_resist"},
 	{"id": "ex_hunter_woods", "boss": "granvel", "floors": 10, "cond": "rear_pressure"},
 	{"id": "ex_miasma_sat", "boss": "moldgar", "floors": 10, "cond": "miasma_saturate"},
 	{"id": "ex_infect_chain", "boss": "moldgar", "floors": 10, "cond": "status_require"},
@@ -162,13 +162,22 @@ func test_modifier_scope_does_not_leak_to_main() -> void:
 	assert_eq(_ExtremeMissionConfig.ultimate_charge_gain_mult_for_active_run(), 1.0)
 
 
-func test_damage_reflect_only_on_ex03() -> void:
+func test_skill_resist_only_on_ex03() -> void:
 	GameState.current_dungeon_id = Constants.EX_SPORE_DENSE_DUNGEON_ID
-	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_spore_dense"), "damage_reflect")
-	assert_eq(_ExtremeMissionConfig.reflect_damage_for_hit(100), 35 + 12)  # flat35 + 12%
+	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_spore_dense"), "skill_resist")
+	assert_almost_eq(
+		_ExtremeMissionConfig.skill_resist_outgoing_mult_for_active_run(true),
+		0.40,
+		0.001
+	)
+	assert_eq(_ExtremeMissionConfig.skill_resist_outgoing_mult_for_active_run(false), 1.0)
+	## 旧反射は非アクティブ
+	assert_eq(_ExtremeMissionConfig.reflect_damage_for_hit(100), 0)
 	assert_eq(_ExtremeMissionConfig.enemy_outgoing_modifier_mult_for_active_run(), 1.0)
 	GameState.current_dungeon_id = "mourngate"
+	assert_eq(_ExtremeMissionConfig.skill_resist_outgoing_mult_for_active_run(true), 1.0)
 	assert_eq(_ExtremeMissionConfig.reflect_damage_for_hit(100), 0)
+
 	## 旧 status_empower の banned は廃止
 	GameState.current_dungeon_id = Constants.EX_INFECT_CHAIN_DUNGEON_ID
 	assert_false(_ExtremeMissionConfig.is_banned_status_for_active_run("poison"))
@@ -264,10 +273,15 @@ func test_shell_pressure_on_ex08() -> void:
 	assert_eq(_ExtremeMissionConfig.shell_incoming_mult_for_active_run(false), 1.0)
 
 
-## 副経路（追撃等）も同一 TUNING で反射／障壁を計算できること（DungeonScene 共通適用の前提）。
+## 副経路の障壁計算と、EX-03 スキル耐性 API が TUNING と一致すること。
 func test_side_hit_extreme_math_matches_tuning() -> void:
 	GameState.current_dungeon_id = Constants.EX_SPORE_DENSE_DUNGEON_ID
-	assert_eq(_ExtremeMissionConfig.reflect_damage_for_hit(200), 35 + 24)
+	assert_almost_eq(
+		_ExtremeMissionConfig.skill_resist_outgoing_mult_for_active_run(true),
+		float(_ExtremeMissionConfig.TUNING["skill_resist_outgoing_mult"]),
+		0.001
+	)
+	assert_eq(_ExtremeMissionConfig.reflect_damage_for_hit(200), 0)
 	GameState.current_dungeon_id = Constants.EX_TIDE_SIEGE_DUNGEON_ID
 	var shelled: int = maxi(
 		1,
@@ -564,11 +578,11 @@ func test_extreme_display_copy_matches_impl() -> void:
 	assert_true(
 		_ExtremeMissionConfig.special_condition_desc("ex_tide_siege").find("貫通") >= 0
 	)
-	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_spore_dense"), "damage_reflect")
-	assert_eq(_ExtremeMissionConfig.special_condition_label("ex_spore_dense"), "被ダメージ反射")
-	assert_eq(_ExtremeMissionConfig.special_condition_hud_label("ex_spore_dense"), "攻撃反射")
+	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_spore_dense"), "skill_resist")
+	assert_eq(_ExtremeMissionConfig.special_condition_label("ex_spore_dense"), "スキル耐性")
+	assert_eq(_ExtremeMissionConfig.special_condition_hud_label("ex_spore_dense"), "スキル耐性")
 	assert_true(
-		_ExtremeMissionConfig.special_condition_desc("ex_spore_dense").find("DoT") >= 0
+		_ExtremeMissionConfig.special_condition_desc("ex_spore_dense").find("通常攻撃") >= 0
 	)
 	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_grave_siege"), "swarm_pressure")
 	assert_eq(_ExtremeMissionConfig.special_condition_hud_label("ex_grave_siege"), "常時群れ")

@@ -1550,10 +1550,12 @@ func get_member_outgoing_damage_multiplier(
 			mult *= boss_mult
 	mult *= _AbyssWeaponEffects.outgoing_multiplier(member_index, target_slot, hp_ratio)
 	mult *= _EquipmentSetBonuses.outgoing_mult(member_index)
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
 	## 極限 EX-06: 状態異常なしの敵への与ダメ低下。
 	if target_slot >= 0:
-		const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
 		mult *= _ExtremeMissionConfig.status_require_outgoing_mult_for_active_run(self, target_slot)
+	## 極限 EX-03: スキル攻撃与ダメ低下（通常攻撃・罠／DoT経路は対象外）。
+	mult *= _ExtremeMissionConfig.skill_resist_outgoing_mult_for_active_run(is_skill)
 	## Decision 146: 攻勢方針（既存 outgoing 共通経路のみ）。
 	if member_index >= 0 and member_index < GameState.party_members.size():
 		const _RoyalMarkSystemOut := preload("res://scripts/systems/RoyalMarkSystem.gd")
