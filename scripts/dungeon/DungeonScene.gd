@@ -1274,6 +1274,7 @@ func _ready() -> void:
 	var dungeon_name: String = $DungeonController.get_run_display_name()
 	_update_dungeon_header(dungeon_name)
 	_setup_weather()
+	_update_field_legend()
 	var weather_suffix: String = ""
 	if not GameState.get_weather().is_empty():
 		weather_suffix = "（天候: %s）" % CombatWeather.label(GameState.get_weather())
@@ -3798,8 +3799,15 @@ func _status_legend_content_signature(ids: Array[String]) -> String:
 	return "|".join(parts)
 
 
-func _field_legend_content_signature(weather: String, show_weather: bool, buff_sig: String) -> String:
+func _field_legend_content_signature(
+	weather: String,
+	show_weather: bool,
+	buff_sig: String,
+	extreme_hud: String
+) -> String:
 	var parts: PackedStringArray = PackedStringArray()
+	if not extreme_hud.is_empty():
+		parts.append("ex:%s" % extreme_hud)
 	if show_weather:
 		parts.append("w:%s" % weather)
 	if not buff_sig.is_empty():
@@ -3973,12 +3981,16 @@ func _make_field_buff_legend_row(entry: Dictionary) -> HBoxContainer:
 func _update_field_legend() -> void:
 	if _field_legend_panel == null or _field_legend_list == null:
 		return
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	var extreme_hud: String = _ExtremeMissionConfig.special_condition_hud_label(
+		GameState.get_active_dungeon_id()
+	)
 	var weather: String = CombatWeather.normalize(GameState.get_weather())
 	var show_weather: bool = (
 		$CombatController.is_in_combat and weather != CombatWeather.CLEAR
 	)
 	var buff_entries: Array[Dictionary] = _collect_floor_buff_legend_entries()
-	if not show_weather and buff_entries.is_empty():
+	if extreme_hud.is_empty() and not show_weather and buff_entries.is_empty():
 		_clear_field_legend_rows()
 		_field_legend_signature = ""
 		_field_legend_panel.visible = false
@@ -3987,11 +3999,15 @@ func _update_field_legend() -> void:
 	for e: Dictionary in buff_entries:
 		buff_sig_parts.append("%s:%s" % [str(e.get("id", "")), str(e.get("text", ""))])
 	var buff_sig: String = ",".join(buff_sig_parts)
-	var signature: String = _field_legend_content_signature(weather, show_weather, buff_sig)
+	var signature: String = _field_legend_content_signature(
+		weather, show_weather, buff_sig, extreme_hud
+	)
 	if signature == _field_legend_signature and _field_legend_panel.visible:
 		return
 	_field_legend_signature = signature
 	_clear_field_legend_rows()
+	if not extreme_hud.is_empty():
+		_field_legend_list.add_child(_make_extreme_condition_legend_row(extreme_hud))
 	if show_weather:
 		_field_legend_list.add_child(_make_weather_legend_row(weather))
 	for entry: Dictionary in buff_entries:
@@ -3999,6 +4015,59 @@ func _update_field_legend() -> void:
 	_field_legend_panel.visible = true
 	_layout_field_legend()
 	call_deferred("_layout_field_legend")
+
+
+func _make_extreme_condition_legend_row(hud_label: String) -> HBoxContainer:
+	## 天候行と同型。極限専用ICO／無ければ「極」バッジ。tooltip に desc。
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.size_flags_horizontal = Control.SIZE_SHRINK_END
+	row.alignment = BoxContainer.ALIGNMENT_END
+	var dungeon_id: String = GameState.get_active_dungeon_id()
+	var tip: String = _ExtremeMissionConfig.special_condition_desc(dungeon_id)
+	var icon := PanelContainer.new()
+	icon.custom_minimum_size = Vector2(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon.size_flags_horizontal = Control.SIZE_SHRINK_END
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if not tip.is_empty():
+		icon.tooltip_text = tip
+	var icon_tex: Texture2D = IconPaths.get_icon_texture("legend", "extreme")
+	if icon_tex != null:
+		icon.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+		var tr := TextureRect.new()
+		tr.texture = icon_tex
+		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tr.custom_minimum_size = Vector2(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
+		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.add_child(tr)
+	else:
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0.10, 0.07, 0.12, 0.92)
+		style.set_corner_radius_all(4)
+		style.set_border_width_all(1)
+		style.border_color = Color(0.82, 0.70, 0.42, 1.0)
+		icon.add_theme_stylebox_override("panel", style)
+		var glyph := Label.new()
+		glyph.text = "極"
+		glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		glyph.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		glyph.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		glyph.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		UiTypography.apply_caption(glyph, UiTypography.COLOR_GOLD)
+		icon.add_child(glyph)
+	row.add_child(icon)
+	var lbl := Label.new()
+	lbl.text = hud_label
+	if not tip.is_empty():
+		lbl.tooltip_text = tip
+	_style_field_legend_label(lbl)
+	row.add_child(lbl)
+	return row
 
 
 func _collect_active_status_ids() -> Array[String]:

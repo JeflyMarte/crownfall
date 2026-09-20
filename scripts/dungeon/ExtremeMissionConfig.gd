@@ -102,6 +102,7 @@ const MISSIONS: Dictionary = {
 		"special_condition": {
 			"id": "heal_down",
 			"label": "回復効果半減",
+			"hud_label": "回復50%",
 			"desc": "味方が受ける回復効果が50%になります。",
 			"tip": "回復に頼りすぎない編成が重要です。",
 		},
@@ -120,6 +121,7 @@ const MISSIONS: Dictionary = {
 		"special_condition": {
 			"id": "swarm_pressure",
 			"label": "敵の群れ増加",
+			"hud_label": "群れ増加",
 			"desc": "敵の群れが出現しやすくなり、群れ出現時の敵数が1体増えます。",
 			"tip": "範囲攻撃や群れ処理を用意しましょう。",
 		},
@@ -138,6 +140,7 @@ const MISSIONS: Dictionary = {
 		"special_condition": {
 			"id": "long_battle_ramp",
 			"label": "長期戦で敵が強化",
+			"hud_label": "長期で敵強化",
 			"desc": "180秒経過後、時間が経つほど敵の攻撃が強力になります。",
 			"tip": "短時間で決着をつけましょう。",
 		},
@@ -156,6 +159,7 @@ const MISSIONS: Dictionary = {
 		"special_condition": {
 			"id": "rear_pressure",
 			"label": "後衛へのダメージ増加",
+			"hud_label": "後衛被ダメ増",
 			"desc": "編成の後衛位置が受けるダメージが大きく増加します。",
 			"tip": "前衛を厚くし、後衛の被弾を減らしましょう。",
 		},
@@ -174,6 +178,7 @@ const MISSIONS: Dictionary = {
 		"special_condition": {
 			"id": "miasma_saturate",
 			"label": "敵耐久とDoT延長",
+			"hud_label": "敵耐久・DoT延長",
 			"desc": "敵のHPが上昇し、敵に付与した毒・出血・炎上の持続が延びます。",
 			"tip": "DoTや持続火力で削りましょう。",
 		},
@@ -192,6 +197,7 @@ const MISSIONS: Dictionary = {
 		"special_condition": {
 			"id": "status_require",
 			"label": "状態異常必須",
+			"hud_label": "異常必須",
 			"desc": "状態異常のない敵への与ダメージが低下します。",
 			"tip": "先に毒・出血などの状態異常を付与しましょう。",
 		},
@@ -210,6 +216,7 @@ const MISSIONS: Dictionary = {
 		"special_condition": {
 			"id": "ultimate_suppress",
 			"label": "必殺チャージ大幅低下",
+			"hud_label": "必殺ゲージ35%",
 			"desc": "必殺ゲージの獲得量が35%になります。",
 			"tip": "必殺技に頼らない戦い方が重要です。",
 		},
@@ -228,6 +235,7 @@ const MISSIONS: Dictionary = {
 		"special_condition": {
 			"id": "non_crit_pressure",
 			"label": "非クリティカル弱体",
+			"hud_label": "非会心弱体",
 			"desc": "クリティカルでないヒット攻撃の与ダメージが低下します（DoTは対象外）。",
 			"tip": "クリティカル率・クリティカルダメージを高めましょう。",
 		},
@@ -246,6 +254,7 @@ const MISSIONS: Dictionary = {
 		"special_condition": {
 			"id": "ultimate_disabled",
 			"label": "必殺技使用不可",
+			"hud_label": "必殺不可",
 			"desc": "この任務では必殺技を使用できません。",
 			"tip": "通常攻撃と装備スキルだけで攻略しましょう。",
 		},
@@ -264,6 +273,7 @@ const MISSIONS: Dictionary = {
 		"special_condition": {
 			"id": "element_weakness_pressure",
 			"label": "弱点属性必須",
+			"hud_label": "弱点必須",
 			"desc": "敵の弱点以外の属性攻撃（無属性を含む）の与ダメージが低下します。",
 			"tip": "ボスは炎弱点。弱点属性の武器・スキルで攻めましょう。",
 		},
@@ -294,6 +304,10 @@ static func parent_biome_id(dungeon_id: String) -> String:
 	return str(def.get("parent_biome_id", ""))
 
 
+## 右上 FieldLegend 用 HUD 短文の上限（天候最長14字未満）。
+const HUD_LABEL_MAX_LEN: int = 13
+
+
 static func short_name(dungeon_id: String) -> String:
 	var def: Dictionary = mission_def(dungeon_id)
 	return str(def.get("short_name", ""))
@@ -313,6 +327,22 @@ static func special_condition_label(dungeon_id: String) -> String:
 	if cond is Dictionary:
 		return str((cond as Dictionary).get("label", ""))
 	return ""
+
+
+## ダンジョン右上凡例用の短文。未設定時は label を上限で切る。
+static func special_condition_hud_label(dungeon_id: String) -> String:
+	if not is_extreme_mission(dungeon_id):
+		return ""
+	var def: Dictionary = mission_def(dungeon_id)
+	var cond: Variant = def.get("special_condition", {})
+	if not (cond is Dictionary):
+		return ""
+	var hud: String = str((cond as Dictionary).get("hud_label", "")).strip_edges()
+	if hud.is_empty():
+		hud = str((cond as Dictionary).get("label", "")).strip_edges()
+	if hud.length() > HUD_LABEL_MAX_LEN:
+		return hud.substr(0, HUD_LABEL_MAX_LEN)
+	return hud
 
 
 static func special_condition_desc(dungeon_id: String) -> String:

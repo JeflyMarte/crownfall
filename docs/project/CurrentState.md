@@ -3,6 +3,7 @@
 ---
 
 ## Last Update
+2026-09-20（**極限制約右上HUD**: FieldLegend に hud_label≤13字＋極限ICO。Featured 長文は据置）
 2026-09-20（**キャラ画面ステ数値復帰**: 数値 Label の clip_text を外し自然幅に。見切れ対策の副作用修正）
 2026-09-20（**キャラ画面右見切れ修正**: 装備効果ラベル短表記／EffectsGrid 縮み／王痕ボタン短縮。Gameplay 不変）
 2026-09-20（**王痕育成 可読性**: スキルアイコン表示／固有名＝緑・数値＝水色・「旧仕様」文言削除。Gameplay・Save不変。GUT royal_mark* PASS）

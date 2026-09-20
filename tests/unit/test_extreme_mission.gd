@@ -76,6 +76,9 @@ func test_all_ten_mission_ids_valid() -> void:
 			str(raw["cond"]),
 			mid
 		)
+		var hud: String = _ExtremeMissionConfig.special_condition_hud_label(mid)
+		assert_false(hud.is_empty(), mid)
+		assert_lte(hud.length(), _ExtremeMissionConfig.HUD_LABEL_MAX_LEN, mid)
 		var stage: Resource = DataRegistry.get_stage_data("%s_1_1" % mid)
 		assert_not_null(stage, mid)
 		assert_eq(str(stage.boss_id), str(raw["boss"]), mid)
@@ -517,22 +520,26 @@ func test_extreme_display_copy_matches_impl() -> void:
 	assert_eq(_ExtremeMissionConfig.order_time_limit_sec(), 600)
 	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_tide_siege"), "non_crit_pressure")
 	assert_eq(_ExtremeMissionConfig.special_condition_label("ex_tide_siege"), "非クリティカル弱体")
+	assert_eq(_ExtremeMissionConfig.special_condition_hud_label("ex_tide_siege"), "非会心弱体")
 	assert_true(
 		_ExtremeMissionConfig.special_condition_desc("ex_tide_siege").find("DoT") >= 0
 	)
 	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_grave_siege"), "swarm_pressure")
+	assert_eq(_ExtremeMissionConfig.special_condition_hud_label("ex_grave_siege"), "群れ増加")
 	assert_true(
 		_ExtremeMissionConfig.special_condition_desc("ex_grave_siege").find("群れ出現時") >= 0
 	)
 	assert_true(
 		_ExtremeMissionConfig.special_condition_desc("ex_hunter_woods").find("編成") >= 0
 	)
+	assert_eq(_ExtremeMissionConfig.special_condition_hud_label("ex_tomb_seal"), "回復50%")
 	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_miasma_sat"), "miasma_saturate")
 	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_infect_chain"), "status_require")
 	assert_eq(
 		_ExtremeMissionConfig.special_condition_id("ex_white_night"),
 		"element_weakness_pressure"
 	)
+	assert_eq(_ExtremeMissionConfig.special_condition_hud_label("ex_white_night"), "弱点必須")
 	assert_true(
 		_ExtremeMissionConfig.special_condition_tip("ex_white_night").find("炎") >= 0
 	)
@@ -548,6 +555,11 @@ func test_extreme_display_copy_matches_impl() -> void:
 	assert_eq(
 		_ExtremeMissionConfig.special_condition_label("ex_polar_silence"),
 		"必殺技使用不可"
+	)
+	assert_eq(_ExtremeMissionConfig.special_condition_hud_label("ex_polar_silence"), "必殺不可")
+	assert_eq(_ExtremeMissionConfig.special_condition_hud_label("mourngate"), "")
+	assert_true(
+		FileAccess.file_exists("res://assets/ui/dungeon/ICO_ExtremeMission_Legend.png")
 	)
 	## UI ラベルと modifier API の対応（EX-02 群れサイズ）
 	GameState.current_dungeon_id = Constants.EX_GRAVE_SIEGE_DUNGEON_ID

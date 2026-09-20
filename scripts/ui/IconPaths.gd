@@ -761,6 +761,8 @@ const ICON_MAP: Dictionary = {
 	"weather:heat":                 "res://assets/ui/weather/ICO_WTH_Heat.png",
 	"weather:snow":                 "res://assets/ui/weather/ICO_WTH_Snow.png",
 	"weather:clear":                "res://assets/ui/weather/ICO_WTH_Clear.png",
+	"extreme:legend":               "res://assets/ui/dungeon/ICO_ExtremeMission_Legend.png",
+	"extreme:mission":              "res://assets/ui/dungeon/ICO_ExtremeMission_Legend.png",
 	# 図鑑カテゴリ（歴史・記録・手引き）
 	"history:HE-001":           "res://assets/ui/codex/ICO_CDX_HIS_HE001.png",
 	"history:HE-002":           "res://assets/ui/codex/ICO_CDX_HIS_HE002.png",
