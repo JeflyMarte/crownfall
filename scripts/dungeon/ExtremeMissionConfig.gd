@@ -346,6 +346,19 @@ static func mission_code(dungeon_id: String) -> String:
 	return str(def.get("code", "")).strip_edges()
 
 
+## 一覧ソート用。EX-01→1 … EX-10→10。不明は大きめ。
+static func list_sort_key(dungeon_id: String) -> int:
+	var code: String = mission_code(dungeon_id)
+	if code.begins_with("EX-"):
+		var num_s: String = code.substr(3).strip_edges()
+		if num_s.is_valid_int():
+			return int(num_s)
+	var rot_i: int = DAILY_ROTATION_IDS.find(dungeon_id)
+	if rot_i >= 0:
+		return rot_i + 1
+	return 999
+
+
 ## 例: EX-02　極限任務　【墓守の包囲】
 static func format_mission_display_name(dungeon_id: String) -> String:
 	var code: String = mission_code(dungeon_id)

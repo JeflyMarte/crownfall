@@ -167,6 +167,30 @@ func test_modifier_scope_does_not_leak_to_main() -> void:
 	assert_eq(_ExtremeMissionConfig.pet_primary_outgoing_mult_for_active_run(0), 1.0)
 
 
+func test_extreme_list_sort_key_follows_ex_number() -> void:
+	assert_eq(_ExtremeMissionConfig.list_sort_key("ex_tomb_seal"), 1)
+	assert_eq(_ExtremeMissionConfig.list_sort_key("ex_grave_siege"), 2)
+	assert_eq(_ExtremeMissionConfig.list_sort_key("ex_wreck_assault"), 7)
+	assert_eq(_ExtremeMissionConfig.list_sort_key("ex_white_night"), 10)
+	assert_eq(_ExtremeMissionConfig.list_sort_key("mourngate"), 999)
+	## EX 番号昇順（難易度順ではない）。
+	var ids: Array = [
+		"ex_white_night",
+		"ex_tomb_seal",
+		"ex_wreck_assault",
+		"ex_grave_siege",
+	]
+	ids.sort_custom(_compare_extreme_ids_by_sort_key)
+	assert_eq(str(ids[0]), "ex_tomb_seal")
+	assert_eq(str(ids[1]), "ex_grave_siege")
+	assert_eq(str(ids[2]), "ex_wreck_assault")
+	assert_eq(str(ids[3]), "ex_white_night")
+
+
+func _compare_extreme_ids_by_sort_key(a: Variant, b: Variant) -> bool:
+	return _ExtremeMissionConfig.list_sort_key(str(a)) < _ExtremeMissionConfig.list_sort_key(str(b))
+
+
 func test_extreme_stage_display_uses_route_label_not_1_1() -> void:
 	## 極限は biome_index=1 でも「1-1」ではなく EX-XX　極限任務　【名】表記。
 	var stage: Resource = DataRegistry.get_stage_data("ex_grave_siege_1_1")

@@ -910,12 +910,17 @@ func _sorted_extreme_missions() -> Array:
 		if not _EventDungeonScheduleEx.is_open_now(dungeon_id):
 			continue
 		out.append(data)
-	## 通常は1件。debug 全日開放時は難易度昇順。
+	## 通常は1件。debug 全日開放時は EX 番号昇順。
 	out.sort_custom(_compare_extreme_missions)
 	return out
 
 
 func _compare_extreme_missions(a: Variant, b: Variant) -> bool:
+	const _ExtremeMissionConfigSort := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	var ka: int = _ExtremeMissionConfigSort.list_sort_key(str(a.id))
+	var kb: int = _ExtremeMissionConfigSort.list_sort_key(str(b.id))
+	if ka != kb:
+		return ka < kb
 	return int(a.difficulty) < int(b.difficulty)
 
 
