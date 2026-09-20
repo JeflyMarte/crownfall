@@ -671,9 +671,22 @@ func get_run_chapter_label() -> String:
 		return ""
 	return "%d-%d" % [int(current_stage_data.biome_index), int(current_stage_data.chapter_index)]
 
-## モーンゲート 1-1〜1-3（深層・他Biome除外）。
+## 本編 Biome ランか（極限・降臨・征討・深層は false）。
+## 極限ステージが biome_index=1 でもモーンゲート緩和に誤爆しないための正。
+func _is_main_route_run() -> bool:
+	if current_dungeon_data != null:
+		return str(current_dungeon_data.route_type) == "main"
+	if current_stage_data == null:
+		return false
+	var biome_id: String = str(current_stage_data.biome_id)
+	return biome_id in _DungeonTierConfig.MAIN_BIOME_IDS
+
+
+## モーンゲート 1-1〜1-3（深層・他Biome・極限等除外）。
 func _is_mourngate_early_chapter() -> bool:
 	if current_stage_data == null or _is_abyss_run():
+		return false
+	if not _is_main_route_run():
 		return false
 	var biome_i: int = int(current_stage_data.biome_index)
 	var chapter_i: int = int(current_stage_data.chapter_index)
@@ -702,9 +715,11 @@ func _early_normal_swarm_size_cap() -> int:
 	return _mourngate_normal_swarm_size_cap()
 
 
-## モーンゲート・ノーマルは群れ最高2体。深層・他Biome・H/NM は据置。
+## モーンゲート・ノーマルは群れ最高2体。深層・他Biome・H/NM・極限は据置。
 func _mourngate_normal_swarm_size_cap() -> int:
 	if current_stage_data == null or _is_abyss_run():
+		return -1
+	if not _is_main_route_run():
 		return -1
 	if int(current_stage_data.biome_index) != 1:
 		return -1
@@ -723,6 +738,8 @@ func _early_normal_elites_disabled() -> bool:
 ## モーンゲート・ノーマルはエリート護衛（群れ）なし。ウィスパーウッド以降・H/NM は据置。
 func _mourngate_normal_elite_escorts_disabled() -> bool:
 	if current_stage_data == null or _is_abyss_run():
+		return false
+	if not _is_main_route_run():
 		return false
 	if int(current_stage_data.biome_index) != 1:
 		return false

@@ -14,6 +14,7 @@ func test_early_stage_swarm_chance_mult_for_1_1_to_1_3() -> void:
 	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
 	var dc: Node = dc_script.new()
 	add_child_autofree(dc)
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mourngate")
 	dc.current_stage_data = DataRegistry.get_stage_data("mourngate_1_1")
 	assert_almost_eq(dc._early_stage_swarm_chance_mult(), 0.50, 0.001)
 	dc.current_stage_data = DataRegistry.get_stage_data("mourngate_1_3")
@@ -34,6 +35,7 @@ func test_mourngate_normal_swarm_size_cap() -> void:
 	var prev_tier: int = int(GameState.current_dungeon_tier)
 	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
 	dc.current_stage_data = DataRegistry.get_stage_data("mourngate_1_1")
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data("mourngate")
 	assert_eq(dc._mourngate_normal_swarm_size_cap(), 2)
 	dc.current_stage_data = DataRegistry.get_stage_data("mourngate_1_3")
 	assert_eq(dc._mourngate_normal_swarm_size_cap(), 2)
@@ -47,9 +49,36 @@ func test_mourngate_normal_swarm_size_cap() -> void:
 	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NIGHTMARE
 	assert_eq(dc._mourngate_normal_swarm_size_cap(), -1)
 	dc.current_stage_data = DataRegistry.get_stage_data("whisperwood_2_1")
+	dc.current_dungeon_data = DataRegistry.get_dungeon_data("whisperwood")
 	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
 	assert_eq(dc._mourngate_normal_swarm_size_cap(), -1)
 	GameState.current_dungeon_tier = prev_tier
+
+
+func test_extreme_swarm_pressure_not_hit_by_mourngate_early_mitigation() -> void:
+	## 極限ステージは biome_index=1 でも本編序盤緩和に誤爆しない（群れ増加が効く）。
+	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
+	var dc: Node = dc_script.new()
+	add_child_autofree(dc)
+	var prev_tier: int = int(GameState.current_dungeon_tier)
+	var prev_dungeon: String = str(GameState.current_dungeon_id)
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
+	GameState.current_dungeon_id = "ex_grave_siege"
+	dc.start_stage("ex_grave_siege_1_1")
+	assert_eq(str(dc.current_dungeon_data.route_type), "extreme")
+	assert_eq(int(dc.current_stage_data.biome_index), 1)
+	assert_eq(int(dc.current_stage_data.chapter_index), 1)
+	assert_false(dc._is_mourngate_early_chapter())
+	assert_almost_eq(dc._early_stage_swarm_chance_mult(), 1.0, 0.001)
+	assert_eq(dc._mourngate_normal_swarm_size_cap(), -1)
+	assert_false(dc._early_normal_elites_disabled())
+	assert_false(dc._mourngate_normal_elite_escorts_disabled())
+	## ボーナス自体は ExtremeMissionConfig 側。
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	assert_eq(_ExtremeMissionConfig.swarm_chance_bonus_for_active_run(), 0.35)
+	assert_eq(_ExtremeMissionConfig.swarm_size_bonus_for_active_run(), 1)
+	GameState.current_dungeon_tier = prev_tier
+	GameState.current_dungeon_id = prev_dungeon
 
 
 func test_mourngate_early_normal_elites_disabled() -> void:
