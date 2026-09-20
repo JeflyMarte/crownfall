@@ -3,6 +3,8 @@ extends RefCounted
 
 ## 神話装備ドロップ SSOT（P3-EQ-MYTHIC-001 / P3-EQ-MYTHIC-WPN-TYPES-001）。通常レア抽選には載せない。
 
+const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+
 const CHANCE: float = 0.01
 const BIOME_ID: String = "mourngate"
 
@@ -59,6 +61,19 @@ static func unowned_pool() -> Array[Dictionary]:
 	return out
 
 
+static func chance_for_dungeon(dungeon_id: String) -> float:
+	var chance: float = CHANCE
+	if _ExtremeMissionConfig.is_extreme_mission(dungeon_id):
+		chance += float(_ExtremeMissionConfig.TUNING.get("boss_mythic_chance_bonus", 0.0))
+	return clampf(chance, 0.0, 1.0)
+
+
+static func is_eligible_dungeon(dungeon_id: String, stage_id: String) -> bool:
+	if _ExtremeMissionConfig.is_extreme_mission(dungeon_id):
+		return true
+	return dungeon_id == BIOME_ID or stage_id.begins_with(BIOME_ID)
+
+
 ## ボス再クリア時のみ。成功時 {category, id}、失敗時空。
 static func roll_for_boss_reclear(stage: Resource, rng: RandomNumberGenerator = null) -> Dictionary:
 	var empty: Dictionary = {}
@@ -68,15 +83,19 @@ static func roll_for_boss_reclear(stage: Resource, rng: RandomNumberGenerator = 
 	var dungeon_id: String = str(GameState.current_dungeon_id)
 	if dungeon_id.is_empty() and stage_id.begins_with(BIOME_ID):
 		dungeon_id = BIOME_ID
-	if dungeon_id != BIOME_ID and not stage_id.begins_with(BIOME_ID):
+	if not is_eligible_dungeon(dungeon_id, stage_id):
 		return empty
 	if not GameState.is_stage_cleared(stage_id, GameState.current_dungeon_tier):
 		return empty
 	var roll: float = rng.randf() if rng != null else randf()
-	if roll > CHANCE:
+	if roll > chance_for_dungeon(dungeon_id):
 		return empty
 	var candidates: Array[Dictionary] = unowned_pool()
 	if candidates.is_empty():
 		candidates = POOL.duplicate()
-	var idx: int = rng.randi_range(0, candidates.size() - 1) if rng != null else randi() % candidates.size()
+	if candidates.is_empty():
+		return empty
+	var idx: int = (
+		rng.randi_range(0, candidates.size() - 1) if rng != null else randi() % candidates.size()
+	)
 	return candidates[idx].duplicate()

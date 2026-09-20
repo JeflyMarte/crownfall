@@ -2601,6 +2601,9 @@ func _active_weapon_pool() -> Array:
 # 武器プールからレア度重みで1本抽選（放浪個体は weapon_rarity_weights で上書き可）。
 func _pick_weighted_weapon(enemy_data: Resource = null) -> String:
 	var pool: Array = _augment_pool_with_legendaries(_active_weapon_pool(), "weapon", enemy_data)
+	var bonus_id: String = _try_extreme_legendary_bonus_pick(pool, "weapon", enemy_data)
+	if not bonus_id.is_empty():
+		return bonus_id
 	var weights: Array[int] = []
 	var total: int = 0
 	for wid in pool:
@@ -2673,6 +2676,9 @@ func _generate_armor_loot() -> void:
 
 # プールからレア度重みで1件抽選（armor/accessory 共用）。enemy_data で放浪重み上書き可。
 func _pick_rarity_weighted(pool: Array, category: String, enemy_data: Resource = null) -> String:
+	var bonus_id: String = _try_extreme_legendary_bonus_pick(pool, category, enemy_data)
+	if not bonus_id.is_empty():
+		return bonus_id
 	var weights: Array[int] = []
 	var total: int = 0
 	for iid in pool:
@@ -2697,6 +2703,35 @@ func _pick_rarity_weighted(pool: Array, category: String, enemy_data: Resource =
 		if roll < cumulative:
 			return str(pool[i])
 	return str(pool[pool.size() - 1])
+
+
+## 極限任務のみ: LEGENDARY を絶対+10pt の別枠で先行抽選。失敗／候補なしは空文字。
+func _try_extreme_legendary_bonus_pick(
+	pool: Array, category: String, enemy_data: Resource = null, rng: RandomNumberGenerator = null
+) -> String:
+	var bonus: float = _ExtremeMissionConfig.equip_legendary_chance_bonus_for_active_run()
+	if bonus <= 0.0 or pool.is_empty():
+		return ""
+	var roll: float = rng.randf() if rng != null else randf()
+	if roll >= bonus:
+		return ""
+	var legends: Array[String] = []
+	for iid in pool:
+		var data: Resource = null
+		match category:
+			"weapon":
+				data = DataRegistry.get_weapon_data(str(iid))
+			"armor":
+				data = DataRegistry.get_armor_data(str(iid))
+			_:
+				data = DataRegistry.get_accessory_data(str(iid))
+		if data != null and int(data.rarity) == Enums.Rarity.LEGENDARY:
+			legends.append(str(iid))
+	if legends.is_empty():
+		return ""
+	if rng != null:
+		return legends[rng.randi_range(0, legends.size() - 1)]
+	return legends[randi() % legends.size()]
 
 func _spawn_armor(armor_id: String) -> bool:
 	var armor_data = load("res://resources/armors/" + armor_id + ".tres")

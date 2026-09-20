@@ -83,6 +83,8 @@
 | `non_weakness_outgoing_mult` | 0.70 | EX-10 非弱点（`145`） |
 | `ultimate_charge_suppress_mult` | 0.35 | 必殺チャージ抑制 |
 | `ultimate_use_limit` | 3 | 必殺使用回数制限 |
+| `equip_legendary_chance_bonus` | 0.10 | **極限のみ** LEGENDARY 別枠＋10pt（2026-09-20） |
+| `boss_mythic_chance_bonus` | 0.10 | **極限のみ** ボス再クリア神話 1%→11%（2026-09-20） |
 
 **廃止（`145`）:** `status_empower_*`／`elite_swarm_up`／EX-05 二重 heal_down／EX-10 二重 long_battle_ramp。
 

@@ -8325,3 +8325,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-EXTREME-001-FLOOR-2 | `ExtremeMissionConfig`／`ex_*.tres`／`ex_*_1_1.tres` を同期 | データ＋config 一致 |
 | P3-DG-EXTREME-001-FLOOR-3 | SSOT — `143_ExtremeMissions.md`（001-3 更新） | Decision 本体 |
 | P3-DG-EXTREME-001-FLOOR-4 | 指令タイム 600 秒・TUNING／報酬は据置（別途調整可） | 今回スコープ外 |
+
+## 極限 LEGENDARY／神話ドロップ（2026-09-20 — P3-DG-EXTREME-DROP-LM-001）
+
+> **オーナー GO**（案B）: 極限任務のみ絶対+10pt。本編・降臨据置。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-EXTREME-DROP-LM-001-1 | LEGENDARY は装備レア抽選の**別枠 10%**（ヒット時はプール内★から選出） | 絶対+10pt |
+| P3-DG-EXTREME-DROP-LM-001-2 | 神話は極限ボス**再クリア**で `1%+10pt=11%`（全 EX 対象） | 本編 mourngate 1% 据置 |
+| P3-DG-EXTREME-DROP-LM-001-3 | TUNING=`equip_legendary_chance_bonus`／`boss_mythic_chance_bonus` | 散在禁止 |

@@ -577,3 +577,75 @@ func test_extreme_display_copy_matches_impl() -> void:
 	## UI ラベルと modifier API の対応（EX-02 群れサイズ）
 	GameState.current_dungeon_id = Constants.EX_GRAVE_SIEGE_DUNGEON_ID
 	assert_eq(_ExtremeMissionConfig.swarm_size_bonus_for_active_run(), 1)
+
+
+func test_extreme_legendary_and_mythic_drop_bonus() -> void:
+	## 極限のみ LEGENDARY 別枠 +10pt／神話再クリア 1%+10pt。本編は据置。
+	GameState.current_dungeon_id = "mourngate"
+	assert_eq(_ExtremeMissionConfig.equip_legendary_chance_bonus_for_active_run(), 0.0)
+	assert_eq(_ExtremeMissionConfig.boss_mythic_chance_bonus_for_active_run(), 0.0)
+	assert_almost_eq(MythicLoot.chance_for_dungeon("mourngate"), 0.01, 0.0001)
+	GameState.current_dungeon_id = Constants.EX_TOMB_SEAL_DUNGEON_ID
+	assert_almost_eq(
+		_ExtremeMissionConfig.equip_legendary_chance_bonus_for_active_run(), 0.10, 0.0001
+	)
+	assert_almost_eq(
+		_ExtremeMissionConfig.boss_mythic_chance_bonus_for_active_run(), 0.10, 0.0001
+	)
+	assert_almost_eq(
+		MythicLoot.chance_for_dungeon(Constants.EX_TOMB_SEAL_DUNGEON_ID), 0.11, 0.0001
+	)
+	assert_true(
+		MythicLoot.is_eligible_dungeon(Constants.EX_TOMB_SEAL_DUNGEON_ID, "ex_tomb_seal_1_1")
+	)
+	var dc: Node = preload("res://scripts/dungeon/DungeonController.gd").new()
+	add_child_autofree(dc)
+	var leg_id: String = "coil_spring_dual"
+	assert_eq(int(DataRegistry.get_weapon_data(leg_id).rarity), Enums.Rarity.LEGENDARY)
+	var pool: Array = ["iron_sword", leg_id]
+	var picked: String = ""
+	for s: int in range(1, 400):
+		var probe := RandomNumberGenerator.new()
+		probe.seed = s
+		if probe.randf() >= 0.10:
+			continue
+		var rng := RandomNumberGenerator.new()
+		rng.seed = s
+		picked = dc.call("_try_extreme_legendary_bonus_pick", pool, "weapon", null, rng)
+		if not picked.is_empty():
+			break
+	assert_eq(picked, leg_id)
+	GameState.current_dungeon_id = "mourngate"
+	var rng_main := RandomNumberGenerator.new()
+	rng_main.seed = 1
+	assert_eq(dc.call("_try_extreme_legendary_bonus_pick", pool, "weapon", null, rng_main), "")
+
+
+func test_extreme_mythic_reclear_roll() -> void:
+	## 極限ボス再クリアで神話候補になり、強制低ロールで必ず当たる。
+	var mid: String = Constants.EX_TOMB_SEAL_DUNGEON_ID
+	var stage_id: String = "ex_tomb_seal_1_1"
+	GameState.current_dungeon_id = mid
+	GameState.current_dungeon_tier = _DungeonTierConfig.TIER_NORMAL
+	GameState.mark_stage_cleared(stage_id, _DungeonTierConfig.TIER_NORMAL)
+	GameState.inventory.clear()
+	GameState.armor_inventory.clear()
+	GameState.accessory_inventory.clear()
+	var stage: Resource = DataRegistry.get_stage_data(stage_id)
+	assert_not_null(stage)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 42
+	## chance 0.11 未満になるまで seed 探索
+	var hit: Dictionary = {}
+	for s: int in range(1, 500):
+		rng = RandomNumberGenerator.new()
+		rng.seed = s
+		if rng.randf() > 0.11:
+			continue
+		rng = RandomNumberGenerator.new()
+		rng.seed = s
+		hit = MythicLoot.roll_for_boss_reclear(stage, rng)
+		if not hit.is_empty():
+			break
+	assert_false(hit.is_empty(), "extreme reclear should allow mythic at 11%")
+	assert_true(MythicLoot.is_mythic_id(str(hit.get("id", ""))))

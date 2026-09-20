@@ -74,6 +74,10 @@ const TUNING := {
 	"ultimate_charge_suppress_mult": 0.35,
 	## 指令「必殺使用回数制限」上限。
 	"ultimate_use_limit": 3,
+	## 極限のみ: 装備レア抽選で LEGENDARY を絶対+10pt（別枠先行抽選）。
+	"equip_legendary_chance_bonus": 0.10,
+	## 極限のみ: ボス再クリア神話確率へ加算（基 1% → 11%）。
+	"boss_mythic_chance_bonus": 0.10,
 }
 
 ## 極限指令のプレイヤー向け表示（id はセーブキーのまま。判定ロジック不変）。
@@ -407,6 +411,20 @@ static func heal_effectiveness_mult_for_active_run() -> float:
 	if _active_condition_id() != "heal_down":
 		return 1.0
 	return float(TUNING.get("heal_effectiveness_mult", 1.0))
+
+
+## 極限任務中のみ。装備ドロップの LEGENDARY 別枠確率（絶対加算）。
+static func equip_legendary_chance_bonus_for_active_run() -> float:
+	if not is_extreme_mission(GameState.get_active_dungeon_id()):
+		return 0.0
+	return clampf(float(TUNING.get("equip_legendary_chance_bonus", 0.0)), 0.0, 1.0)
+
+
+## 極限任務中のみ。ボス再クリア神話への加算（基 MythicLoot.CHANCE に足す）。
+static func boss_mythic_chance_bonus_for_active_run() -> float:
+	if not is_extreme_mission(GameState.get_active_dungeon_id()):
+		return 0.0
+	return clampf(float(TUNING.get("boss_mythic_chance_bonus", 0.0)), 0.0, 1.0)
 
 
 static func swarm_chance_bonus_for_active_run() -> float:
