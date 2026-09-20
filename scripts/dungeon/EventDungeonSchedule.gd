@@ -193,7 +193,7 @@ static func _is_in_hourly_window(dungeon_id: String) -> bool:
 	return false
 
 
-## 「次の出現 HH:00」（出現中は空文字）。極限は「明日 5:00〜」等。
+## 「次の出現 HH:00」（出現中は空文字）。極限は常設のため常に空。
 static func next_open_label(dungeon_id: String) -> String:
 	if Constants.is_extreme_mission_playable(dungeon_id):
 		const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
