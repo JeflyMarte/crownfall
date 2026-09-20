@@ -6882,10 +6882,15 @@ func _fire_engineer_traps_on_enemy(slot: int) -> void:
 			1,
 			int(round(float(raw) * $CombatController.get_enemy_incoming_damage_multiplier_at(slot)))
 		)
-		$CombatController.apply_damage_to_enemy_slot(slot, dmg)
-		if placer_idx >= 0 and $CombatController.is_member_alive(placer_idx):
-			$CombatController.add_threat(placer_idx, float(dmg) * CombatController.THREAT_DAMAGE_K)
-			GameState.record_run_damage(placer_idx, dmg, "eng_trap_%s" % kind, "仕掛け")
+		## 極限の障壁／反射は共通適用（パッシブ連鎖はしない）。表示は障壁後の値。
+		if placer_idx >= 0:
+			dmg = _apply_extreme_shell_incoming_mult(dmg, placer_idx, null, slot)
+			_deal_member_damage_to_enemy(
+				placer_idx, dmg, slot, "eng_trap_%s" % kind, "仕掛け", false, true, false, null, false
+			)
+		else:
+			$CombatController.apply_damage_to_enemy_slot(slot, dmg)
+			_check_boss_phase_transition(slot)
 		_spawn_hit_vfx(_enemy_slot_pos(slot))
 		var enemy_spr: AnimatedSprite2D = _enemy_sprite_for_slot(slot)
 		if enemy_spr != null and enemy_spr.visible:
@@ -6898,7 +6903,6 @@ func _fire_engineer_traps_on_enemy(slot: int) -> void:
 				dmg,
 				true
 			)
-		_check_boss_phase_transition(slot)
 	if (
 		not status_id.is_empty()
 		and status_chance > 0.0
@@ -7579,17 +7583,11 @@ func _try_cast_player_skill() -> String:
 	)
 	final_dmg += _consume_combo_bonus(member_idx, final_dmg, _member_action_tags(member_idx, skill_data), skill_data)
 	var skill_is_crit: bool = result.get("is_critical", false)
-	GameState.record_run_damage(
-		member_idx,
-		final_dmg,
-		str(skill_data.id) if skill_data != null else "",
-		str(result.get("display_name", "スキル")),
-		skill_is_crit
+	var skill_id_str: String = str(skill_data.id) if skill_data != null else ""
+	var display_name: String = str(result.get("display_name", "スキル"))
+	_deal_member_damage_to_enemy(
+		member_idx, final_dmg, player_target, skill_id_str, display_name, skill_is_crit, true, false, skill_data, false
 	)
-	$CombatController.apply_damage_to_enemy(final_dmg)
-	$CombatController.add_threat(member_idx, float(final_dmg) * CombatController.THREAT_DAMAGE_K)
-	if final_dmg > 0:
-		_apply_extreme_damage_reflect(member_idx, final_dmg)
 	var skill_spawn_pos: Vector2 = _active_enemy_pos()
 	_spawn_hit_vfx(skill_spawn_pos, attack_element, 1.0, skill_is_crit, _get_weapon_type(member_idx))
 	_spawn_damage_number(
@@ -7675,17 +7673,11 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 	)
 	final_dmg += _consume_combo_bonus(member_idx, final_dmg, _member_action_tags(member_idx, skill_data), skill_data)
 	var sec_is_crit: bool = result.get("is_critical", false)
-	GameState.record_run_damage(
-		member_idx,
-		final_dmg,
-		str(skill_data.id) if skill_data != null else "",
-		str(result.get("display_name", "スキル")),
-		sec_is_crit
+	var sec_id: String = str(skill_data.id) if skill_data != null else ""
+	var sec_name: String = str(result.get("display_name", "スキル"))
+	_deal_member_damage_to_enemy(
+		member_idx, final_dmg, sec_target, sec_id, sec_name, sec_is_crit, true, false, skill_data, false
 	)
-	$CombatController.apply_damage_to_enemy(final_dmg)
-	$CombatController.add_threat(member_idx, float(final_dmg) * CombatController.THREAT_DAMAGE_K)
-	if final_dmg > 0:
-		_apply_extreme_damage_reflect(member_idx, final_dmg)
 	var sec_spawn_pos: Vector2 = _active_enemy_pos()
 	_spawn_hit_vfx(sec_spawn_pos, attack_element, 1.0, sec_is_crit, _get_weapon_type(member_idx))
 	_spawn_damage_number(
@@ -7939,6 +7931,8 @@ func _member_has_living_target(member_idx: int) -> bool:
 
 # 味方攻撃ダメージをメンバー個別ターゲットへ適用。撃破時は true（全滅で戦闘終了）。
 # already_mitigated: 呼び出し側で T6/T7 減衰とパッシブ表示済みなら true（テロップと実ダメを一致させる）。
+# apply_shell: 生ダメに EX-08 障壁を掛ける。主攻撃で既に障壁済みなら false。
+# fire_hit_effects: 吸血・on_attack／虚潮など。パッシブ追撃から呼ぶときは false（連鎖防止）。
 func _deal_member_damage_to_enemy(
 	member_idx: int,
 	damage: int,
@@ -7946,7 +7940,10 @@ func _deal_member_damage_to_enemy(
 	skill_id: String = "basic_attack",
 	skill_name: String = "通常攻撃",
 	is_critical: bool = false,
-	already_mitigated: bool = false
+	already_mitigated: bool = false,
+	apply_shell: bool = false,
+	skill_data: Resource = null,
+	fire_hit_effects: bool = true
 ) -> bool:
 	if target_slot < 0:
 		target_slot = $CombatController.get_member_target_slot(member_idx)
@@ -7956,12 +7953,16 @@ func _deal_member_damage_to_enemy(
 	var is_basic: bool = sid.is_empty() or sid == "basic_attack" or sid == "counter_attack"
 	if not already_mitigated:
 		damage = _apply_enemy_incoming_attack_mitigation(target_slot, damage, is_basic)
+	if apply_shell and damage > 0:
+		damage = _apply_extreme_shell_incoming_mult(damage, member_idx, skill_data, target_slot)
+	if damage <= 0:
+		return false
 	GameState.record_run_damage(member_idx, damage, skill_id, skill_name, is_critical)
 	$CombatController.apply_damage_to_enemy_slot(target_slot, damage)
 	$CombatController.add_threat(member_idx, float(damage) * CombatController.THREAT_DAMAGE_K)
 	_check_boss_phase_transition(target_slot)
-	if damage > 0:
-		_apply_extreme_damage_reflect(member_idx, damage)
+	_apply_extreme_damage_reflect(member_idx, damage)
+	if fire_hit_effects:
 		_apply_member_lifesteal(member_idx, damage, sid)
 		_fire_member_passives(
 			member_idx, "on_attack", {
@@ -7983,13 +7984,23 @@ func _deal_member_damage_to_enemy(
 			_apply_enemy_traits_after_basic_hit(member_idx, target_slot)
 		var tide_burst: int = _AbyssWeaponEffects.after_attack_hit(member_idx, target_slot, damage)
 		if tide_burst > 0 and $CombatController.is_enemy_slot_alive(target_slot):
-			$CombatController.apply_damage_to_enemy_slot(target_slot, tide_burst)
-			$CombatController.add_threat(member_idx, float(tide_burst) * CombatController.THREAT_DAMAGE_K)
-			GameState.record_run_damage(member_idx, tide_burst, "abyss_tide_burst", "虚潮爆発")
+			var tide_wipe: bool = _deal_member_damage_to_enemy(
+				member_idx,
+				tide_burst,
+				target_slot,
+				"abyss_tide_burst",
+				"虚潮爆発",
+				false,
+				true,
+				true,
+				null,
+				false
+			)
 			_update_hp_bars()
 			_spawn_skill_name("⚔虚潮爆発", member_idx, 0.0, "", false, "", PASSIVE_NAME_FONT_SIZE)
 			_append_log("[武器] 虚潮の印 爆発")
-			_check_boss_phase_transition(target_slot)
+			if tide_wipe:
+				return true
 	if $CombatController.get_enemy_hp_at(target_slot) <= 0:
 		## on_kill／キル集計は _on_enemy_slot_killed 側（追撃トドメも含め初回のみ）。
 		return _on_enemy_slot_killed(target_slot, member_idx)
@@ -11049,14 +11060,12 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			var pulse_slot: int = int(ctx.get("target_slot", -1))
 			if frac > 0.0 and base_dmg > 0 and pulse_slot >= 0 and $CombatController.is_enemy_slot_alive(pulse_slot):
 				var bonus: int = maxi(1, int(round(float(base_dmg) * frac)))
-				$CombatController.apply_damage_to_enemy_slot(pulse_slot, bonus)
-				$CombatController.add_threat(member_idx, float(bonus) * CombatController.THREAT_DAMAGE_K)
-				GameState.record_run_damage(member_idx, bonus, "crit_pulse", "会心追撃")
+				## 主ダメは障壁済み。追撃は反射のみ（パッシブ連鎖なし）。
+				combat_ended = _deal_member_damage_to_enemy(
+					member_idx, bonus, pulse_slot, "crit_pulse", "会心追撃", false, true, false, null, false
+				)
 				_update_hp_bars()
 				applied = true
-				_check_boss_phase_transition(pulse_slot)
-				if $CombatController.get_enemy_hp_at(pulse_slot) <= 0:
-					combat_ended = _on_enemy_slot_killed(pulse_slot, member_idx)
 		"heal":
 			# heal_value: condition 閾値の "value" と衝突する場合の回復量キー（P3-D155）
 			# target: self | most_injured（最傷1体）| party（既定・全体）
@@ -11179,19 +11188,15 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 				var ik_chance: float = float(p.get("status_chance", 0.15))
 				if randf() <= ik_chance:
 					var remain: int = maxi(1, $CombatController.get_enemy_hp_at(ik_slot))
-					$CombatController.apply_damage_to_enemy_slot(ik_slot, remain)
-					$CombatController.add_threat(
-						member_idx, float(remain) * CombatController.THREAT_DAMAGE_K
+					## 即死は障壁なし（残りHP全額）。反射はヒット税として適用。
+					combat_ended = _deal_member_damage_to_enemy(
+						member_idx, remain, ik_slot, "instant_kill_trash", "死告", false, true, false, null, false
 					)
-					GameState.record_run_damage(member_idx, remain, "instant_kill_trash", "死告")
 					var ik_pos: Vector2 = _enemy_slot_pos(ik_slot)
 					_spawn_hit_vfx(ik_pos)
 					_spawn_damage_number("即死", ik_pos, Color(0.72, 0.35, 1.0), 1.1)
 					_update_hp_bars()
 					applied = true
-					_check_boss_phase_transition(ik_slot)
-					if $CombatController.get_enemy_hp_at(ik_slot) <= 0:
-						combat_ended = _on_enemy_slot_killed(ik_slot, member_idx)
 			else:
 				var bleed_chance: float = float(p.get("bleed_chance", 0.25))
 				if randf() <= bleed_chance:
@@ -11206,13 +11211,11 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			var frac: float = float(p.get("bonus_fraction", 0.25))
 			var bonus: int = maxi(1, int(round(float(base_dmg) * frac))) if base_dmg > 0 else 0
 			if slot >= 0 and bonus > 0 and $CombatController.is_enemy_slot_alive(slot):
-				$CombatController.apply_damage_to_enemy_slot(slot, bonus)
-				$CombatController.add_threat(member_idx, float(bonus) * CombatController.THREAT_DAMAGE_K)
+				combat_ended = _deal_member_damage_to_enemy(
+					member_idx, bonus, slot, "bonus_damage", "追撃", false, true, false, null, false
+				)
 				_update_hp_bars()
 				applied = true
-				_check_boss_phase_transition(slot)
-				if $CombatController.get_enemy_hp_at(slot) <= 0:
-					combat_ended = _on_enemy_slot_killed(slot, member_idx)
 		"counter_attack":
 			var counter_slot: int = int(ctx.get("attacker_slot", -1))
 			if counter_slot < 0 or not $CombatController.is_enemy_slot_alive(counter_slot):
@@ -11251,14 +11254,12 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 			var power: float = float(p.get("opening_damage_atk_mult", 2.0))
 			var base: Dictionary = _calc_damage(member_idx, slot)
 			var dmg: int = maxi(1, int(round(float(base.get("damage", 1)) * power)))
-			$CombatController.apply_damage_to_enemy_slot(slot, dmg)
-			$CombatController.add_threat(member_idx, float(dmg) * CombatController.THREAT_DAMAGE_K)
-			GameState.record_run_damage(member_idx, dmg, "relic_opening_strike", "開幕狙撃")
+			## _calc_damage で障壁済み。反射のみ共通経路へ。
+			combat_ended = _deal_member_damage_to_enemy(
+				member_idx, dmg, slot, "relic_opening_strike", "開幕狙撃", false, true, false, null, false
+			)
 			_spawn_hit_vfx(_enemy_slot_pos(slot))
 			_update_hp_bars()
-			_check_boss_phase_transition(slot)
-			if $CombatController.get_enemy_hp_at(slot) <= 0:
-				combat_ended = _on_enemy_slot_killed(slot, member_idx)
 			if not combat_ended:
 				var lock_n: int = int(p.get("basic_only_actions", 0))
 				if lock_n > 0:
@@ -11289,19 +11290,16 @@ func _try_fire_passive(member_idx: int, p: Dictionary, ctx: Dictionary = {}) -> 
 					if slot == killed_slot:
 						continue
 					var burst_pos: Vector2 = _enemy_slot_pos(slot)
-					$CombatController.apply_damage_to_enemy_slot(slot, burst)
-					$CombatController.add_threat(
-						member_idx, float(burst) * CombatController.THREAT_DAMAGE_K
+					## 余波は主ダメ由来だが別ヒット。障壁＋反射を適用（連鎖なし）。
+					var shelled: int = _apply_extreme_shell_incoming_mult(burst, member_idx, null, slot)
+					combat_ended = _deal_member_damage_to_enemy(
+						member_idx, shelled, slot, "aoe_burst", "余波", false, true, false, null, false
 					)
-					GameState.record_run_damage(member_idx, burst, "aoe_burst", "余波")
 					_spawn_hit_vfx(burst_pos, "", 0.85, false)
-					_spawn_damage_number(str(burst), burst_pos, Color(1.0, 0.75, 0.35), 0.9)
-					_append_log("[パッシブ] 余波 +%d" % burst)
-					_check_boss_phase_transition(slot)
-					if $CombatController.get_enemy_hp_at(slot) <= 0:
-						combat_ended = _on_enemy_slot_killed(slot, member_idx)
-						if combat_ended:
-							break
+					_spawn_damage_number(str(shelled), burst_pos, Color(1.0, 0.75, 0.35), 0.9)
+					_append_log("[パッシブ] 余波 +%d" % shelled)
+					if combat_ended:
+						break
 				_update_hp_bars()
 				applied = true
 		"abyss_ice_shell_counter":
@@ -11929,13 +11927,11 @@ func _maybe_kaiwan_heal_spill(caster_idx: int, heal_basis: int) -> void:
 	if slot < 0 or not $CombatController.is_enemy_slot_alive(slot):
 		return
 	var dmg: int = maxi(1, int(round(float(heal_basis) * frac)))
-	$CombatController.apply_damage_to_enemy_slot(slot, dmg)
-	$CombatController.add_threat(caster_idx, float(dmg) * CombatController.THREAT_DAMAGE_K)
-	GameState.record_run_damage(caster_idx, dmg, "kaiwan_heal_spill", "枯翠追撃")
+	dmg = _apply_extreme_shell_incoming_mult(dmg, caster_idx, null, slot)
+	_deal_member_damage_to_enemy(
+		caster_idx, dmg, slot, "kaiwan_heal_spill", "枯翠追撃", false, true, false, null, false
+	)
 	_update_hp_bars()
-	_check_boss_phase_transition(slot)
-	if $CombatController.get_enemy_hp_at(slot) <= 0:
-		_on_enemy_slot_killed(slot, caster_idx)
 
 
 ## 調剤師の薬など: 回復成功時に対象へ guard を付与。

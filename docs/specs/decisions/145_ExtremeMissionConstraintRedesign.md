@@ -68,6 +68,7 @@
 ## 4. 仕様細則
 
 - **EX-03:** ヒット1回ごとに `flat + dealt×pct` を攻撃者へ。DoT／状態異常 tick は対象外。多段ほど不利。
+- **EX-03/08 適用経路:** 主攻撃・スキルに加え、仕掛け／パッシブ追撃／余波／枯翠／虚潮も `DungeonScene._deal_member_damage_to_enemy` 経由（`fire_hit_effects=false` で連鎖防止）。DoT・戦闘スキップ・敵自爆は対象外。
 - **EX-05:** 新状態異常は作らない。永久戦闘化しない（HP は控えめ）。
 - **EX-06:** 敵に非有益ステータスが1つでもあればペナルティなし。指令 `no_banned_status` は本任務から除去（`time_limit` に置換）— 状態異常攻略と矛盾するため。
 - **EX-08:** 障壁は通常攻撃・スキル・DoT に適用。武器／スキルの `pierce`・`vs_armor_break`、または対象の `armor_break`／`armor_break_light` で無視。

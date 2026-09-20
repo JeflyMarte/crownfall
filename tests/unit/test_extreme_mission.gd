@@ -123,7 +123,7 @@ func test_modifier_scope_does_not_leak_to_main() -> void:
 	GameState.current_dungeon_id = "mourngate"
 	assert_eq(_ExtremeMissionConfig.swarm_chance_bonus_for_active_run(), 0.0)
 	assert_eq(_ExtremeMissionConfig.swarm_size_bonus_for_active_run(), 0)
-	## EX-08 は非クリ制約。群れボーナスなし
+	## EX-08 は shell_pressure（群れボーナスなし）
 	GameState.current_dungeon_id = Constants.EX_TIDE_SIEGE_DUNGEON_ID
 	assert_eq(_ExtremeMissionConfig.swarm_chance_bonus_for_active_run(), 0.0)
 	assert_eq(_ExtremeMissionConfig.swarm_size_bonus_for_active_run(), 0)
@@ -241,6 +241,19 @@ func test_shell_pressure_on_ex08() -> void:
 	assert_eq(_ExtremeMissionConfig.hit_outgoing_mult_for_active_run(false), 1.0)
 	GameState.current_dungeon_id = "blackshore"
 	assert_eq(_ExtremeMissionConfig.shell_incoming_mult_for_active_run(false), 1.0)
+
+
+## 副経路（追撃等）も同一 TUNING で反射／障壁を計算できること（DungeonScene 共通適用の前提）。
+func test_side_hit_extreme_math_matches_tuning() -> void:
+	GameState.current_dungeon_id = Constants.EX_SPORE_DENSE_DUNGEON_ID
+	assert_eq(_ExtremeMissionConfig.reflect_damage_for_hit(200), 35 + 24)
+	GameState.current_dungeon_id = Constants.EX_TIDE_SIEGE_DUNGEON_ID
+	var shelled: int = maxi(
+		1,
+		int(round(200.0 * float(_ExtremeMissionConfig.TUNING["shell_incoming_mult"])))
+	)
+	assert_eq(shelled, 130)
+	assert_eq(_ExtremeMissionConfig.shell_incoming_mult_for_active_run(false), 0.65)
 
 
 func test_element_weakness_pressure_match_mismatch_empty() -> void:

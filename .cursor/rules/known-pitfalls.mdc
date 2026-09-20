@@ -354,5 +354,6 @@ alwaysApply: false
 | 冠呼び等の途中召集で強制終了 | `duplicate()` が SIGNALS コピー＋ノード捕獲ラムダ／`lbl.free()` と tween 競合 | SIGNALS なし duplicate＋`_on_swarm_sprite_animation_finished.bind(slot)`／スキル名は instance_id＋`queue_free` |
 | 右上バフ凡例にアイコンが見えない | 装備ステICOが黒地＋Emptyパネル | 金枠バッジ台座の上に TextureRect（`_make_field_buff_legend_row`） |
 | 極限制約を desc 全文で右上に出すと見切れ | Featured 長文を HUD に流用 | `hud_label`≤13字＋`extreme:legend` ICO。FieldLegend 最上段 |
+| 極限の反射／障壁が追撃・仕掛けだけ効かない | `apply_damage_to_enemy_slot` 直叩き | 味方ダメは `_deal_member_damage_to_enemy`（副経路は `fire_hit_effects=false`）。DoT／スキップ／敵自爆は除外 |
 | 仕掛けを付けても頭上が変わらないように見える | 罠ICOが透過シルエット＋空パネルでほぼ不可視 | `eng_trap_*` は他ステ同寸の正方形枠・残発は枠外上・絵は余白クロップ。付与時パルス |
 | 仕掛け印の枠が縦に不自然／枠だけ大きく絵は小さい | 残発を枠内に入れる／枠サイズだけ拡大 | 数字は枠外。枠＝`STATUS_ICON_SIZE`。絵は `display_texture_for_engineer_trap` |
