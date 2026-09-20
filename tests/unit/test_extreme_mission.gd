@@ -564,6 +564,14 @@ func test_extreme_display_copy_matches_impl() -> void:
 	assert_true(
 		FileAccess.file_exists("res://assets/ui/dungeon/ICO_ExtremeMission_Legend.png")
 	)
+	assert_true(FileAccess.file_exists("res://assets/ui/result/ICO_Result_Extreme.png"))
+	assert_true(FileAccess.file_exists("res://assets/ui/result/ICO_Result_ExtremeStar.png"))
+	assert_true(FileAccess.file_exists("res://assets/ui/result/ICO_Result_ExtremeRecord.png"))
+	assert_true(FileAccess.file_exists("res://assets/ui/result/ICO_Result_RoyalMarkShard.png"))
+	assert_eq(
+		str(IconPaths.ICON_MAP.get("ui:royal_mark_shard", "")),
+		"res://assets/ui/result/ICO_Result_RoyalMarkShard.png"
+	)
 	## UI ラベルと modifier API の対応（EX-02 群れサイズ）
 	GameState.current_dungeon_id = Constants.EX_GRAVE_SIEGE_DUNGEON_ID
 	assert_eq(_ExtremeMissionConfig.swarm_size_bonus_for_active_run(), 1)
