@@ -89,6 +89,9 @@ const ORDER_DISPLAY_LABELS: Dictionary = {
 	"no_banned_status": "毒・出血を使用しない",
 }
 
+## Featured／説明欄の指令見出し補足（任意達成＝★／報酬）。
+const ORDERS_SECTION_INTRO: String = "以下を達成すると報酬アップ"
+
 ## 任務メタ（dungeon_id キー）。tres の DungeonData と対になる表示・ルール層。
 ## orders[].id はセーブキー。表示文は ORDER_DISPLAY_LABELS（label は互換用）。
 ## special_condition: label=制約名／desc=具体効果／tip=短い攻略補足。
@@ -712,7 +715,7 @@ static func featured_brief_lines(dungeon_id: String) -> PackedStringArray:
 		lines.append(cond_tip)
 	var order_labels: PackedStringArray = order_labels_for_mission(dungeon_id)
 	if not order_labels.is_empty():
-		lines.append("極限指令")
+		lines.append("極限指令｜%s" % ORDERS_SECTION_INTRO)
 		for ol: String in order_labels:
 			lines.append("◇ %s" % ol)
 	lines.append("CLEAR ★｜指令1つで★+1｜最大★★★★")
@@ -745,7 +748,10 @@ static func featured_brief_bbcode(dungeon_id: String) -> String:
 	var order_labels: PackedStringArray = order_labels_for_mission(dungeon_id)
 	if not order_labels.is_empty():
 		parts.append("")
-		parts.append("[color=#%s]極限指令[/color]" % HEX_GOLD)
+		parts.append(
+			"[color=#%s]極限指令[/color]｜[color=#%s]%s[/color]"
+			% [HEX_GOLD, HEX_BODY, ORDERS_SECTION_INTRO]
+		)
 		var saved: Dictionary = GameState.get_extreme_mission_orders(dungeon_id)
 		for raw: Variant in order_defs(dungeon_id):
 			if not (raw is Dictionary):
