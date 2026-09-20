@@ -651,7 +651,11 @@ func _result_dungeon_label() -> String:
 		stage_id = GameState.get_active_stage_id()
 	var stage: Resource = DataRegistry.get_stage_data(stage_id)
 	if stage != null and Constants.SUB_STAGES_PLAYABLE:
-		name_text = "%d-%d %s" % [int(stage.biome_index), int(stage.chapter_index), str(stage.display_name)]
+		const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+		if _ExtremeMissionConfig.is_extreme_stage(stage):
+			name_text = _ExtremeMissionConfig.format_stage_display_name(stage)
+		else:
+			name_text = "%d-%d %s" % [int(stage.biome_index), int(stage.chapter_index), str(stage.display_name)]
 	elif data != null:
 		var dn: Variant = data.get("display_name")
 		if dn is String and not (dn as String).is_empty():
@@ -1031,7 +1035,11 @@ func _build_header() -> void:
 		stage_id = GameState.get_active_stage_id()
 	var stage: Resource = DataRegistry.get_stage_data(stage_id)
 	if stage != null and Constants.SUB_STAGES_PLAYABLE:
-		name_text = "%d-%d %s" % [int(stage.biome_index), int(stage.chapter_index), str(stage.display_name)]
+		const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+		if _ExtremeMissionConfig.is_extreme_stage(stage):
+			name_text = _ExtremeMissionConfig.format_stage_display_name(stage)
+		else:
+			name_text = "%d-%d %s" % [int(stage.biome_index), int(stage.chapter_index), str(stage.display_name)]
 	elif data != null:
 		var dn: Variant = data.get("display_name")
 		if dn is String and not (dn as String).is_empty():

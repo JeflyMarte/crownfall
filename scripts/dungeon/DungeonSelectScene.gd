@@ -1078,6 +1078,9 @@ func _sync_selected_stage_for_biome(biome_id: String) -> void:
 		GameState.current_stage_id = preferred
 
 func _format_stage_label(stage: Resource) -> String:
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	if _ExtremeMissionConfig.is_extreme_stage(stage):
+		return _ExtremeMissionConfig.format_stage_display_name(stage)
 	return "%d-%d %s" % [int(stage.biome_index), int(stage.chapter_index), str(stage.display_name)]
 
 func _format_stage_meta_text(stage: Resource) -> String:

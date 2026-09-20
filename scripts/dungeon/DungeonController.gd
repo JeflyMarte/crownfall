@@ -657,6 +657,8 @@ func _roll_run_weather() -> String:
 
 func get_run_display_name() -> String:
 	if current_stage_data != null and not str(current_stage_data.display_name).is_empty():
+		if _ExtremeMissionConfig.is_extreme_stage(current_stage_data):
+			return _ExtremeMissionConfig.format_stage_display_name(current_stage_data)
 		return "%d-%d %s" % [
 			int(current_stage_data.biome_index),
 			int(current_stage_data.chapter_index),
@@ -669,6 +671,8 @@ func get_run_display_name() -> String:
 func get_run_chapter_label() -> String:
 	if current_stage_data == null:
 		return ""
+	if _ExtremeMissionConfig.is_extreme_stage(current_stage_data):
+		return _ExtremeMissionConfig.STAGE_ROUTE_LABEL
 	return "%d-%d" % [int(current_stage_data.biome_index), int(current_stage_data.chapter_index)]
 
 ## 本編 Biome ランか（極限・降臨・征討・深層は false）。

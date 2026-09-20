@@ -326,6 +326,26 @@ static func is_extreme_mission(dungeon_id: String) -> bool:
 	return MISSIONS.has(dungeon_id)
 
 
+## 章番号の代わりに出すルート表記（戦闘ヘッダー／結果画面）。
+const STAGE_ROUTE_LABEL: String = "【極限任務】"
+
+
+static func is_extreme_stage(stage: Resource) -> bool:
+	if stage == null:
+		return false
+	return is_extreme_mission(str(stage.biome_id))
+
+
+## 例: 【極限任務】墓守の包囲（本編の「1-1 〜」相当）。
+static func format_stage_display_name(stage: Resource) -> String:
+	if stage == null:
+		return STAGE_ROUTE_LABEL
+	var nm: String = str(stage.display_name).strip_edges()
+	if nm.is_empty():
+		return STAGE_ROUTE_LABEL
+	return "%s%s" % [STAGE_ROUTE_LABEL, nm]
+
+
 static func is_playable(dungeon_id: String) -> bool:
 	return Constants.is_extreme_mission_playable(dungeon_id)
 
