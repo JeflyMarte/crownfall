@@ -137,14 +137,14 @@ static func defense_incoming_mult_for_member(member: Resource) -> float:
 	return _Config.defense_incoming_mult_for_rank(rank)
 
 
-## ダンジョン攻略中は方針変更不可（current_dungeon_id または DungeonScene）。
+## ダンジョン攻略中は方針変更不可。
+## NOTE: `current_dungeon_id` は選択中 DG（拠点でもセット）なのでロック判定に使わない。
 static func is_path_change_allowed() -> bool:
-	if not str(GameState.current_dungeon_id).is_empty():
-		return false
 	var tree: SceneTree = Engine.get_main_loop() as SceneTree
 	if tree == null or tree.current_scene == null:
 		return true
 	var scene_path: String = str(tree.current_scene.scene_file_path)
+	## 攻略本編シーンのみ。結果／拠点／装備／王痕は変更可。
 	if scene_path.ends_with("DungeonScene.tscn"):
 		return false
 	return true

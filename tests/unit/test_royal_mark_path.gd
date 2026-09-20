@@ -320,15 +320,20 @@ func test_path_change_free_and_dungeon_lock() -> void:
 	GameState.royal_mark_paths = {"adventurer_0": _RoyalMarkConfig.PATH_UNSELECTED}
 	var shards_before: int = _RoyalMarkSystem.get_shards()
 	var gold_before: int = int(GameState.gold)
+	## current_dungeon_id は選択中DG（拠点でも非空）→ ロックしない
+	GameState.current_dungeon_id = "mourngate"
 	var ok: Dictionary = _RoyalMarkSystem.apply_path(m, _RoyalMarkConfig.PATH_TECHNIQUE)
-	assert_true(bool(ok.get("ok", false)))
+	assert_true(bool(ok.get("ok", false)), str(ok))
 	assert_eq(_RoyalMarkSystem.get_shards(), shards_before)
 	assert_eq(int(GameState.gold), gold_before)
-	GameState.current_dungeon_id = "mourngate"
-	var locked: Dictionary = _RoyalMarkSystem.apply_path(m, _RoyalMarkConfig.PATH_OFFENSE)
-	assert_false(bool(locked.get("ok", true)))
-	assert_eq(str(locked.get("reason", "")), "dungeon_lock")
+	assert_true(_RoyalMarkSystem.is_path_change_allowed())
 
+
+func test_path_change_allowed_ignores_selected_dungeon_id() -> void:
+	GameState.current_dungeon_id = "mourngate"
+	assert_true(_RoyalMarkSystem.is_path_change_allowed())
+	GameState.current_dungeon_id = ""
+	assert_true(_RoyalMarkSystem.is_path_change_allowed())
 
 ## --- Migration ---
 
@@ -481,7 +486,8 @@ func test_ui_v_max_keeps_path_panel() -> void:
 	assert_true(scene.get_path_panel_visible_for_test())
 
 
-func test_ui_dungeon_lock_disables_path_buttons() -> void:
+func test_ui_hub_path_buttons_enabled_with_selected_dungeon() -> void:
+	## 拠点で current_dungeon_id が残っていても方針ボタンは有効（誤ロック回帰防止）
 	_clear_main_normal()
 	var a: Resource = _make_human("adventurer_aldric", 50)
 	GameState.roster = [a]
@@ -491,4 +497,5 @@ func test_ui_dungeon_lock_disables_path_buttons() -> void:
 	var scene: Node = load(ROYAL_MARK_SCENE).instantiate()
 	add_child_autofree(scene)
 	await get_tree().process_frame
-	assert_true(scene.get_path_buttons_disabled_for_test())
+	assert_true(scene.get_path_panel_visible_for_test())
+	assert_false(scene.get_path_buttons_disabled_for_test())
