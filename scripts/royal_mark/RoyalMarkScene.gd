@@ -670,7 +670,7 @@ func _set_stat_bonuses(rank: int) -> void:
 	_color_stat_value(_label_stat_def)
 
 
-## キャラ画面と同式（装備・職・王痕込み）の HP/ATK/DEF 実数値。
+## 王痕なしの元値と、王痕による上昇分を「元 +上昇」で表示。
 func _set_absolute_stats(member: Resource) -> void:
 	if _label_abs_hp == null:
 		return
@@ -682,24 +682,34 @@ func _set_absolute_stats(member: Resource) -> void:
 		_color_stat_value(_label_abs_atk)
 		_color_stat_value(_label_abs_def)
 		return
-	var stats: Dictionary = _RosterUiHelper.compute_member_stats(member)
-	_label_abs_hp.text = str(int(stats.get("hp", 0)))
-	_label_abs_atk.text = str(int(stats.get("attack", 0)))
-	_label_abs_def.text = str(int(stats.get("defense", 0)))
-	## 王痕で伸びているときだけ水色（倍率>1）。
-	var mults: Dictionary = _RoyalMarkSystem.stat_multipliers_for_member(member)
-	_color_abs_stat(_label_abs_hp, float(mults.get("hp", 1.0)))
-	_color_abs_stat(_label_abs_atk, float(mults.get("attack", 1.0)))
-	_color_abs_stat(_label_abs_def, float(mults.get("defense", 1.0)))
+	var cid: String = _RoyalMarkConfig.normalize_character_id(str(member.id))
+	var saved_rank: int = int(GameState.royal_mark_ranks.get(cid, 0))
+	## 王痕なしで元ステを算出（丸め差を避けるため倍率逆算ではなく一時的に Rank0）。
+	if saved_rank != 0:
+		GameState.royal_mark_ranks[cid] = 0
+	var base_stats: Dictionary = _RosterUiHelper.compute_member_stats(member)
+	if saved_rank != 0:
+		GameState.royal_mark_ranks[cid] = saved_rank
+	var full_stats: Dictionary = _RosterUiHelper.compute_member_stats(member)
+	_apply_base_plus_bonus(_label_abs_hp, int(base_stats.get("hp", 0)), int(full_stats.get("hp", 0)))
+	_apply_base_plus_bonus(
+		_label_abs_atk, int(base_stats.get("attack", 0)), int(full_stats.get("attack", 0))
+	)
+	_apply_base_plus_bonus(
+		_label_abs_def, int(base_stats.get("defense", 0)), int(full_stats.get("defense", 0))
+	)
 
 
-func _color_abs_stat(lab: Label, mult: float) -> void:
+func _apply_base_plus_bonus(lab: Label, base_v: int, full_v: int) -> void:
 	if lab == null:
 		return
-	var col: Color = (
-		_RoyalMarkUiTokens.COLOR_BOOST if mult > 1.001 else _RoyalMarkUiTokens.COLOR_BODY
-	)
-	lab.add_theme_color_override("font_color", col)
+	var bonus: int = full_v - base_v
+	if bonus > 0:
+		lab.text = "%d +%d" % [base_v, bonus]
+		lab.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_BOOST)
+	else:
+		lab.text = str(base_v)
+		lab.add_theme_color_override("font_color", _RoyalMarkUiTokens.COLOR_BODY)
 
 
 func _color_stat_value(lab: Label) -> void:
