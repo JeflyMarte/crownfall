@@ -1835,9 +1835,9 @@ func _make_value_label(text: String) -> Label:
 	var l := Label.new()
 	l.text = text
 	UiTypography.apply_body(l, STAT_VALUE_FONT_SIZE, COLOR_VALUE, UiTypography.OUTLINE_STRONG)
+	## 数値は自然幅を確保（clip_text だと min 幅≈0 で数字が消える）。
 	l.size_flags_horizontal = Control.SIZE_SHRINK_END
-	l.clip_text = true
-	l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	l.clip_text = false
 	return l
 
 func _make_pos_label(text: String) -> Label:
@@ -1846,8 +1846,7 @@ func _make_pos_label(text: String) -> Label:
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	UiTypography.apply_body(l, STAT_VALUE_FONT_SIZE, COLOR_POS, UiTypography.OUTLINE_STRONG)
 	l.size_flags_horizontal = Control.SIZE_SHRINK_END
-	l.clip_text = true
-	l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	l.clip_text = false
 	return l
 
 # ---- 装備中の効果（装備品由来のボーナス集計／3ページ） ----
