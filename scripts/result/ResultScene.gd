@@ -1136,6 +1136,13 @@ func _build_rewards() -> void:
 			CurrencyHelper.get_icon_texture(), "", CurrencyHelper.DISPLAY_NAME,
 			str(GameState.last_run_token_reward)
 		))
+	## 極限クリアの王痕片は獲得報酬にも出す（探索情報の内訳は据置）。
+	var shard_total: int = int(GameState.last_run_royal_mark_shards_total)
+	if shard_total > 0:
+		var shard_icon: Texture2D = IconPaths.get_icon_texture("royal_mark_shard", "ui")
+		_reward_row.add_child(_make_reward_cell(
+			shard_icon, "片", "王痕片", str(shard_total)
+		))
 	## 武／防／飾／レリックは「入手装備」グリッドへ集約（重複表示しない）。
 
 func _make_reward_cell(
