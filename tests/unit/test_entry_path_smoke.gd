@@ -136,6 +136,18 @@ func test_extreme_select_features_first_mission_when_unlocked() -> void:
 	assert_true(GameState.can_attempt_event_dungeon("ex_tomb_seal"))
 	assert_true(GameState.can_attempt_event_dungeon("ex_grave_siege"))
 	assert_true(GameState.can_attempt_event_dungeon("ex_white_night"))
+	## バナー上タイトルがあるので説明欄のタイトル行は非表示。制約文のみ。
+	var name_lbl: Label = select.get_node_or_null(
+		"MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedName"
+	) as Label
+	assert_not_null(name_lbl)
+	assert_false(name_lbl.visible)
+	var flavor: RichTextLabel = select.get_node_or_null(
+		"MainColumn/FeaturedPanel/FeaturedVBox/FeaturedInfo/LabelFeaturedFlavor"
+	) as RichTextLabel
+	assert_not_null(flavor)
+	assert_true(flavor.visible)
+	assert_true(str(flavor.text).find("特殊制約") >= 0)
 
 
 func test_can_attempt_extreme_open_regardless_of_day() -> void:

@@ -1394,6 +1394,11 @@ func _refresh_featured() -> void:
 			UiTypography.apply_display(
 				_label_featured_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_GOLD
 			)
+	elif _should_hide_featured_title_under_banner(_featured_dungeon_id, stage):
+		## バナー上にタイトルがあるので説明欄のタイトル行は出さない。
+		_hide_featured_name_twotone()
+		_label_featured_name.visible = false
+		_label_featured_name.text = ""
 	elif stage != null and _uses_stage_cards(_featured_dungeon_id):
 		_hide_featured_name_twotone()
 		_label_featured_name.visible = true
@@ -1410,15 +1415,6 @@ func _refresh_featured() -> void:
 	else:
 		## 名横バッジ（CLEAR／挑戦済み）は一覧バナー側で緑表示。降臨は本体／「降臨」の2色。
 		_set_featured_dungeon_title(data, true)
-		const _ExtremeMissionConfigTitle := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
-		if (
-			_ExtremeMissionConfigTitle.is_extreme_mission(_featured_dungeon_id)
-			and _label_featured_name.visible
-		):
-			## 極限: Mission名は象牙色（制約見出しに金／アクセントを残す）。
-			UiTypography.apply_display(
-				_label_featured_name, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY
-			)
 	if unlocked_featured:
 		const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
 		if _ExtremeMissionConfig.is_extreme_mission(_featured_dungeon_id):
@@ -2011,6 +2007,23 @@ func _biome_banner_header_size(banner_tex: Texture2D) -> Vector2:
 
 func _banner_hides_title(dungeon_id: String) -> bool:
 	return bool(BIOME_BANNER_TITLE_BAKED.get(dungeon_id, false))
+
+
+## Featured 説明欄のタイトル行を隠すか。バナー重ねタイトルと重複するとき true。
+## 本編の章カード（Biome — 章名）は章識別のため残す。極限は1章のため隠す。
+func _should_hide_featured_title_under_banner(dungeon_id: String, stage: Resource) -> bool:
+	if dungeon_id.is_empty():
+		return false
+	if _banner_hides_title(dungeon_id):
+		return false
+	if _get_biome_banner_texture(dungeon_id) == null:
+		return false
+	const _ExtremeMissionConfigHide := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	if _ExtremeMissionConfigHide.is_extreme_mission(dungeon_id):
+		return true
+	## 章カードがある本編等は「Biome — 章」が必要なので隠さない。
+	return not (stage != null and _uses_stage_cards(dungeon_id))
+
 
 func _uses_list_biome_banner(dungeon_id: String) -> bool:
 	return _get_biome_banner_texture(dungeon_id) != null
