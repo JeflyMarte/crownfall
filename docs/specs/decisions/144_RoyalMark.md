@@ -28,13 +28,14 @@
 
 | Rank | 効果（累積倍率） | 片 | Gold |
 |---|---|---:|---:|
-| I | HP ×1.03 | 10 | 5,000 |
-| II | HP×1.03／ATK×1.03 | 15 | 10,000 |
-| III | HP/ATK×1.03／DEF×1.03 ＋ **装備 Job Skill 強化** | 20 | 15,000 |
-| IV | HP/ATK/DEF ×1.05（Skill 強化は維持） | 25 | 25,000 |
-| V | HP/ATK/DEF ×1.08 ＋ **固有 Ultimate 強化**（Skill も維持） | 30 | 45,000 |
+| I | HP ×1.03 | 100 | 5,000 |
+| II | HP×1.03／ATK×1.03 | 150 | 10,000 |
+| III | HP/ATK×1.03／DEF×1.03 ＋ **装備 Job Skill 強化** | 200 | 15,000 |
+| IV | HP/ATK/DEF ×1.05（Skill 強化は維持） | 250 | 25,000 |
+| V | HP/ATK/DEF ×1.08 ＋ **固有 Ultimate 強化**（Skill も維持） | 300 | 45,000 |
 
-累計コスト: 片 100／Gold 100,000。
+累計コスト: 片 1,000／Gold 100,000。  
+**片の表示単位は×10**（入手回数・Gold・難易度比は据置。SAVE v20 で既存所持も×10）。
 
 ステ適用位置: `(base+equip+affix+level)×job` の直後。戦闘専用 modifier はその後。UI と Combat は同一ヘルパ。
 
@@ -46,28 +47,29 @@ EX-01〜10 共通。
 
 | ★帯 | 初回到達片 |
 |---:|---:|
-| 1 | 3 |
-| 2 | +3 |
-| 3 | +4 |
-| 4 | +5 |
+| 1 | 30 |
+| 2 | +30 |
+| 3 | +40 |
+| 4 | +50 |
 
-差分のみ（`prev_best` → `stars`）。1任務最大 15。
+差分のみ（`prev_best` → `stars`）。1任務最大 150。
 
-CLEAR ごと 25% で片×1（初回 CLEAR 含む）。`force_repeat_roll`／`rng` 注入可。
+CLEAR ごと 25% で片×10（初回 CLEAR 含む）。`force_repeat_roll`／`rng` 注入可。
 
 同一ラン二重 commit は `GameState.extreme_run_reward_committed` で遮断（★・周回とも）。
 
 ---
 
-## 4. Save（v18）
+## 4. Save（v20）
 
 | キー | 型 |
 |---|---|
 | `royal_mark_shards` | int |
 | `royal_mark_ranks` | `{ Adventurer.id: 0..5 }` |
+| `royal_mark_paths` | `{ Adventurer.id: path }`（`146`） |
 
-v17→v18: 既存 `extreme_mission_progress[*].best_stars` から一度だけ遡及（★1=3 … ★4=15、EX合算）。再 migrate しない。
-
+v17→v18: 既存 `extreme_mission_progress[*].best_stars` から一度だけ遡及（旧単位★1=3 … ★4=15、EX合算）。再 migrate しない。  
+v19→v20: 所持片×10（表示スケール）。
 ---
 
 ## 5. 実装アンカー

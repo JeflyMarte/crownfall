@@ -23,7 +23,7 @@ const SLOT_DEBUG: String = "debug"
 ## `_migrate_save_data` に v(n)→v(n+1) の段階マイグレーションを追加する。
 ## v0 = バージョンフィールド無しの旧セーブ（レガシー party/equipment/job/dungeon id を含む）
 ## v1 = save_version フィールド導入（2026-07-02）
-const SAVE_VERSION: int = 19
+const SAVE_VERSION: int = 20
 
 ## セッション中の読み書き先。タイトルで本編／デバッグを切り替える。
 var _active_slot: String = SLOT_NORMAL
@@ -282,6 +282,8 @@ func _migrate_save_data(data: Dictionary) -> Dictionary:
 		data = _migrate_save_v17_to_v18(data)
 	if version < 19:
 		data = _migrate_save_v18_to_v19(data)
+	if version < 20:
+		data = _migrate_save_v19_to_v20(data)
 	data["save_version"] = SAVE_VERSION
 	return data
 
@@ -298,7 +300,7 @@ func _migrate_save_v17_to_v18(data: Dictionary) -> Dictionary:
 	var progress: Dictionary = {}
 	if data.has("extreme_mission_progress") and data["extreme_mission_progress"] is Dictionary:
 		progress = data["extreme_mission_progress"] as Dictionary
-	## version < 18 のときのみ呼ばれる → 遡及は一回限り。
+	## version < 18 のときのみ呼ばれる → 遡及は一回限り（旧単位）。
 	shards += _RoyalMarkSystem.compute_retroactive_shards_from_progress(progress)
 	data["royal_mark_shards"] = shards
 	data["royal_mark_ranks"] = ranks
@@ -314,6 +316,15 @@ func _migrate_save_v18_to_v19(data: Dictionary) -> Dictionary:
 	var raw_paths: Variant = data.get("royal_mark_paths", {})
 	data["royal_mark_ranks"] = ranks
 	data["royal_mark_paths"] = _RoyalMarkSystem.sanitize_paths(raw_paths, ranks)
+	return data
+
+
+## 王痕片表示×10（コスト・報酬と同倍率）。既存所持を一度だけスケール。
+func _migrate_save_v19_to_v20(data: Dictionary) -> Dictionary:
+	const _RoyalMarkSystem := preload("res://scripts/systems/RoyalMarkSystem.gd")
+	const _RoyalMarkConfig := preload("res://scripts/systems/RoyalMarkConfig.gd")
+	var shards: int = _RoyalMarkSystem.sanitize_shards(data.get("royal_mark_shards", 0))
+	data["royal_mark_shards"] = shards * _RoyalMarkConfig.SHARD_DISPLAY_SCALE
 	return data
 
 

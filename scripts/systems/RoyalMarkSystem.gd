@@ -400,7 +400,8 @@ static func grant_extreme_clear_rewards(
 	return out
 
 
-## v17→v18: extreme_mission_progress の best_stars から一度だけ遡及。
+## v17→v18: extreme_mission_progress の best_stars から一度だけ遡及（旧単位）。
+## 所持の表示×10 は SAVE v20 で行う（二重スケール防止）。
 static func compute_retroactive_shards_from_progress(progress: Dictionary) -> int:
 	var total: int = 0
 	if progress.is_empty():
@@ -410,5 +411,5 @@ static func compute_retroactive_shards_from_progress(progress: Dictionary) -> in
 		if not (entry is Dictionary):
 			continue
 		var best: int = clampi(int((entry as Dictionary).get("best_stars", 0)), 0, 4)
-		total += _Config.retroactive_shards_for_best(best)
+		total += _Config.legacy_retroactive_shards_for_best(best)
 	return total

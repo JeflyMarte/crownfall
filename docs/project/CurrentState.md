@@ -3,6 +3,7 @@
 ---
 
 ## Last Update
+2026-09-20（**王痕片表示×10**: コスト／★報酬／周回を同倍率。難易度比据置。SAVE v20で所持×10。Gold不変）
 2026-09-19（**分岐型王痕 `146` Implemented**: 攻勢／守勢／技巧・排他 Job・Ult最低保証（レノール／火鷹）・Save v19 `royal_mark_paths`・RoyalMarkScene方針UI。GUT `test_royal_mark*` 90 PASS＋Extreme22／combat_audit40／smoke PASS）
 2026-09-19（**分岐型王痕 Decision `146` Approved**: I〜Vに攻勢／守勢／技巧。技巧表・Ult最低保証（レノール／火鷹）・`unselected` migration。Economy据置。`144` のIII共通Skill構造を上書き）
 2026-09-19（**王痕育成 UI階層改善**: 「次の王痕」主情報＋Reward→Cost→CTA／現在効果1行／III・Vコンパクト。Decision `144` ゲーム仕様不変。GUT UI11＋本線27＋enhance23 PASS。DEBUG shot `review/royal_mark_ui_hierarchy/after/`。feature `cursor/royal-mark-144`・**main反映は報告後**）

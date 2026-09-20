@@ -349,8 +349,9 @@ func test_v18_to_v19_paths_unselected() -> void:
 		},
 	}
 	data = SaveManager._migrate_save_data(data)
-	assert_eq(int(data.get("save_version", 0)), 19)
-	assert_eq(int(data.get("royal_mark_shards", 0)), 40)
+	assert_eq(int(data.get("save_version", 0)), 20)
+	## v20 で所持×10
+	assert_eq(int(data.get("royal_mark_shards", 0)), 400)
 	var paths: Dictionary = data.get("royal_mark_paths", {})
 	assert_false(paths.has("adventurer_0"))
 	assert_eq(str(paths.get("adventurer_1", "")), _RoyalMarkConfig.PATH_UNSELECTED)
@@ -370,12 +371,14 @@ func test_migration_invalid_path_sanitize() -> void:
 
 func test_migration_preserves_selected_path() -> void:
 	var data: Dictionary = {
-		"save_version": 19,
+		"save_version": 20,
 		"royal_mark_ranks": {"adventurer_0": 5},
 		"royal_mark_paths": {"adventurer_0": "technique"},
+		"royal_mark_shards": 400,
 	}
 	data = SaveManager._migrate_save_data(data)
 	assert_eq(str(data["royal_mark_paths"]["adventurer_0"]), _RoyalMarkConfig.PATH_TECHNIQUE)
+	assert_eq(int(data.get("royal_mark_shards", 0)), 400)
 
 
 func test_unselected_keeps_v_ultimate() -> void:

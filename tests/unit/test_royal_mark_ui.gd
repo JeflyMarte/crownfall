@@ -84,7 +84,7 @@ func test_ui_rank_zero_and_switch() -> void:
 	var b: Resource = _make_human("adventurer_serin", 50)
 	GameState.roster = [a, b, _make_pet()]
 	GameState.royal_mark_ranks = {}
-	GameState.royal_mark_shards = 10
+	GameState.royal_mark_shards = 100
 	GameState.gold = 5000
 	var scene: Node = load(ROYAL_MARK_SCENE).instantiate()
 	add_child_autofree(scene)
@@ -106,7 +106,7 @@ func test_ui_rank_ii_and_effect_lines() -> void:
 	var a: Resource = _make_human("adventurer_aldric", 50)
 	GameState.roster = [a]
 	GameState.royal_mark_ranks = {"adventurer_aldric": 2}
-	GameState.royal_mark_shards = 20
+	GameState.royal_mark_shards = 200
 	GameState.gold = 15000
 	var scene: Node = load(ROYAL_MARK_SCENE).instantiate()
 	add_child_autofree(scene)
@@ -132,7 +132,7 @@ func test_ui_rank_iv_to_v_preview() -> void:
 	var a: Resource = _make_human("adventurer_aldric", 50)
 	GameState.roster = [a]
 	GameState.royal_mark_ranks = {"adventurer_aldric": 4}
-	GameState.royal_mark_shards = 30
+	GameState.royal_mark_shards = 300
 	GameState.gold = 45000
 	var scene: Node = load(ROYAL_MARK_SCENE).instantiate()
 	add_child_autofree(scene)
@@ -189,7 +189,7 @@ func test_ui_shards_and_gold_shortage() -> void:
 	add_child_autofree(scene)
 	await get_tree().process_frame
 	assert_eq(scene.get_status_text_for_test(), "王痕片不足")
-	GameState.royal_mark_shards = 99
+	GameState.royal_mark_shards = 999
 	GameState.gold = 0
 	scene.refresh_for_test()
 	assert_eq(scene.get_status_text_for_test(), "Gold不足")
@@ -199,7 +199,7 @@ func test_ui_upgrade_success_refreshes() -> void:
 	_clear_main_normal()
 	var a: Resource = _make_human("adventurer_aldric", 50)
 	GameState.roster = [a]
-	GameState.royal_mark_shards = 10
+	GameState.royal_mark_shards = 100
 	GameState.gold = 5000
 	var scene: Node = load(ROYAL_MARK_SCENE).instantiate()
 	add_child_autofree(scene)

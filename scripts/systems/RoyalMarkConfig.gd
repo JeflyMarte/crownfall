@@ -7,7 +7,9 @@ extends RefCounted
 const MAX_RANK: int = 5
 const MIN_LEVEL: int = 50
 const REPEAT_CHANCE: float = 0.25
-const REPEAT_SHARDS: int = 1
+## 表示スケール×10（難易度比は据置。旧セーブは SAVE v20 で所持×10）。
+const SHARD_DISPLAY_SCALE: int = 10
+const REPEAT_SHARDS: int = 10
 
 ## Decision 146: 王痕方針。
 const PATH_UNSELECTED: String = "unselected"
@@ -17,11 +19,13 @@ const PATH_TECHNIQUE: String = "technique"
 const PATH_SELECTABLE: Array[String] = [PATH_OFFENSE, PATH_DEFENSE, PATH_TECHNIQUE]
 
 ## Rank I..V への昇格コスト（index 0 = Rank 0→I）。
-const UPGRADE_SHARD_COST: Array[int] = [10, 15, 20, 25, 30]
+const UPGRADE_SHARD_COST: Array[int] = [100, 150, 200, 250, 300]
 const UPGRADE_GOLD_COST: Array[int] = [5000, 10000, 15000, 25000, 45000]
 
-## ★帯ごとの初回到達片（★1..4）。
-const STAR_SHARD_REWARD: Array[int] = [0, 3, 3, 4, 5]
+## ★帯ごとの初回到達片（★1..4）。表示×10。
+const STAR_SHARD_REWARD: Array[int] = [0, 30, 30, 40, 50]
+## SAVE <20 遡及用（旧単位）。v20 で所持を ×SHARD_DISPLAY_SCALE。
+const LEGACY_STAR_SHARD_REWARD: Array[int] = [0, 3, 3, 4, 5]
 
 ## Rank → 累積ステ倍率（HP/ATK/DEF）。
 const RANK_HP_MULT: Array[float] = [1.00, 1.03, 1.03, 1.03, 1.05, 1.08]
@@ -195,18 +199,33 @@ static func tech_status_add_for_rank(rank: int) -> float:
 
 ## ★到達差分の片合計。prev_best と stars は 0..4。
 static func star_shards_for_progress(prev_best: int, stars: int) -> int:
+	return _star_shards_for_progress_with_table(prev_best, stars, STAR_SHARD_REWARD)
+
+
+## SAVE v17→v18 遡及専用（旧単位）。v20 で ×SHARD_DISPLAY_SCALE。
+static func legacy_star_shards_for_progress(prev_best: int, stars: int) -> int:
+	return _star_shards_for_progress_with_table(prev_best, stars, LEGACY_STAR_SHARD_REWARD)
+
+
+static func _star_shards_for_progress_with_table(
+	prev_best: int, stars: int, table: Array[int]
+) -> int:
 	var prev: int = clampi(prev_best, 0, 4)
 	var cur: int = clampi(stars, 0, 4)
 	if cur <= prev:
 		return 0
 	var total: int = 0
 	for s: int in range(prev + 1, cur + 1):
-		total += int(STAR_SHARD_REWARD[s])
+		total += int(table[s])
 	return total
 
 
 static func retroactive_shards_for_best(best_stars: int) -> int:
 	return star_shards_for_progress(0, clampi(best_stars, 0, 4))
+
+
+static func legacy_retroactive_shards_for_best(best_stars: int) -> int:
+	return legacy_star_shards_for_progress(0, clampi(best_stars, 0, 4))
 
 
 static func effect_label_for_rank(rank: int, path: String = PATH_UNSELECTED) -> String:
