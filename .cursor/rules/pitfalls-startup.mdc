@@ -36,6 +36,7 @@ alwaysApply: true
 | ダンジョン入場で SCRIPT ERROR（`rarity_weight_mult` not found） | `preload` した Script へ静的メソッド呼び出し禁止。`RARITY_WEIGHT_MULT` 定数配列を直接読む（`WanderingEnemyConfig.spawn_mult_for_tier`） |
 | DungeonScene パース失敗（Expected closing "}"） | Biome 辞書キー追加時に旧キー行を開けたまま新キーを重ねた | 追加は **独立エントリ**（旧キーの `},` を残す）。変更後 headless で DungeonScene ロード |
 | キャラ画面入場で即終了（`apply_body` arg Label） | `UiTypography.apply_body` は Label 専用。RichTextLabel は `apply_display_rich`／`apply_log_rich`。変更後 EquipmentScene instantiate |
+| 極限タブ空で本編へ誤入場／空 id で `.tres` 読込エラー | タブに出せる任務が無いとき Featured を空に。`_clamp_selected_tier` で本編へ復活させない。`DataRegistry.get_*` は空 id で即 null（`resources/.../.tres` 禁止） |
 
 ## 変更後の最低確認
 

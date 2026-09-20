@@ -17,26 +17,40 @@ func _cached_equipment_data(base_path: String, id: String) -> Resource:
 	return data
 
 func get_weapon_data(weapon_id: String) -> Resource:
+	if weapon_id.is_empty():
+		return null
 	return _cached_equipment_data(Constants.RESOURCE_WEAPONS_PATH, weapon_id)
 
 func get_armor_data(armor_id: String) -> Resource:
+	if armor_id.is_empty():
+		return null
 	return _cached_equipment_data(Constants.RESOURCE_ARMORS_PATH, armor_id)
 
 func get_accessory_data(accessory_id: String) -> Resource:
+	if accessory_id.is_empty():
+		return null
 	return _cached_equipment_data(Constants.RESOURCE_ACCESSORIES_PATH, accessory_id)
 
 func get_enemy_data(enemy_id: String) -> Resource:
 	## P3-WANDER-002: 旧放浪ID → 新ID
+	if enemy_id.is_empty():
+		return null
 	var canonical: String = WanderingEnemyConfig.canonical_enemy_id(enemy_id)
 	return load(Constants.RESOURCE_ENEMIES_PATH + canonical + ".tres")
 
 func get_skill_data(skill_id: String) -> Resource:
+	if skill_id.is_empty():
+		return null
 	return load(Constants.RESOURCE_SKILLS_PATH + skill_id + ".tres")
 
 func get_dungeon_data(dungeon_id: String) -> Resource:
+	if dungeon_id.is_empty():
+		return null
 	return load(Constants.RESOURCE_DUNGEONS_PATH + dungeon_id + ".tres")
 
 func get_stage_data(stage_id: String) -> Resource:
+	if stage_id.is_empty():
+		return null
 	var path: String = Constants.RESOURCE_STAGES_PATH + stage_id + ".tres"
 	if not ResourceLoader.exists(path):
 		return null

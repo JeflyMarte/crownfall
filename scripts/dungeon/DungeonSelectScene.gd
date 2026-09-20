@@ -781,7 +781,12 @@ func _sync_route_tab_to_featured() -> void:
 
 func _ensure_featured_matches_route_tab() -> void:
 	var data: Resource = DataRegistry.get_dungeon_data(_featured_dungeon_id)
-	if data != null and _route_matches_tab(str(data.route_type), _featured_dungeon_id) and GameState.is_dungeon_unlocked(_featured_dungeon_id):
+	if (
+		data != null
+		and _route_matches_tab(str(data.route_type), _featured_dungeon_id)
+		and GameState.is_dungeon_unlocked(_featured_dungeon_id)
+		and _featured_is_enterable_now(_featured_dungeon_id)
+	):
 		return
 	var next_id: String = _first_unlocked_for_route_tab()
 	if next_id.is_empty():
@@ -791,6 +796,21 @@ func _ensure_featured_matches_route_tab() -> void:
 		GameState.current_dungeon_id = next_id
 		_sync_selected_stage_for_biome(next_id)
 		GameState.current_stage_id = _selected_stage_id
+		return
+	## タブに出せる任務が無いとき、別タブの Featured を残すと誤入場になる。
+	_featured_dungeon_id = ""
+	_selected_stage_id = ""
+	GameState.current_stage_id = ""
+
+
+## イベント／極限は「出現中」も Featured 維持条件（日替わり・時間帯の誤入場防止）。
+func _featured_is_enterable_now(dungeon_id: String) -> bool:
+	if dungeon_id.is_empty():
+		return false
+	if _route_tab != ROUTE_TAB_EVENT and _route_tab != ROUTE_TAB_EXTREME:
+		return true
+	const _EventDungeonSchedule := preload("res://scripts/dungeon/EventDungeonSchedule.gd")
+	return _EventDungeonSchedule.is_open_now(dungeon_id)
 
 
 func _route_matches_tab(route_type: String, dungeon_id: String = "") -> bool:
@@ -908,6 +928,9 @@ func _compare_open_event_dungeons(a: Variant, b: Variant) -> bool:
 
 func _clamp_selected_tier() -> void:
 	if _featured_dungeon_id.is_empty():
+		## 極限／イベントで一覧が空のとき、本編 Featured を復活させると誤入場になる。
+		if _route_tab == ROUTE_TAB_EXTREME or _route_tab == ROUTE_TAB_EVENT:
+			return
 		_featured_dungeon_id = _resolve_featured_dungeon_id()
 	var dungeon_id: String = _featured_dungeon_id
 	if dungeon_id.is_empty():
@@ -931,6 +954,12 @@ func _clamp_selected_tier() -> void:
 
 func _refresh_tier_tabs() -> void:
 	var dungeon_id: String = _featured_dungeon_id
+	if dungeon_id.is_empty():
+		for btn: Button in [_btn_tier_normal, _btn_tier_hard, _btn_tier_nightmare]:
+			if btn != null:
+				btn.disabled = true
+				btn.button_pressed = false
+		return
 	var data: Resource = DataRegistry.get_dungeon_data(dungeon_id)
 	var free_tiers: bool = data != null and _is_event_free_tier_dungeon(str(data.id))
 	var event_only_normal: bool = (
@@ -2809,6 +2838,7 @@ func _prompt_enter_dungeon(dungeon_id: String) -> void:
 		return
 	if not GameState.is_dungeon_unlocked(dungeon_id):
 		return
+	## can_attempt はイベント／極限の出現ゲートも含む。本編は常に true 相当。
 	if not GameState.can_attempt_event_dungeon(dungeon_id):
 		return
 	if not _party_has_adventurer():
@@ -2822,13 +2852,18 @@ func _prompt_enter_dungeon(dungeon_id: String) -> void:
 
 func _on_enter_confirmed() -> void:
 	_hide_enter_confirm()
-	_do_enter_dungeon(_pending_enter_dungeon_id)
+	## 確認ダイアログ中に日替わり／時間帯が変わっても入場しない。
+	var dungeon_id: String = _pending_enter_dungeon_id
+	_pending_enter_dungeon_id = ""
+	if dungeon_id.is_empty() or not GameState.can_attempt_event_dungeon(dungeon_id):
+		return
+	_do_enter_dungeon(dungeon_id)
 
 func _on_select_pressed(dungeon_id: String) -> void:
 	_prompt_enter_dungeon(dungeon_id)
 
 func _do_enter_dungeon(dungeon_id: String) -> void:
-	if DataRegistry.get_dungeon_data(dungeon_id) == null:
+	if dungeon_id.is_empty() or DataRegistry.get_dungeon_data(dungeon_id) == null:
 		return
 	if not GameState.is_dungeon_unlocked(dungeon_id):
 		return
