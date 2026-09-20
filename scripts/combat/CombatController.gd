@@ -1556,6 +1556,8 @@ func get_member_outgoing_damage_multiplier(
 		mult *= _ExtremeMissionConfig.status_require_outgoing_mult_for_active_run(self, target_slot)
 	## 極限 EX-03: スキル攻撃与ダメ低下（通常攻撃・罠／DoT経路は対象外）。
 	mult *= _ExtremeMissionConfig.skill_resist_outgoing_mult_for_active_run(is_skill)
+	## 極限 EX-07: 人間与ダメ低下／ペット与ダメ強化。
+	mult *= _ExtremeMissionConfig.pet_primary_outgoing_mult_for_active_run(member_index)
 	## Decision 146: 攻勢方針（既存 outgoing 共通経路のみ）。
 	if member_index >= 0 and member_index < GameState.party_members.size():
 		const _RoyalMarkSystemOut := preload("res://scripts/systems/RoyalMarkSystem.gd")

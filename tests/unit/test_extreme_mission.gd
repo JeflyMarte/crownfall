@@ -14,7 +14,7 @@ const EXPECTED_MISSIONS: Array[Dictionary] = [
 	{"id": "ex_hunter_woods", "boss": "granvel", "floors": 10, "cond": "rear_pressure"},
 	{"id": "ex_miasma_sat", "boss": "moldgar", "floors": 10, "cond": "miasma_saturate"},
 	{"id": "ex_infect_chain", "boss": "moldgar", "floors": 10, "cond": "status_require"},
-	{"id": "ex_wreck_assault", "boss": "nereion", "floors": 10, "cond": "ultimate_suppress"},
+	{"id": "ex_wreck_assault", "boss": "nereion", "floors": 10, "cond": "pet_primary"},
 	{"id": "ex_tide_siege", "boss": "nereion", "floors": 10, "cond": "shell_pressure"},
 	{"id": "ex_polar_silence", "boss": "eldion", "floors": 10, "cond": "ultimate_disabled"},
 	{"id": "ex_white_night", "boss": "eldion", "floors": 10, "cond": "element_weakness_pressure"},
@@ -153,13 +153,18 @@ func test_modifier_scope_does_not_leak_to_main() -> void:
 	GameState.current_dungeon_id = "whisperwood"
 	assert_eq(_ExtremeMissionConfig.rear_pressure_incoming_mult_for_active_run(), 1.0)
 	GameState.current_dungeon_id = Constants.EX_WRECK_ASSAULT_DUNGEON_ID
-	assert_lt(_ExtremeMissionConfig.ultimate_charge_gain_mult_for_active_run(), 1.0)
+	assert_eq(
+		_ExtremeMissionConfig.pet_primary_outgoing_mult_for_active_run(-1),
+		float(_ExtremeMissionConfig.TUNING["pet_primary_human_outgoing_mult"])
+	)
+	assert_eq(_ExtremeMissionConfig.ultimate_charge_gain_mult_for_active_run(), 1.0)
 	GameState.current_dungeon_id = Constants.EX_POLAR_SILENCE_DUNGEON_ID
 	assert_true(_ExtremeMissionConfig.is_ultimate_disabled_for_active_run())
 	assert_eq(_ExtremeMissionConfig.ultimate_charge_gain_mult_for_active_run(), 0.0)
 	GameState.current_dungeon_id = "blackshore"
 	assert_false(_ExtremeMissionConfig.is_ultimate_disabled_for_active_run())
 	assert_eq(_ExtremeMissionConfig.ultimate_charge_gain_mult_for_active_run(), 1.0)
+	assert_eq(_ExtremeMissionConfig.pet_primary_outgoing_mult_for_active_run(0), 1.0)
 
 
 func test_extreme_stage_display_uses_route_label_not_1_1() -> void:
@@ -310,6 +315,24 @@ func test_side_hit_extreme_math_matches_tuning() -> void:
 	assert_eq(_ExtremeMissionConfig.shell_incoming_mult_for_active_run(false), 0.65)
 
 
+func test_pet_primary_human_vs_pet_outgoing() -> void:
+	GameState.current_dungeon_id = Constants.EX_WRECK_ASSAULT_DUNGEON_ID
+	var human: Resource = _make_member("beast_tamer")
+	var pet: Resource = _Adventurer.new()
+	pet.id = "pet_ash"
+	pet.display_name = "灰"
+	pet.job_id = "pet"
+	GameState.party_members = [human, pet]
+	var expect_human: float = float(_ExtremeMissionConfig.TUNING["pet_primary_human_outgoing_mult"])
+	var expect_pet: float = float(_ExtremeMissionConfig.TUNING["pet_primary_pet_outgoing_mult"])
+	assert_eq(_ExtremeMissionConfig.pet_primary_outgoing_mult_for_active_run(0), expect_human)
+	assert_eq(_ExtremeMissionConfig.pet_primary_outgoing_mult_for_active_run(1), expect_pet)
+	assert_true(GameState.is_pet_combatant(1))
+	GameState.current_dungeon_id = "blackshore"
+	assert_eq(_ExtremeMissionConfig.pet_primary_outgoing_mult_for_active_run(0), 1.0)
+	assert_eq(_ExtremeMissionConfig.pet_primary_outgoing_mult_for_active_run(1), 1.0)
+
+
 func test_element_weakness_pressure_match_mismatch_empty() -> void:
 	GameState.current_dungeon_id = Constants.EX_WHITE_NIGHT_DUNGEON_ID
 	var expect: float = float(_ExtremeMissionConfig.TUNING["non_weakness_outgoing_mult"])
@@ -405,7 +428,7 @@ func test_phase2_order_evaluations() -> void:
 	orders = _ExtremeMissionConfig.evaluate_orders_for_run(Constants.EX_POLAR_SILENCE_DUNGEON_ID)
 	assert_false(bool(orders.get("all_unique_jobs", true)))
 
-	## ultimate_limit / no_ultimate
+	## ultimate_limit（EX-03）／no_same_job（EX-07・旧 no_ultimate 廃止）
 	GameState.current_dungeon_id = Constants.EX_SPORE_DENSE_DUNGEON_ID
 	GameState.begin_extreme_run_tracking(Constants.EX_SPORE_DENSE_DUNGEON_ID)
 	GameState.extreme_run_ultimate_uses = _ExtremeMissionConfig.ultimate_use_limit()
@@ -415,13 +438,26 @@ func test_phase2_order_evaluations() -> void:
 	orders = _ExtremeMissionConfig.evaluate_orders_for_run(Constants.EX_SPORE_DENSE_DUNGEON_ID)
 	assert_false(bool(orders.get("ultimate_limit", true)))
 
+	GameState.party_members = [
+		_make_member("swordsman"),
+		_make_member("ranger"),
+		_make_member("vanguard"),
+		_make_member("alchemist"),
+	]
 	GameState.current_dungeon_id = Constants.EX_WRECK_ASSAULT_DUNGEON_ID
 	GameState.begin_extreme_run_tracking(Constants.EX_WRECK_ASSAULT_DUNGEON_ID)
 	orders = _ExtremeMissionConfig.evaluate_orders_for_run(Constants.EX_WRECK_ASSAULT_DUNGEON_ID)
-	assert_true(bool(orders.get("no_ultimate", false)))
-	GameState.note_extreme_ultimate_used()
+	assert_true(bool(orders.get("no_same_job", false)))
+	assert_false(bool(orders.has("no_ultimate")))
+	GameState.party_members = [
+		_make_member("swordsman"),
+		_make_member("ranger"),
+		_make_member("vanguard"),
+		_make_member("swordsman_b"),
+	]
+	GameState.party_members[3].job_id = "swordsman"
 	orders = _ExtremeMissionConfig.evaluate_orders_for_run(Constants.EX_WRECK_ASSAULT_DUNGEON_ID)
-	assert_false(bool(orders.get("no_ultimate", true)))
+	assert_false(bool(orders.get("no_same_job", true)))
 
 	## no_rear_ko（EX-04）／EX-06 は time_limit（旧 no_banned_status 廃止）
 	GameState.current_dungeon_id = Constants.EX_HUNTER_WOODS_DUNGEON_ID

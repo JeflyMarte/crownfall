@@ -8377,3 +8377,15 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-EXTREME-002-SKILL-RESIST-2 | 旧 `damage_reflect` 廃止（互換 API 残置・常に0） | 難易度過大の解消 |
 | P3-DG-EXTREME-002-SKILL-RESIST-3 | 配線=`CombatController.get_member_outgoing_damage_multiplier(is_skill)` | 罠／DoT経路と分離 |
 | P3-DG-EXTREME-002-SKILL-RESIST-4 | SSOT — Decision `145`／`143` 更新 | 正本一本化 |
+
+## 極限 EX-07 ペット主砲（2026-09-20 — P3-DG-EXTREME-002-PET-PRIMARY）
+
+> **オーナー GO**（案I）: 必殺チャージ抑制を廃止。人間与ダメ低下／ペット与ダメ強化。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-EXTREME-002-PET-PRIMARY-1 | EX-07 `pet_primary`（人間×0.70／ペット×1.10） | ビルド軸散らし・EX-09との必殺重複解消 |
+| P3-DG-EXTREME-002-PET-PRIMARY-2 | 旧 `ultimate_suppress` 廃止（互換キー／分岐残置） | 差し替え |
+| P3-DG-EXTREME-002-PET-PRIMARY-3 | 指令=`no_ko`／`time_limit`／`no_same_job`（旧 `no_ultimate` 除去） | EX-09と被らない |
+| P3-DG-EXTREME-002-PET-PRIMARY-4 | 配線=`CombatController.get_member_outgoing_damage_multiplier`＋`is_pet_combatant` | 共通 outgoing 経路 |
+| P3-DG-EXTREME-002-PET-PRIMARY-5 | SSOT — Decision `145`／`143` 更新 | 正本一本化 |

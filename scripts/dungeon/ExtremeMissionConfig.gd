@@ -97,8 +97,11 @@ const TUNING := {
 	"shell_incoming_mult": 0.65,
 	## element_weakness_pressure (EX-10): 非弱点（無属性含む）の与ダメ倍率。
 	"non_weakness_outgoing_mult": 0.70,
-	## ultimate_suppress: 必殺チャージ獲得倍率。
+	## ultimate_suppress: 廃止（EX-07 は pet_primary へ）。キーは互換のため残置。
 	"ultimate_charge_suppress_mult": 0.35,
+	## pet_primary (EX-07): 人間与ダメ倍率／ペット与ダメ倍率。
+	"pet_primary_human_outgoing_mult": 0.70,
+	"pet_primary_pet_outgoing_mult": 1.10,
 	## 指令「必殺使用回数制限」上限。
 	"ultimate_use_limit": 3,
 	## 極限のみ: 装備レア抽選で LEGENDARY を絶対+10pt（別枠先行抽選）。
@@ -250,16 +253,16 @@ const MISSIONS: Dictionary = {
 		"boss_id": "nereion",
 		"floor_count": 10,
 		"special_condition": {
-			"id": "ultimate_suppress",
-			"label": "必殺チャージ大幅低下",
-			"hud_label": "必殺ゲージ35%",
-			"desc": "必殺ゲージの獲得量が35%になります。",
-			"tip": "必殺技に頼らない戦い方が重要です。",
+			"id": "pet_primary",
+			"label": "ペット主砲",
+			"hud_label": "ペット主砲",
+			"desc": "人間メンバーの与ダメージが低下します。ペットの与ダメージは強化されます。",
+			"tip": "ペットを編成し、獣使いなどで強化しましょう。",
 		},
 		"orders": [
-			{"id": "no_ultimate"},
-			{"id": "time_limit"},
 			{"id": "no_ko"},
+			{"id": "time_limit"},
+			{"id": "no_same_job"},
 		],
 	},
 	EX08_DUNGEON_ID: {
@@ -504,6 +507,7 @@ static func ultimate_charge_gain_mult_for_active_run() -> float:
 	var cid: String = _active_condition_id()
 	if cid == "ultimate_disabled":
 		return 0.0
+	## ultimate_suppress は EX-07 差し替え後未使用。互換のため分岐は残置。
 	if cid == "ultimate_suppress":
 		return maxf(0.0, float(TUNING.get("ultimate_charge_suppress_mult", 1.0)))
 	return 1.0
@@ -511,6 +515,15 @@ static func ultimate_charge_gain_mult_for_active_run() -> float:
 
 static func is_ultimate_disabled_for_active_run() -> bool:
 	return _active_condition_id() == "ultimate_disabled"
+
+
+## EX-07: 人間与ダメ低下／ペット与ダメ強化。member_index 不明時は人間扱い。
+static func pet_primary_outgoing_mult_for_active_run(member_index: int) -> float:
+	if _active_condition_id() != "pet_primary":
+		return 1.0
+	if member_index >= 0 and GameState.is_pet_combatant(member_index):
+		return maxf(0.01, float(TUNING.get("pet_primary_pet_outgoing_mult", 1.0)))
+	return maxf(0.01, float(TUNING.get("pet_primary_human_outgoing_mult", 1.0)))
 
 
 ## EX-05: 敵HP倍率。非該当時 1.0。
