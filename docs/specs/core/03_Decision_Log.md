@@ -8356,3 +8356,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-EXTREME-DAILY-001-2 | 出現中は回数無制限。一覧は本日1件のみ | 案A |
 | P3-DG-EXTREME-DAILY-001-3 | `debug_full_unlock` 時は全日開放（検証用） | 既存デバッグ方針 |
 | P3-DG-EXTREME-DAILY-001-4 | SSOT — Decision `143` 001-14。実装=`ExtremeMissionConfig`＋`EventDungeonSchedule` | 正本一本化 |
+
+## 極限 EX-02 常時群れ（2026-09-20 — P3-DG-EXTREME-002-SWARM-FULL）
+
+> **オーナー GO**: 群れ増加＝通常戦闘フロアをすべて群れにする。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-EXTREME-002-SWARM-FULL-1 | EX-02 `swarm_pressure` は通常 COMBAT を常時群れ（探索方針・序盤緩和より優先）。体数+1は据置 | オーナー指定 |
+| P3-DG-EXTREME-002-SWARM-FULL-2 | 旧 `swarm_chance_bonus`（+0.35）は未使用化。`forces_combat_swarm_for_active_run` が正 | 誤爆・薄さの再発防止 |
+| P3-DG-EXTREME-002-SWARM-FULL-3 | SSOT — Decision `145`／`143` TUNING 更新 | 正本一本化 |
