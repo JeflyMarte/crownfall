@@ -260,6 +260,7 @@ var _guide_help_row: HBoxContainer
 var _btn_guide_event: Button
 var _btn_guide_descent: Button
 var _btn_guide_conquest: Button
+var _btn_guide_extreme: Button
 var _btn_guide_abyss: Button
 
 func _ready() -> void:
@@ -346,6 +347,7 @@ func _maybe_show_content_unlock() -> void:
 
 func _after_unlock_notices_for_guides() -> void:
 	_maybe_show_descent_route_guide()
+	_maybe_show_extreme_route_guide()
 
 
 func _setup_route_guide_help() -> void:
@@ -378,6 +380,12 @@ func _setup_route_guide_help() -> void:
 	)
 	_guide_help_row.add_child(_btn_guide_conquest)
 
+	_btn_guide_extreme = _make_route_guide_help_button("極限とは？")
+	_btn_guide_extreme.pressed.connect(
+		_on_route_guide_help_pressed.bind(_DungeonRouteGuide.GUIDE_EXTREME)
+	)
+	_guide_help_row.add_child(_btn_guide_extreme)
+
 	_btn_guide_abyss = _make_route_guide_help_button("無限とは？")
 	_btn_guide_abyss.pressed.connect(_on_route_guide_help_pressed.bind(_DungeonRouteGuide.GUIDE_ABYSS))
 	_guide_help_row.add_child(_btn_guide_abyss)
@@ -397,14 +405,17 @@ func _refresh_route_guide_help() -> void:
 	if _guide_help_row == null:
 		return
 	var on_event: bool = _route_tab == ROUTE_TAB_EVENT
+	var on_extreme: bool = _route_tab == ROUTE_TAB_EXTREME
 	var on_abyss: bool = _route_tab == ROUTE_TAB_ABYSS and Constants.ABYSS_DUNGEONS_PLAYABLE
-	_guide_help_row.visible = on_event or on_abyss
+	_guide_help_row.visible = on_event or on_extreme or on_abyss
 	if _btn_guide_event != null:
 		_btn_guide_event.visible = on_event
 	if _btn_guide_descent != null:
 		_btn_guide_descent.visible = on_event
 	if _btn_guide_conquest != null:
 		_btn_guide_conquest.visible = on_event
+	if _btn_guide_extreme != null:
+		_btn_guide_extreme.visible = on_extreme
 	if _btn_guide_abyss != null:
 		_btn_guide_abyss.visible = on_abyss
 
@@ -425,6 +436,14 @@ func _maybe_show_descent_route_guide() -> void:
 	if _EventDungeonSchedule.open_hourly_event_ids().is_empty():
 		return
 	_DungeonRouteGuide.show_on(self, _DungeonRouteGuide.GUIDE_DESCENT, false)
+
+
+func _maybe_show_extreme_route_guide() -> void:
+	if _route_tab != ROUTE_TAB_EXTREME:
+		return
+	if get_node_or_null("DungeonUnlockOverlay") != null:
+		return
+	_DungeonRouteGuide.try_auto_show(self, _DungeonRouteGuide.GUIDE_EXTREME)
 
 func _setup_party_empty_dialog() -> void:
 	## AcceptDialog（Window 排他）は実機で入力を食ってフリーズするため Control 化。
@@ -728,6 +747,8 @@ func _on_route_tab_pressed(tab: String) -> void:
 	_build_list()
 	if tab == ROUTE_TAB_EVENT:
 		call_deferred("_maybe_show_descent_route_guide")
+	elif tab == ROUTE_TAB_EXTREME:
+		call_deferred("_maybe_show_extreme_route_guide")
 	call_deferred("_reset_scroll_list_top")
 
 

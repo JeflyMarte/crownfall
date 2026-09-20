@@ -14,6 +14,7 @@ func test_guides_have_three_pages_each() -> void:
 		_Guide.GUIDE_EVENT,
 		_Guide.GUIDE_DESCENT,
 		_Guide.GUIDE_CONQUEST,
+		_Guide.GUIDE_EXTREME,
 		_Guide.GUIDE_ABYSS,
 	]:
 		var def: Dictionary = _Guide._all_guides().get(gid, {}) as Dictionary
@@ -79,6 +80,7 @@ func test_guide_copy_avoids_dev_terms() -> void:
 		_Guide.GUIDE_EVENT,
 		_Guide.GUIDE_DESCENT,
 		_Guide.GUIDE_CONQUEST,
+		_Guide.GUIDE_EXTREME,
 		_Guide.GUIDE_ABYSS,
 		_Guide.GUIDE_SURVEY,
 		_Guide.GUIDE_GACHA_INVITE,
@@ -121,6 +123,19 @@ func test_conquest_guide_mentions_floors_and_sets() -> void:
 	assert_true(blob.contains("征討"), "征討")
 	assert_false(blob.contains("名拒み"), "セット名は出さない")
 	assert_false(blob.contains("アストラ・スパイア"), "進入名の例は出さない")
+
+
+func test_extreme_guide_mentions_constraints_and_rewards() -> void:
+	var blob: String = ""
+	for page: Variant in (_Guide._all_guides()[_Guide.GUIDE_EXTREME] as Dictionary).get("pages", []):
+		blob += str((page as Dictionary).get("body", ""))
+		blob += str((page as Dictionary).get("title", ""))
+	assert_true(blob.contains("10F") or blob.contains("10"), "10F")
+	assert_true(blob.contains("制約"), "制約")
+	assert_true(blob.contains("王痕"), "王痕")
+	assert_true(blob.contains("極限"), "極限")
+	assert_false(blob.contains("DoT"), "内部語を出さない")
+	assert_false(blob.contains("ex_"), "内部 id を出さない")
 
 
 func test_queue_permit_guide_after_s_rank() -> void:

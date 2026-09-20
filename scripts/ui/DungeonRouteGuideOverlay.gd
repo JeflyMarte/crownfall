@@ -11,6 +11,7 @@ const _IntroUiAssets := preload("res://scripts/intro/IntroUiAssets.gd")
 const GUIDE_EVENT: String = "event"
 const GUIDE_DESCENT: String = "descent"
 const GUIDE_CONQUEST: String = "conquest"
+const GUIDE_EXTREME: String = "extreme"
 const GUIDE_ABYSS: String = "abyss"
 const GUIDE_SURVEY: String = "survey"
 const GUIDE_GACHA_INVITE: String = "gacha_invite"
@@ -19,6 +20,7 @@ const GUIDE_SHOWCASE: String = "showcase"
 const GUIDE_PERMIT: String = "permit"
 
 const FLAG_DESCENT: String = "dungeon_guide_descent_seen"
+const FLAG_EXTREME: String = "dungeon_guide_extreme_seen"
 const FLAG_ABYSS: String = "dungeon_guide_abyss_seen"
 const FLAG_SURVEY: String = "hub_guide_survey_seen"
 const FLAG_GACHA_INVITE: String = "hub_guide_gacha_invite_seen"
@@ -143,6 +145,46 @@ static func _all_guides() -> Dictionary:
 				"body": (
 					"征討だけの[color=#9A5018][b]エンシェント装備[/b][/color]があります。\n\n"
 					+ "降臨より長く、無限より区切りがある——戦力を試す常設枠だと思ってください。"
+				),
+			},
+		],
+	},
+	GUIDE_EXTREME: {
+		"topic": "極限任務とは",
+		"flag_key": FLAG_EXTREME,
+		"pages": [
+			{
+				"title": "1. 制約つきの常設任務",
+				"body": (
+					"[color=#9A5018][b]極限任務[/b][/color]は、ダンジョン選択の"
+					+ "[color=#9A5018][b]極限任務[/b][/color]タブに並ぶ"
+					+ "[color=#9A5018][b]制約攻略の常設枠[/b][/color]です。\n\n"
+					+ "曜日の短編や時間帯の[color=#9A5018][b]降臨[/b][/color]、"
+					+ "常設の[color=#9A5018][b]征討[/b][/color]、"
+					+ "[color=#9A5018][b]無限[/b][/color]とは別物。"
+					+ "同じ土地でも、戦い方ががらりと変わります。"
+				),
+			},
+			{
+				"title": "2. 解放と遊び方",
+				"body": (
+					"メインの調査地を[color=#9A5018][b]ノーマルで一通りクリア[/b][/color]すると解放されます。"
+					+ "解放後はいつでも挑めます。\n\n"
+					+ "1任務は[color=#9A5018][b]10F[/b][/color]（最後が Boss）。"
+					+ "任務ごとに[color=#9A5018][b]特殊な制約[/b][/color]があり、"
+					+ "さらに[color=#9A5018][b]極限指令[/b][/color]を任意で狙えます。"
+					+ "クリアで★、指令達成で★が増えます。"
+					+ "編成や装備を組み替えるのが攻略のコツです。"
+				),
+			},
+			{
+				"title": "3. 報酬の位置づけ",
+				"body": (
+					"高評価クリアや周回で[color=#9A5018][b]王痕片[/b][/color]が手に入り、"
+					+ "隊員の[color=#9A5018][b]王痕育成[/b][/color]に使えます。"
+					+ "極限では[color=#9A5018][b]伝説や神話の装備[/b][/color]も出やすいです。\n\n"
+					+ "時間限定の降臨でも、無限の長い探索でもない——"
+					+ "「制約を読んで編成を組む」枠、と覚えてくださいね。"
 				),
 			},
 		],
