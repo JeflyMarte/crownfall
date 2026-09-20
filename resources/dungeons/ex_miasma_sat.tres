@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "ex_miasma_sat"
-display_name = "【瘴気飽和】極限任務"
+display_name = "EX-05　極限任務　【瘴気飽和】"
 difficulty = 4
 recommended_level = 59
 enemy_level = 59

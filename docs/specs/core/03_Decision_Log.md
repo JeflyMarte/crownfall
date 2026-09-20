@@ -8389,3 +8389,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-EXTREME-002-PET-PRIMARY-3 | 指令=`no_ko`／`time_limit`／`no_same_job`（旧 `no_ultimate` 除去） | EX-09と被らない |
 | P3-DG-EXTREME-002-PET-PRIMARY-4 | 配線=`CombatController.get_member_outgoing_damage_multiplier`＋`is_pet_combatant` | 共通 outgoing 経路 |
 | P3-DG-EXTREME-002-PET-PRIMARY-5 | SSOT — Decision `145`／`143` 更新 | 正本一本化 |
+
+## 極限任務 表示名統一（2026-09-20 — P3-DG-EXTREME-DISPLAY-001）
+
+> **オーナー GO**: `EX-X　極限任務　【ダンジョン名】` に統一。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-EXTREME-DISPLAY-001-1 | 正式表示＝`{code}　極限任務　【{short_name}】`（全角スペース） | オーナー指定 |
+| P3-DG-EXTREME-DISPLAY-001-2 | 戦闘ヘッダー短文＝`{code}　極限任務` | 本編の章番号枠に対応 |
+| P3-DG-EXTREME-DISPLAY-001-3 | SSOT＝`ExtremeMissionConfig.format_mission_*`。選択／戦闘／結果／DungeonData.display_name を同期 | 表記散在防止 |

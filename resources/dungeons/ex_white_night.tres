@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "ex_white_night"
-display_name = "【白夜決戦】極限任務"
+display_name = "EX-10　極限任務　【白夜決戦】"
 difficulty = 5
 recommended_level = 64
 enemy_level = 64

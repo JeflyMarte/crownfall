@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "ex_hunter_woods"
-display_name = "【狩人の森】極限任務"
+display_name = "EX-04　極限任務　【狩人の森】"
 difficulty = 3
 recommended_level = 58
 enemy_level = 58

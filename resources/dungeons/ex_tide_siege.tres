@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "ex_tide_siege"
-display_name = "【潮圧包囲】極限任務"
+display_name = "EX-08　極限任務　【潮圧包囲】"
 difficulty = 4
 recommended_level = 62
 enemy_level = 62

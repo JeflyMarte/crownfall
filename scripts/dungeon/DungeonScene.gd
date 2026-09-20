@@ -2181,7 +2181,10 @@ func _begin_dungeon_dive_intro() -> void:
 			banner.texture = thumb
 	root.add_child(banner)
 	var name_lbl := Label.new()
-	if stage != null and data != null:
+	const _ExtremeMissionConfigIntro := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	if data != null and _ExtremeMissionConfigIntro.is_extreme_mission(str(data.id)):
+		name_lbl.text = _ExtremeMissionConfigIntro.format_mission_display_name(str(data.id))
+	elif stage != null and data != null:
 		name_lbl.text = "%s — %s" % [str(data.display_name), str(stage.display_name)]
 	elif data != null:
 		name_lbl.text = str(data.display_name)

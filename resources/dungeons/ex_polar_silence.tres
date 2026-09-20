@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "ex_polar_silence"
-display_name = "【極冠静寂】極限任務"
+display_name = "EX-09　極限任務　【極冠静寂】"
 difficulty = 5
 recommended_level = 63
 enemy_level = 63

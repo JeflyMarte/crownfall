@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "ex_infect_chain"
-display_name = "【感染連鎖】極限任務"
+display_name = "EX-06　極限任務　【感染連鎖】"
 difficulty = 4
 recommended_level = 60
 enemy_level = 60

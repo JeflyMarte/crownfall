@@ -665,6 +665,8 @@ func get_run_display_name() -> String:
 			str(current_stage_data.display_name),
 		]
 	if current_dungeon_data != null:
+		if _ExtremeMissionConfig.is_extreme_mission(str(current_dungeon_data.id)):
+			return _ExtremeMissionConfig.format_mission_display_name(str(current_dungeon_data.id))
 		return str(current_dungeon_data.display_name)
 	return "ダンジョン"
 
@@ -672,7 +674,7 @@ func get_run_chapter_label() -> String:
 	if current_stage_data == null:
 		return ""
 	if _ExtremeMissionConfig.is_extreme_stage(current_stage_data):
-		return _ExtremeMissionConfig.STAGE_ROUTE_LABEL
+		return _ExtremeMissionConfig.format_mission_chapter_label(str(current_stage_data.biome_id))
 	return "%d-%d" % [int(current_stage_data.biome_index), int(current_stage_data.chapter_index)]
 
 ## 本編 Biome ランか（極限・降臨・征討・深層は false）。

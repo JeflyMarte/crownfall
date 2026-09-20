@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "ex_grave_siege"
-display_name = "【墓守の包囲】極限任務"
+display_name = "EX-02　極限任務　【墓守の包囲】"
 difficulty = 3
 recommended_level = 56
 enemy_level = 56

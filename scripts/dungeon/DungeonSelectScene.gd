@@ -2584,6 +2584,10 @@ func _make_biome_card(data: Resource) -> PanelContainer:
 func _dungeon_display_name(data: Resource, unlocked: bool = true) -> String:
 	if data == null or not unlocked:
 		return "？"
+	const _ExtremeMissionConfigName := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	var dungeon_id: String = str(data.id).strip_edges()
+	if _ExtremeMissionConfigName.is_extreme_mission(dungeon_id):
+		return _ExtremeMissionConfigName.format_mission_display_name(dungeon_id)
 	return str(data.display_name)
 
 

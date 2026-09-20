@@ -168,24 +168,40 @@ func test_modifier_scope_does_not_leak_to_main() -> void:
 
 
 func test_extreme_stage_display_uses_route_label_not_1_1() -> void:
-	## 極限は biome_index=1 でも「1-1」ではなく【極限任務】表記。
+	## 極限は biome_index=1 でも「1-1」ではなく EX-XX　極限任務　【名】表記。
 	var stage: Resource = DataRegistry.get_stage_data("ex_grave_siege_1_1")
 	assert_not_null(stage)
 	assert_eq(int(stage.biome_index), 1)
 	assert_eq(
 		_ExtremeMissionConfig.format_stage_display_name(stage),
-		"【極限任務】墓守の包囲"
+		"EX-02　極限任務　【墓守の包囲】"
+	)
+	assert_eq(
+		_ExtremeMissionConfig.format_mission_display_name("ex_grave_siege"),
+		"EX-02　極限任務　【墓守の包囲】"
+	)
+	assert_eq(
+		_ExtremeMissionConfig.format_mission_chapter_label("ex_grave_siege"),
+		"EX-02　極限任務"
 	)
 	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
 	var dc: Node = dc_script.new()
 	add_child_autofree(dc)
 	dc.start_stage("ex_grave_siege_1_1")
-	assert_eq(dc.get_run_display_name(), "【極限任務】墓守の包囲")
-	assert_eq(dc.get_run_chapter_label(), "【極限任務】")
+	assert_eq(dc.get_run_display_name(), "EX-02　極限任務　【墓守の包囲】")
+	assert_eq(dc.get_run_chapter_label(), "EX-02　極限任務")
 	## 本編は従来どおり。
 	dc.start_stage("mourngate_1_1")
 	assert_eq(dc.get_run_display_name(), "1-1 崩れた地下水路")
 	assert_eq(dc.get_run_chapter_label(), "1-1")
+	## 一覧／Featured も同一表記（tres 同期）。
+	var ddata: Resource = DataRegistry.get_dungeon_data("ex_grave_siege")
+	assert_not_null(ddata)
+	assert_eq(str(ddata.display_name), "EX-02　極限任務　【墓守の包囲】")
+	assert_eq(
+		_ExtremeMissionConfig.format_mission_display_name("ex_wreck_assault"),
+		"EX-07　極限任務　【沈船強襲】"
+	)
 
 	GameState.current_dungeon_id = Constants.EX_SPORE_DENSE_DUNGEON_ID
 	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_spore_dense"), "skill_resist")

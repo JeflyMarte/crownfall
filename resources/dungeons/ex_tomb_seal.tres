@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "ex_tomb_seal"
-display_name = "【王墓封鎖】極限任務"
+display_name = "EX-01　極限任務　【王墓封鎖】"
 difficulty = 3
 recommended_level = 55
 enemy_level = 55

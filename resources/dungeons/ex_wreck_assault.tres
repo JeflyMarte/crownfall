@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 id = "ex_wreck_assault"
-display_name = "【沈船強襲】極限任務"
+display_name = "EX-07　極限任務　【沈船強襲】"
 difficulty = 4
 recommended_level = 61
 enemy_level = 61

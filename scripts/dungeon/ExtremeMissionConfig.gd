@@ -329,8 +329,10 @@ static func is_extreme_mission(dungeon_id: String) -> bool:
 	return MISSIONS.has(dungeon_id)
 
 
-## 章番号の代わりに出すルート表記（戦闘ヘッダー／結果画面）。
-const STAGE_ROUTE_LABEL: String = "【極限任務】"
+## 章番号の代わりに出すルート表記（互換・短文フォールバック）。
+## 正式な表示名は format_mission_display_name / format_mission_chapter_label。
+const STAGE_ROUTE_LABEL: String = "極限任務"
+const DISPLAY_SEP: String = "　"
 
 
 static func is_extreme_stage(stage: Resource) -> bool:
@@ -339,14 +341,45 @@ static func is_extreme_stage(stage: Resource) -> bool:
 	return is_extreme_mission(str(stage.biome_id))
 
 
-## 例: 【極限任務】墓守の包囲（本編の「1-1 〜」相当）。
+static func mission_code(dungeon_id: String) -> String:
+	var def: Dictionary = mission_def(dungeon_id)
+	return str(def.get("code", "")).strip_edges()
+
+
+## 例: EX-02　極限任務　【墓守の包囲】
+static func format_mission_display_name(dungeon_id: String) -> String:
+	var code: String = mission_code(dungeon_id)
+	var sn: String = short_name(dungeon_id).strip_edges()
+	if code.is_empty() and sn.is_empty():
+		return STAGE_ROUTE_LABEL
+	if sn.is_empty():
+		if code.is_empty():
+			return STAGE_ROUTE_LABEL
+		return "%s%s%s" % [code, DISPLAY_SEP, STAGE_ROUTE_LABEL]
+	if code.is_empty():
+		return "%s%s【%s】" % [STAGE_ROUTE_LABEL, DISPLAY_SEP, sn]
+	return "%s%s%s%s【%s】" % [code, DISPLAY_SEP, STAGE_ROUTE_LABEL, DISPLAY_SEP, sn]
+
+
+## 戦闘ヘッダー短文。例: EX-02　極限任務
+static func format_mission_chapter_label(dungeon_id: String) -> String:
+	var code: String = mission_code(dungeon_id)
+	if code.is_empty():
+		return STAGE_ROUTE_LABEL
+	return "%s%s%s" % [code, DISPLAY_SEP, STAGE_ROUTE_LABEL]
+
+
+## ステージから正式表示名（本編の「1-1 〜」相当）。
 static func format_stage_display_name(stage: Resource) -> String:
 	if stage == null:
 		return STAGE_ROUTE_LABEL
+	var dungeon_id: String = str(stage.biome_id).strip_edges()
+	if is_extreme_mission(dungeon_id):
+		return format_mission_display_name(dungeon_id)
 	var nm: String = str(stage.display_name).strip_edges()
 	if nm.is_empty():
 		return STAGE_ROUTE_LABEL
-	return "%s%s" % [STAGE_ROUTE_LABEL, nm]
+	return "%s%s%s" % [STAGE_ROUTE_LABEL, DISPLAY_SEP, nm]
 
 
 static func is_playable(dungeon_id: String) -> bool:
