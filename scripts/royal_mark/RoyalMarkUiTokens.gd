@@ -7,11 +7,14 @@ const COLOR_GOLD: Color = Color(0.82, 0.70, 0.42, 1.0)
 const COLOR_GOLD_LIT: Color = Color(0.96, 0.86, 0.40, 1.0)
 const COLOR_GOLD_DIM: Color = Color(0.48, 0.42, 0.32, 1.0)
 const COLOR_NAVY_PANEL: Color = Color(0.05, 0.07, 0.12, 1.0)
-const COLOR_BODY: Color = Color(0.95, 0.92, 0.86, 1.0)
-const COLOR_SUB: Color = Color(0.78, 0.75, 0.68, 1.0)
-const COLOR_MUTED: Color = Color(0.48, 0.46, 0.42, 1.0)
+## 本文は黄と被らないアイボリー寄り白
+const COLOR_BODY: Color = Color(0.92, 0.93, 0.95, 1.0)
+const COLOR_SUB: Color = Color(0.70, 0.72, 0.76, 1.0)
+const COLOR_MUTED: Color = Color(0.52, 0.54, 0.58, 1.0)
 const COLOR_SHORTAGE: Color = Color(0.82, 0.40, 0.34, 1.0)
-const COLOR_BOOST: Color = Color(0.82, 0.90, 0.98, 1.0)
+## 数値・強化値（水色）／固有名（柔らかい緑青）
+const COLOR_BOOST: Color = Color(0.55, 0.88, 0.95, 1.0)
+const COLOR_NAME: Color = Color(0.72, 0.92, 0.78, 1.0)
 
 const EMBLEM_DIR: String = "res://assets/ui/royal_mark/emblems/"
 const BG_PATH: String = "res://assets/ui/royal_mark/UI_BG_RoyalMark.png"
@@ -157,9 +160,10 @@ static func apply_path_button(btn: Button, selected: bool, enabled: bool = true)
 	btn.add_theme_stylebox_override("hover", path_button_style(selected, true))
 	btn.add_theme_stylebox_override("pressed", path_button_style(true, true))
 	btn.add_theme_stylebox_override("disabled", path_button_style(false, false))
+	## 選択中は枠を金、文字は本文色（金×金で潰さない）
 	var font_col: Color = COLOR_MUTED
 	if enabled:
-		font_col = COLOR_GOLD_LIT if selected else COLOR_BODY
+		font_col = COLOR_BODY
 	btn.add_theme_color_override("font_color", font_col)
 	btn.add_theme_color_override("font_disabled_color", COLOR_MUTED)
 	btn.add_theme_font_size_override("font_size", UiTypography.SIZE_CAPTION)

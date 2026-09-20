@@ -258,7 +258,7 @@ static func effect_label_for_rank(rank: int, path: String = PATH_UNSELECTED) -> 
 			return "%s／技巧" % base
 		_:
 			if r >= PATH_MIN_RANK:
-				return "%s／旧装備スキル強化" % base
+				return "%s／装備スキル強化" % base
 			return base
 
 
@@ -328,6 +328,6 @@ static func path_effect_summary(path: String, rank: int) -> String:
 			var red: int = int(round((1.0 - defense_incoming_mult_for_rank(r)) * 100.0))
 			return "被ダメージ -%d%%" % red
 		PATH_TECHNIQUE:
-			return "装備Jobスキル強化"
+			return "装備スキル強化"
 		_:
-			return "旧仕様の装備スキル強化"
+			return "装備スキル強化"
