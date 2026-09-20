@@ -67,24 +67,25 @@ static func equipment_effect_rows_for_page(
 
 
 ## 既存 EffectsGrid の並び（攻撃|会心率／防御|会心ダメ／HP|速度）。
+## ラベルはカード StatsGrid と同短表記（長文だと 4 列で viewport 幅超過→右見切れ）。
 static func _equipment_basic_effect_rows(bonuses: Dictionary) -> Array:
 	return [
 		_row("attack", "攻撃力", _format_effect_int(int(bonuses.get("attack", 0)))),
 		_row(
 			"crit_rate",
-			"クリティカル率",
+			"会心率",
 			_format_effect_percent(float(bonuses.get("crit_rate", 0.0)))
 		),
 		_row("defense", "防御力", _format_effect_int(int(bonuses.get("defense", 0)))),
 		_row(
 			"crit_damage",
-			"クリティカルダメージ",
+			"会心ダメ",
 			_format_effect_percent(float(bonuses.get("crit_damage", 0.0)))
 		),
 		_row("hp", "HP", _format_effect_int(int(bonuses.get("hp", 0)))),
 		_row(
 			"speed",
-			"攻撃速度",
+			"速度",
 			_format_effect_speed(float(bonuses.get("attack_speed", 0.0)))
 		),
 	]

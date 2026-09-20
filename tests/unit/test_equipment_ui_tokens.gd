@@ -144,6 +144,9 @@ func test_decorate_title_adds_diamond_ornament() -> void:
 func test_effect_stat_key_mapping() -> void:
 	assert_eq(str(EquipmentUiTokens.EFFECT_STAT_KEYS.get("攻撃力", "")), "attack")
 	assert_eq(str(EquipmentUiTokens.EFFECT_STAT_KEYS.get("HP", "")), "hp")
+	assert_eq(str(EquipmentUiTokens.EFFECT_STAT_KEYS.get("会心ダメ", "")), "crit_damage")
+	assert_eq(str(EquipmentUiTokens.EFFECT_STAT_KEYS.get("速度", "")), "speed")
+	## 旧長表記も解決できること
 	assert_eq(str(EquipmentUiTokens.EFFECT_STAT_KEYS.get("クリティカルダメージ", "")), "crit_damage")
 	assert_eq(str(EquipmentUiTokens.EFFECT_STAT_KEYS.get("攻撃速度", "")), "speed")
 

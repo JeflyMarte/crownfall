@@ -393,9 +393,11 @@ func _setup_equipment_chrome() -> void:
 	_btn_member_list.clip_text = false
 	UiTypography.apply_menu_button(_btn_royal_mark, false)
 	_btn_royal_mark.add_theme_font_size_override("font_size", UiTypography.SIZE_CAPTION)
-	_btn_royal_mark.custom_minimum_size = Vector2(108, 36)
+	## 「王痕育成」全文だと NameRow が 720 超→右見切れ。短縮＋tooltip。
+	_btn_royal_mark.custom_minimum_size = Vector2(64, 36)
 	_btn_royal_mark.clip_text = false
-	_btn_royal_mark.text = "王痕育成"
+	_btn_royal_mark.text = "王痕"
+	_btn_royal_mark.tooltip_text = "王痕育成"
 	_btn_royal_mark.visible = false
 	UiTypography.apply_body(_label_level, UiTypography.SIZE_BODY, UiTypography.COLOR_BODY)
 	UiTypography.apply_body(_label_job, UiTypography.SIZE_BODY_SMALL, UiTypography.COLOR_BODY)
@@ -427,6 +429,17 @@ func _setup_equipment_chrome() -> void:
 	_slots_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_slots_row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_equip_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_effects_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_effects_panel.clip_contents = true
+	_effects_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_effects_grid.add_theme_constant_override("h_separation", 6)
+	_effects_grid.add_theme_constant_override("v_separation", 4)
+	var card_row: Control = $VBoxContainer/CharacterCard/CardRow as Control
+	if card_row != null:
+		card_row.clip_contents = true
+	var char_card: Control = $VBoxContainer/CharacterCard as Control
+	if char_card != null:
+		char_card.clip_contents = true
 	# 背景は画面全体を覆う（CENTERED だとレターボックスで消えたように見える）。
 	var bg := get_node_or_null("BgTexture") as TextureRect
 	if bg != null:
@@ -649,7 +662,7 @@ func _name_label_available_width() -> float:
 	if _btn_member_list != null:
 		btn_w = maxf(btn_w, _btn_member_list.get_combined_minimum_size().x)
 	if _btn_royal_mark != null and _btn_royal_mark.visible:
-		btn_w += sep + maxf(96.0, _btn_royal_mark.get_combined_minimum_size().x)
+		btn_w += sep + maxf(64.0, _btn_royal_mark.get_combined_minimum_size().x)
 	if name_row != null and name_row.size.x >= 40.0:
 		return maxf(64.0, name_row.size.x - btn_w - sep)
 	if _label_name.size.x >= 40.0:
@@ -1402,11 +1415,11 @@ func _update_royal_mark_button(member: Resource) -> void:
 		_btn_royal_mark.visible = false
 		return
 	_btn_royal_mark.visible = true
-	_btn_royal_mark.text = "王痕育成"
+	_btn_royal_mark.text = "王痕"
 	var unlocked: bool = _RoyalMarkSystem.is_content_unlocked()
 	_btn_royal_mark.disabled = not unlocked
 	_btn_royal_mark.tooltip_text = (
-		"" if unlocked else "LOCKED（メイン1〜5 Normal CLEAR）"
+		"王痕育成" if unlocked else "LOCKED（メイン1〜5 Normal CLEAR）"
 	)
 
 
@@ -1789,6 +1802,9 @@ func _make_stat_label_row(stat_key: String, label_text: String) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 4)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	## Grid 列の最小幅を本文フル幅にしない（viewport 超過→右見切れ防止）。
+	row.custom_minimum_size = Vector2(0, 0)
+	row.clip_contents = true
 	var stat_tex: Texture2D = EquipmentUiTokens.stat_icon(stat_key)
 	if stat_tex != null:
 		var icon := TextureRect.new()
@@ -1799,9 +1815,13 @@ func _make_stat_label_row(stat_key: String, label_text: String) -> Control:
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		row.add_child(icon)
 	var lbl := _make_dim_label(label_text)
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl.clip_text = true
+	lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	lbl.custom_minimum_size = Vector2(0, 0)
 	row.add_child(lbl)
 	return row
 
@@ -1815,6 +1835,9 @@ func _make_value_label(text: String) -> Label:
 	var l := Label.new()
 	l.text = text
 	UiTypography.apply_body(l, STAT_VALUE_FONT_SIZE, COLOR_VALUE, UiTypography.OUTLINE_STRONG)
+	l.size_flags_horizontal = Control.SIZE_SHRINK_END
+	l.clip_text = true
+	l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	return l
 
 func _make_pos_label(text: String) -> Label:
@@ -1822,6 +1845,9 @@ func _make_pos_label(text: String) -> Label:
 	l.text = text
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	UiTypography.apply_body(l, STAT_VALUE_FONT_SIZE, COLOR_POS, UiTypography.OUTLINE_STRONG)
+	l.size_flags_horizontal = Control.SIZE_SHRINK_END
+	l.clip_text = true
+	l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	return l
 
 # ---- 装備中の効果（装備品由来のボーナス集計／3ページ） ----

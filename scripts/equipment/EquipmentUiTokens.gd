@@ -74,6 +74,10 @@ const EFFECT_STAT_KEYS: Dictionary = {
 	"攻撃力": "attack",
 	"防御力": "defense",
 	"HP": "hp",
+	"会心率": "crit_rate",
+	"会心ダメ": "crit_damage",
+	"速度": "speed",
+	## 旧長表記（互換）
 	"クリティカル率": "crit_rate",
 	"クリティカルダメージ": "crit_damage",
 	"攻撃速度": "speed",
