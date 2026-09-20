@@ -137,13 +137,15 @@ func test_heal_mult_only_on_heal_down_missions() -> void:
 
 func test_modifier_scope_does_not_leak_to_main() -> void:
 	GameState.current_dungeon_id = Constants.EX_GRAVE_SIEGE_DUNGEON_ID
-	assert_gt(_ExtremeMissionConfig.swarm_chance_bonus_for_active_run(), 0.0)
+	assert_true(_ExtremeMissionConfig.forces_combat_swarm_for_active_run())
 	assert_eq(_ExtremeMissionConfig.swarm_size_bonus_for_active_run(), 1)
 	GameState.current_dungeon_id = "mourngate"
+	assert_false(_ExtremeMissionConfig.forces_combat_swarm_for_active_run())
 	assert_eq(_ExtremeMissionConfig.swarm_chance_bonus_for_active_run(), 0.0)
 	assert_eq(_ExtremeMissionConfig.swarm_size_bonus_for_active_run(), 0)
 	## EX-08 は shell_pressure（群れボーナスなし）
 	GameState.current_dungeon_id = Constants.EX_TIDE_SIEGE_DUNGEON_ID
+	assert_false(_ExtremeMissionConfig.forces_combat_swarm_for_active_run())
 	assert_eq(_ExtremeMissionConfig.swarm_chance_bonus_for_active_run(), 0.0)
 	assert_eq(_ExtremeMissionConfig.swarm_size_bonus_for_active_run(), 0)
 	GameState.current_dungeon_id = Constants.EX_HUNTER_WOODS_DUNGEON_ID
@@ -569,9 +571,9 @@ func test_extreme_display_copy_matches_impl() -> void:
 		_ExtremeMissionConfig.special_condition_desc("ex_spore_dense").find("DoT") >= 0
 	)
 	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_grave_siege"), "swarm_pressure")
-	assert_eq(_ExtremeMissionConfig.special_condition_hud_label("ex_grave_siege"), "群れ増加")
+	assert_eq(_ExtremeMissionConfig.special_condition_hud_label("ex_grave_siege"), "常時群れ")
 	assert_true(
-		_ExtremeMissionConfig.special_condition_desc("ex_grave_siege").find("群れ出現時") >= 0
+		_ExtremeMissionConfig.special_condition_desc("ex_grave_siege").find("すべて群れ") >= 0
 	)
 	assert_true(
 		_ExtremeMissionConfig.special_condition_desc("ex_hunter_woods").find("編成") >= 0

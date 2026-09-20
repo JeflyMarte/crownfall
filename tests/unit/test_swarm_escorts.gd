@@ -56,7 +56,7 @@ func test_mourngate_normal_swarm_size_cap() -> void:
 
 
 func test_extreme_swarm_pressure_not_hit_by_mourngate_early_mitigation() -> void:
-	## 極限ステージは biome_index=1 でも本編序盤緩和に誤爆しない（群れ増加が効く）。
+	## 極限ステージは biome_index=1 でも本編序盤緩和に誤爆しない（常時群れが効く）。
 	var dc_script: Script = preload("res://scripts/dungeon/DungeonController.gd")
 	var dc: Node = dc_script.new()
 	add_child_autofree(dc)
@@ -75,7 +75,7 @@ func test_extreme_swarm_pressure_not_hit_by_mourngate_early_mitigation() -> void
 	assert_false(dc._mourngate_normal_elite_escorts_disabled())
 	## ボーナス自体は ExtremeMissionConfig 側。
 	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
-	assert_eq(_ExtremeMissionConfig.swarm_chance_bonus_for_active_run(), 0.35)
+	assert_true(_ExtremeMissionConfig.forces_combat_swarm_for_active_run())
 	assert_eq(_ExtremeMissionConfig.swarm_size_bonus_for_active_run(), 1)
 	GameState.current_dungeon_tier = prev_tier
 	GameState.current_dungeon_id = prev_dungeon

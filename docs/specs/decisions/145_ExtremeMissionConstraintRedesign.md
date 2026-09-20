@@ -17,7 +17,7 @@
 | # | 任務 | condition id | 制約 |
 |---|---|---|---|
 | 01 | 王墓封鎖 | `heal_down` | 味方回復効果50%（据置） |
-| 02 | 墓守の包囲 | `swarm_pressure` | 群れ出現率上昇＋**群れ時+1体**（据置・表示整合） |
+| 02 | 墓守の包囲 | `swarm_pressure` | **通常 COMBAT は常に群れ**＋群れ時+1体（2026-09-20 強化。旧: 出現率+0.35） |
 | 03 | 胞子過密域 | `damage_reflect` | ヒットごとに固定＋与ダメ割合が攻撃者へ返る（DoT除外。旧 `long_battle_ramp` 廃止） |
 | 04 | 狩人の森 | `rear_pressure` | 後衛被ダメ増（**編成位置**・据置） |
 | 05 | 瘴気飽和 | `miasma_saturate` | 敵HP上昇＋敵への poison/bleed/ignite 持続延長 |
@@ -58,8 +58,9 @@
 | `damage_reflect_pct` | 0.12 | EX-03 与ダメ割合反射 |
 | `shell_incoming_mult` | 0.65 | EX-08 障壁被ダメ倍率 |
 | `non_weakness_outgoing_mult` | 0.70 | EX-10 非弱点 |
+| `swarm_force_all_combat` | true | EX-02 通常 COMBAT 常時群れ（2026-09-20） |
 
-**互換残置（未使用）:** `long_battle_ramp_*`／`non_crit_hit_outgoing_mult`（API スタブは常に無効）。
+**互換残置（未使用）:** `long_battle_ramp_*`／`non_crit_hit_outgoing_mult`／`swarm_chance_bonus`（API スタブは常に無効／0）。
 
 正本は `ExtremeMissionConfig.TUNING`。極端固定はせず、プレイで推奨ビルドが明確に楽になる範囲を目標とする。
 

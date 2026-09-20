@@ -71,8 +71,9 @@
 | `heal_effectiveness_mult` | 0.50 | 回復効果低下（heal_down） |
 | `order_time_limit_sec` | 600 | 規定時間以内（**ポーズ除外のラン経過秒**・戦闘倍速非連動） |
 | `ex01`〜`ex10` enemy/recommended | 55〜64 | 各任務敵／推奨Lv |
-| `swarm_chance_bonus` | 0.35 | swarm_pressure |
+| `swarm_force_all_combat` | true | swarm_pressure: 通常 COMBAT 常時群れ |
 | `swarm_size_bonus` | 1 | 同上・群れ時体数 |
+| `swarm_chance_bonus` | 0.0 | 互換残置（未使用。常時群れ化後） |
 | `rear_incoming_mult` | 1.75 | 後衛圧力（陣形軽減に追加乗算） |
 | `miasma_enemy_hp_mult` | 1.25 | EX-05 敵HP（`145`） |
 | `miasma_dot_duration_mult` | 1.35 | EX-05 DoT持続（`145`） |

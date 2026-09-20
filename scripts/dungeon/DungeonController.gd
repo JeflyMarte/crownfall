@@ -1821,13 +1821,21 @@ func pick_combat_enemy_group() -> Array[Resource]:
 	)
 	## 降臨: データ未設定でも群れ厚め（Nでも）。tres の forced_swarm があればそちら優先。
 	var descent_swarm: bool = (not forced_swarm) and _is_descent_event_dungeon()
+	## 極限 EX-02: 通常 COMBAT は常に群れ（探索方針・序盤緩和より優先）。
+	var extreme_swarm: bool = (
+		not forced_swarm and not descent_swarm
+		and _ExtremeMissionConfig.forces_combat_swarm_for_active_run()
+	)
 	var escorts: bool = bool(base.escorts_minions)
 	## 放浪混入時は群れを強制して「まぎれ」させる（イベント／降臨の下限は据置）。
-	var force_pack_for_wander: bool = wander != null and not forced_swarm and not descent_swarm
+	var force_pack_for_wander: bool = (
+		wander != null and not forced_swarm and not descent_swarm and not extreme_swarm
+	)
 	if (
 		not bool(base.can_swarm)
 		and not forced_swarm
 		and not descent_swarm
+		and not extreme_swarm
 		and not escorts
 		and not force_pack_for_wander
 	):
@@ -1839,21 +1847,23 @@ func pick_combat_enemy_group() -> Array[Resource]:
 		swarm_chance = float(current_dungeon_data.forced_swarm_chance)
 	elif descent_swarm:
 		swarm_chance = BalanceConfig.DESCENT_EVENT_SWARM_CHANCE
+	elif extreme_swarm:
+		swarm_chance = 1.0
 	# 探索方針（安全優先）群れ出現率を半減（P3-D098）
 	elif GameState.get_exploration_policy() == "safe":
 		swarm_chance *= 0.5
-	if not forced_swarm and not descent_swarm:
+	if not forced_swarm and not descent_swarm and not extreme_swarm:
 		swarm_chance *= _early_stage_swarm_chance_mult()
 	swarm_chance *= _DungeonTierConfig.swarm_chance_mult(GameState.current_dungeon_tier)
 	swarm_chance = minf(0.95, swarm_chance * EventSystem.get_swarm_chance_mult())
 	swarm_chance = minf(0.95, swarm_chance + _ExtremeMissionConfig.swarm_chance_bonus_for_active_run())
-	if force_pack_for_wander:
+	if force_pack_for_wander or extreme_swarm:
 		swarm_chance = 1.0
 	if randf() >= swarm_chance:
 		if wander != null:
 			return _embed_wandering_in_combat_group(group, wander)
 		return group
-	## 敵ごとの swarm_min を尊重（1許可）。イベント forced_swarm／降臨は下限2。
+	## 敵ごとの swarm_min を尊重（1許可）。イベント forced_swarm／降臨／極限常時群れは下限2。
 	var lo: int = maxi(1, int(base.swarm_min))
 	var hi: int = maxi(lo, int(base.swarm_max))
 	if forced_swarm:
@@ -1862,21 +1872,21 @@ func pick_combat_enemy_group() -> Array[Resource]:
 	elif descent_swarm:
 		lo = maxi(2, BalanceConfig.DESCENT_EVENT_SWARM_MIN)
 		hi = maxi(lo, BalanceConfig.DESCENT_EVENT_SWARM_MAX)
-	elif force_pack_for_wander:
+	elif extreme_swarm or force_pack_for_wander:
 		lo = 2
 		hi = maxi(2, hi)
 	var size_bonus: int = _DungeonTierConfig.swarm_size_bonus(GameState.current_dungeon_tier)
 	size_bonus += _ExtremeMissionConfig.swarm_size_bonus_for_active_run()
 	hi = mini(_DungeonTierConfig.swarm_size_cap(), hi + size_bonus)
-	## モーンゲート・ノーマル: 群れ最高2体（forced_swarm／降臨は対象外）。
-	if not forced_swarm and not descent_swarm:
+	## モーンゲート・ノーマル: 群れ最高2体（forced_swarm／降臨／極限は対象外）。
+	if not forced_swarm and not descent_swarm and not extreme_swarm:
 		var early_cap: int = _mourngate_normal_swarm_size_cap()
 		if early_cap > 0:
 			hi = mini(hi, early_cap)
 	lo = mini(lo, hi)
 	var size: int = randi_range(lo, hi)
 	var capable: Array[Resource] = _swarm_capable_enemies()
-	if (forced_swarm or descent_swarm) and capable.is_empty():
+	if (forced_swarm or descent_swarm or extreme_swarm) and capable.is_empty():
 		capable.append(base)
 	var minions: Array[Resource] = _swarm_minion_enemies()
 	## 護衛リーダー: 追加枠は常に雑魚。雑魚プールが空なら単体のまま。

@@ -70,9 +70,10 @@ const TUNING := {
 	"ex09_recommended_level": 63,
 	"ex10_enemy_level": 64,
 	"ex10_recommended_level": 64,
-	## swarm_pressure: 群れ出現率への加算／体数ボーナス。
-	"swarm_chance_bonus": 0.35,
+	## swarm_pressure: 通常 COMBAT は常に群れ。体数+1。chance_bonus は互換残置（未使用）。
+	"swarm_chance_bonus": 0.0,
 	"swarm_size_bonus": 1,
+	"swarm_force_all_combat": true,
 	## long_battle_ramp: 廃止（EX-03 は damage_reflect へ）。キーは互換のため残置。
 	"long_battle_ramp_start_sec": 180,
 	"long_battle_ramp_per_60sec": 0.15,
@@ -154,8 +155,8 @@ const MISSIONS: Dictionary = {
 		"special_condition": {
 			"id": "swarm_pressure",
 			"label": "敵の群れ増加",
-			"hud_label": "群れ増加",
-			"desc": "敵の群れが出現しやすくなり、群れ出現時の敵数が1体増えます。",
+			"hud_label": "常時群れ",
+			"desc": "通常戦闘フロアはすべて群れになります。群れの敵数が1体増えます。",
 			"tip": "範囲攻撃や群れ処理を用意しましょう。",
 		},
 		"orders": [
@@ -451,6 +452,7 @@ static func boss_mythic_chance_bonus_for_active_run() -> float:
 	return clampf(float(TUNING.get("boss_mythic_chance_bonus", 0.0)), 0.0, 1.0)
 
 
+## 互換API。常時群れ化後は加算なし（0）。forces_combat_swarm を正とする。
 static func swarm_chance_bonus_for_active_run() -> float:
 	if _active_condition_id() != "swarm_pressure":
 		return 0.0
@@ -461,6 +463,13 @@ static func swarm_size_bonus_for_active_run() -> int:
 	if _active_condition_id() != "swarm_pressure":
 		return 0
 	return maxi(0, int(TUNING.get("swarm_size_bonus", 0)))
+
+
+## EX-02: 通常 COMBAT フロアを常に群れにする（探索方針・序盤緩和より優先）。
+static func forces_combat_swarm_for_active_run() -> bool:
+	if _active_condition_id() != "swarm_pressure":
+		return false
+	return bool(TUNING.get("swarm_force_all_combat", true))
 
 
 static func rear_pressure_incoming_mult_for_active_run() -> float:
