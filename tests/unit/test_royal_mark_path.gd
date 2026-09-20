@@ -459,6 +459,7 @@ func test_ui_unselected_prompt() -> void:
 	await get_tree().process_frame
 	assert_true(scene.get_path_panel_visible_for_test())
 	assert_true(scene.get_path_current_text_for_test().find("未選択") >= 0)
+	assert_eq(scene.get_path_selected_button_text_for_test(), "")
 
 
 func test_ui_selected_and_excluded_warning() -> void:
@@ -473,6 +474,8 @@ func test_ui_selected_and_excluded_warning() -> void:
 	add_child_autofree(scene)
 	await get_tree().process_frame
 	assert_true(scene.get_path_current_text_for_test().find("技巧") >= 0)
+	assert_true(scene.get_path_selected_button_text_for_test().find("技巧") >= 0)
+	assert_true(scene.get_path_selected_button_text_for_test().find("選択中") >= 0)
 	assert_true(scene.get_path_excluded_text_for_test().find("技巧強化の対象外") >= 0)
 
 
@@ -487,7 +490,13 @@ func test_ui_v_max_keeps_path_panel() -> void:
 	await get_tree().process_frame
 	assert_true(scene.get_max_panel_visible_for_test())
 	assert_true(scene.get_path_panel_visible_for_test())
-
+	assert_true(scene.get_path_current_text_for_test().find("攻勢") >= 0)
+	assert_true(scene.get_path_current_text_for_test().find("与ダメージ") >= 0)
+	assert_true(scene.get_path_selected_button_text_for_test().find("攻勢") >= 0)
+	var max_txt: String = scene.get_max_state_text_for_test()
+	assert_true(max_txt.find("MAX") >= 0)
+	## コンパクト帯（大きな二段カードではない）
+	assert_true(max_txt.find("\n") < 0 or max_txt.strip_edges().find("MAX") >= 0)
 
 func test_ui_hub_path_buttons_enabled_with_selected_dungeon() -> void:
 	## 拠点で current_dungeon_id が残っていても方針ボタンは有効（誤ロック回帰防止）

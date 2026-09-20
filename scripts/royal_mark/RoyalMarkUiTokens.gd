@@ -126,6 +126,62 @@ static func status_pill_style() -> StyleBoxFlat:
 	return sb
 
 
+static func path_button_style(selected: bool, enabled: bool = true) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	if selected:
+		sb.bg_color = Color(0.14, 0.12, 0.06, 1.0)
+		sb.border_color = COLOR_GOLD_LIT
+		sb.set_border_width_all(3)
+	elif enabled:
+		sb.bg_color = Color(0.05, 0.06, 0.09, 1.0)
+		sb.border_color = COLOR_GOLD_DIM
+		sb.set_border_width_all(1)
+	else:
+		sb.bg_color = Color(0.04, 0.04, 0.06, 1.0)
+		sb.border_color = Color(0.28, 0.26, 0.22, 1.0)
+		sb.set_border_width_all(1)
+	sb.corner_radius_top_left = 4
+	sb.corner_radius_top_right = 4
+	sb.corner_radius_bottom_left = 4
+	sb.corner_radius_bottom_right = 4
+	sb.content_margin_left = 6.0
+	sb.content_margin_top = 8.0
+	sb.content_margin_right = 6.0
+	sb.content_margin_bottom = 8.0
+	return sb
+
+
+static func apply_path_button(btn: Button, selected: bool, enabled: bool = true) -> void:
+	btn.disabled = not enabled
+	btn.add_theme_stylebox_override("normal", path_button_style(selected, enabled))
+	btn.add_theme_stylebox_override("hover", path_button_style(selected, true))
+	btn.add_theme_stylebox_override("pressed", path_button_style(true, true))
+	btn.add_theme_stylebox_override("disabled", path_button_style(false, false))
+	var font_col: Color = COLOR_MUTED
+	if enabled:
+		font_col = COLOR_GOLD_LIT if selected else COLOR_BODY
+	btn.add_theme_color_override("font_color", font_col)
+	btn.add_theme_color_override("font_disabled_color", COLOR_MUTED)
+	btn.add_theme_font_size_override("font_size", UiTypography.SIZE_CAPTION)
+
+
+static func max_banner_style() -> StyleBoxFlat:
+	## Rank V MAX 用の薄い帯（大きなカードを避ける）。
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.08, 0.07, 0.04, 1.0)
+	sb.border_color = COLOR_GOLD
+	sb.set_border_width_all(1)
+	sb.corner_radius_top_left = 4
+	sb.corner_radius_top_right = 4
+	sb.corner_radius_bottom_left = 4
+	sb.corner_radius_bottom_right = 4
+	sb.content_margin_left = 10.0
+	sb.content_margin_top = 4.0
+	sb.content_margin_right = 10.0
+	sb.content_margin_bottom = 4.0
+	return sb
+
+
 static func apply_chrome_button(btn: Button, enabled: bool = true) -> void:
 	btn.add_theme_stylebox_override("normal", chrome_button_style(enabled))
 	btn.add_theme_stylebox_override("hover", chrome_button_style(true))

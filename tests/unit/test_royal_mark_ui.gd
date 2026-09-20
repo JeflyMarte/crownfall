@@ -96,6 +96,7 @@ func test_ui_rank_zero_and_switch() -> void:
 	assert_true(next0.find("HP +3%") >= 0)
 	var special0: String = scene.get_special_preview_for_test()
 	assert_true(special0.find("🔒") >= 0)
+	assert_true(special0.find("Rank V") >= 0 or special0.find("覚醒") >= 0)
 	scene.select_index_for_test(1)
 	assert_eq(scene.get_selected_index_for_test(), 1)
 	assert_eq(str((scene.get_view_members_for_test()[1] as Resource).id), "adventurer_serin")
@@ -120,10 +121,10 @@ func test_ui_rank_ii_and_effect_lines() -> void:
 	var next_txt: String = scene.get_next_reward_for_test()
 	assert_true(next_txt.find("王痕 III") >= 0)
 	assert_true(next_txt.find("DEF +3%") >= 0)
+	assert_false(scene.get_path_panel_visible_for_test())
 	var special: String = scene.get_special_preview_for_test()
-	assert_true(special.find("装備スキル強化") >= 0)
 	assert_true(special.find("🔒") >= 0)
-	assert_true(special.find("必殺技強化") >= 0)
+	assert_true(special.find("Rank V") >= 0 or special.find("覚醒") >= 0)
 	assert_false(scene.get_upgrade_button_for_test().disabled)
 
 
@@ -140,9 +141,9 @@ func test_ui_rank_iv_to_v_preview() -> void:
 	var next_txt: String = scene.get_next_reward_for_test()
 	assert_true(next_txt.find("王痕 V") >= 0)
 	assert_true(next_txt.find("必殺強化") >= 0)
+	assert_true(scene.get_path_panel_visible_for_test())
 	var special: String = scene.get_special_preview_for_test()
-	assert_true(special.find("III") >= 0)
-	assert_true(special.find("V　必殺技強化　🔒") >= 0 or special.find("必殺技強化　🔒") >= 0)
+	assert_true(special.find("🔒") >= 0)
 	assert_false(scene.get_upgrade_button_for_test().disabled)
 
 
