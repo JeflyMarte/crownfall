@@ -89,8 +89,10 @@ const ORDER_DISPLAY_LABELS: Dictionary = {
 	"no_banned_status": "毒・出血を使用しない",
 }
 
-## Featured／説明欄の指令見出し補足（任意達成＝★／報酬）。
-const ORDERS_SECTION_INTRO: String = "以下を達成すると報酬アップ"
+## Featured／説明欄の指令見出し補足。
+const ORDERS_SECTION_INTRO: String = (
+	"以下を達成すると報酬アップ。キャラを王痕強化できる破片を入手できます。"
+)
 
 ## 任務メタ（dungeon_id キー）。tres の DungeonData と対になる表示・ルール層。
 ## orders[].id はセーブキー。表示文は ORDER_DISPLAY_LABELS（label は互換用）。
@@ -718,7 +720,6 @@ static func featured_brief_lines(dungeon_id: String) -> PackedStringArray:
 		lines.append("極限指令｜%s" % ORDERS_SECTION_INTRO)
 		for ol: String in order_labels:
 			lines.append("◇ %s" % ol)
-	lines.append("CLEAR ★｜指令1つで★+1｜最大★★★★")
 	return lines
 
 
@@ -763,11 +764,6 @@ static func featured_brief_bbcode(dungeon_id: String) -> String:
 			var done: bool = bool(saved.get(oid, false))
 			var hex: String = "73eb8c" if done else "c8c0b4"
 			parts.append("[color=#%s]◇ %s[/color]" % [hex, ol])
-	parts.append("")
-	parts.append(
-		"[color=#%s]CLEAR ★[/color]｜[color=#%s]指令1つで★+1[/color]｜[color=#%s]最大★★★★[/color]"
-		% [HEX_BODY, HEX_BODY, HEX_GOLD]
-	)
 	return "\n".join(parts)
 
 

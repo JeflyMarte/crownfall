@@ -550,11 +550,13 @@ func test_extreme_display_copy_matches_impl() -> void:
 	var brief: PackedStringArray = _ExtremeMissionConfig.featured_brief_lines("ex_tomb_seal")
 	assert_true(brief.size() >= 5)
 	assert_eq(brief[0], "特殊制約｜回復効果半減")
-	assert_true(("\n".join(brief)).find("極限指令｜以下を達成すると報酬アップ") >= 0)
+	assert_true(("\n".join(brief)).find("極限指令｜以下を達成すると報酬アップ。キャラを王痕強化できる破片を入手できます。") >= 0)
 	assert_true(("\n".join(brief)).find("規定時間") < 0)
 	assert_true(("\n".join(brief)).find("10分以内にクリア") >= 0)
+	assert_true(("\n".join(brief)).find("CLEAR ★") < 0)
 	var bb: String = _ExtremeMissionConfig.featured_brief_bbcode("ex_tomb_seal")
-	assert_true(bb.find("以下を達成すると報酬アップ") >= 0)
+	assert_true(bb.find("王痕強化できる破片") >= 0)
+	assert_true(bb.find("CLEAR ★") < 0)
 	assert_eq(
 		_ExtremeMissionConfig.special_condition_label("ex_polar_silence"),
 		"必殺技使用不可"
