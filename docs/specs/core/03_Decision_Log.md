@@ -8335,3 +8335,13 @@ SSOT: `docs/specs/core/06_DevelopmentHQ_Operations.md` §7.1.1 / §7.1.2
 | P3-DG-EXTREME-DROP-LM-001-1 | LEGENDARY は装備レア抽選の**別枠 10%**（ヒット時はプール内★から選出） | 絶対+10pt |
 | P3-DG-EXTREME-DROP-LM-001-2 | 神話は極限ボス**再クリア**で `1%+10pt=11%`（全 EX 対象） | 本編 mourngate 1% 据置 |
 | P3-DG-EXTREME-DROP-LM-001-3 | TUNING=`equip_legendary_chance_bonus`／`boss_mythic_chance_bonus` | 散在禁止 |
+
+## 極限 EX-03／08 制約差し替え（2026-09-20 — P3-DG-EXTREME-002-REVISE）
+
+> **オーナー GO**: EX-03＝案A（反射）／EX-08＝案C（障壁・貫通）。ビルド軸の差別化。
+
+| # | 決定 | 根拠 |
+|---|---|---|
+| P3-DG-EXTREME-002-REVISE-1 | EX-03 `damage_reflect`（flat+pct／DoT除外）。旧 `long_battle_ramp` 廃止 | 多段 vs 一撃 |
+| P3-DG-EXTREME-002-REVISE-2 | EX-08 `shell_pressure`（×0.65。pierce／破甲で無視）。旧 `non_crit_pressure` 廃止 | 貫通・破甲ビルド |
+| P3-DG-EXTREME-002-REVISE-3 | SSOT — Decision `145` 更新。TUNING／表示／Combat フック同期 | 正本一本化 |

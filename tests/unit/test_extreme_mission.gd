@@ -10,12 +10,12 @@ const _Adventurer := preload("res://scripts/domain/Adventurer.gd")
 const EXPECTED_MISSIONS: Array[Dictionary] = [
 	{"id": "ex_tomb_seal", "boss": "serdion", "floors": 10, "cond": "heal_down"},
 	{"id": "ex_grave_siege", "boss": "serdion", "floors": 10, "cond": "swarm_pressure"},
-	{"id": "ex_spore_dense", "boss": "granvel", "floors": 10, "cond": "long_battle_ramp"},
+	{"id": "ex_spore_dense", "boss": "granvel", "floors": 10, "cond": "damage_reflect"},
 	{"id": "ex_hunter_woods", "boss": "granvel", "floors": 10, "cond": "rear_pressure"},
 	{"id": "ex_miasma_sat", "boss": "moldgar", "floors": 10, "cond": "miasma_saturate"},
 	{"id": "ex_infect_chain", "boss": "moldgar", "floors": 10, "cond": "status_require"},
 	{"id": "ex_wreck_assault", "boss": "nereion", "floors": 10, "cond": "ultimate_suppress"},
-	{"id": "ex_tide_siege", "boss": "nereion", "floors": 10, "cond": "non_crit_pressure"},
+	{"id": "ex_tide_siege", "boss": "nereion", "floors": 10, "cond": "shell_pressure"},
 	{"id": "ex_polar_silence", "boss": "eldion", "floors": 10, "cond": "ultimate_disabled"},
 	{"id": "ex_white_night", "boss": "eldion", "floors": 10, "cond": "element_weakness_pressure"},
 ]
@@ -141,21 +141,13 @@ func test_modifier_scope_does_not_leak_to_main() -> void:
 	assert_eq(_ExtremeMissionConfig.ultimate_charge_gain_mult_for_active_run(), 1.0)
 
 
-func test_long_battle_ramp_only_on_ex03() -> void:
+func test_damage_reflect_only_on_ex03() -> void:
 	GameState.current_dungeon_id = Constants.EX_SPORE_DENSE_DUNGEON_ID
-	GameState.begin_extreme_run_tracking(Constants.EX_SPORE_DENSE_DUNGEON_ID)
-	GameState.extreme_run_elapsed_sec = 10.0
-	assert_eq(_ExtremeMissionConfig.enemy_outgoing_modifier_mult_for_active_run(), 1.0)
-	var start_sec: float = float(_ExtremeMissionConfig.TUNING["long_battle_ramp_start_sec"])
-	GameState.extreme_run_elapsed_sec = start_sec + 60.0
-	assert_gt(_ExtremeMissionConfig.enemy_outgoing_modifier_mult_for_active_run(), 1.0)
-	## EX-10 は element_weakness_pressure（長期戦ランプなし）
-	GameState.current_dungeon_id = Constants.EX_WHITE_NIGHT_DUNGEON_ID
-	GameState.begin_extreme_run_tracking(Constants.EX_WHITE_NIGHT_DUNGEON_ID)
-	GameState.extreme_run_elapsed_sec = start_sec + 60.0
+	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_spore_dense"), "damage_reflect")
+	assert_eq(_ExtremeMissionConfig.reflect_damage_for_hit(100), 35 + 12)  # flat35 + 12%
 	assert_eq(_ExtremeMissionConfig.enemy_outgoing_modifier_mult_for_active_run(), 1.0)
 	GameState.current_dungeon_id = "mourngate"
-	assert_eq(_ExtremeMissionConfig.enemy_outgoing_modifier_mult_for_active_run(), 1.0)
+	assert_eq(_ExtremeMissionConfig.reflect_damage_for_hit(100), 0)
 	## 旧 status_empower の banned は廃止
 	GameState.current_dungeon_id = Constants.EX_INFECT_CHAIN_DUNGEON_ID
 	assert_false(_ExtremeMissionConfig.is_banned_status_for_active_run("poison"))
@@ -229,13 +221,26 @@ func test_status_require_outgoing_with_and_without_status() -> void:
 	assert_eq(_ExtremeMissionConfig.status_require_outgoing_mult_for_active_run(cc, 0), 1.0)
 
 
-func test_non_crit_hit_outgoing_mult() -> void:
+func test_shell_pressure_on_ex08() -> void:
 	GameState.current_dungeon_id = Constants.EX_TIDE_SIEGE_DUNGEON_ID
-	var expect: float = float(_ExtremeMissionConfig.TUNING["non_crit_hit_outgoing_mult"])
-	assert_eq(_ExtremeMissionConfig.hit_outgoing_mult_for_active_run(false), expect)
-	assert_eq(_ExtremeMissionConfig.hit_outgoing_mult_for_active_run(true), 1.0)
-	GameState.current_dungeon_id = "blackshore"
+	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_tide_siege"), "shell_pressure")
+	var expect: float = float(_ExtremeMissionConfig.TUNING["shell_incoming_mult"])
+	assert_eq(_ExtremeMissionConfig.shell_incoming_mult_for_active_run(false), expect)
+	assert_eq(_ExtremeMissionConfig.shell_incoming_mult_for_active_run(true), 1.0)
+	## armor_break があれば貫通扱い
+	var cc: CombatController = CombatController.new()
+	add_child_autofree(cc)
+	cc.swarm_data = [DataRegistry.get_enemy_data("sepia_hound")]
+	cc.swarm_hp = [1000]
+	cc.swarm_max_hp = [1000]
+	cc.active_enemy_index = 0
+	assert_false(_ExtremeMissionConfig.attack_pierces_shell(-1, null, cc, 0))
+	assert_true(cc.apply_status_to_enemy_slot(0, "armor_break", 1, 50))
+	assert_true(_ExtremeMissionConfig.attack_pierces_shell(-1, null, cc, 0))
+	## 旧 non_crit API は常に 1.0
 	assert_eq(_ExtremeMissionConfig.hit_outgoing_mult_for_active_run(false), 1.0)
+	GameState.current_dungeon_id = "blackshore"
+	assert_eq(_ExtremeMissionConfig.shell_incoming_mult_for_active_run(false), 1.0)
 
 
 func test_element_weakness_pressure_match_mismatch_empty() -> void:
@@ -518,11 +523,17 @@ func test_extreme_display_copy_matches_impl() -> void:
 	## 表示文と special_condition id が実挙動と一致すること。
 	assert_eq(_ExtremeMissionConfig.order_display_label("time_limit"), "10分以内にクリア")
 	assert_eq(_ExtremeMissionConfig.order_time_limit_sec(), 600)
-	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_tide_siege"), "non_crit_pressure")
-	assert_eq(_ExtremeMissionConfig.special_condition_label("ex_tide_siege"), "非クリティカル弱体")
-	assert_eq(_ExtremeMissionConfig.special_condition_hud_label("ex_tide_siege"), "非会心弱体")
+	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_tide_siege"), "shell_pressure")
+	assert_eq(_ExtremeMissionConfig.special_condition_label("ex_tide_siege"), "敵の障壁")
+	assert_eq(_ExtremeMissionConfig.special_condition_hud_label("ex_tide_siege"), "敵に障壁")
 	assert_true(
-		_ExtremeMissionConfig.special_condition_desc("ex_tide_siege").find("DoT") >= 0
+		_ExtremeMissionConfig.special_condition_desc("ex_tide_siege").find("貫通") >= 0
+	)
+	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_spore_dense"), "damage_reflect")
+	assert_eq(_ExtremeMissionConfig.special_condition_label("ex_spore_dense"), "被ダメージ反射")
+	assert_eq(_ExtremeMissionConfig.special_condition_hud_label("ex_spore_dense"), "攻撃反射")
+	assert_true(
+		_ExtremeMissionConfig.special_condition_desc("ex_spore_dense").find("DoT") >= 0
 	)
 	assert_eq(_ExtremeMissionConfig.special_condition_id("ex_grave_siege"), "swarm_pressure")
 	assert_eq(_ExtremeMissionConfig.special_condition_hud_label("ex_grave_siege"), "群れ増加")

@@ -6151,6 +6151,20 @@ func _process_status_ticks() -> void:
 			## 同一 tick で先に撃破済みのスロットは DoT をスキップ（二重報酬防止）。
 			if not $CombatController.is_enemy_slot_alive(slot):
 				continue
+			## 極限 EX-08 障壁は DoT にも適用（破甲中は貫通扱い）。
+			const _ExtremeMissionConfigDot := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+			var dot_pierce: bool = _ExtremeMissionConfigDot.attack_pierces_shell(
+				-1, null, $CombatController, slot
+			)
+			dmg = maxi(
+				1,
+				int(
+					round(
+						float(dmg)
+						* _ExtremeMissionConfigDot.shell_incoming_mult_for_active_run(dot_pierce)
+					)
+				)
+			)
 			$CombatController.apply_damage_to_enemy_slot(slot, dmg)
 			_check_boss_phase_transition(slot)
 			var enemy_spr: AnimatedSprite2D = _enemy_sprite_for_slot(slot)
@@ -6495,7 +6509,7 @@ func _execute_member_aoe_damage_skill(
 				member_idx, action_range, true, attack_element, slot
 			))
 		)
-		skill_dmg = _apply_extreme_hit_outgoing_mult(skill_dmg, is_critical)
+		skill_dmg = _apply_extreme_shell_incoming_mult(skill_dmg, member_idx, skill_data, slot)
 		skill_dmg = maxi(1, int(round(float(skill_dmg) * weapon_skill_mult)))
 		skill_dmg = maxi(1, int(round(float(skill_dmg) * _conditional_skill_power_mult(skill_data, slot, member_idx))))
 		var elem_result: Dictionary = _apply_enemy_mitigation(skill_dmg, attack_element, member_idx, slot)
@@ -6962,7 +6976,7 @@ func _execute_member_skill(
 			member_idx, action_range, true, attack_element, target_slot
 		))
 	)
-	skill_dmg = _apply_extreme_hit_outgoing_mult(skill_dmg, bool(result.get("is_critical", false)))
+	skill_dmg = _apply_extreme_shell_incoming_mult(skill_dmg, member_idx, skill_data, target_slot)
 	var wpn_skill_mods: Dictionary = CombatPassives.skill_stat_modifiers_for_member(member_idx)
 	var weapon_skill_mult: float = 1.0
 	if _is_ultimate_skill(skill_data):
@@ -7547,7 +7561,7 @@ func _try_cast_player_skill() -> String:
 			member_idx, action_range, true, attack_element, player_target
 		))
 	)
-	skill_dmg = _apply_extreme_hit_outgoing_mult(skill_dmg, bool(result.get("is_critical", false)))
+	skill_dmg = _apply_extreme_shell_incoming_mult(skill_dmg, member_idx, skill_data, player_target)
 	var wpn_skill_mods: Dictionary = CombatPassives.skill_stat_modifiers_for_member(member_idx)
 	var weapon_skill_mult: float = 1.0
 	if _is_ultimate_skill(skill_data):
@@ -7574,6 +7588,8 @@ func _try_cast_player_skill() -> String:
 	)
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	$CombatController.add_threat(member_idx, float(final_dmg) * CombatController.THREAT_DAMAGE_K)
+	if final_dmg > 0:
+		_apply_extreme_damage_reflect(member_idx, final_dmg)
 	var skill_spawn_pos: Vector2 = _active_enemy_pos()
 	_spawn_hit_vfx(skill_spawn_pos, attack_element, 1.0, skill_is_crit, _get_weapon_type(member_idx))
 	_spawn_damage_number(
@@ -7641,7 +7657,7 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 			member_idx, action_range, true, attack_element, sec_target
 		))
 	)
-	skill_dmg = _apply_extreme_hit_outgoing_mult(skill_dmg, bool(result.get("is_critical", false)))
+	skill_dmg = _apply_extreme_shell_incoming_mult(skill_dmg, member_idx, skill_data, sec_target)
 	var wpn_skill_mods: Dictionary = CombatPassives.skill_stat_modifiers_for_member(member_idx)
 	var weapon_skill_mult: float = 1.0
 	if _is_ultimate_skill(skill_data):
@@ -7668,6 +7684,8 @@ func _try_cast_secondary_skill(primary_skill_id: String) -> String:
 	)
 	$CombatController.apply_damage_to_enemy(final_dmg)
 	$CombatController.add_threat(member_idx, float(final_dmg) * CombatController.THREAT_DAMAGE_K)
+	if final_dmg > 0:
+		_apply_extreme_damage_reflect(member_idx, final_dmg)
 	var sec_spawn_pos: Vector2 = _active_enemy_pos()
 	_spawn_hit_vfx(sec_spawn_pos, attack_element, 1.0, sec_is_crit, _get_weapon_type(member_idx))
 	_spawn_damage_number(
@@ -7720,13 +7738,39 @@ func _apply_enemy_mitigation(
 	)
 
 
-## 極限 EX-08: 非クリのヒット与ダメ低下。DoT 経路では呼ばない。
-func _apply_extreme_hit_outgoing_mult(damage: int, is_critical: bool) -> int:
+## 極限 EX-08: 障壁被ダメ軽減。貫通／破甲なら無視。DoT 経路では呼ばない想定。
+func _apply_extreme_shell_incoming_mult(
+	damage: int,
+	member_idx: int,
+	skill_data: Resource = null,
+	target_slot: int = -1
+) -> int:
 	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	var pierce: bool = _ExtremeMissionConfig.attack_pierces_shell(
+		member_idx, skill_data, $CombatController, target_slot
+	)
 	return maxi(
 		1,
-		int(round(float(damage) * _ExtremeMissionConfig.hit_outgoing_mult_for_active_run(is_critical)))
+		int(round(float(damage) * _ExtremeMissionConfig.shell_incoming_mult_for_active_run(pierce)))
 	)
+
+
+## 極限 EX-03: ヒット反射。攻撃者へ固定＋割合。
+func _apply_extreme_damage_reflect(member_idx: int, dealt_damage: int) -> void:
+	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
+	var reflect: int = _ExtremeMissionConfig.reflect_damage_for_hit(dealt_damage)
+	if reflect <= 0 or member_idx < 0:
+		return
+	if not $CombatController.is_member_alive(member_idx):
+		return
+	$CombatController.apply_damage_to_member(member_idx, reflect)
+	_spawn_damage_number(
+		"-%d" % reflect,
+		_member_sprite_world_pos(member_idx) + Vector2(0.0, -28.0),
+		Color(0.95, 0.45, 0.55),
+		0.95
+	)
+	_update_hp_bars()
 
 # 状態異常コンボ起爆（P3-D089）。味方の攻撃ヒット時、アクティブ敵に前提状態が
 # 乗っていれば 1 つだけ起爆し、追加ダメージを返してその状態を消費する。
@@ -7917,6 +7961,7 @@ func _deal_member_damage_to_enemy(
 	$CombatController.add_threat(member_idx, float(damage) * CombatController.THREAT_DAMAGE_K)
 	_check_boss_phase_transition(target_slot)
 	if damage > 0:
+		_apply_extreme_damage_reflect(member_idx, damage)
 		_apply_member_lifesteal(member_idx, damage, sid)
 		_fire_member_passives(
 			member_idx, "on_attack", {

@@ -54,10 +54,13 @@ const TUNING := {
 	## swarm_pressure: 群れ出現率への加算／体数ボーナス。
 	"swarm_chance_bonus": 0.35,
 	"swarm_size_bonus": 1,
-	## long_battle_ramp: 経過秒後から敵与ダメ増加。
+	## long_battle_ramp: 廃止（EX-03 は damage_reflect へ）。キーは互換のため残置。
 	"long_battle_ramp_start_sec": 180,
 	"long_battle_ramp_per_60sec": 0.15,
 	"long_battle_ramp_max_mult": 2.0,
+	## damage_reflect (EX-03): ヒット1回ごとに固定＋与ダメ割合が攻撃者へ返る（DoT除外）。
+	"damage_reflect_flat_per_hit": 35,
+	"damage_reflect_pct": 0.12,
 	## rear_pressure: 後衛被ダメ倍率（陣形軽減に追加乗算）。
 	"rear_incoming_mult": 1.75,
 	## miasma_saturate (EX-05): 敵HP倍率（控えめ初期値）／DoT持続延長。
@@ -66,8 +69,10 @@ const TUNING := {
 	"miasma_dot_status_ids": ["poison", "bleed", "ignite"],
 	## status_require (EX-06): 状態異常なしの敵への味方与ダメ倍率。
 	"status_require_outgoing_mult": 0.70,
-	## non_crit_pressure (EX-08): 非クリティカルのヒット与ダメ倍率（DoT除外）。
+	## non_crit_pressure: 廃止（EX-08 は shell_pressure へ）。キーは互換のため残置。
 	"non_crit_hit_outgoing_mult": 0.70,
+	## shell_pressure (EX-08): 障壁による被ダメ軽減。貫通／破甲で無視。
+	"shell_incoming_mult": 0.65,
 	## element_weakness_pressure (EX-10): 非弱点（無属性含む）の与ダメ倍率。
 	"non_weakness_outgoing_mult": 0.70,
 	## ultimate_suppress: 必殺チャージ獲得倍率。
@@ -147,11 +152,11 @@ const MISSIONS: Dictionary = {
 		"boss_id": "granvel",
 		"floor_count": 10,
 		"special_condition": {
-			"id": "long_battle_ramp",
-			"label": "長期戦で敵が強化",
-			"hud_label": "長期で敵強化",
-			"desc": "180秒経過後、時間が経つほど敵の攻撃が強力になります。",
-			"tip": "短時間で決着をつけましょう。",
+			"id": "damage_reflect",
+			"label": "被ダメージ反射",
+			"hud_label": "攻撃反射",
+			"desc": "敵へのヒットごとに、固定ダメージと与ダメの一部が攻撃者に返ります（DoTは対象外）。",
+			"tip": "多段攻撃より、一撃の重い攻撃が有利です。",
 		},
 		"orders": [
 			{"id": "time_limit"},
@@ -242,11 +247,11 @@ const MISSIONS: Dictionary = {
 		"boss_id": "nereion",
 		"floor_count": 10,
 		"special_condition": {
-			"id": "non_crit_pressure",
-			"label": "非クリティカル弱体",
-			"hud_label": "非会心弱体",
-			"desc": "クリティカルでないヒット攻撃の与ダメージが低下します（DoTは対象外）。",
-			"tip": "クリティカル率・クリティカルダメージを高めましょう。",
+			"id": "shell_pressure",
+			"label": "敵の障壁",
+			"hud_label": "敵に障壁",
+			"desc": "敵が障壁で被ダメージを軽減します。貫通属性や破甲（防御DOWN）があると障壁を無視できます。",
+			"tip": "刺突（貫通）武器・スキルや破甲を用意しましょう。",
 		},
 		"orders": [
 			{"id": "no_ko"},
@@ -496,13 +501,55 @@ static func status_require_outgoing_mult_for_active_run(
 	return maxf(0.01, float(TUNING.get("status_require_outgoing_mult", 1.0)))
 
 
-## EX-08: ヒット攻撃のみ。クリティカル時は 1.0。DoT 経路からは呼ばないこと。
-static func hit_outgoing_mult_for_active_run(is_critical: bool) -> float:
-	if _active_condition_id() != "non_crit_pressure":
+## EX-08: 障壁。貫通／破甲なら 1.0、それ以外は shell_incoming_mult。
+static func shell_incoming_mult_for_active_run(pierce_bypass: bool) -> float:
+	if _active_condition_id() != "shell_pressure":
 		return 1.0
-	if is_critical:
+	if pierce_bypass:
 		return 1.0
-	return maxf(0.01, float(TUNING.get("non_crit_hit_outgoing_mult", 1.0)))
+	return maxf(0.01, float(TUNING.get("shell_incoming_mult", 1.0)))
+
+
+## 互換スタブ（旧 non_crit）。常に 1.0。
+static func hit_outgoing_mult_for_active_run(_is_critical: bool) -> float:
+	return 1.0
+
+
+## 武器／スキルの pierce・vs_armor_break、または対象の armor_break で障壁無視。
+static func attack_pierces_shell(
+	member_index: int, skill_data: Resource = null, combat: Object = null, target_slot: int = -1
+) -> bool:
+	if combat != null and target_slot >= 0 and combat.has_method("get_enemy_status_stacks_at"):
+		if int(combat.call("get_enemy_status_stacks_at", target_slot, "armor_break")) > 0:
+			return true
+		if int(combat.call("get_enemy_status_stacks_at", target_slot, "armor_break_light")) > 0:
+			return true
+	if skill_data != null and "tags" in skill_data:
+		var stags: Variant = skill_data.tags
+		if stags is Array:
+			if (stags as Array).has("pierce") or (stags as Array).has("vs_armor_break"):
+				return true
+	if member_index < 0:
+		return false
+	var weapon: Resource = GameState.get_member_equipped_weapon(member_index)
+	if weapon == null or str(weapon.weapon_id).is_empty():
+		return false
+	var wdata: Resource = DataRegistry.get_weapon_data(str(weapon.weapon_id))
+	if wdata == null or not ("tags" in wdata):
+		return false
+	var wtags: Variant = wdata.tags
+	return wtags is Array and (wtags as Array).has("pierce")
+
+
+## EX-03: ヒット1回分の反射ダメージ（攻撃者へ）。0 なら無し。
+static func reflect_damage_for_hit(dealt_damage: int) -> int:
+	if _active_condition_id() != "damage_reflect":
+		return 0
+	if dealt_damage <= 0:
+		return 0
+	var flat: int = maxi(0, int(TUNING.get("damage_reflect_flat_per_hit", 0)))
+	var pct: float = maxf(0.0, float(TUNING.get("damage_reflect_pct", 0.0)))
+	return maxi(1, flat + int(round(float(dealt_damage) * pct)))
 
 
 ## EX-10: 弱点一致なら 1.0。弱点未設定の敵はペナルティなし（攻略不能回避）。
@@ -546,30 +593,19 @@ static func element_match_outgoing_mult_for_active_run(
 	return maxf(0.01, float(TUNING.get("non_weakness_outgoing_mult", 1.0)))
 
 
-## combat: CombatController（long_battle_ramp のみ使用。status_empower は廃止）。
+## combat: CombatController（将来拡張用）。長期戦ランプは廃止。
 static func enemy_outgoing_modifier_mult_for_active_run(
 	combat: Object = null, attacker_slot: int = -1
 ) -> float:
-	var mult: float = 1.0
-	var cid: String = _active_condition_id()
-	if cid == "long_battle_ramp":
-		mult *= _long_battle_ramp_mult()
 	## attacker_slot / combat は将来拡張用にシグネチャ維持。
 	if combat != null and attacker_slot >= 0:
 		pass
-	return mult
+	return 1.0
 
 
 static func _long_battle_ramp_mult() -> float:
-	var elapsed: float = _run_elapsed_sec()
-	var start_sec: float = float(TUNING.get("long_battle_ramp_start_sec", 180))
-	if elapsed <= start_sec:
-		return 1.0
-	var per_min: float = float(TUNING.get("long_battle_ramp_per_60sec", 0.15))
-	var minutes: float = (elapsed - start_sec) / 60.0
-	var ramp: float = 1.0 + per_min * minutes
-	var cap: float = float(TUNING.get("long_battle_ramp_max_mult", 2.0))
-	return clampf(ramp, 1.0, maxf(1.0, cap))
+	## 廃止互換。常に 1.0。
+	return 1.0
 
 
 static func enemy_has_non_beneficial_status(combat: Object, slot: int) -> bool:

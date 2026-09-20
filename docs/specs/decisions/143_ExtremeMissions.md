@@ -57,7 +57,7 @@
 - `scripts/dungeon/ExtremeMissionConfig.gd`（`MISSIONS`＋`TUNING`＋共通 modifier API）
 - `resources/dungeons/ex_*.tres`／`resources/stages/ex_*_1_1.tres`（EX-01〜10）
 - Save: `GameState.extreme_mission_progress`
-- Heal／敵与ダメ／群れ／後衛／必殺／HP・DoT／状態必須／非クリ／弱点: CombatController／DamageCalculator／DungeonController／DungeonScene の共通フック
+- Heal／敵与ダメ／群れ／後衛／必殺／HP・DoT／状態必須／反射／障壁／弱点: CombatController／DamageCalculator／DungeonController／DungeonScene の共通フック
 - UI: **極限任務タブ**常設（イベント隣）／Featured＝制約具体文＋指令＋★ルール／Result に★・指令
 - 表示文 SSOT: `ExtremeMissionConfig`（`special_condition` label/desc/tip・`ORDER_DISPLAY_LABELS`）
 
@@ -72,20 +72,19 @@
 | `ex01`〜`ex10` enemy/recommended | 55〜64 | 各任務敵／推奨Lv |
 | `swarm_chance_bonus` | 0.35 | swarm_pressure |
 | `swarm_size_bonus` | 1 | 同上・群れ時体数 |
-| `long_battle_ramp_start_sec` | 180 | 長期戦強化開始 |
-| `long_battle_ramp_per_60sec` | 0.15 | 以降1分あたり +15% |
-| `long_battle_ramp_max_mult` | 2.0 | 上限 |
 | `rear_incoming_mult` | 1.75 | 後衛圧力（陣形軽減に追加乗算） |
 | `miasma_enemy_hp_mult` | 1.25 | EX-05 敵HP（`145`） |
 | `miasma_dot_duration_mult` | 1.35 | EX-05 DoT持続（`145`） |
 | `status_require_outgoing_mult` | 0.70 | EX-06 無状態与ダメ（`145`） |
-| `non_crit_hit_outgoing_mult` | 0.70 | EX-08 非クリヒット（`145`） |
+| `damage_reflect_flat_per_hit` | 35 | EX-03 ヒット固定反射（`145`） |
+| `damage_reflect_pct` | 0.12 | EX-03 与ダメ割合反射（`145`） |
+| `shell_incoming_mult` | 0.65 | EX-08 障壁被ダメ（`145`） |
 | `non_weakness_outgoing_mult` | 0.70 | EX-10 非弱点（`145`） |
 | `ultimate_charge_suppress_mult` | 0.35 | 必殺チャージ抑制 |
 | `ultimate_use_limit` | 3 | 必殺使用回数制限 |
 | `equip_legendary_chance_bonus` | 0.10 | **極限のみ** LEGENDARY 別枠＋10pt（2026-09-20） |
 | `boss_mythic_chance_bonus` | 0.10 | **極限のみ** ボス再クリア神話 1%→11%（2026-09-20） |
 
-**廃止（`145`）:** `status_empower_*`／`elite_swarm_up`／EX-05 二重 heal_down／EX-10 二重 long_battle_ramp。
+**廃止（`145`）:** `status_empower_*`／`elite_swarm_up`／EX-05 二重 heal_down／EX-10 二重 long_battle_ramp／EX-03 `long_battle_ramp`／EX-08 `non_crit_pressure`（互換キーはコード残置・未使用）。
 
 正本は `ExtremeMissionConfig.TUNING`（コード外散在禁止）。制約の正は Decision **`145`**。

@@ -243,9 +243,13 @@ static func member_attack_damage(
 	damage = maxi(1, int(float(damage) * combat.get_member_outgoing_damage_multiplier(
 		member_index, action_range, false, weapon_element(member_index), target_slot
 	)))
-	## 極限 EX-08: 非クリティカルのヒット与ダメ低下（DoT除外・通常攻撃経路）。
+	## 極限 EX-08: 障壁（貫通武器なら無視）。通常攻撃経路。
 	const _ExtremeMissionConfig := preload("res://scripts/dungeon/ExtremeMissionConfig.gd")
-	damage = maxi(1, int(round(float(damage) * _ExtremeMissionConfig.hit_outgoing_mult_for_active_run(is_critical))))
+	var pierce: bool = _ExtremeMissionConfig.attack_pierces_shell(member_index, null, combat, target_slot)
+	damage = maxi(
+		1,
+		int(round(float(damage) * _ExtremeMissionConfig.shell_incoming_mult_for_active_run(pierce)))
+	)
 	var elem_result: Dictionary = enemy_mitigation(
 		combat, dungeon_data, damage, weapon_element(member_index), member_index, target_slot, rng
 	)
