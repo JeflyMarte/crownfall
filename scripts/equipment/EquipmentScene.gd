@@ -1524,9 +1524,10 @@ func _ensure_limit_break_result_overlay() -> void:
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	center.add_child(panel)
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 12)
+	## 装飾枠の柱に食い込まないよう左右を厚め（StyleBox content_margin に加算）。
+	margin.add_theme_constant_override("margin_left", 24)
 	margin.add_theme_constant_override("margin_top", 44)
-	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_right", 24)
 	margin.add_theme_constant_override("margin_bottom", 12)
 	panel.add_child(margin)
 	var outer := VBoxContainer.new()
@@ -1566,11 +1567,14 @@ func _ensure_limit_break_result_overlay() -> void:
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	## DISABLED だと日本語長文の最小幅でパネルが横拡大する。
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	scroll.clip_contents = true
 	scroll.custom_minimum_size = Vector2(0, 200)
 	outer.add_child(scroll)
 	_lb_result_stats_host = VBoxContainer.new()
 	_lb_result_stats_host.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_lb_result_stats_host.custom_minimum_size = Vector2(0, 0)
 	_lb_result_stats_host.add_theme_constant_override("separation", 6)
 	scroll.add_child(_lb_result_stats_host)
 	var close_btn := Button.new()
@@ -1611,6 +1615,9 @@ func _show_limit_break_result(member: Resource, prev_bt: int, new_bt: int) -> vo
 		var empty := Label.new()
 		empty.text = "強化されたパッシブスキルはありません"
 		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+		empty.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		empty.custom_minimum_size = Vector2(0, 0)
 		UiTypography.apply_body(empty, UiTypography.SIZE_BODY_SMALL, COLOR_SUB)
 		_lb_result_stats_host.add_child(empty)
 	else:
@@ -1620,7 +1627,9 @@ func _show_limit_break_result(member: Resource, prev_bt: int, new_bt: int) -> vo
 		var name_lbl := Label.new()
 		name_lbl.text = "パッシブスキル名　%s" % str(raw_def.get("display_name", ""))
 		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		name_lbl.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_lbl.custom_minimum_size = Vector2(0, 0)
 		UiTypography.apply_body(name_lbl, UiTypography.SIZE_BODY_SMALL, COLOR_GOLD)
 		_lb_result_stats_host.add_child(name_lbl)
 		var effect_text: String = RosterUiHelper.passive_effect_highlighted_text(before_def, after_def)
@@ -1628,12 +1637,13 @@ func _show_limit_break_result(member: Resource, prev_bt: int, new_bt: int) -> vo
 		effect_rtl.bbcode_enabled = true
 		effect_rtl.fit_content = true
 		effect_rtl.scroll_active = false
-		effect_rtl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		## 日本語は空白無しのため WORD_SMART では折り返さず横にはみ出す。
+		effect_rtl.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 		effect_rtl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		effect_rtl.custom_minimum_size = Vector2(0, 0)
 		effect_rtl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		effect_rtl.add_theme_font_size_override("normal_font_size", UiTypography.SIZE_BODY_SMALL)
-		effect_rtl.add_theme_color_override("default_color", COLOR_VALUE)
-		effect_rtl.text = "パッシブスキル効果　%s" % effect_text
+		UiTypography.apply_display_rich(effect_rtl, UiTypography.SIZE_BODY_SMALL, COLOR_VALUE)
+		effect_rtl.text = "[center]パッシブスキル効果　%s[/center]" % effect_text
 		_lb_result_stats_host.add_child(effect_rtl)
 	AudioManager.play_sfx("forge_action")
 	_lb_result_overlay.visible = true

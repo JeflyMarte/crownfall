@@ -117,3 +117,41 @@ func test_kaida_first_attack_highlight() -> void:
 	var highlighted: String = RosterUiHelper.passive_effect_highlighted_text(before, after)
 	assert_true(highlighted.contains("×"), highlighted)
 	assert_true(highlighted.contains("[color="), highlighted)
+
+
+func test_limit_break_result_overlay_wraps_passive_effect() -> void:
+	## 長い日本語パッシブ効果が装飾枠を横にはみ出さないこと。
+	var adv: Resource = load("res://scripts/domain/Adventurer.gd").new()
+	adv.id = "adventurer_0"
+	adv.display_name = "アルド"
+	adv.job_id = "swordsman"
+	adv.rarity = Enums.Rarity.RARE
+	adv.limit_breakthrough = 0
+	GameState.roster = [adv]
+	GameState.party_members = [adv]
+	var equip: Node = load("res://scenes/equipment/EquipmentScene.tscn").instantiate()
+	add_child_autofree(equip)
+	await get_tree().process_frame
+	equip.call("_show_limit_break_result", adv, 0, 1)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var overlay: Control = equip.get_node_or_null("LimitBreakResultOverlay")
+	assert_not_null(overlay)
+	assert_true(overlay.visible)
+	var panel: PanelContainer = null
+	var scroll: ScrollContainer = null
+	var effect_rtl: RichTextLabel = null
+	for n: Node in overlay.find_children("*", "", true, false):
+		if n is PanelContainer and panel == null:
+			panel = n as PanelContainer
+		if n is ScrollContainer and scroll == null:
+			scroll = n as ScrollContainer
+		if n is RichTextLabel and str((n as RichTextLabel).text).contains("パッシブスキル効果"):
+			effect_rtl = n as RichTextLabel
+	assert_not_null(panel)
+	assert_not_null(scroll)
+	assert_not_null(effect_rtl)
+	assert_eq(scroll.horizontal_scroll_mode, ScrollContainer.SCROLL_MODE_SHOW_NEVER)
+	assert_eq(effect_rtl.autowrap_mode, TextServer.AUTOWRAP_ARBITRARY)
+	assert_lte(panel.size.x, 680.0)
+	assert_lte(effect_rtl.size.x + 1.0, panel.size.x)

@@ -173,6 +173,7 @@ Mac では **既定で simulate OFF**。実機だけ `apply_chrome_safe_area` �
 - 生産／強化／錬成／分解のリストは同じ `_make_selectable_list_icon` を使う
 - カテゴリ Chip の TextureRect は縦横とも `SIZE_SHRINK_CENTER`＋固定 px（~40）
 - 完了ポップの枠アイコンは外側 `Control` にレアロゴ。`badge_ref_px=INV_CELL_PX`。説明は `AUTOWRAP_ARBITRARY`＋短縮
+- **限界突破結果ポップ**も同じ: 効果 `RichTextLabel` は `AUTOWRAP_ARBITRARY`＋`min.x=0`＋`EXPAND_FILL`。Scroll 横は `SHOW_NEVER`＋`clip_contents`（`DISABLED`＋`WORD_SMART` だと日本語が横はみ出し）
 
 ## PanelContainer 上の角バッジ（再発防止）
 
