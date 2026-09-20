@@ -128,6 +128,32 @@ func test_ui_rank_ii_and_effect_lines() -> void:
 	assert_false(scene.get_upgrade_button_for_test().disabled)
 
 
+func test_ui_current_status_reflects_royal_mark() -> void:
+	## 現在のステータスは王痕倍率込みの実数値（キャラ画面と同式）。
+	_clear_main_normal()
+	var a: Resource = _make_human("adventurer_aldric", 50)
+	GameState.roster = [a]
+	GameState.royal_mark_ranks = {}
+	GameState.royal_mark_shards = 100
+	GameState.gold = 5000
+	var scene: Node = load(ROYAL_MARK_SCENE).instantiate()
+	add_child_autofree(scene)
+	await get_tree().process_frame
+	var base_txt: String = scene.get_current_status_for_test()
+	assert_true(base_txt.find("HP ") >= 0)
+	assert_true(base_txt.find("ATK ") >= 0)
+	assert_true(base_txt.find("DEF ") >= 0)
+	var base_hp: int = int(base_txt.split("\n")[0].replace("HP ", ""))
+	GameState.royal_mark_ranks = {"adventurer_aldric": 5}
+	scene.refresh_for_test()
+	await get_tree().process_frame
+	var boosted_txt: String = scene.get_current_status_for_test()
+	var boosted_hp: int = int(boosted_txt.split("\n")[0].replace("HP ", ""))
+	assert_gt(boosted_hp, base_hp)
+	var expected: Dictionary = RosterUiHelper.compute_member_stats(a)
+	assert_eq(boosted_hp, int(expected.get("hp", 0)))
+
+
 func test_ui_rank_iv_to_v_preview() -> void:
 	_clear_main_normal()
 	var a: Resource = _make_human("adventurer_aldric", 50)

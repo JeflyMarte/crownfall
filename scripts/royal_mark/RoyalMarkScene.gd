@@ -1,7 +1,7 @@
 extends Control
 
 ## 王痕育成専用画面（Decision 144 Phase 2）。Presentation のみ。transaction は RoyalMarkSystem。
-## UI: 次の王痕を主情報に。現在効果コンパクト／特殊王痕2行予告。
+## UI: 次の王痕を主情報に。現在効果／現在ステータス／特殊王痕予告。
 
 const _RoyalMarkConfig := preload("res://scripts/systems/RoyalMarkConfig.gd")
 const _RoyalMarkSystem := preload("res://scripts/systems/RoyalMarkSystem.gd")
@@ -12,6 +12,7 @@ const _GachaLimitBreak := preload("res://scripts/gacha/GachaLimitBreak.gd")
 const _ChrIdlePortrait := preload("res://scripts/ui/ChrIdlePortrait.gd")
 const _SafeAreaHelper := preload("res://scripts/ui/SafeAreaHelper.gd")
 const _SkillIconHelper := preload("res://scripts/ui/SkillIconHelper.gd")
+const _RosterUiHelper := preload("res://scripts/roster/RosterUiHelper.gd")
 const HOME_SCENE: String = "res://scenes/equipment/EquipmentScene.tscn"
 const PATH_ICON_SIZE: Vector2 = Vector2(40, 40)
 const PATH_ICON_OFFENSE_SKILL: String = "slash_attack"
@@ -49,7 +50,9 @@ var _rank_connectors: Array[Control] = []
 var _label_stat_hp: Label
 var _label_stat_atk: Label
 var _label_stat_def: Label
-var _label_current_stats: Label
+var _label_abs_hp: Label
+var _label_abs_atk: Label
+var _label_abs_def: Label
 var _label_special_iii: Label
 var _label_special_v: Label
 
@@ -270,9 +273,27 @@ func _build_chrome() -> void:
 	_label_stat_hp = _make_stat_inline(stats_row, "HP")
 	_label_stat_atk = _make_stat_inline(stats_row, "ATK")
 	_label_stat_def = _make_stat_inline(stats_row, "DEF")
-	_label_current_stats = Label.new()
-	_label_current_stats.visible = false
-	cur_v.add_child(_label_current_stats)
+
+	## --- 4b. 現在のステータス（王痕倍率込みの実数値） ---
+	var status_panel := PanelContainer.new()
+	status_panel.add_theme_stylebox_override("panel", _RoyalMarkUiTokens.info_panel_style())
+	status_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_root.add_child(status_panel)
+	var status_v := VBoxContainer.new()
+	status_v.add_theme_constant_override("separation", 4)
+	status_panel.add_child(status_v)
+	var status_title := Label.new()
+	status_title.text = "現在のステータス"
+	UiTypography.apply_caption(status_title, _RoyalMarkUiTokens.COLOR_GOLD)
+	status_v.add_child(status_title)
+	var abs_row := HBoxContainer.new()
+	abs_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	abs_row.add_theme_constant_override("separation", 12)
+	abs_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	status_v.add_child(abs_row)
+	_label_abs_hp = _make_stat_inline(abs_row, "HP")
+	_label_abs_atk = _make_stat_inline(abs_row, "ATK")
+	_label_abs_def = _make_stat_inline(abs_row, "DEF")
 
 	## --- 方針（Decision 146・Rank III+） ---
 	_panel_path = PanelContainer.new()
@@ -528,6 +549,7 @@ func _refresh_all() -> void:
 		_label_rank.text = ""
 		_set_emblem_for_rank(0)
 		_set_stat_bonuses(0)
+		_set_absolute_stats(null)
 		_refresh_enhance_labels(null, 0)
 		_refresh_path_panel(null, 0)
 		_show_non_max_footer()
@@ -551,6 +573,7 @@ func _refresh_all() -> void:
 	_set_emblem_for_rank(rank)
 	_apply_rank_track(rank)
 	_set_stat_bonuses(rank)
+	_set_absolute_stats(member)
 	_refresh_enhance_labels(member, rank)
 	_refresh_path_panel(member, rank)
 	var shards: int = _RoyalMarkSystem.get_shards()
@@ -645,6 +668,38 @@ func _set_stat_bonuses(rank: int) -> void:
 	_color_stat_value(_label_stat_hp)
 	_color_stat_value(_label_stat_atk)
 	_color_stat_value(_label_stat_def)
+
+
+## キャラ画面と同式（装備・職・王痕込み）の HP/ATK/DEF 実数値。
+func _set_absolute_stats(member: Resource) -> void:
+	if _label_abs_hp == null:
+		return
+	if member == null:
+		_label_abs_hp.text = "—"
+		_label_abs_atk.text = "—"
+		_label_abs_def.text = "—"
+		_color_stat_value(_label_abs_hp)
+		_color_stat_value(_label_abs_atk)
+		_color_stat_value(_label_abs_def)
+		return
+	var stats: Dictionary = _RosterUiHelper.compute_member_stats(member)
+	_label_abs_hp.text = str(int(stats.get("hp", 0)))
+	_label_abs_atk.text = str(int(stats.get("attack", 0)))
+	_label_abs_def.text = str(int(stats.get("defense", 0)))
+	## 王痕で伸びているときだけ水色（倍率>1）。
+	var mults: Dictionary = _RoyalMarkSystem.stat_multipliers_for_member(member)
+	_color_abs_stat(_label_abs_hp, float(mults.get("hp", 1.0)))
+	_color_abs_stat(_label_abs_atk, float(mults.get("attack", 1.0)))
+	_color_abs_stat(_label_abs_def, float(mults.get("defense", 1.0)))
+
+
+func _color_abs_stat(lab: Label, mult: float) -> void:
+	if lab == null:
+		return
+	var col: Color = (
+		_RoyalMarkUiTokens.COLOR_BOOST if mult > 1.001 else _RoyalMarkUiTokens.COLOR_BODY
+	)
+	lab.add_theme_color_override("font_color", col)
 
 
 func _color_stat_value(lab: Label) -> void:
@@ -1219,6 +1274,17 @@ func get_current_effect_for_test() -> String:
 		parts.append("ATK %s" % _label_stat_atk.text)
 	if _label_stat_def != null:
 		parts.append("DEF %s" % _label_stat_def.text)
+	return "\n".join(parts)
+
+
+func get_current_status_for_test() -> String:
+	var parts: PackedStringArray = PackedStringArray()
+	if _label_abs_hp != null:
+		parts.append("HP %s" % _label_abs_hp.text)
+	if _label_abs_atk != null:
+		parts.append("ATK %s" % _label_abs_atk.text)
+	if _label_abs_def != null:
+		parts.append("DEF %s" % _label_abs_def.text)
 	return "\n".join(parts)
 
 
