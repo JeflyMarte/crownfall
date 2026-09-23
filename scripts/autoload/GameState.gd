@@ -9,6 +9,7 @@ const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd
 const _StarterRecruitment = preload("res://scripts/roster/StarterRecruitment.gd")
 const _PetSystem = preload("res://scripts/pets/PetSystem.gd")
 const _UltimateSkillResolver = preload("res://scripts/combat/UltimateSkillResolver.gd")
+const _EquipmentInventoryIndex = preload("res://scripts/equipment/EquipmentInventoryIndex.gd")
 
 # 所持ゴールド（永続）
 var gold: int = 0
@@ -1382,7 +1383,7 @@ func unlock_relic(relic_id: String) -> bool:
 	if rid.is_empty() or rid in owned_relics:
 		return false
 	owned_relics.append(rid)
-	EquipmentInventoryIndex.mark_dirty()
+	_EquipmentInventoryIndex.mark_dirty()
 	const _NinaRareAcquireGuide := preload("res://scripts/ui/NinaRareAcquireGuide.gd")
 	_NinaRareAcquireGuide.on_relic_unlocked(rid)
 	return true
@@ -1567,7 +1568,7 @@ func try_add_weapon_instance(instance: Resource, ignore_cap: bool = false) -> bo
 	if not can_add_equipment(1, ignore_cap):
 		return false
 	inventory.append(instance)
-	EquipmentInventoryIndex.mark_dirty()
+	_EquipmentInventoryIndex.mark_dirty()
 	return true
 
 
@@ -1577,7 +1578,7 @@ func try_add_armor_instance(instance: Resource, ignore_cap: bool = false) -> boo
 	if not can_add_equipment(1, ignore_cap):
 		return false
 	armor_inventory.append(instance)
-	EquipmentInventoryIndex.mark_dirty()
+	_EquipmentInventoryIndex.mark_dirty()
 	return true
 
 
@@ -1587,7 +1588,7 @@ func try_add_accessory_instance(instance: Resource, ignore_cap: bool = false) ->
 	if not can_add_equipment(1, ignore_cap):
 		return false
 	accessory_inventory.append(instance)
-	EquipmentInventoryIndex.mark_dirty()
+	_EquipmentInventoryIndex.mark_dirty()
 	return true
 
 
@@ -1947,7 +1948,7 @@ func reset_for_new_game() -> void:
 	inventory = []
 	armor_inventory = []
 	accessory_inventory = []
-	EquipmentInventoryIndex.mark_dirty()
+	_EquipmentInventoryIndex.mark_dirty()
 	new_equipment_instance_ids = {}
 	material_inventory = {}
 	dungeon_progress = {}

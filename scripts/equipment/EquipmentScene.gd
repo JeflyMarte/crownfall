@@ -28,6 +28,7 @@ const _EquipmentSetBonuses = preload("res://scripts/equipment/EquipmentSetBonuse
 const _UltimateSkillResolver = preload("res://scripts/combat/UltimateSkillResolver.gd")
 const _VirtualInventoryGrid = preload("res://scripts/ui/VirtualInventoryGrid.gd")
 const _EngineerTraps = preload("res://scripts/combat/EngineerTraps.gd")
+const _EquipmentInventoryIndex = preload("res://scripts/equipment/EquipmentInventoryIndex.gd")
 
 # CombatController.BASE_MEMBER_HP と同値（表示用の素HP）。
 const BASE_MEMBER_HP: int = BalanceConfig.BASE_MEMBER_HP
@@ -2348,7 +2349,7 @@ func _rebuild_inventory_grid() -> void:
 		_sync_inventory_cell_size()
 	_clear_inventory_grid_children()
 	## C: 袋インデックスから読む（フィルタ／ソート時のみ全再構築）。
-	var entries: Array = EquipmentInventoryIndex.view_entries(
+	var entries: Array = _EquipmentInventoryIndex.view_entries(
 		_inventory_filter,
 		_inventory_equipped_filter,
 		_effect_families,

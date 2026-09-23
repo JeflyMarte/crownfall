@@ -4,6 +4,7 @@ extends GutTest
 ## 比較のたびに表示名／レア度を引き直すと所持1000で 9 秒超（実機は数十秒の無反応）だった。
 
 const _WeaponInstance := preload("res://scripts/domain/WeaponInstance.gd")
+const _EquipmentInventoryIndex := preload("res://scripts/equipment/EquipmentInventoryIndex.gd")
 
 ## デスクトップ headless の実測は 30ms 未満。CI のばらつきを見て広めに取る。
 const SLOT_TAP_BUDGET_MS: float = 1000.0
@@ -12,6 +13,7 @@ const SLOT_TAP_BUDGET_MS: float = 1000.0
 func before_each() -> void:
 	GameState.reset_for_new_game()
 	GameState.seed_all_starters_unlocked()
+	_EquipmentInventoryIndex.mark_dirty()
 
 
 func _weapon_ids() -> Array:
@@ -71,7 +73,7 @@ func test_slot_tap_stays_responsive_with_full_bag() -> void:
 func test_member_cycle_stays_responsive_without_full_rebuild() -> void:
 	## B: キャラ切替は所持全再構築しない。差分パッチ＋カード更新のみ。
 	_fill_bag(Constants.MAX_EQUIPMENT_INVENTORY)
-	EquipmentInventoryIndex.mark_dirty()
+	_EquipmentInventoryIndex.mark_dirty()
 	var packed: PackedScene = load("res://scenes/equipment/EquipmentScene.tscn")
 	var scene: Control = packed.instantiate() as Control
 	add_child_autofree(scene)
@@ -91,12 +93,15 @@ func test_member_cycle_stays_responsive_without_full_rebuild() -> void:
 
 
 func test_inventory_index_view_entries_match_bag_count() -> void:
+	## スターター初期武器を除外して件数を固定する。
+	GameState.inventory.clear()
+	_EquipmentInventoryIndex.mark_dirty()
 	_fill_bag(40)
-	EquipmentInventoryIndex.mark_dirty()
-	var entries: Array = EquipmentInventoryIndex.view_entries("weapon", "all", [], "rarity")
+	_EquipmentInventoryIndex.mark_dirty()
+	var entries: Array = _EquipmentInventoryIndex.view_entries("weapon", "all", [], "rarity")
 	assert_eq(entries.size(), 40)
 	## 2回目は dirty なしでも同件数（インデックス再利用）。
-	var again: Array = EquipmentInventoryIndex.view_entries("weapon", "all", [], "rarity")
+	var again: Array = _EquipmentInventoryIndex.view_entries("weapon", "all", [], "rarity")
 	assert_eq(again.size(), 40)
 	assert_true(again[0].has("rarity"), "ソート用 rarity が事前計算されている")
 	assert_true(again[0].has("name"), "ソート用 name が事前計算されている")

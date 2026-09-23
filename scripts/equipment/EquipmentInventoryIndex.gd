@@ -1,9 +1,14 @@
-class_name EquipmentInventoryIndex
 extends RefCounted
 
 ## 装備袋の表示用インデックス（B/C）。
 ## 袋の中身が変わったときだけ再構築し、UI はフィルタ／ソートで読むだけ。
 ## キャラ切替では触らない（装備者ハイライトは Owner キャッシュ＋セル差分）。
+## autoload／-s 経路では class_name 未登録になり得るため、呼び出し側は preload すること。
+
+const _EquipmentUiHelper = preload("res://scripts/equipment/EquipmentUiHelper.gd")
+const _EquipmentEffectFamilyFilter = preload("res://scripts/equipment/EquipmentEffectFamilyFilter.gd")
+const _EquipmentRollHelper = preload("res://scripts/equipment/EquipmentRollHelper.gd")
+const _CombatPassives = preload("res://scripts/combat/CombatPassives.gd")
 
 static var _signature: int = 0
 static var _force_dirty: bool = true
@@ -55,8 +60,8 @@ static func view_entries(
 	if equipped_filter != "all":
 		entries = _apply_equipped_filter(entries, equipped_filter)
 	if inventory_filter != "relic":
-		entries = EquipmentEffectFamilyFilter.filter_entries(entries, effect_families)
-	return EquipmentUiHelper.sort_inventory_entries(entries, sort_by)
+		entries = _EquipmentEffectFamilyFilter.filter_entries(entries, effect_families)
+	return _EquipmentUiHelper.sort_inventory_entries(entries, sort_by)
 
 
 static func _apply_equipped_filter(entries: Array, equipped_filter: String) -> Array:
@@ -69,7 +74,7 @@ static func _apply_equipped_filter(entries: Array, equipped_filter: String) -> A
 			if category == "relic":
 				continue
 			var max_item: Resource = entry.get("item") as Resource
-			if EquipmentRollHelper.has_any_perfect_roll(max_item):
+			if _EquipmentRollHelper.has_any_perfect_roll(max_item):
 				filtered.append(entry)
 			continue
 		var owner_member: Resource = null
@@ -115,7 +120,7 @@ static func _rebuild_all() -> void:
 			"relic_id": relic_id,
 			"category": "relic",
 			"rarity": 0,
-			"name": CombatPassives.relic_display_name(relic_id),
+			"name": _CombatPassives.relic_display_name(relic_id),
 		})
 
 
@@ -123,8 +128,8 @@ static func _make_item_entry(item: Resource, category: String) -> Dictionary:
 	return {
 		"item": item,
 		"category": category,
-		"rarity": EquipmentUiHelper.entry_rarity_for_item(item, category),
-		"name": EquipmentUiHelper.entry_sort_name_for_item(item, category),
+		"rarity": _EquipmentUiHelper.entry_rarity_for_item(item, category),
+		"name": _EquipmentUiHelper.entry_sort_name_for_item(item, category),
 	}
 
 

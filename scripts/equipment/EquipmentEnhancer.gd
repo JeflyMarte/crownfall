@@ -6,6 +6,7 @@ const _AccessoryStatResolver = preload("res://scripts/equipment/AccessoryStatRes
 const _WeaponStatResolver = preload("res://scripts/equipment/WeaponStatResolver.gd")
 const _ElementResolver = preload("res://scripts/combat/ElementResolver.gd")
 const _DungeonTierConfig = preload("res://scripts/dungeon/DungeonTierConfig.gd")
+const _EquipmentInventoryIndex = preload("res://scripts/equipment/EquipmentInventoryIndex.gd")
 
 ## 鍛冶屋「炉研ぎ」— 武器・防具・装飾 +1〜+5（P3-D152 / P3-FORGE-002）。
 ## 装備レベル成長 — P3-EQ-LVL-001。分解 — P3-FORGE-003。
@@ -788,7 +789,7 @@ static func _remove_item_from_inventory(item: Resource) -> bool:
 				GameState.accessory_inventory.remove_at(idx)
 				removed = true
 	if removed:
-		EquipmentInventoryIndex.mark_dirty()
+		_EquipmentInventoryIndex.mark_dirty()
 	return removed
 
 static func dismantle_item(item: Resource) -> Dictionary:
