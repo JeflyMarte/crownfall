@@ -770,23 +770,26 @@ static func dismantle_preview(item: Resource) -> Dictionary:
 
 static func _remove_item_from_inventory(item: Resource) -> bool:
 	var idx: int = -1
+	var removed: bool = false
 	match item_category(item):
 		"weapon":
 			idx = GameState.inventory.find(item)
 			if idx >= 0:
 				GameState.inventory.remove_at(idx)
-				return true
+				removed = true
 		"armor":
 			idx = GameState.armor_inventory.find(item)
 			if idx >= 0:
 				GameState.armor_inventory.remove_at(idx)
-				return true
+				removed = true
 		"accessory":
 			idx = GameState.accessory_inventory.find(item)
 			if idx >= 0:
 				GameState.accessory_inventory.remove_at(idx)
-				return true
-	return false
+				removed = true
+	if removed:
+		EquipmentInventoryIndex.mark_dirty()
+	return removed
 
 static func dismantle_item(item: Resource) -> Dictionary:
 	var preview: Dictionary = dismantle_preview(item)

@@ -68,20 +68,38 @@ func test_slot_tap_stays_responsive_with_full_bag() -> void:
 	)
 
 
-func test_member_cycle_rebuild_stays_responsive_with_full_bag() -> void:
+func test_member_cycle_stays_responsive_without_full_rebuild() -> void:
+	## B: キャラ切替は所持全再構築しない。差分パッチ＋カード更新のみ。
 	_fill_bag(Constants.MAX_EQUIPMENT_INVENTORY)
+	EquipmentInventoryIndex.mark_dirty()
 	var packed: PackedScene = load("res://scenes/equipment/EquipmentScene.tscn")
 	var scene: Control = packed.instantiate() as Control
 	add_child_autofree(scene)
 	await get_tree().process_frame
 	await get_tree().process_frame
 	await get_tree().process_frame
+	## 入場遅延後にグリッド構築済みにする。
+	scene.call("_flush_entry_inventory_rebuild")
 
 	var started: int = Time.get_ticks_usec()
 	scene.call("_cycle_member", 1)
-	scene.call("_flush_member_cycle_inventory_rebuild")
+	scene.call("_cycle_member", 1)
+	scene.call("_cycle_member", -1)
 	var elapsed_ms: float = float(Time.get_ticks_usec() - started) / 1000.0
 	assert_lt(elapsed_ms, SLOT_TAP_BUDGET_MS, "キャラ切替が %.1f ms かかっている" % elapsed_ms)
+	assert_true(bool(scene.get("_inventory_grid_ready")), "所持グリッドは維持される")
+
+
+func test_inventory_index_view_entries_match_bag_count() -> void:
+	_fill_bag(40)
+	EquipmentInventoryIndex.mark_dirty()
+	var entries: Array = EquipmentInventoryIndex.view_entries("weapon", "all", [], "rarity")
+	assert_eq(entries.size(), 40)
+	## 2回目は dirty なしでも同件数（インデックス再利用）。
+	var again: Array = EquipmentInventoryIndex.view_entries("weapon", "all", [], "rarity")
+	assert_eq(again.size(), 40)
+	assert_true(again[0].has("rarity"), "ソート用 rarity が事前計算されている")
+	assert_true(again[0].has("name"), "ソート用 name が事前計算されている")
 
 
 func test_rarity_sort_keeps_rarity_desc_then_name_asc() -> void:

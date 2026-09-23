@@ -384,6 +384,13 @@ static func sort_inventory_entries(entries: Array, sort_by: String = "rarity") -
 static func _make_sort_key(entry: Variant) -> Dictionary:
 	if entry is not Dictionary:
 		return {"entry": entry, "rarity": 0, "name": ""}
+	## EquipmentInventoryIndex 済みエントリは rarity/name を持つ（再 DataRegistry 禁止）。
+	if entry.has("rarity") and entry.has("name"):
+		return {
+			"entry": entry,
+			"rarity": int(entry.get("rarity", 0)),
+			"name": str(entry.get("name", "")),
+		}
 	var category: String = str(entry.get("category", ""))
 	if category == "relic":
 		return {
@@ -397,6 +404,14 @@ static func _make_sort_key(entry: Variant) -> Dictionary:
 		"rarity": _entry_rarity(item, category),
 		"name": _entry_sort_name(item, category),
 	}
+
+
+static func entry_rarity_for_item(item: Resource, category: String) -> int:
+	return _entry_rarity(item, category)
+
+
+static func entry_sort_name_for_item(item: Resource, category: String) -> String:
+	return _entry_sort_name(item, category)
 
 static func _compare_sort_key_by_name(a: Dictionary, b: Dictionary) -> bool:
 	return str(a["name"]) < str(b["name"])

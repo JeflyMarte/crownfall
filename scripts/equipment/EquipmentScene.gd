@@ -164,14 +164,13 @@ var _combat_setup_panel: PanelContainer = null
 var _combat_setup_content: VBoxContainer = null
 
 var _selected_member_index: int = 0
-## ◀▶ 連続時は所持グリッド再生成を間引く（停止後に1回）。
-var _member_cycle_inv_timer: Timer = null
-const MEMBER_CYCLE_INV_DEBOUNCE_SEC: float = 0.14
 ## 入場時: カード／装備枠を出したあと、所持グリッドを数フレーム遅らせて体感固まりを短くする。
 ## 壁時計 Timer は初フレーム delta 肥大で即発火し遅延が消える（CI GUT 失敗の原因）。
 const ENTRY_INVENTORY_DELAY_FRAMES: int = 2
 var _inventory_entry_pending: bool = false
 var _entry_inventory_delay_token: int = 0
+## 所持グリッドが一度でも構築済みなら、キャラ切替では全再構築しない（B: 差分パッチのみ）。
+var _inventory_grid_ready: bool = false
 var _inventory_filter: String = "all"
 var _inventory_sort: String = "rarity"
 var _inventory_equipped_filter: String = "all"
@@ -856,7 +855,12 @@ func _refresh_category_buttons() -> void:
 
 func _on_member_selected(member_index: int) -> void:
 	_selected_member_index = member_index
-	_refresh_display()
+	## 一覧選択も ◀▶ と同契約: 袋は触らずカード／ハイライトのみ（B）。
+	if _inventory_grid_ready:
+		_update_header()
+		_refresh_display_for_member_cycle()
+	else:
+		_refresh_display()
 
 func _on_member_prev_pressed() -> void:
 	_cycle_member(-1)
@@ -912,11 +916,11 @@ func _cycle_member(delta: int) -> void:
 		return
 	var next_index: int = (_selected_member_index + delta + count) % count
 	_selected_member_index = next_index
-	## ◀▶ はカード／装備枠／右タブを即反映。所持一覧の全再生成は差分パッチ＋停止後デバウンス。
+	## ◀▶ はカード／装備枠／右タブを即反映。所持一覧は差分パッチのみ（全再生成しない＝B）。
 	_refresh_display_for_member_cycle()
 
 
-## キャラ ◀▶ 専用の軽量更新（所持グリッド全破棄を避ける）。
+## キャラ切替専用の軽量更新（所持グリッド全破棄を避ける）。
 func _refresh_display_for_member_cycle() -> void:
 	_update_character_card()
 	_rebuild_equip_slots()
@@ -925,29 +929,6 @@ func _refresh_display_for_member_cycle() -> void:
 	if _active_tab != TAB_EQUIP:
 		_rebuild_active_side_tab()
 	_patch_inventory_ownership_for_view()
-	_schedule_member_cycle_inventory_rebuild()
-
-
-func _ensure_member_cycle_inv_timer() -> void:
-	if _member_cycle_inv_timer != null and is_instance_valid(_member_cycle_inv_timer):
-		return
-	_member_cycle_inv_timer = Timer.new()
-	_member_cycle_inv_timer.name = "MemberCycleInvDebounce"
-	_member_cycle_inv_timer.one_shot = true
-	_member_cycle_inv_timer.wait_time = MEMBER_CYCLE_INV_DEBOUNCE_SEC
-	_member_cycle_inv_timer.timeout.connect(_flush_member_cycle_inventory_rebuild)
-	add_child(_member_cycle_inv_timer)
-
-
-func _schedule_member_cycle_inventory_rebuild() -> void:
-	_ensure_member_cycle_inv_timer()
-	## 連続 ◀▶ 中はタイマーを振り直し、止まったあとに1回だけ全再生成。
-	_member_cycle_inv_timer.start(MEMBER_CYCLE_INV_DEBOUNCE_SEC)
-
-
-func _flush_member_cycle_inventory_rebuild() -> void:
-	## 連続 ◀▶ 中は最新キャラのみ最終反映（途中の全再生成を間引く）。
-	_rebuild_inventory_grid()
 
 
 ## 入場・一覧選択向け: パーティ／近傍の Idle を裏で温めて切替時の get_image を避ける。
@@ -2366,57 +2347,13 @@ func _rebuild_inventory_grid() -> void:
 	if _inv_cell_size.x < float(EquipmentUiTokens.INV_CELL_PX):
 		_sync_inventory_cell_size()
 	_clear_inventory_grid_children()
-	var entries: Array = []
-	if _inventory_filter == "all" or _inventory_filter == "weapon":
-		for it in $EquipmentController.get_appraised_weapons():
-			entries.append({"item": it, "category": "weapon"})
-	if _inventory_filter == "all" or _inventory_filter == "armor":
-		for it in $EquipmentController.get_appraised_armors():
-			entries.append({"item": it, "category": "armor"})
-	if _inventory_filter == "all" or _inventory_filter == "accessory":
-		for it in $EquipmentController.get_appraised_accessories():
-			entries.append({"item": it, "category": "accessory"})
-	if _inventory_filter == "relic":
-		for rid in GameState.owned_relics:
-			var relic_id: String = str(rid)
-			if relic_id.is_empty():
-				continue
-			entries.append({"relic_id": relic_id, "category": "relic"})
-	if _inventory_equipped_filter != "all":
-		var filtered: Array = []
-		for entry in entries:
-			if entry is not Dictionary:
-				continue
-			var category: String = str(entry.get("category", ""))
-			if _inventory_equipped_filter == "max":
-				## レリックに MAX ランダム行はない。武／防／飾のみ。
-				if category == "relic":
-					continue
-				var max_item: Resource = entry.get("item") as Resource
-				if EquipmentRollHelper.has_any_perfect_roll(max_item):
-					filtered.append(entry)
-				continue
-			var owner_member: Resource = null
-			if category == "relic":
-				var rid: String = str(entry.get("relic_id", ""))
-				owner_member = GameState.find_relic_equipped_owner(rid)
-			else:
-				var item: Resource = entry.get("item")
-				owner_member = GameState.find_item_equipped_owner(item)
-			var is_equipped: bool = owner_member != null
-			match _inventory_equipped_filter:
-				"equipped":
-					if is_equipped:
-						filtered.append(entry)
-				"unequipped":
-					if not is_equipped:
-						filtered.append(entry)
-				_:
-					filtered.append(entry)
-		entries = filtered
-	## レリックは効果ファミリー対象外（装備一覧と同ヘルパ・武防飾のみ）。
-	if _inventory_filter != "relic":
-		entries = EquipmentEffectFamilyFilter.filter_entries(entries, _effect_families)
+	## C: 袋インデックスから読む（フィルタ／ソート時のみ全再構築）。
+	var entries: Array = EquipmentInventoryIndex.view_entries(
+		_inventory_filter,
+		_inventory_equipped_filter,
+		_effect_families,
+		_inventory_sort
+	)
 	if entries.is_empty():
 		var empty_msg: String = "該当する装備がありません"
 		if _inventory_filter == "relic":
@@ -2425,12 +2362,13 @@ func _rebuild_inventory_grid() -> void:
 		_virtual_inv.set_entries([], empty_msg)
 		_fit_inventory_scroll_to_grid()
 		ScrollTouchHelper.enable(_tab_equip_scroll, false)
+		_inventory_grid_ready = true
 		return
-	var sorted: Array = EquipmentUiHelper.sort_inventory_entries(entries, _inventory_sort)
 	_virtual_inv.cell_size = _inv_cell_size_vec()
-	_virtual_inv.set_entries(sorted, "")
+	_virtual_inv.set_entries(entries, "")
 	_fit_inventory_scroll_to_grid()
 	ScrollTouchHelper.enable(_tab_equip_scroll, false)
+	_inventory_grid_ready = true
 	call_deferred("_deferred_virtual_inventory_refresh")
 
 func _make_item_cell(item: Resource, category: String) -> Button:
@@ -2686,8 +2624,12 @@ func _refresh_after_equip_change(
 	item_patches: Array = [],
 	relic_patch_ids: Array = []
 ) -> void:
-	## 着脱: スロット／ステは即反映。一覧は差分パッチ（無指定時のみ deferred 全再生成）。
+	## 着脱: スロット／ステは即反映。一覧は差分パッチ。
+	## 装備中／未装備／MAX フィルタ中はメンバーシップが変わるため全再生成。
 	_refresh_equip_visual_immediate()
+	if _inventory_equipped_filter != "all":
+		call_deferred("_rebuild_inventory_grid")
+		return
 	if item_patches.is_empty() and relic_patch_ids.is_empty():
 		call_deferred("_rebuild_inventory_grid")
 		return
@@ -3213,17 +3155,17 @@ func _item_data(item: Resource, category: String) -> Resource:
 		return null
 	match category:
 		"weapon":
-			return load("res://resources/weapons/" + item.weapon_id + ".tres")
+			return DataRegistry.get_weapon_data(str(item.weapon_id))
 		"armor":
-			return load("res://resources/armors/" + item.armor_id + ".tres")
+			return DataRegistry.get_armor_data(str(item.armor_id))
 		"accessory":
-			return load("res://resources/accessories/" + item.accessory_id + ".tres")
+			return DataRegistry.get_accessory_data(str(item.accessory_id))
 	return null
 
 func _accessory_data(item: Resource) -> Resource:
 	if item == null:
 		return null
-	return load("res://resources/accessories/" + item.accessory_id + ".tres")
+	return DataRegistry.get_accessory_data(str(item.accessory_id))
 
 func _item_rarity(item: Resource, category: String) -> int:
 	var data: Resource = _item_data(item, category)
