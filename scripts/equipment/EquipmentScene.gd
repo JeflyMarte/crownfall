@@ -87,8 +87,8 @@ const EMPTY_SLOT_TEXT: String = "空"
 @onready var _portrait_art: TextureRect = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack/Portrait/PortraitArt
 @onready var _portrait_glyph: Label = $VBoxContainer/CharacterCard/CardRow/PortraitBox/PortraitNavRow/PortraitStack/Portrait/PortraitGlyph
 @onready var _label_name: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow/LabelName
-@onready var _btn_member_list: Button = $VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow/BtnMemberList
-@onready var _btn_royal_mark: Button = $VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow/BtnRoyalMark
+@onready var _btn_member_list: Button = $VBoxContainer/CharacterCard/CardRow/InfoBox/NameActionsRow/BtnMemberList
+@onready var _btn_royal_mark: Button = $VBoxContainer/CharacterCard/CardRow/InfoBox/NameActionsRow/BtnRoyalMark
 @onready var _label_level: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/LabelLevel
 @onready var _job_icon: TextureRect = $VBoxContainer/CharacterCard/CardRow/InfoBox/JobRow/JobIcon
 @onready var _label_job: Label = $VBoxContainer/CharacterCard/CardRow/InfoBox/JobRow/LabelJob
@@ -393,7 +393,7 @@ func _setup_equipment_chrome() -> void:
 	_btn_member_list.clip_text = false
 	UiTypography.apply_menu_button(_btn_royal_mark, false)
 	_btn_royal_mark.add_theme_font_size_override("font_size", UiTypography.SIZE_CAPTION)
-	## 「王痕育成」全文だと NameRow が 720 超→右見切れ。短縮＋tooltip。
+	## 一覧／王痕は NameActionsRow（名前下段）。短縮＋tooltip。
 	_btn_royal_mark.custom_minimum_size = Vector2(64, 36)
 	_btn_royal_mark.clip_text = false
 	_btn_royal_mark.text = "王痕"
@@ -622,21 +622,21 @@ func _apply_panel_styles() -> void:
 	_character_card.add_theme_stylebox_override("panel", EquipmentUiTokens.char_card_style())
 
 func _configure_name_row() -> void:
-	# 名前は省略しない（全文）。フォント縮小で1行に収め、一覧／王痕は末尾追従。
-	_label_name.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	## 案A: 上段＝名前全文のみ／下段＝一覧・王痕。名前は省略しない。
+	_label_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_label_name.custom_minimum_size.x = 0
 	_label_name.clip_text = false
 	_label_name.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	_label_name.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_label_name.max_lines_visible = 1
-	_btn_member_list.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_btn_member_list.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_btn_member_list.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_btn_royal_mark.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_btn_royal_mark.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_btn_royal_mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 
 func _fit_name_label_font_to_width() -> void:
-	## 名前は省略禁止。avail 内にフォント縮小だけで収める（ellipsis／clip しない）。
+	## 名前は省略禁止。Info 全幅（ボタン行と別段）にフォント縮小だけで収める。
 	const MAX_FS: int = UiTypography.SIZE_BODY
 	const MIN_FS: int = 10
 	_configure_name_row()
@@ -654,32 +654,18 @@ func _fit_name_label_font_to_width() -> void:
 		fs -= 1
 		w = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	_label_name.add_theme_font_size_override("font_size", fs)
-	## fit 後の自然幅（≦ avail）が CardRow を押し広げない。上限 cap は使わない。
 	_label_name.custom_minimum_size.x = 0
-
-
-func _name_row_trailing_buttons_width(sep: float) -> float:
-	var btn_w: float = 72.0
-	if _btn_member_list != null:
-		btn_w = maxf(btn_w, _btn_member_list.get_combined_minimum_size().x)
-	if _btn_royal_mark != null and _btn_royal_mark.visible:
-		btn_w += sep + maxf(64.0, _btn_royal_mark.get_combined_minimum_size().x)
-	return btn_w
+	_label_name.clip_text = false
+	_label_name.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 
 
 func _name_label_available_width() -> float:
-	var sep: float = 6.0
-	var name_row: Control = _label_name.get_parent() as Control
-	if name_row != null:
-		sep = float(name_row.get_theme_constant("separation", "HBoxContainer"))
-	var btn_w: float = _name_row_trailing_buttons_width(sep)
-	## 子 Control の combined min は循環膨張し得るので、固定トークン幅で見積もる。
+	## 名前専用行のためボタン幅は引かない。画面幅 − Portrait固定 − Slots。
 	var host_w: float = size.x
 	if host_w < 200.0:
 		host_w = get_viewport_rect().size.x
 	if host_w < 200.0:
 		host_w = 720.0
-	## PortraitStack 200 ＋ ◀▶ 各 ~36。get_combined_minimum_size は使わない。
 	var portrait_w: float = float(EquipmentUiTokens.PORTRAIT_PX) + 72.0
 	var slots_w: float = float(EquipmentUiTokens.SLOT_PANEL_MIN_W)
 	var row_sep: float = 8.0
@@ -687,12 +673,12 @@ func _name_label_available_width() -> float:
 	if card_row != null:
 		row_sep = float(card_row.get_theme_constant("separation", "HBoxContainer"))
 	const CARD_H_MARGIN: float = 24.0
-	## 名前は読める幅を優先（ヴァルデン＋限凸表記が省略されない下限）。
+	## 名前全文（限凸表記込み）が読める下限。
 	const NAME_AVAIL_FLOOR: float = 200.0
 	var info_share: float = (
 		host_w - CARD_H_MARGIN - portrait_w - slots_w - row_sep * 2.0
 	)
-	return maxf(NAME_AVAIL_FLOOR, info_share - btn_w - sep)
+	return maxf(NAME_AVAIL_FLOOR, info_share)
 
 
 func _configure_job_label_one_line() -> void:

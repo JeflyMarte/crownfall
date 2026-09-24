@@ -7,7 +7,7 @@ func test_equipment_scene_has_member_list_button() -> void:
 	var scene: Node = packed.instantiate()
 	add_child_autofree(scene)
 	var btn: Node = scene.get_node_or_null(
-		"VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow/BtnMemberList"
+		"VBoxContainer/CharacterCard/CardRow/InfoBox/NameActionsRow/BtnMemberList"
 	)
 	assert_not_null(btn)
 	assert_true(btn is Button)
@@ -16,6 +16,14 @@ func test_equipment_scene_has_member_list_button() -> void:
 		"VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow/LabelName"
 	)
 	assert_not_null(name_lbl)
+	var actions: Node = scene.get_node_or_null(
+		"VBoxContainer/CharacterCard/CardRow/InfoBox/NameActionsRow"
+	)
+	assert_not_null(actions, "一覧／王痕は名前下段")
+	var royal: Node = scene.get_node_or_null(
+		"VBoxContainer/CharacterCard/CardRow/InfoBox/NameActionsRow/BtnRoyalMark"
+	)
+	assert_not_null(royal)
 
 
 func test_member_list_sheet_opens_and_picks() -> void:
@@ -67,6 +75,16 @@ func test_long_member_name_caps_label_min_width() -> void:
 	assert_eq(name_lbl.text_overrun_behavior, TextServer.OVERRUN_NO_TRIMMING)
 	assert_true(name_lbl.text.find("…") < 0)
 	assert_true(name_lbl.text.find("...") < 0)
+	## 名前行にボタンが同居していないこと（案A: 2段）。
+	var name_row: Node = scene.get_node(
+		"VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow"
+	)
+	assert_eq(name_row.get_child_count(), 1)
+	assert_null(
+		scene.get_node_or_null(
+			"VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow/BtnMemberList"
+		)
+	)
 	var avail: float = float(scene.call("_name_label_available_width"))
 	assert_gte(avail, 200.0)
 	var card_row: Control = scene.get_node(
@@ -74,7 +92,6 @@ func test_long_member_name_caps_label_min_width() -> void:
 	) as Control
 	assert_not_null(card_row)
 	assert_lte(card_row.get_combined_minimum_size().x, 760.0)
-	## 名前フィット関数内に ellipsis 分岐が無いこと（ファイル他箇所の ellipsis は対象外）。
 	var src: String = FileAccess.get_file_as_string(
 		"res://scripts/equipment/EquipmentScene.gd"
 	)
@@ -85,3 +102,4 @@ func test_long_member_name_caps_label_min_width() -> void:
 	assert_true(fit_src.find("省略禁止") >= 0)
 	assert_true(fit_src.find("OVERRUN_TRIM_ELLIPSIS") < 0)
 	assert_true(fit_src.find("clip_text = true") < 0)
+	assert_true(src.find("NameActionsRow") >= 0)
