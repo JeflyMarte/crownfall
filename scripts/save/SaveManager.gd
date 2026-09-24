@@ -9,6 +9,7 @@ const _CommanderLifetime = preload("res://scripts/commander/CommanderLifetime.gd
 const _CommanderProfile = preload("res://scripts/commander/CommanderProfile.gd")
 const _SurveySystem = preload("res://scripts/survey/SurveySystem.gd")
 const _DebugAccess = preload("res://scripts/debug/DebugAccess.gd")
+const _EquipmentInventoryIndex = preload("res://scripts/equipment/EquipmentInventoryIndex.gd")
 
 ## 本編セーブ（はじめから／つづきから）。デバッグは別ファイル。
 const SAVE_PATH_NORMAL: String = "user://save_data.json"
@@ -868,6 +869,7 @@ func _apply_save_data(data: Dictionary) -> void:
 		GameState.armor_inventory = _deserialize_armor_inventory(data["armor_inventory"])
 	if data.has("accessory_inventory") and data["accessory_inventory"] is Array:
 		GameState.accessory_inventory = _deserialize_accessory_inventory(data["accessory_inventory"])
+	_EquipmentInventoryIndex.mark_dirty()
 	if data.has("starter_unlocked_ids") and data["starter_unlocked_ids"] is Array:
 		var unlocked: Array[String] = []
 		for raw_id: Variant in data["starter_unlocked_ids"]:
