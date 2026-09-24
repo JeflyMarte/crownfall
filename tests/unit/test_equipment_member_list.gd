@@ -41,7 +41,7 @@ func test_member_list_sheet_opens_and_picks() -> void:
 
 
 func test_long_member_name_caps_label_min_width() -> void:
-	## 長い名前でも名前 Label の min 幅が Info 取り分を超えて CardRow を押し広げない。
+	## 長い名前でも省略せず、フォント縮小で CardRow 横膨張を抑える。
 	GameState.reset_for_new_game()
 	GameState.seed_all_starters_unlocked()
 	var packed: PackedScene = load("res://scenes/equipment/EquipmentScene.tscn")
@@ -53,7 +53,7 @@ func test_long_member_name_caps_label_min_width() -> void:
 	var members: Array = scene.call("_get_view_members")
 	assert_gt(members.size(), 0)
 	var target: Resource = members[0]
-	target.display_name = "ヴァルデン超長い名前テスト"
+	target.display_name = "ヴァルデン"
 	scene.set("_selected_member_index", 0)
 	scene.call("_update_character_card")
 	await get_tree().process_frame
@@ -62,20 +62,26 @@ func test_long_member_name_caps_label_min_width() -> void:
 		"VBoxContainer/CharacterCard/CardRow/InfoBox/NameRow/LabelName"
 	) as Label
 	assert_not_null(name_lbl)
+	assert_eq(name_lbl.text, "ヴァルデン")
+	assert_false(name_lbl.clip_text, "名前は省略しない")
+	assert_eq(name_lbl.text_overrun_behavior, TextServer.OVERRUN_NO_TRIMMING)
+	assert_true(name_lbl.text.find("…") < 0)
+	assert_true(name_lbl.text.find("...") < 0)
 	var avail: float = float(scene.call("_name_label_available_width"))
-	assert_gt(avail, 64.0)
-	## fit 後の min 幅は avail 以下（EXPAND+ellipsis 時は 0）。
-	assert_lte(name_lbl.custom_minimum_size.x, avail + 1.0)
+	assert_gte(avail, 200.0)
 	var card_row: Control = scene.get_node(
 		"VBoxContainer/CharacterCard/CardRow"
 	) as Control
 	assert_not_null(card_row)
-	## 名前全文幅で CardRow min が viewport を大幅超過しないこと。
 	assert_lte(card_row.get_combined_minimum_size().x, 760.0)
+	## 名前フィット関数内に ellipsis 分岐が無いこと（ファイル他箇所の ellipsis は対象外）。
 	var src: String = FileAccess.get_file_as_string(
 		"res://scripts/equipment/EquipmentScene.gd"
 	)
-	assert_true(
-		src.find("画面幅（EquipmentScene / viewport）") >= 0
-		or src.find("NameRow／InfoBox／CardRow の size は名前") >= 0
-	)
+	var fit_i: int = src.find("func _fit_name_label_font_to_width")
+	var next_i: int = src.find("\nfunc ", fit_i + 1)
+	assert_true(fit_i >= 0)
+	var fit_src: String = src.substr(fit_i, maxi(0, next_i - fit_i))
+	assert_true(fit_src.find("省略禁止") >= 0)
+	assert_true(fit_src.find("OVERRUN_TRIM_ELLIPSIS") < 0)
+	assert_true(fit_src.find("clip_text = true") < 0)

@@ -622,8 +622,7 @@ func _apply_panel_styles() -> void:
 	_character_card.add_theme_stylebox_override("panel", EquipmentUiTokens.char_card_style())
 
 func _configure_name_row() -> void:
-	# 名前は実幅で縮み、一覧／強化ボタンが末尾に追従する。
-	# 長い名前でも CardRow が 720 超えないよう、fit 後に min 幅を cap する。
+	# 名前は省略しない（全文）。フォント縮小で1行に収め、一覧／王痕は末尾追従。
 	_label_name.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_label_name.custom_minimum_size.x = 0
 	_label_name.clip_text = false
@@ -637,14 +636,13 @@ func _configure_name_row() -> void:
 
 
 func _fit_name_label_font_to_width() -> void:
-	# 長い名前(限界突破+表記込み)はフォントを下げて1行に収める。
-	# avail は InfoBox 幅基準（NameRow.size は名前 min で膨らむため循環する）。
+	## 名前は省略禁止。avail 内にフォント縮小だけで収める（ellipsis／clip しない）。
 	const MAX_FS: int = UiTypography.SIZE_BODY
-	const MIN_FS: int = 16
+	const MIN_FS: int = 10
+	_configure_name_row()
 	_label_name.add_theme_font_size_override("font_size", MAX_FS)
 	var text: String = _label_name.text
 	if text.is_empty():
-		_label_name.custom_minimum_size.x = 0
 		return
 	var font: Font = _label_name.get_theme_font("font")
 	if font == null:
@@ -656,18 +654,8 @@ func _fit_name_label_font_to_width() -> void:
 		fs -= 1
 		w = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	_label_name.add_theme_font_size_override("font_size", fs)
-	if w <= avail:
-		## 自然幅＋一覧追従。min を実測幅に固定して CardRow 横膨張を防ぐ。
-		_label_name.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-		_label_name.custom_minimum_size.x = ceilf(w)
-		_label_name.clip_text = false
-		_label_name.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
-	else:
-		## MIN_FS でも収まらない稀例のみ EXPAND＋ellipsis（SHRINK+clip は名前消滅）。
-		_label_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_label_name.custom_minimum_size.x = 0
-		_label_name.clip_text = true
-		_label_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	## fit 後の自然幅（≦ avail）が CardRow を押し広げない。上限 cap は使わない。
+	_label_name.custom_minimum_size.x = 0
 
 
 func _name_row_trailing_buttons_width(sep: float) -> float:
@@ -685,32 +673,28 @@ func _name_label_available_width() -> float:
 	if name_row != null:
 		sep = float(name_row.get_theme_constant("separation", "HBoxContainer"))
 	var btn_w: float = _name_row_trailing_buttons_width(sep)
-	## NameRow／InfoBox／CardRow の size は名前 min＝全文で循環して膨らむため使わない。
-	## 画面幅（EquipmentScene / viewport）から Portrait＋Slots を引いて Info 取り分を出す。
+	## 子 Control の combined min は循環膨張し得るので、固定トークン幅で見積もる。
 	var host_w: float = size.x
 	if host_w < 200.0:
 		host_w = get_viewport_rect().size.x
 	if host_w < 200.0:
 		host_w = 720.0
-	var portrait_w: float = 248.0
-	if _portrait_box != null:
-		portrait_w = maxf(
-			portrait_w,
-			_portrait_box.get_combined_minimum_size().x
-		)
+	## PortraitStack 200 ＋ ◀▶ 各 ~36。get_combined_minimum_size は使わない。
+	var portrait_w: float = float(EquipmentUiTokens.PORTRAIT_PX) + 72.0
 	var slots_w: float = float(EquipmentUiTokens.SLOT_PANEL_MIN_W)
-	if _slots_panel != null:
-		slots_w = maxf(slots_w, _slots_panel.get_combined_minimum_size().x)
 	var row_sep: float = 8.0
 	var card_row: Control = $VBoxContainer/CharacterCard/CardRow as Control
 	if card_row != null:
 		row_sep = float(card_row.get_theme_constant("separation", "HBoxContainer"))
-	## CharacterCard StyleBox 左右 margin の目安。
 	const CARD_H_MARGIN: float = 24.0
+	## 名前は読める幅を優先（ヴァルデン＋限凸表記が省略されない下限）。
+	const NAME_AVAIL_FLOOR: float = 200.0
 	var info_share: float = (
 		host_w - CARD_H_MARGIN - portrait_w - slots_w - row_sep * 2.0
 	)
-	return maxf(64.0, info_share - btn_w - sep)
+	return maxf(NAME_AVAIL_FLOOR, info_share - btn_w - sep)
+
+
 func _configure_job_label_one_line() -> void:
 	# 折返しすると InfoBox が高くなり、装備スロット／ステータスが下にずれる。
 	_label_job.clip_text = false
