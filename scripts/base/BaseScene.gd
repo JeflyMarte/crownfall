@@ -1070,7 +1070,7 @@ func _on_debug_event_requested(entry_id: String) -> void:
 		call_deferred("_debug_show_privilege_guide")
 		return
 	if entry_id == "royal_mark_guide":
-		call_deferred("_debug_show_royal_mark_guide")
+		call_deferred("_debug_play_royal_mark_first_acquire_flow")
 		return
 	## 調査室サイクル受取ポップも即表示（付与なしプレビュー）。
 	if entry_id == "survey_claim_result":
@@ -1095,10 +1095,19 @@ func _debug_show_privilege_guide() -> void:
 	_DungeonRouteGuide.show_on(self, _DungeonRouteGuide.GUIDE_PERMIT, true)
 
 
-func _debug_show_royal_mark_guide() -> void:
-	## preview のみ。済みフラグは触らない（強制遷移しない）。
+## 王痕片初入手後と同じ: パーティ先頭で王痕画面へ飛ばし、到着後に書籍手引き。
+## 既読／pending セーブは触らない（何度でも再演可）。
+func _debug_play_royal_mark_first_acquire_flow() -> void:
 	const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
-	_DungeonRouteGuide.show_on(self, _DungeonRouteGuide.GUIDE_ROYAL_MARK, true)
+	const _RoyalMarkSystem := preload("res://scripts/systems/RoyalMarkSystem.gd")
+	if _RoyalMarkSystem.get_shards() <= 0:
+		_RoyalMarkSystem.set_shards(30)
+	_DungeonRouteGuide.mark_return_hub_after_royal_mark()
+	_DungeonRouteGuide.mark_debug_force_royal_mark_guide()
+	var focus_id: String = _RoyalMarkSystem.party_leader_focus_id()
+	if not focus_id.is_empty():
+		GameState.equipment_focus_member_id = focus_id
+	SceneRouter.change_scene(ROYAL_MARK_SCENE)
 
 
 func _debug_show_survey_claim_result() -> void:

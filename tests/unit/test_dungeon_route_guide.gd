@@ -186,6 +186,13 @@ func test_royal_mark_heal_preserves_pending() -> void:
 	assert_true(_Guide.has_pending_royal_mark_scene())
 
 
+func test_royal_mark_debug_force_guide_flag() -> void:
+	assert_false(_Guide.consume_debug_force_royal_mark_guide())
+	_Guide.mark_debug_force_royal_mark_guide()
+	assert_true(_Guide.consume_debug_force_royal_mark_guide())
+	assert_false(_Guide.consume_debug_force_royal_mark_guide())
+
+
 func test_abyss_unlock_queues_guide() -> void:
 	if not Constants.ABYSS_DUNGEONS_PLAYABLE:
 		pass_test("ABYSS off")

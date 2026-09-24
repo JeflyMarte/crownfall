@@ -32,6 +32,7 @@ const FLAG_ROYAL_MARK: String = "hub_guide_royal_mark_seen"
 const PENDING_KEY: String = "pending_dungeon_route_guide"
 const PENDING_ROYAL_MARK_OPEN: String = "pending_royal_mark_guide_open"
 const RETURN_HUB_AFTER_ROYAL_MARK: String = "royal_mark_return_hub"
+const DEBUG_FORCE_ROYAL_MARK_GUIDE: String = "debug_force_royal_mark_guide"
 
 const BG_PATH: String = "res://assets/ui/UI_BG_HubSimpleGuide.png"
 const PANEL_MIN: Vector2 = Vector2(700, 680)
@@ -507,6 +508,18 @@ static func consume_return_hub_after_royal_mark() -> bool:
 	if not bool(GameState.tutorial_flags.get(RETURN_HUB_AFTER_ROYAL_MARK, false)):
 		return false
 	GameState.tutorial_flags.erase(RETURN_HUB_AFTER_ROYAL_MARK)
+	return true
+
+
+## デバッグ用: 既読を触らず強制手引きを1回出す。
+static func mark_debug_force_royal_mark_guide() -> void:
+	GameState.tutorial_flags[DEBUG_FORCE_ROYAL_MARK_GUIDE] = true
+
+
+static func consume_debug_force_royal_mark_guide() -> bool:
+	if not bool(GameState.tutorial_flags.get(DEBUG_FORCE_ROYAL_MARK_GUIDE, false)):
+		return false
+	GameState.tutorial_flags.erase(DEBUG_FORCE_ROYAL_MARK_GUIDE)
 	return true
 
 

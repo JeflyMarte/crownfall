@@ -110,6 +110,10 @@ func _ready() -> void:
 func _maybe_auto_show_guide() -> void:
 	const _DungeonRouteGuide := preload("res://scripts/ui/DungeonRouteGuideOverlay.gd")
 	_DungeonRouteGuide.clear_pending_royal_mark_scene()
+	if _DungeonRouteGuide.consume_debug_force_royal_mark_guide():
+		## デバッグ再演: preview のみ（既読にしない）。
+		_DungeonRouteGuide.show_on(self, _DungeonRouteGuide.GUIDE_ROYAL_MARK, true)
+		return
 	_DungeonRouteGuide.try_auto_show(self, _DungeonRouteGuide.GUIDE_ROYAL_MARK)
 
 

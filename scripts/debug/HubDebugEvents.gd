@@ -186,8 +186,8 @@ static func list_entries() -> Array[Dictionary]:
 		},
 		{
 			"id": "royal_mark_guide",
-			"title": "王痕育成の手引き",
-			"hint": "書籍手引きをプレビュー表示（セーブ済みフラグは触らない）",
+			"title": "王痕片初入手の導線",
+			"hint": "拠点→王痕画面へ強制遷移＋書籍手引き（既読フラグは触らない）",
 		},
 		{
 			"id": "clear_pending_story",
@@ -237,7 +237,7 @@ static func run(entry_id: String) -> String:
 			## 表示は BaseScene 側（preview・フラグ非接触）。
 			return ""
 		"royal_mark_guide":
-			## 表示は BaseScene 側（preview・フラグ非接触）。
+			## 強制遷移＋手引きは BaseScene 側（既読フラグ非接触）。
 			return ""
 		"survey_claim_result":
 			## 表示は BaseScene 側（即ポップ・付与なし）。
