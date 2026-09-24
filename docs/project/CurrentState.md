@@ -3,6 +3,7 @@
 ---
 
 ## Last Update
+2026-09-24（**キャラ画面長い名前の右見切れ修正**: 名前 fit の avail を InfoBox 基準にし min 幅 cap。CardRow が 720 超えない）
 2026-09-24（**デバッグ: 王痕片初入手導線**: 拠点デバッグから強制遷移＋書籍手引きを再演。既読フラグ非接触）
 2026-09-24（**リモート取り込み: キャラ画面所持 B/C**: `EquipmentInventoryIndex`＋切替差分パッチ。preload 化で autoload 破壊を防止）
 2026-09-23（**キャラ画面所持 B/C**: 切替は差分パッチのみ・`EquipmentInventoryIndex` で袋変更時のみ事前計算。装備フィルタ中のみ着脱で再構築。Gameplay 不変）

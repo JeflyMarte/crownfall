@@ -623,7 +623,9 @@ func _apply_panel_styles() -> void:
 
 func _configure_name_row() -> void:
 	# 名前は実幅で縮み、一覧／強化ボタンが末尾に追従する。
+	# 長い名前でも CardRow が 720 超えないよう、fit 後に min 幅を cap する。
 	_label_name.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_label_name.custom_minimum_size.x = 0
 	_label_name.clip_text = false
 	_label_name.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	_label_name.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -633,43 +635,82 @@ func _configure_name_row() -> void:
 	_btn_royal_mark.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_btn_royal_mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
+
 func _fit_name_label_font_to_width() -> void:
-	# 長い名前(限界突破+表記込み)はフォントを下げて1行に収める（省略・改行せずタブ行を押し出さない）。
+	# 長い名前(限界突破+表記込み)はフォントを下げて1行に収める。
+	# avail は InfoBox 幅基準（NameRow.size は名前 min で膨らむため循環する）。
 	const MAX_FS: int = UiTypography.SIZE_BODY
 	const MIN_FS: int = 16
 	_label_name.add_theme_font_size_override("font_size", MAX_FS)
 	var text: String = _label_name.text
 	if text.is_empty():
+		_label_name.custom_minimum_size.x = 0
 		return
 	var font: Font = _label_name.get_theme_font("font")
 	if font == null:
 		return
 	var avail: float = _name_label_available_width()
 	var fs: int = MAX_FS
-	while fs > MIN_FS:
-		var w: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-		if w <= avail:
-			break
+	var w: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	while fs > MIN_FS and w > avail:
 		fs -= 1
+		w = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	_label_name.add_theme_font_size_override("font_size", fs)
+	if w <= avail:
+		## 自然幅＋一覧追従。min を実測幅に固定して CardRow 横膨張を防ぐ。
+		_label_name.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		_label_name.custom_minimum_size.x = ceilf(w)
+		_label_name.clip_text = false
+		_label_name.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	else:
+		## MIN_FS でも収まらない稀例のみ EXPAND＋ellipsis（SHRINK+clip は名前消滅）。
+		_label_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_label_name.custom_minimum_size.x = 0
+		_label_name.clip_text = true
+		_label_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+
+
+func _name_row_trailing_buttons_width(sep: float) -> float:
+	var btn_w: float = 72.0
+	if _btn_member_list != null:
+		btn_w = maxf(btn_w, _btn_member_list.get_combined_minimum_size().x)
+	if _btn_royal_mark != null and _btn_royal_mark.visible:
+		btn_w += sep + maxf(64.0, _btn_royal_mark.get_combined_minimum_size().x)
+	return btn_w
+
 
 func _name_label_available_width() -> float:
 	var sep: float = 6.0
 	var name_row: Control = _label_name.get_parent() as Control
 	if name_row != null:
 		sep = float(name_row.get_theme_constant("separation", "HBoxContainer"))
-	var btn_w: float = 72.0
-	if _btn_member_list != null:
-		btn_w = maxf(btn_w, _btn_member_list.get_combined_minimum_size().x)
-	if _btn_royal_mark != null and _btn_royal_mark.visible:
-		btn_w += sep + maxf(64.0, _btn_royal_mark.get_combined_minimum_size().x)
-	if name_row != null and name_row.size.x >= 40.0:
-		return maxf(64.0, name_row.size.x - btn_w - sep)
-	if _label_name.size.x >= 40.0:
-		return _label_name.size.x
-	# レイアウト前の安全値（viewport 内 CardRow 想定）。
-	return 180.0
-
+	var btn_w: float = _name_row_trailing_buttons_width(sep)
+	## NameRow／InfoBox／CardRow の size は名前 min＝全文で循環して膨らむため使わない。
+	## 画面幅（EquipmentScene / viewport）から Portrait＋Slots を引いて Info 取り分を出す。
+	var host_w: float = size.x
+	if host_w < 200.0:
+		host_w = get_viewport_rect().size.x
+	if host_w < 200.0:
+		host_w = 720.0
+	var portrait_w: float = 248.0
+	if _portrait_box != null:
+		portrait_w = maxf(
+			portrait_w,
+			_portrait_box.get_combined_minimum_size().x
+		)
+	var slots_w: float = float(EquipmentUiTokens.SLOT_PANEL_MIN_W)
+	if _slots_panel != null:
+		slots_w = maxf(slots_w, _slots_panel.get_combined_minimum_size().x)
+	var row_sep: float = 8.0
+	var card_row: Control = $VBoxContainer/CharacterCard/CardRow as Control
+	if card_row != null:
+		row_sep = float(card_row.get_theme_constant("separation", "HBoxContainer"))
+	## CharacterCard StyleBox 左右 margin の目安。
+	const CARD_H_MARGIN: float = 24.0
+	var info_share: float = (
+		host_w - CARD_H_MARGIN - portrait_w - slots_w - row_sep * 2.0
+	)
+	return maxf(64.0, info_share - btn_w - sep)
 func _configure_job_label_one_line() -> void:
 	# 折返しすると InfoBox が高くなり、装備スロット／ステータスが下にずれる。
 	_label_job.clip_text = false
