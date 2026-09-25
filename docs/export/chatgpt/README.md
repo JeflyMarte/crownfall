@@ -1,7 +1,7 @@
 # Crownfall — ChatGPT 向け仕様エクスポート
 
 **生成日:** 2026-09-17（現行実装へ再同期）  
-**対象フェーズ:** iOS App Store 1.0 系（配信済み〜1.0.8 提出準備）  
+**対象フェーズ:** iOS App Store 1.0 系（配信済み〜1.0.9 提出準備）  
 **正本（SSOT）:** `docs/specs/` ＋ `docs/project/CurrentState.md` / `CurrentSprint.md`
 
 ---
